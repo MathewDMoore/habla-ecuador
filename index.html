@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c35">
+  <meta name="description" content="Practice Spanish with Ecuadorian-first vocabulary and clear English translations.">
+  <title>Habla Ecuador</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="./" aria-label="Habla Ecuador home">
+      <span class="mark" aria-hidden="true">H</span>
+      <span>Habla <strong>Ecuador</strong></span>
+    </a>
+    <span class="region-label"><span aria-hidden="true">🇪🇨</span> Ecuadorian Spanish</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">Spanish for real conversations</p>
+      <h1 id="page-title">Build your ear.<br><span>Find your words.</span></h1>
+      <p class="lede">Start with Ecuadorian usage, then compare meanings across regions when it helps.</p>
+    </section>
+
+    <section class="practice-panel" aria-label="Vocabulary practice">
+      <div class="controls">
+        <label class="search-wrap">
+          <span class="sr-only">Search Spanish or English</span>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search a word or meaning" autocomplete="off">
+        </label>
+        <label class="speed-control">
+          <span>Voice pace</span>
+          <select id="voice-rate" aria-label="Spanish voice pace">
+            <option value="0.72">Slow</option>
+            <option value="0.94" selected>Natural</option>
+          </select>
+        </label>
+      </div>
+      <p id="voice-note" class="voice-note" aria-live="polite">Tap “Hear Spanish” to listen.</p>
+      <div id="results" class="results" aria-live="polite"></div>
+      <p id="empty-state" class="empty-state" hidden>No matching entries yet. Try another word.</p>
+    </section>
+
+    <footer>
+      <span>Early vocabulary prototype</span>
+      <span>Translations are shown in US and UK English</span>
+    </footer>
+  </main>
+</body>
+</html>
