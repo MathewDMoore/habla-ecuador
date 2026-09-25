@@ -1,0 +1,26 @@
+[
+  {
+    "entryId": "de-ley",
+    "priority": "high",
+    "needs": ["Confirm a specific dictionary sense", "Run a CORPHA context check", "Write an original learner example", "Add Bolivia comparison only if supported"],
+    "status": "research-lead"
+  },
+  {
+    "entryId": "bacan",
+    "priority": "medium",
+    "needs": ["Run a CORPHA context check", "Check contemporary Ecuador register", "Native-speaker review of practice example"],
+    "status": "dictionary-attested"
+  },
+  {
+    "entryId": "guagua",
+    "priority": "medium",
+    "needs": ["Run a CORPHA context check", "Review regional spread inside Ecuador", "Native-speaker review of practice example"],
+    "status": "dictionary-attested"
+  },
+  {
+    "entryId": "atatay",
+    "priority": "medium",
+    "needs": ["Run a CORPHA context check", "Verify Ecuador-vs-Bolivia pragmatic contrast", "Native-speaker review of practice example"],
+    "status": "dictionary-attested"
+  }
+]
