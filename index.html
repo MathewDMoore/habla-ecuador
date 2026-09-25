@@ -11,10 +11,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="wordmark" href="./" aria-label="Habla Ecuador home">
-      <span class="mark" aria-hidden="true">H</span>
-      <span>Habla <strong>Ecuador</strong></span>
-    </a>
+    <a class="wordmark" href="./" aria-label="Habla Ecuador home"><span class="mark" aria-hidden="true">H</span><span>Habla <strong>Ecuador</strong></span></a>
     <span class="region-label"><span aria-hidden="true">🇪🇨</span> Ecuadorian Spanish</span>
   </header>
 
@@ -22,41 +19,31 @@
     <section class="intro" aria-labelledby="page-title">
       <p class="eyebrow">Spanish for real conversations</p>
       <h1 id="page-title">Build your ear.<br><span>Find your words.</span></h1>
-      <p class="lede">Start with Ecuadorian usage, then compare meanings across regions when it helps.</p>
+      <p class="lede">Start with Ecuadorian usage, see how strong the evidence is, then compare Bolivia when the contrast actually teaches you something.</p>
+      <div class="status-strip" aria-label="Lexicon status">
+        <span><strong id="ready-count">0</strong> learner-ready</span>
+        <span><strong id="domain-count">0</strong> conversation rooms</span>
+        <span><strong>🇪🇨 ↔ 🇧🇴</strong> comparison layer</span>
+      </div>
     </section>
 
     <section class="practice-panel" aria-label="Vocabulary practice">
       <div class="controls">
-        <label class="search-wrap">
-          <span class="sr-only">Search Spanish or English</span>
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <input id="search" type="search" placeholder="Search a word or meaning" autocomplete="off">
-        </label>
-        <label class="speed-control">
-          <span>Voice pace</span>
-          <select id="voice-rate" aria-label="Spanish voice pace">
-            <option value="0.72">Slow</option>
-            <option value="0.94" selected>Natural</option>
-          </select>
-        </label>
+        <label class="search-wrap"><span class="sr-only">Search Spanish or English</span><span class="search-icon" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search a word or meaning" autocomplete="off"></label>
+        <label class="speed-control"><span>Voice pace</span><select id="voice-rate" aria-label="Spanish voice pace"><option value="0.68">Slow</option><option value="0.94" selected>Natural</option></select></label>
       </div>
+      <div id="domain-filters" class="domain-filters" aria-label="Conversation categories"></div>
       <p id="voice-note" class="voice-note" aria-live="polite">Tap “Hear Spanish” to listen.</p>
       <div id="results" class="results" aria-live="polite"></div>
-      <p id="empty-state" class="empty-state" hidden>No matching entries yet. Try another word.</p>
+      <p id="empty-state" class="empty-state" hidden>No matching entries yet. Try another word or room.</p>
     </section>
 
     <section class="sources-panel" aria-labelledby="sources-title">
-      <div class="sources-heading">
-        <div><p class="eyebrow">Evidence behind the entries</p><h2 id="sources-title">Sources &amp; method</h2></div>
-        <p>Sources guide the app; definitions are paraphrased and practice examples are original.</p>
-      </div>
+      <div class="sources-heading"><div><p class="eyebrow">Evidence behind the entries</p><h2 id="sources-title">Sources &amp; method</h2></div><p>Sources guide the app; definitions are paraphrased and practice examples are original. Dictionary evidence, corpus checks and native review stay visibly separate.</p></div>
       <div id="source-list" class="source-list" aria-live="polite"></div>
     </section>
 
-    <footer>
-      <span>Early vocabulary prototype</span>
-      <span>Translations are shown in US and UK English</span>
-    </footer>
+    <footer><span>Evidence-backed Ecuadorian-first prototype</span><span>US English · UK English · Ecuador ↔ Bolivia</span></footer>
   </main>
 </body>
 </html>
