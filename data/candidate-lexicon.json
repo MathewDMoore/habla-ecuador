@@ -1,0 +1,74 @@
+[
+  {
+    "id": "achachay",
+    "spanish": "¡achachay!",
+    "provisionalMeaning": "interjection expressing feeling cold",
+    "status": "research-lead",
+    "sources": ["ael_dae", "corpha", "hablemos_ecuatoriano"],
+    "nextChecks": [
+      "Log CORPHA frequency and regions",
+      "Check current register and age distribution",
+      "Write original US/UK English learner examples"
+    ]
+  },
+  {
+    "id": "agache",
+    "spanish": "de agache",
+    "provisionalMeaning": "without making an effort; slipping by quietly",
+    "status": "research-lead",
+    "sources": ["ael_dae", "corpha"],
+    "nextChecks": [
+      "Confirm contemporary conversational frequency",
+      "Check regional distribution",
+      "Compare with Bolivia only if a reliable source supports a contrast"
+    ]
+  },
+  {
+    "id": "chulla-vida",
+    "spanish": "¡chulla vida!",
+    "provisionalMeaning": "an exhortation to enjoy or make the most of the present",
+    "status": "research-lead",
+    "sources": ["ael_dae", "corpha", "hablemos_ecuatoriano"],
+    "nextChecks": [
+      "Log modern CORPHA examples",
+      "Verify tone, age, and regional spread",
+      "Create original conversational examples"
+    ]
+  },
+  {
+    "id": "acholarse",
+    "spanish": "acholarse",
+    "provisionalMeaning": "Ecuadorian verb requiring sense-by-sense verification",
+    "status": "research-lead",
+    "sources": ["ael_dae", "corpha"],
+    "nextChecks": [
+      "Confirm current AEL senses",
+      "Log CORPHA contexts before writing a learner definition",
+      "Check whether regional labels apply"
+    ]
+  },
+  {
+    "id": "chuta",
+    "spanish": "¡chuta!",
+    "provisionalMeaning": "colloquial interjection; pragmatic meaning depends on context",
+    "status": "research-lead",
+    "sources": ["hablemos_ecuatoriano", "ael_dae", "corpha"],
+    "nextChecks": [
+      "Separate surprise, annoyance, disappointment, and sympathy uses if supported",
+      "Check intensity and politeness",
+      "Write context-specific examples rather than one broad translation"
+    ]
+  },
+  {
+    "id": "ele",
+    "spanish": "¡elé!",
+    "provisionalMeaning": "colloquial reaction roughly signaling 'see?' or 'I told you' in some contexts",
+    "status": "research-lead",
+    "sources": ["hablemos_ecuatoriano", "ael_dae", "corpha"],
+    "nextChecks": [
+      "Verify spelling and senses in AEL",
+      "Log CORPHA contexts",
+      "Avoid treating one English rendering as universal"
+    ]
+  }
+]
