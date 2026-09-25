@@ -1,0 +1,100 @@
+[
+  {
+    "id": "puesta-del-sol",
+    "spanish": "puesta del sol",
+    "usEnglish": "sunset",
+    "ukEnglish": "sunset",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "¿A qué hora se pone el sol?",
+    "exampleUs": "What time does the sun set?",
+    "usage": "Natural question about sunset. This wording is not exclusive to Ecuador.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "puesta-de-sol",
+    "spanish": "puesta de sol",
+    "usEnglish": "sunset",
+    "ukEnglish": "sunset",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "al ponerse el sol",
+    "exampleUs": "at sunset; as the sun sets",
+    "usage": "A listed variant; the example is a phrase rather than a full sentence.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "puesta-solar",
+    "spanish": "puesta solar",
+    "usEnglish": "sunset; setting of the sun",
+    "ukEnglish": "sunset; setting of the sun",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm register and context with additional sources before presenting it as everyday speech.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "ocaso",
+    "spanish": "ocaso",
+    "usEnglish": "sunset; dusk",
+    "ukEnglish": "sunset; dusk",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Context can make it sound more literary or formal.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "salida-del-sol",
+    "spanish": "salida del sol",
+    "usEnglish": "sunrise",
+    "ukEnglish": "sunrise",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "ver salir el sol",
+    "exampleUs": "to watch the sun rise",
+    "usage": "Straightforward sunrise wording; the example is a useful verb phrase.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "salida-de-sol",
+    "spanish": "salida de sol",
+    "usEnglish": "sunrise",
+    "ukEnglish": "sunrise",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a variant of “salida del sol.”",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "salida-solar",
+    "spanish": "salida solar",
+    "usEnglish": "sunrise; rising of the sun",
+    "ukEnglish": "sunrise; rising of the sun",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm register and context with additional sources before presenting it as everyday speech.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "orto",
+    "spanish": "orto",
+    "usEnglish": "sunrise; rising of the sun",
+    "ukEnglish": "sunrise; rising of the sun",
+    "level": "B2",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm that it fits the intended register before using it in conversation.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  },
+  {
+    "id": "amanecer",
+    "spanish": "amanecer",
+    "usEnglish": "dawn; to become light",
+    "ukEnglish": "dawn; to become light",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "antes de que amanezca",
+    "exampleUs": "before dawn; before it gets light",
+    "usage": "Can refer to dawn or to daylight beginning, depending on how it is used.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner."
+  }
+]
