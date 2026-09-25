@@ -73,3 +73,23 @@ footer { display:flex; justify-content:space-between; gap:16px; padding:22px 2px
   .speak { padding:0 10px; font-size:11px; }
   footer { flex-direction:column; gap:6px; }
 }
+
+
+.sources-panel { margin:24px 0 0; padding:22px; border:1px solid var(--line); border-radius:20px; background:#fff; }
+.sources-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:14px; }
+.sources-heading h2 { margin:0; font-size:25px; letter-spacing:-.6px; }
+.sources-heading .eyebrow { margin-bottom:8px; }
+.sources-heading > p { max-width:390px; margin:0; color:var(--muted); font-size:12px; line-height:1.5; }
+.source-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.source-card { padding:14px; border:1px solid var(--line); border-radius:13px; background:#fbfcfa; }
+.source-card h3 { margin:0 0 6px; font-size:14px; }
+.source-kind { display:inline-block; margin-bottom:8px; color:var(--green); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.source-card p { margin:0 0 8px; color:var(--muted); font-size:12px; line-height:1.5; }
+.source-card a,.entry-sources a { color:var(--green); font-size:11px; font-weight:700; }
+.entry-sources { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.evidence-note { margin:12px 0 0; color:var(--muted); font-size:11px; line-height:1.5; }
+.country-comparisons { display:grid; gap:7px; margin-top:14px; }
+.country-item { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fbfcfa; }
+.country-item strong { display:block; margin-bottom:3px; font-size:11px; }
+.country-item p { margin:0; color:var(--muted); font-size:12px; line-height:1.45; }
+@media (max-width:600px) { .sources-panel { padding:15px; } .sources-heading { display:block; } .sources-heading > p { margin-top:8px; } .source-list { grid-template-columns:1fr; } }
