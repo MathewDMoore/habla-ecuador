@@ -61,5 +61,19 @@
     "kind": "Ecuador reference app",
     "url": "https://play.google.com/store/apps/details?id=com.jrigg.spanish.dictionary.ecuador",
     "use": "The project owner supplied MITAD sunrise and sunset vocabulary and example structures. Use as a cited lead; reuse permissions for its dictionary content are not established."
+  },
+  {
+    "id": "ael_diatopic_corrections",
+    "name": "AEL — Fichero de correcciones, precisiones y adendas a la marcación diatópica",
+    "kind": "Geographic-label quality control",
+    "url": "https://www.academiaecuatorianadelalengua.org/fichero-de-correcciones-precisiones-y-adendas-a-la-marcacion-diatopica-de-ecuatorianismos-en-los-repertorios-academicos/",
+    "use": "Use to catch omissions or inaccurate Ecuador geographic labels in broader RAE/ASALE repertories before assigning an Ecuador-specific or regional tag."
+  },
+  {
+    "id": "ael_dae_method",
+    "name": "AEL — Method notes for the Diccionario académico del habla del Ecuador",
+    "kind": "Lexicographic methodology",
+    "url": "https://www.academiaecuatorianadelalengua.org/elaboracion-de-un-diccionario-regional-descriptivo-contrastivo-por-dona-valeria-guzman/",
+    "use": "Documents AEL's evidence workflow: CORPHA first, then additional Ecuadorian sources when corpus evidence is insufficient. Use as a model for Habla Ecuador verification."
   }
 ]
