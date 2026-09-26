@@ -29,7 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.5 · build 16";
+const APP_VERSION = "0.11.6 · build 17";
 const VOICE_CORRECTION_KEY = "habla-ecuador-ios-voice-correction-v1";
 
 const culturalExpressions = [
@@ -413,9 +413,27 @@ function expressionCategoryLabel(category) {
   })[category] || category;
 }
 
+function renderSlangIndex(query="") {
+  const root = $("#slang-index-list");
+  if (!root) return;
+  const entries = culturalExpressions.filter(entry => {
+    if (!["slang", "idiom"].includes(entry.category)) return false;
+    const searchable = normalize([entry.spanish, entry.us, entry.uk, entry.note, entry.register].join(" "));
+    return !query || searchable.includes(query);
+  });
+  root.innerHTML = entries.length ? entries.map(entry => {
+    const english = englishVariant === "uk" ? entry.uk : entry.us;
+    return `<li>
+      <div><strong>${escapeHtml(entry.spanish)}</strong><span>${escapeHtml(english)}</span></div>
+      <p><b>Context:</b> ${escapeHtml(entry.register)} — ${escapeHtml(entry.note)}</p>
+    </li>`;
+  }).join("") : `<li class="slang-index-empty">No slang entries match this search.</li>`;
+}
+
 function renderExpressionLibrary(query="") {
   const root = $("#expression-results");
   if (!root) return;
+  renderSlangIndex(query);
   const visible = culturalExpressions.filter(entry => {
     const searchable = normalize([entry.spanish, entry.us, entry.uk, entry.exampleEs, entry.exampleUs, entry.exampleUk, entry.note, entry.register, entry.warning, ...(entry.comparisons || []), expressionCategoryLabel(entry.category)].filter(Boolean).join(" "));
     return (expressionFilter === "all" || entry.category === expressionFilter) && (!query || searchable.includes(query));
@@ -743,7 +761,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=16a").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=17a").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
