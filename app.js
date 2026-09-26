@@ -332,6 +332,7 @@ function renderDictionary() {
   $("#dictionary-status").hidden = visible.length > 0;
   if (!visible.length) $("#dictionary-status").textContent = "No entries match that search and verification filter.";
   root.innerHTML = visible.map(renderEvidenceCard).join("");
+  bindDictionaryAudio();
 }
 
 function renderEvidenceCard(entry) {
@@ -356,8 +357,17 @@ function renderEvidenceCard(entry) {
     verification.nativeSpeakerReviewed === true ? "Native review ✓" : verification.nativeSpeakerReviewed === false ? "Native review pending" : ""
   ].filter(Boolean);
   const reviewText = queueItem?.needs?.length ? queueItem.needs.join(" · ") : entry.nextChecks?.length ? entry.nextChecks.join(" · ") : "";
+  const usMeaning = entry.usEnglish || entry.provisionalMeaning || "";
+  const ukMeaning = entry.ukEnglish || "";
+  const audioItems = [
+    ["Spanish word", entry.spanish, "es-EC"],
+    ["Spanish example", entry.exampleEs, "es-EC"],
+    ["U.S. meaning", usMeaning, "en-US"],
+    ...(ukMeaning && ukMeaning !== usMeaning ? [["U.K. meaning", ukMeaning, "en-GB"]] : [])
+  ].filter(([,text]) => text);
   return `<article class="evidence-card">
     <header><div><h2>${escapeHtml(entry.spanish || "Untitled entry")}</h2><p class="english-gloss">${escapeHtml(gloss)}</p></div><span class="evidence-badge ${status === "research-lead" ? "research" : ""}">${statusLabel(status)}</span></header>
+    <div class="dictionary-audio" aria-label="Spoken audio">${audioItems.map(([label,text,lang]) => `<button type="button" data-dictionary-audio="${escapeHtml(text)}" data-audio-lang="${lang}" aria-label="Hear ${escapeHtml(label)}">🔊 ${escapeHtml(label)}</button>`).join("")}</div>
     <div class="evidence-meta">${verificationBits.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>
     ${entry.exampleEs ? `<div class="evidence-example"><p>${escapeHtml(entry.exampleEs)}</p>${entry.exampleUs ? `<small>${escapeHtml(entry.exampleUs)}</small>` : ""}</div>` : ""}
     ${entry.regionStatus ? `<div class="evidence-section"><h3>Regional status</h3><p>${escapeHtml(entry.regionStatus)}</p></div>` : ""}
@@ -368,6 +378,12 @@ function renderEvidenceCard(entry) {
     ${reviewText ? `<div class="evidence-section"><h3>Still to verify</h3><p>${escapeHtml(reviewText)}</p></div>` : ""}
     <div class="evidence-section"><h3>Sources</h3><div class="source-links">${sourceLinks || "<span>No named source linked yet</span>"}</div></div>
   </article>`;
+}
+
+function bindDictionaryAudio() {
+  $$('[data-dictionary-audio]').forEach(button => button.addEventListener("click", () => {
+    say(button.dataset.dictionaryAudio, button.dataset.audioLang || "es-EC");
+  }));
 }
 
 function readReviewPackage() {
@@ -558,7 +574,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=9").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=10").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

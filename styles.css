@@ -139,6 +139,9 @@ textarea::placeholder { color: #9ca39f; }
 .evidence-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .evidence-card h2 { margin: 0; color: var(--green); font-size: 24px; line-height: 1.15; }
 .evidence-card .english-gloss { margin: 5px 0 0; color: var(--ink); font-size: 15px; }
+.dictionary-audio { display: flex; flex-wrap: wrap; gap: 7px; margin: 13px 0 4px; }
+.dictionary-audio button { padding: 8px 10px; border: 1px solid #bad8c6; border-radius: 999px; background: var(--mint); color: var(--green); font-size: 10px; font-weight: 850; }
+.dictionary-audio button:active { transform: scale(.97); background: #d4eadc; }
 .evidence-badge { flex: 0 0 auto; padding: 6px 8px; border-radius: 999px; background: var(--mint); color: var(--green-2); font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .evidence-badge.research { background: #fff0dc; color: #9b4f25; }
 .evidence-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0; }
