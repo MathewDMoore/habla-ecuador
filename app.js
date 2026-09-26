@@ -29,7 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.2";
+const APP_VERSION = "0.11.3 · build 14";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -66,6 +66,7 @@ let translationTimer = 0;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
 let speechVoices = [];
+let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
@@ -118,25 +119,36 @@ function refreshSpeechVoices() {
   return speechVoices;
 }
 
-function say(text, lang="es-EC", attempt=0) {
+function say(text, lang="es-EC") {
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
+  const requestId = ++speechRequestId;
   speechSynthesis.cancel();
-  refreshSpeechVoices();
-  if (!speechVoices.length && attempt < 8) {
-    setTimeout(() => say(text, lang, attempt + 1), 125);
-    return;
-  }
-  const target = voiceForLanguage(lang);
-  if (!target) {
-    const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
-    showToast(`${label} speech is unavailable on this device.`);
-    return;
-  }
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = target.lang;
-  utterance.rate = voiceRate;
-  utterance.voice = target;
-  speechSynthesis.speak(utterance);
+  const speakWithFreshVoice = (attempt=0) => {
+    if (requestId !== speechRequestId) return;
+    refreshSpeechVoices();
+    if (!speechVoices.length && attempt < 8) {
+      setTimeout(() => speakWithFreshVoice(attempt + 1), 125);
+      return;
+    }
+    const target = voiceForLanguage(lang);
+    if (!target) {
+      const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
+      showToast(`${label} speech is unavailable on this device.`);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = target;
+    utterance.lang = target.lang;
+    utterance.rate = voiceRate;
+    utterance.onerror = event => {
+      if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
+    };
+    document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(target.lang);
+    setTimeout(() => {
+      if (requestId === speechRequestId) speechSynthesis.speak(utterance);
+    }, 160);
+  };
+  setTimeout(() => speakWithFreshVoice(), 160);
 }
 
 function startListening({way=direction, button, onText}={}) {
@@ -695,7 +707,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=14").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
