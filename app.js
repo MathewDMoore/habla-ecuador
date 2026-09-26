@@ -29,6 +29,21 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
+const APP_VERSION = "0.11.1";
+
+const culturalExpressions = [
+  {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
+  {category:"idiom", spanish:"Estoy hecho funda.", us:"I'm completely wiped out.", uk:"I'm completely shattered.", note:"A vivid Ecuadorian expression for being exhausted, battered, emotionally low, or very drunk. Context matters.", naturalness:"Sounds natural in Ecuador", register:"Very informal · context-sensitive"},
+  {category:"slang", spanish:"¡Qué bacán!", us:"That's cool! / That's great!", uk:"That's brilliant! / That's great!", note:"Bacán is widely understood, but it is especially comfortable and natural in everyday Ecuadorian speech.", naturalness:"Sounds natural in Ecuador", register:"Informal · enthusiastic"},
+  {category:"slang", spanish:"Chuta, qué pena.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", note:"Chuta can show surprise, frustration, sympathy, or disappointment. The speaker's tone supplies much of the meaning.", naturalness:"Sounds natural in Ecuador", register:"Informal · mild exclamation"},
+  {category:"culture", spanish:"¡Achachay, qué frío!", us:"It's so cold!", uk:"It's absolutely freezing!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", naturalness:"Natural in Ecuador; especially Andean", register:"Expressive · regional"},
+  {category:"culture", spanish:"¿Me da la yapa, por favor?", us:"Could you add a little extra, please?", uk:"Could you add a little extra, please?", note:"La yapa is the small extra amount or gift a seller may add at a market.", naturalness:"Sounds natural in Ecuador", register:"Friendly · market language"},
+  {category:"culture", spanish:"Mi ñaño viene.", us:"My brother is coming.", uk:"My brother is coming.", note:"Ñaño or ñaña can affectionately mean brother or sister in Ecuador. It does not travel safely to every country.", naturalness:"Sounds natural in Ecuador", register:"Familiar · affectionate"},
+  {category:"personal", spanish:"¿Te gustaría que hiciéramos algo el 20?", us:"Would you like us to do something on the 20th?", uk:"Would you like to do something on the 20th?", note:"A warm, low-pressure way to suggest spending time together.", naturalness:"Natural, neutral wording in Ecuador", register:"Warm invitation"},
+  {category:"personal", spanish:"¿Te gustaría ir a tomar un cafecito?", us:"Would you like to get coffee?", uk:"Would you like to go for a coffee?", note:"Cafecito adds conversational warmth; it does not require the coffee to be small.", naturalness:"Natural in Ecuador", register:"Warm · everyday"},
+  {category:"personal", spanish:"Disculpa, no entendí bien. ¿Me puedes repetir más despacio, por favor?", us:"Sorry, I didn't quite understand. Could you repeat that more slowly, please?", uk:"Sorry, I didn't quite catch that. Could you say it again more slowly, please?", note:"A practical learner phrase that keeps a real conversation moving politely.", naturalness:"Natural, polite wording in Ecuador", register:"Polite · learner-essential"}
+];
+
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9\s]/g, " ").replace(/\s+/g, " ").trim();
@@ -41,6 +56,7 @@ let selectedChoice = "";
 let turns = [];
 let recognition = null;
 let evidenceFilter = "all";
+let expressionFilter = "all";
 let evidenceEntries = [];
 let evidenceSources = new Map();
 let reviewQueue = new Map();
@@ -315,6 +331,38 @@ async function loadEvidence() {
   }
 }
 
+function expressionCategoryLabel(category) {
+  return ({
+    idiom:"Idiom & metaphor",
+    slang:"Slang",
+    culture:"Culture & everyday speech",
+    personal:"Our useful phrases"
+  })[category] || category;
+}
+
+function renderExpressionLibrary(query="") {
+  const root = $("#expression-results");
+  if (!root) return;
+  const visible = culturalExpressions.filter(entry => {
+    const searchable = normalize([entry.spanish, entry.us, entry.uk, entry.note, entry.register, expressionCategoryLabel(entry.category)].join(" "));
+    return (expressionFilter === "all" || entry.category === expressionFilter) && (!query || searchable.includes(query));
+  });
+  root.innerHTML = visible.length ? visible.map(entry => {
+    const english = englishVariant === "uk" ? entry.uk : entry.us;
+    return `<article class="expression-card">
+      <header><span class="expression-kind">${escapeHtml(expressionCategoryLabel(entry.category))}</span><span class="natural-indicator">✓ ${escapeHtml(entry.naturalness)}</span></header>
+      <p class="expression-spanish">${escapeHtml(entry.spanish)}</p>
+      <p class="expression-english">${escapeHtml(english)}</p>
+      <div class="dictionary-audio" aria-label="Spoken audio">
+        <button type="button" data-dictionary-audio="${escapeHtml(entry.spanish)}" data-audio-lang="es-EC">🔊 Spanish</button>
+        <button type="button" data-dictionary-audio="${escapeHtml(english)}" data-audio-lang="${englishVariant === "uk" ? "en-GB" : "en-US"}">🔊 English</button>
+      </div>
+      <p class="expression-note">${escapeHtml(entry.note)}</p>
+      <small>${escapeHtml(entry.register)}</small>
+    </article>`;
+  }).join("") : `<p class="status">No expressions match this search and category.</p>`;
+}
+
 function entryStatus(entry) {
   if (entry.origin === "learner-ready") return "learner-ready";
   if (reviewQueue.has(entry.id)) return "research-lead";
@@ -333,8 +381,12 @@ function statusLabel(value) {
 
 function renderDictionary() {
   const root = $("#dictionary-results");
-  if (!root || !evidenceEntries.length) return;
   const query = normalize($("#dictionary-search").value);
+  renderExpressionLibrary(query);
+  if (!root || !evidenceEntries.length) {
+    bindDictionaryAudio();
+    return;
+  }
   const visible = evidenceEntries.filter(entry => {
     const status = entryStatus(entry);
     const searchable = normalize([
@@ -544,6 +596,7 @@ function escapeHtml(value) {
 
 function init() {
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || new URLSearchParams(location.search).get("standalone") === "translator";
+  $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
@@ -561,6 +614,7 @@ function init() {
     $$("[data-variant]").forEach(item => item.classList.toggle("active", item === button));
     $("#target-label").textContent = englishVariant === "uk" ? "UK English" : "U.S. English";
     renderTranslation();
+    renderDictionary();
   }));
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
@@ -570,6 +624,11 @@ function init() {
   $$("[data-speaker]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speaker, current)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
+  $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
+    expressionFilter = button.dataset.expressionFilter;
+    $$('[data-expression-filter]').forEach(item => item.classList.toggle("active", item === button));
+    renderDictionary();
+  }));
   $$("[data-evidence-filter]").forEach(button => button.addEventListener("click", () => {
     evidenceFilter = button.dataset.evidenceFilter;
     $$("[data-evidence-filter]").forEach(item => item.classList.toggle("active", item === button));
@@ -592,7 +651,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=11").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=12").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
