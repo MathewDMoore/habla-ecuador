@@ -169,6 +169,7 @@ async function renderTranslation() {
   if (!phrase) {
     result.hidden = false;
     missing.hidden = true;
+    $(".result-label").textContent = direction === "en-ec" ? "General Spanish translation" : `${englishVariant === "uk" ? "UK" : "U.S."} English translation`;
     $("#natural-result").textContent = "Translating…";
     $("#literal-result").textContent = "";
     $("#usage-note").innerHTML = `<strong>General translation</strong><span>Checking an external translation service. Ecuadorian naturalness has not yet been verified.</span>`;
@@ -189,6 +190,7 @@ async function renderTranslation() {
   }
   result.hidden = false;
   missing.hidden = true;
+  $(".result-label").textContent = direction === "en-ec" ? "Verified Ecuadorian Spanish" : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
   const target = translatedText(phrase);
   $("#natural-result").textContent = target;
   $("#literal-result").textContent = direction === "en-ec" && phrase.es !== phrase.natural ? `Direct version: ${phrase.es}` : direction === "ec-en" ? `Source sense: ${phrase.en}` : "";
@@ -556,7 +558,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=8").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=9").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
