@@ -743,7 +743,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=16a").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
