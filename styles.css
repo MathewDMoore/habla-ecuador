@@ -87,11 +87,6 @@ textarea::placeholder { color: #9ca39f; }
 .segmented { display: flex; padding: 3px; border-radius: 12px; background: #eae1d4; }
 .segmented button { padding: 7px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; }
 .segmented button.active { background: white; color: var(--green); }
-.voice-correction { display: grid; gap: 5px; margin: 4px 2px 14px; }
-.voice-correction button { justify-self: start; padding: 8px 11px; border: 1px solid #d5c6b2; border-radius: 12px; background: white; color: var(--muted); font-size: 11px; font-weight: 800; }
-.voice-correction button.active { border-color: var(--orange); background: #fff0dc; color: #88441f; }
-.voice-correction small { color: var(--muted); font-size: 9px; line-height: 1.4; }
-
 .result-card { margin-top: 14px; padding: 20px; border-radius: 25px; background: var(--green); color: white; }
 .result-label { margin: 0; color: #a9d2bd; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .translation-text { margin: 12px 0 0; font-size: 25px; font-weight: 400; line-height: 1.35; }
