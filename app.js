@@ -1,119 +1,223 @@
-const searchInput = document.querySelector("#search");
-const rateInput = document.querySelector("#voice-rate");
-const results = document.querySelector("#results");
-const emptyState = document.querySelector("#empty-state");
-const voiceNote = document.querySelector("#voice-note");
-const sourceList = document.querySelector("#source-list");
-const domainFilters = document.querySelector("#domain-filters");
-const readyCount = document.querySelector("#ready-count");
-const domainCount = document.querySelector("#domain-count");
+const phrases = [
+  { en:"How are you?", us:"How are you? / How's it going?", uk:"How are you? / You alright?", es:"¿Cómo estás?", natural:"¿Cómo estás? / ¿Qué tal?", note:"Both sound natural in Ecuador. ¿Qué tal? is relaxed and conversational.", register:"Friendly · everyday", keys:["como estas","que tal"] },
+  { en:"Maybe another time.", es:"Tal vez en otra ocasión.", natural:"Quizás otro día.", note:"Quizás otro día is the warmer everyday option when declining without sounding final.", register:"Friendly · neutral Ecuador", keys:["tal vez otra vez","talvez un otra vez","quizas otro dia"] },
+  { en:"What happened?", us:"What happened? / What's going on?", uk:"What happened? / What's going on?", es:"¿Qué pasó?", natural:"¿Qué pasó? / ¿Qué fue?", note:"¿Qué pasó? works everywhere. ¿Qué fue? is much more informal and depends on the relationship.", register:"Everyday · informal alternative", keys:["que paso","que fue"] },
+  { en:"I don't understand.", es:"No entiendo.", natural:"Disculpa, no entendí bien.", note:"The natural version softens the interruption: Sorry, I didn't quite understand.", register:"Polite · everyday", keys:["no entiendo","no entendi bien"] },
+  { en:"Can you say it more slowly?", us:"Could you say that more slowly, please?", uk:"Could you say that again more slowly, please?", es:"¿Puedes decirlo más despacio?", natural:"¿Me puedes repetir más despacio, por favor?", note:"This asks the person to repeat themselves and sounds courteous in a real conversation.", register:"Polite · everyday", keys:["puedes decirlo mas despacio","repetir mas despacio"] },
+  { en:"Nice to meet you.", es:"Mucho gusto.", natural:"Mucho gusto, qué gusto conocerte.", note:"Mucho gusto is the safest everyday choice. The longer version adds warmth.", register:"Warm · neutral Ecuador", keys:["mucho gusto","gusto conocerte"] },
+  { en:"Do you want to go fishing with me?", us:"Would you like to go fishing with me?", uk:"Would you like to come fishing with me?", es:"¿Quieres ir a pescar conmigo?", natural:"¿Te gustaría ir a pescar conmigo?", note:"¿Te gustaría…? sounds inviting and gives the other person less pressure.", register:"Warm invitation · neutral", keys:["quieres ir a pescar","gustaria ir a pescar"] },
+  { en:"I want to go with you.", es:"Quiero ir contigo.", natural:"Me gustaría ir contigo.", note:"The direct version is correct. Me gustaría… can sound gentler when making a new plan.", register:"Friendly · neutral", keys:["quiero ir contigo","gustaria ir contigo"] },
+  { en:"I'm tired.", es:"Estoy cansado.", natural:"Estoy cansado, mejor seguimos mañana.", note:"Use cansado for a man and cansada for a woman. The longer version closes the conversation kindly.", register:"Everyday · neutral", keys:["estoy cansado","estoy cansada"] },
+  { en:"I miss you.", es:"Te extraño.", natural:"Te he extrañado.", note:"Te extraño is direct. Te he extrañado can feel warmer: I've missed you.", register:"Personal · warm", keys:["te extrano","te he extranado"] },
+  { en:"Do you want to get coffee?", us:"Do you want to get coffee?", uk:"Would you like to go for a coffee?", es:"¿Quieres ir a tomar un café?", natural:"¿Te gustaría ir a tomar un cafecito?", note:"Un cafecito adds warmth; it does not necessarily mean the coffee must be small.", register:"Warm invitation · everyday", keys:["quieres ir a tomar un cafe","tomar un cafecito"] },
+  { en:"Definitely.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", es:"Definitivamente.", natural:"De ley.", note:"In Ecuador, de ley informally means definitely or of course. It may sound unfamiliar elsewhere.", register:"Distinctly Ecuadorian · informal", keys:["de ley"] },
+  { en:"What time does the sun set?", es:"¿A qué hora se pone el sol?", natural:"¿A qué hora se pone el sol?", note:"This is the natural conversational structure. Ocaso is valid but sounds literary in an everyday plan.", register:"Everyday · neutral Ecuador", keys:["a que hora se pone el sol","puesta del sol","ocaso"] },
+  { en:"Let's watch the sunset.", es:"Veamos la puesta del sol.", natural:"Vamos a ver el atardecer.", note:"Atardecer works naturally as a noun here. Puesta del sol is also correct; puesta solar is less conversational.", register:"Everyday plan · neutral Ecuador", keys:["vamos a ver el atardecer","puesta del sol"] },
+  { en:"I want to watch the sunrise.", es:"Quiero ver la salida del sol.", natural:"Quiero ver salir el sol.", note:"The natural version uses the action ver salir el sol. Orto is technical or literary, not an everyday choice.", register:"Everyday · neutral Ecuador", keys:["quiero ver salir el sol","salida del sol","amanecer"] },
+  { en:"That's cool!", us:"That's cool! / That's great!", uk:"That's brilliant! / That's great!", es:"¡Qué genial!", natural:"¡Qué bacán!", note:"In Ecuador, bacán informally means cool, great, or excellent. It is Ecuador-natural rather than uniquely Ecuadorian.", register:"Ecuador-natural · informal · positive", keys:["que bacan","bacan"] },
+  { en:"Oh no, that's disappointing.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", es:"Vaya, qué decepción.", natural:"Chuta, qué pena.", note:"Chuta can express surprise, annoyance, sympathy, or disappointment in Ecuador. Tone determines the feeling.", register:"Ecuadorian · informal · mild", keys:["chuta que pena","chuta"] },
+  { en:"It's so cold!", uk:"It's absolutely freezing!", es:"¡Qué frío hace!", natural:"¡Achachay, qué frío!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", register:"Ecuadorian/Andean · expressive", keys:["achachay que frio","achachay"] },
+  { en:"My brother is coming.", es:"Mi hermano viene.", natural:"Mi ñaño viene.", note:"Ñaño and ñaña are informal, often affectionate words for a brother or sister in Ecuador. In Panama, ñaño can carry a derogatory meaning.", register:"Ecuadorian · familiar · regional warning", keys:["mi nano viene","mi ñaño viene","nano","ñaño","ñaña"] },
+  { en:"The baby is sleeping.", es:"El bebé está durmiendo.", natural:"La guagua está durmiendo.", note:"In Ecuador, guagua can mean a baby or young child. In several Caribbean countries, it commonly means a bus.", register:"Ecuadorian/Andean · familiar", keys:["la guagua esta durmiendo","guagua"] },
+  { en:"Can you add a little extra?", es:"¿Puede agregar un poco más?", natural:"¿Me da la yapa, por favor?", note:"At a market, la yapa is a small extra amount or gift a seller adds to a purchase.", register:"Ecuadorian/Andean · market language", keys:["me da la yapa","la yapa","yapa"] },
+  { en:"Bring a jacket.", us:"Bring a jacket.", uk:"Bring a jumper or jacket.", es:"Lleva una chaqueta.", natural:"Lleva una chompa.", note:"Chompa is normal in Ecuador for a warm upper garment; the English match can be jacket, sweater, or jumper.", register:"Ecuador-natural · clothing", keys:["lleva una chompa","trae una chompa","chompa"] },
+  { en:"He's my close friend.", us:"He's a close friend of mine.", uk:"He's a close mate of mine.", es:"Es un amigo cercano.", natural:"Es mi pana.", note:"In Ecuador, pana means a close friend or inseparable companion, not merely any acquaintance.", register:"Ecuador-natural · affectionate", keys:["es mi pana","mi pana","pana"] },
+  { en:"I'm completely worn out.", us:"I'm completely wiped out.", uk:"I'm completely shattered.", es:"Estoy completamente agotado.", natural:"Estoy hecho funda.", note:"Hecho funda can describe someone exhausted, battered, emotionally low, or very drunk. Context determines the meaning.", register:"Ecuadorian · very informal · context warning", keys:["estoy hecho funda","estoy hecha funda","hecho funda"] },
+  { en:"They gave him a nickname.", es:"Le pusieron un apodo.", natural:"Le pusieron una chapa.", note:"Chapa can mean a nickname in Ecuador, often humorous. It can feel teasing or unkind depending on the relationship.", register:"Ecuadorian · informal · teasing possible", keys:["le pusieron una chapa","una chapa","chapa"] },
+  { en:"They fired him.", us:"They fired him.", uk:"They sacked him.", es:"Lo despidieron.", natural:"Lo cancelaron del trabajo.", note:"Ecuador also uses cancelar for dismissing an employee. Lo despidieron is safest across countries.", register:"Ecuadorian sense · employment", keys:["lo cancelaron del trabajo","lo cancelaron"] },
+  { en:"I go back to work on the 21st. Can we do something on the 20th?", es:"Regreso a trabajar el 21. ¿Podemos hacer algo el 20?", natural:"Regreso a trabajar el 21. ¿Te gustaría que hiciéramos algo el 20?", note:"This sounds natural, warm, and neutral in Ecuador. ¿Te gustaría que hiciéramos…? makes the invitation gentler.", register:"Warm invitation · neutral Ecuador", keys:["vuelvo al trabajo el 21 podemos hacer algo el 20","regreso a trabajar el 21"] },
+  { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
+];
 
-let entries = [];
-let sources = [];
-let domains = [];
-let comparisons = [];
-let activeDomain = "all";
+const $ = (selector, root=document) => root.querySelector(selector);
+const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
+const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+
+let direction = "en-ec";
+let englishVariant = "us";
+let voiceRate = .94;
+let lessonStep = 1;
+let selectedChoice = "";
+let turns = [];
+let recognition = null;
+
+function matchPhrase(value, way=direction) {
+  const clean = normalize(value);
+  if (!clean) return null;
+  return phrases.find(phrase => {
+    const candidates = way === "en-ec" ? [phrase.en, phrase.us, phrase.uk] : [phrase.es, phrase.natural, ...(phrase.keys || [])];
+    return candidates.filter(Boolean).some(candidate => {
+      const normalized = normalize(candidate);
+      return normalized === clean || (clean.length > 7 && (normalized.includes(clean) || clean.includes(normalized)));
+    });
+  }) || null;
+}
+
+function openView(id) {
+  $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
+  $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
+  window.scrollTo({top:0, behavior:"smooth"});
+  if (id === "lesson-view") renderLesson();
+}
+
+function say(text, lang="es-EC") {
+  if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = voiceRate;
+  const voices = speechSynthesis.getVoices();
+  const target = voices.find(v => v.lang.toLowerCase() === lang.toLowerCase()) || voices.find(v => v.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));
+  if (target) utterance.voice = target;
+  speechSynthesis.speak(utterance);
+}
+
+function startListening({way=direction, button, onText}={}) {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
+  if (recognition) { recognition.abort(); recognition = null; button?.classList.remove("listening"); return; }
+  recognition = new Recognition();
+  recognition.lang = way === "en-ec" ? "en-US" : "es-EC";
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  button?.classList.add("listening");
+  recognition.onresult = event => {
+    const text = [...event.results].map(result => result[0].transcript).join(" ");
+    onText?.(text, event.results[event.results.length-1].isFinal);
+  };
+  recognition.onerror = () => showToast("I couldn't hear that clearly. Please try again.");
+  recognition.onend = () => { button?.classList.remove("listening"); recognition = null; };
+  recognition.start();
+}
+
+function translatedText(phrase, way=direction) {
+  if (way === "en-ec") return phrase.natural;
+  return (englishVariant === "uk" ? phrase.uk : phrase.us) || phrase.en;
+}
+
+function renderTranslation() {
+  const phrase = matchPhrase($("#translator-input").value);
+  const result = $("#translation-result");
+  const missing = $("#no-result");
+  if (!phrase) { result.hidden = true; missing.hidden = false; return; }
+  result.hidden = false;
+  missing.hidden = true;
+  const target = translatedText(phrase);
+  $("#natural-result").textContent = target;
+  $("#literal-result").textContent = direction === "en-ec" && phrase.es !== phrase.natural ? `Direct version: ${phrase.es}` : direction === "ec-en" ? `Source sense: ${phrase.en}` : "";
+  $("#usage-note").innerHTML = `<strong>${phrase.register}</strong><span>${phrase.note}</span>`;
+}
+
+function swapDirection() {
+  const current = matchPhrase($("#translator-input").value);
+  if (current) $("#translator-input").value = direction === "en-ec" ? current.natural : current.en;
+  direction = direction === "en-ec" ? "ec-en" : "en-ec";
+  $("#source-label").textContent = direction === "en-ec" ? "English" : "Ecuadorian Spanish";
+  $("#target-label").textContent = direction === "en-ec" ? "Ecuadorian Spanish" : englishVariant === "uk" ? "UK English" : "U.S. English";
+  $("#english-variant-row").hidden = direction === "en-ec";
+  renderTranslation();
+}
+
+function setMode(mode) {
+  $$(".mode").forEach(button => { const active = button.dataset.mode === mode; button.classList.toggle("active", active); button.setAttribute("aria-selected", String(active)); });
+  $("#translate-panel").hidden = mode !== "translate";
+  $("#conversation-panel").hidden = mode !== "conversation";
+}
+
+function showToast(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function renderTurns() {
+  const box = $("#conversation-turns");
+  box.innerHTML = turns.map(turn => `<article class="turn ${turn.speaker.toLowerCase()}"><small>${turn.speaker}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation)}</p></article>`).join("");
+}
+
+function startConversation(speaker, button) {
+  const way = speaker === "Maria" ? "ec-en" : "en-ec";
+  $("#conversation-status").textContent = speaker === "Maria" ? "Escuchando español…" : "Listening for English…";
+  startListening({way, button, onText:(text, final) => {
+    $("#conversation-status").textContent = `I heard: ${text}`;
+    if (!final) return;
+    const phrase = matchPhrase(text, way);
+    if (!phrase) { $("#conversation-status").textContent = "I heard you, but that phrase is not in the local library yet. Nothing was invented or saved."; return; }
+    const translation = translatedText(phrase, way);
+    turns.push({speaker, source:text, translation});
+    renderTurns();
+    say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
+    $("#conversation-status").textContent = "Translated and spoken. Ready for the other person.";
+  }});
+}
+
+function renderLesson() {
+  const content = $("#lesson-content");
+  $("#lesson-step-count").textContent = `${lessonStep}/4`;
+  $("#lesson-progress-bar").style.width = `${lessonStep * 25}%`;
+  if (lessonStep === 1) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Scene first</p><h1 id="lesson-title">Make a plan before sunset.</h1><p class="lead">You want to meet someone while there is still daylight. Hear the natural question before you say it.</p><div class="scene" aria-label="Sunset over Ecuador">🌄</div><div class="phrase-card"><button class="play-button" id="lesson-play" aria-label="Hear the Spanish phrase">▶</button><p class="spanish">¿A qué hora se pone el sol?</p><p class="english">What time does the sun set?</p></div><button class="primary-button" id="lesson-next">Now say it</button></div>`;
+  if (lessonStep === 2) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Speak from memory</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Aim for clear key words: <em>hora</em>, <em>pone</em>, and <em>sol</em>. Flow matters more than perfection.</p><div class="mic-practice"><button id="lesson-mic" aria-label="Start speaking">🎙️</button><p>Tap the microphone, then speak.</p><div id="lesson-heard"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
+  if (lessonStep === 3) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Naturalness check</p><h1 id="lesson-title">What would you say in conversation?</h1><p class="lead">Choose the most natural everyday way to ask about sunset.</p><div class="choice-list"><button class="choice" data-correct="true">¿A qué hora se pone el sol?</button><button class="choice">¿A qué hora ocurre el ocaso?</button><button class="choice">¿Cuál es la hora de la puesta solar?</button></div><button class="primary-button" id="lesson-next" disabled>See the language map</button></div>`;
+  if (lessonStep === 4) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Language map</p><h1 id="lesson-title">One idea, several useful forms.</h1><div class="language-map"><article class="map-card"><header><h2>Sunset · conversational</h2><button data-say="Se pone el sol">🔊</button></header><p><span>se pone el sol</span> · the sun sets</p></article><article class="map-card"><header><h2>Sunset · noun</h2><button data-say="puesta del sol">🔊</button></header><p><span>puesta del sol</span> · sunset. <em>Ocaso</em> is more literary.</p></article><article class="map-card"><header><h2>Sunrise · conversational</h2><button data-say="sale el sol">🔊</button></header><p><span>sale el sol / ver salir el sol</span> · the sun rises / watch the sunrise.</p></article><article class="map-card"><header><h2>Dawn</h2><button data-say="antes de que amanezca">🔊</button></header><p><span>amanecer</span> · dawn or daybreak. <em>Orto</em> is formal or technical.</p></article></div><p class="lead">Ecuador-first guidance; broader regional nuance should still be reviewed by multiple Ecuadorian speakers.</p><button class="primary-button orange" id="lesson-finish">Finish lesson</button></div>`;
+  bindLesson();
+}
+
+function bindLesson() {
+  $("#lesson-play")?.addEventListener("click", () => say("¿A qué hora se pone el sol?"));
+  $("#lesson-next")?.addEventListener("click", () => { if (lessonStep < 4) { lessonStep += 1; renderLesson(); } });
+  $("#lesson-mic")?.addEventListener("click", event => startListening({way:"ec-en",button:event.currentTarget,onText:text => {
+    const heard = normalize(text);
+    const understood = ["hora","pone","sol"].filter(word => heard.includes(word)).length >= 2;
+    $("#lesson-heard").innerHTML = `<div class="heard"><small>I heard</small><p>${escapeHtml(text)}</p><p>${understood ? "✓ Understood — your key words came through." : "Try again and make hora, pone, and sol clear."}</p></div>`;
+  }}));
+  $$(".choice").forEach(button => button.addEventListener("click", () => {
+    selectedChoice = button.textContent;
+    $$(".choice").forEach(item => { item.classList.toggle("selected", item === button); const old = $("small", item); if (old) old.remove(); });
+    const note = document.createElement("small");
+    note.textContent = button.dataset.correct ? "✓ Natural and conversational in Ecuador." : "Correct Spanish, but not the ordinary conversational choice.";
+    button.append(note);
+    $("#lesson-next").disabled = false;
+  }));
+  $$('[data-say]').forEach(button => button.addEventListener("click", () => say(button.dataset.say)));
+  $("#lesson-finish")?.addEventListener("click", () => { lessonStep = 1; selectedChoice = ""; openView("home-view"); showToast("Lesson complete — ¡bien hecho!"); });
+}
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (character) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[character]);
+  const span = document.createElement("span");
+  span.textContent = value;
+  return span.innerHTML;
 }
 
-function normalize(value) {
-  return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+function init() {
+  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  $("#home-button").addEventListener("click", () => openView("home-view"));
+  $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
+  $("#swap-button").addEventListener("click", swapDirection);
+  $("#translator-input").addEventListener("input", renderTranslation);
+  $("#input-mic").addEventListener("click", event => startListening({way:direction,button:event.currentTarget,onText:text => { $("#translator-input").value = text; renderTranslation(); }}));
+  $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
+  $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
+    englishVariant = button.dataset.variant;
+    $$("[data-variant]").forEach(item => item.classList.toggle("active", item === button));
+    $("#target-label").textContent = englishVariant === "uk" ? "UK English" : "U.S. English";
+    renderTranslation();
+  }));
+  $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"));
+  $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
+  const suggestions = ["Maybe another time.","Can you say it more slowly?","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
+  $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
+  $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { $("#translator-input").value = button.textContent; renderTranslation(); }));
+  $$("[data-speaker]").forEach(button => button.addEventListener("click", () => startConversation(button.dataset.speaker, button)));
+  $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
+  renderTranslation();
+  renderLesson();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
-function verificationLabel(entry) {
-  const v = entry.verification || {};
-  if (v.nativeSpeakerReviewed && v.corpusChecked) return {label:"Multi-source confirmed", cls:"confirmed"};
-  if (v.nativeSpeakerReviewed) return {label:"Native reviewed", cls:"native"};
-  if (v.corpusChecked) return {label:"Corpus supported", cls:"corpus"};
-  if (v.dictionaryAttested) return {label:"Dictionary attested", cls:"dictionary"};
-  return {label:"Research lead", cls:"lead"};
-}
-
-function domainFor(entryId) {
-  return domains.find((domain) => (domain.entries || []).includes(entryId));
-}
-
-function comparisonsFor(entry) {
-  const embedded = entry.comparisons || [];
-  const special = comparisons.find((item) => item.entryId === entry.id);
-  if (!special) return embedded;
-  const bolivia = {country:"🇧🇴 Bolivia", meaning:special.bolivia, note:special.learnerAlert};
-  const withoutBolivia = embedded.filter((item) => !normalize(item.country).includes("bolivia"));
-  return [bolivia, ...withoutBolivia];
-}
-
-function renderDomains() {
-  const buttons = [{id:"all", label:"All"}, ...domains.map((domain) => ({id:domain.id,label:domain.label}))];
-  domainFilters.innerHTML = buttons.map((button) => `<button type="button" class="domain-chip ${activeDomain === button.id ? "active" : ""}" data-domain="${escapeHtml(button.id)}">${escapeHtml(button.label)}</button>`).join("");
-}
-
-function render() {
-  const query = normalize(searchInput.value.trim());
-  const filtered = entries.filter((entry) => {
-    const domain = domainFor(entry.id);
-    if (activeDomain !== "all" && domain?.id !== activeDomain) return false;
-    const comparisonText = comparisonsFor(entry).map((item) => [item.country,item.meaning,item.note].join(" ")).join(" ");
-    return normalize([entry.spanish,entry.usEnglish,entry.ukEnglish,entry.exampleEs,entry.exampleUs,entry.exampleUk,entry.regionStatus,entry.register,entry.warning,comparisonText,domain?.label].filter(Boolean).join(" ")).includes(query);
-  });
-
-  results.innerHTML = filtered.map((entry) => {
-    const linkedSources = (entry.sources || []).map((id) => sources.find((source) => source.id === id)).filter(Boolean);
-    const entryComparisons = comparisonsFor(entry);
-    const domain = domainFor(entry.id);
-    const verification = verificationLabel(entry);
-    const comparisonMarkup = entryComparisons.length ? `<div class="country-comparisons" aria-label="Country comparisons">${entryComparisons.map((item) => `<div class="country-item"><strong>${escapeHtml(item.country)}</strong><p>${escapeHtml(item.meaning)} ${item.note ? escapeHtml(item.note) : ""}</p></div>`).join("")}</div>` : "";
-    return `<article class="card">
-      <div class="card-top"><div><h2 class="term" lang="es">${escapeHtml(entry.spanish)}</h2><div class="term-meta">${entry.level ? `<span class="tag">${escapeHtml(entry.level)}</span>` : ""}${domain ? `<span class="tag domain-tag">${escapeHtml(domain.label)}</span>` : ""}<span class="tag">${escapeHtml(entry.regionStatus || "Unmarked Spanish")}</span></div></div><button class="speak" type="button" data-speak="${escapeHtml(entry.spanish)}" aria-label="Hear ${escapeHtml(entry.spanish)} in Spanish"><span aria-hidden="true">▶</span> Hear Spanish</button></div>
-      <div class="evidence-row"><span class="evidence-badge ${verification.cls}"><span class="dot" aria-hidden="true"></span>${escapeHtml(verification.label)}</span>${entry.verification?.corpusChecked ? "" : `<span class="pending-note">CORPHA check pending</span>`}</div>
-      <div class="definitions"><div class="translation"><span class="translation-label">🇺🇸 US English</span><p>${escapeHtml(entry.usEnglish)}</p></div><div class="translation"><span class="translation-label">🇬🇧 UK English</span><p>${escapeHtml(entry.ukEnglish)}</p></div></div>
-      ${entry.exampleEs ? `<figure class="example"><blockquote lang="es">${escapeHtml(entry.exampleEs)}</blockquote><figcaption><span>🇺🇸 ${escapeHtml(entry.exampleUs)}</span>${entry.exampleUk ? `<span>🇬🇧 ${escapeHtml(entry.exampleUk)}</span>` : ""}</figcaption></figure>` : ""}
-      <p class="usage"><strong>Register:</strong> ${escapeHtml(entry.register)}${entry.intensity ? `<br><strong>Intensity:</strong> ${escapeHtml(entry.intensity)}` : ""}</p>
-      ${entry.warning ? `<p class="context-note"><strong>🧐 Context:</strong> ${escapeHtml(entry.warning)}</p>` : ""}
-      ${comparisonMarkup}
-      ${linkedSources.length ? `<div class="entry-sources" aria-label="Entry sources">${linkedSources.map((source) => `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.shortName || source.name)}</a>`).join("")}</div>` : ""}
-    </article>`;
-  }).join("");
-  emptyState.hidden = filtered.length > 0;
-}
-
-function renderSources() {
-  sourceList.innerHTML = sources.map((source) => `<article class="source-card"><span class="source-kind">${escapeHtml(source.kind)}</span><h3>${escapeHtml(source.name)}</h3><p>${escapeHtml(source.use)}</p><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a></article>`).join("");
-}
-
-searchInput.addEventListener("input", render);
-domainFilters.addEventListener("click", (event) => { const button = event.target.closest("[data-domain]"); if (!button) return; activeDomain = button.dataset.domain; renderDomains(); render(); });
-
-results.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-speak]");
-  if (!button) return;
-  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) { voiceNote.textContent = "Speech playback is not available in this browser."; return; }
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(button.dataset.speak);
-  utterance.lang = "es-EC";
-  utterance.rate = Number(rateInput.value);
-  utterance.onstart = () => { voiceNote.textContent = Number(rateInput.value) < 0.8 ? "Playing Ecuadorian Spanish slowly." : "Playing Ecuadorian Spanish at a natural pace."; };
-  utterance.onend = () => { voiceNote.textContent = "Tap “Hear Spanish” to listen."; };
-  utterance.onerror = () => { voiceNote.textContent = "Speech could not play. Check your device's speech settings."; };
-  window.speechSynthesis.speak(utterance);
-});
-
-Promise.all([
-  fetch("data/learner-entries-v1.json").then((r) => { if (!r.ok) throw new Error(); return r.json(); }),
-  fetch("data/sources.json").then((r) => { if (!r.ok) throw new Error(); return r.json(); }),
-  fetch("data/conversation-domains.json").then((r) => { if (!r.ok) throw new Error(); return r.json(); }),
-  fetch("data/ecuador-bolivia-comparisons-v1.json").then((r) => { if (!r.ok) throw new Error(); return r.json(); })
-]).then(([learnerEntries, sourceData, domainData, comparisonData]) => {
-  entries = learnerEntries;
-  sources = sourceData;
-  domains = domainData.domains || [];
-  comparisons = comparisonData;
-  readyCount.textContent = entries.length;
-  domainCount.textContent = domains.length;
-  renderDomains(); render(); renderSources();
-}).catch(() => {
-  voiceNote.textContent = "App data did not load. Serve the folder over HTTP and reload.";
-  emptyState.hidden = false;
-  sourceList.innerHTML = "<p class='empty-state'>Sources could not be loaded.</p>";
-});
+document.addEventListener("DOMContentLoaded", init);
