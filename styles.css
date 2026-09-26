@@ -147,6 +147,17 @@ textarea::placeholder { color: #9ca39f; }
 .expression-filters { display: flex; gap: 7px; margin: 0 -4px 13px; padding: 4px; overflow-x: auto; }
 .expression-filters button { flex: 0 0 auto; padding: 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: 10px; font-weight: 850; }
 .expression-filters button.active { border-color: var(--orange); background: var(--orange); color: white; }
+.slang-index { margin: 0 0 14px; padding: 14px; border: 1px solid #bad8c6; border-radius: 17px; background: var(--mint); }
+.slang-index h3 { margin: 0; color: var(--green); font-size: 17px; }
+.slang-index > p { margin: 5px 0 11px; color: #547267; font-size: 11px; line-height: 1.45; }
+.slang-index ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.slang-index li { padding: 10px 11px; border-radius: 12px; background: white; }
+.slang-index li > div { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 9px; align-items: baseline; }
+.slang-index strong { color: var(--green); font-size: 13px; line-height: 1.3; }
+.slang-index span { color: var(--ink); font-size: 11px; line-height: 1.35; }
+.slang-index li p { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.slang-index li p b { color: var(--orange); }
+.slang-index .slang-index-empty { color: var(--muted); font-size: 11px; }
 .expression-results { display: grid; gap: 10px; }
 .expression-card { padding: 15px; border: 1px solid #ead9c2; border-radius: 18px; background: white; }
 .expression-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
