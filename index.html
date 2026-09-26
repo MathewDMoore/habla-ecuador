@@ -137,8 +137,32 @@
           <button data-evidence-filter="dictionary-attested">Dictionary-attested</button>
           <button data-evidence-filter="research-lead">Needs review</button>
         </div>
+        <button class="review-callout" data-open="review-view">
+          <span><strong>Review Ecuadorian usage</strong><small>No login · saved only on this device</small></span>
+          <b aria-hidden="true">→</b>
+        </button>
         <p id="dictionary-status" class="status">Loading the project’s source files…</p>
         <div id="dictionary-results" class="dictionary-results"></div>
+      </section>
+
+      <section id="review-view" class="view" aria-labelledby="review-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="dictionary-view" aria-label="Back to dictionary">←</button>
+          <div><p class="eyebrow">Ecuadorian reviewer mode</p><h1 id="review-title">Does this sound natural?</h1></div>
+        </div>
+        <p class="review-intro">An Ecuadorian speaker can review each entry without an account. Reviews stay on this device until they are copied or shared.</p>
+        <label class="reviewer-name">Reviewer name <span>(optional)</span><input id="reviewer-name" autocomplete="name" placeholder="Name or initials"></label>
+        <div id="review-progress" class="review-progress" aria-live="polite"></div>
+        <div id="review-card"></div>
+        <div class="review-navigation">
+          <button id="review-prev" type="button">← Previous</button>
+          <button id="review-next" type="button">Next →</button>
+        </div>
+        <div class="review-export">
+          <button id="copy-review" class="primary-button" type="button">Copy review summary</button>
+          <button id="share-review" class="secondary-button" type="button">Share review summary</button>
+          <p>No review is transmitted automatically. Sharing the summary lets Mathew send it back for inclusion in the project.</p>
+        </div>
       </section>
 
       <section id="lesson-view" class="view" aria-labelledby="lesson-title">
