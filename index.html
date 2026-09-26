@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=16a">
-  <script src="app.js?v=16a" defer></script>
+  <link rel="stylesheet" href="styles.css?v=17a">
+  <script src="app.js?v=17a" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.11.5 · build 16</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.11.6 · build 17</span></div>
     </header>
 
     <main>
@@ -158,6 +158,11 @@
             <button data-expression-filter="culture">Culture</button>
             <button data-expression-filter="personal">Our phrases</button>
           </div>
+          <section class="slang-index" aria-labelledby="slang-index-title">
+            <h3 id="slang-index-title">Slang words & sayings</h3>
+            <p>Quick meanings and the context that determines how each expression lands.</p>
+            <ul id="slang-index-list"></ul>
+          </section>
           <div id="expression-results" class="expression-results"></div>
         </section>
         <p id="dictionary-status" class="status">Loading the project’s source files…</p>
