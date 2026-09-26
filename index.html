@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=11">
-  <script src="app.js?v=11" defer></script>
+  <link rel="stylesheet" href="styles.css?v=12">
+  <script src="app.js?v=12" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <span class="dialect-pill">🇪🇨 Ecuadorian first</span>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.11.1</span></div>
     </header>
 
     <main>
@@ -142,6 +142,19 @@
           <span><strong>Review Ecuadorian usage</strong><small>No login · saved only on this device</small></span>
           <b aria-hidden="true">→</b>
         </button>
+        <section class="expression-library" aria-labelledby="expression-title">
+          <p class="eyebrow">Speak beyond the dictionary</p>
+          <h2 id="expression-title">Ecuadorian expressions</h2>
+          <p>Idioms, metaphors, slang, cultural language, and phrases that matter in your real conversations.</p>
+          <div class="expression-filters" role="group" aria-label="Expression category">
+            <button class="active" data-expression-filter="all">All</button>
+            <button data-expression-filter="idiom">Idioms & metaphors</button>
+            <button data-expression-filter="slang">Slang</button>
+            <button data-expression-filter="culture">Culture</button>
+            <button data-expression-filter="personal">Our phrases</button>
+          </div>
+          <div id="expression-results" class="expression-results"></div>
+        </section>
         <p id="dictionary-status" class="status">Loading the project’s source files…</p>
         <div id="dictionary-results" class="dictionary-results"></div>
       </section>
