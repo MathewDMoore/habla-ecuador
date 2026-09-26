@@ -46,6 +46,8 @@ let evidenceSources = new Map();
 let reviewQueue = new Map();
 let comparisonIndex = new Map();
 let reviewIndex = 0;
+let translationTimer = 0;
+let translationRequest = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
@@ -136,11 +138,55 @@ function translatedText(phrase, way=direction) {
   return (englishVariant === "uk" ? phrase.uk : phrase.us) || phrase.en;
 }
 
-function renderTranslation() {
+function decodeTranslation(value) {
+  const box = document.createElement("textarea");
+  box.innerHTML = value || "";
+  return box.value;
+}
+
+async function requestGeneralTranslation(text, way=direction) {
+  const pair = way === "en-ec" ? "en|es" : "es|en";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0,500))}&langpair=${encodeURIComponent(pair)}`, {signal:controller.signal});
+    if (!response.ok) throw new Error(`translation service ${response.status}`);
+    const payload = await response.json();
+    if (Number(payload.responseStatus || 200) >= 400 || !payload.responseData?.translatedText) throw new Error(payload.responseDetails || "translation unavailable");
+    return decodeTranslation(payload.responseData.translatedText);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function renderTranslation() {
+  const requestId = ++translationRequest;
+  const sourceText = $("#translator-input").value.trim();
   const phrase = matchPhrase($("#translator-input").value);
   const result = $("#translation-result");
   const missing = $("#no-result");
-  if (!phrase) { result.hidden = true; missing.hidden = false; return; }
+  if (!sourceText) { result.hidden = true; missing.hidden = true; return; }
+  if (!phrase) {
+    result.hidden = false;
+    missing.hidden = true;
+    $("#natural-result").textContent = "Translating…";
+    $("#literal-result").textContent = "";
+    $("#usage-note").innerHTML = `<strong>General translation</strong><span>Checking an external translation service. Ecuadorian naturalness has not yet been verified.</span>`;
+    try {
+      const translated = await requestGeneralTranslation(sourceText);
+      if (requestId !== translationRequest) return;
+      $("#natural-result").textContent = translated;
+      $("#literal-result").textContent = direction === "en-ec" ? "General Spanish draft · Ecuadorian review pending" : `${englishVariant === "uk" ? "UK" : "U.S."} English refinement pending`;
+      $("#usage-note").innerHTML = `<strong>General machine translation · not yet Ecuadorian-verified</strong><span>This works for text outside the local phrase library. Use the verified entries when the app offers one.</span>`;
+    } catch {
+      if (requestId !== translationRequest) return;
+      result.hidden = true;
+      missing.hidden = false;
+      $("#no-result p").textContent = "Translation is temporarily unavailable.";
+      $("#no-result small").textContent = "Check your connection and try again. Verified local phrases still work offline.";
+    }
+    return;
+  }
   result.hidden = false;
   missing.hidden = true;
   const target = translatedText(phrase);
@@ -188,17 +234,23 @@ function conversationOptions(speaker, button) {
   return {way, button, onText:(text, final) => handleConversationText(speaker, text, final)};
 }
 
-function handleConversationText(speaker, text, final) {
+async function handleConversationText(speaker, text, final) {
   const way = speaker === "Maria" ? "ec-en" : "en-ec";
   $("#conversation-status").textContent = `I heard: ${text}`;
   if (!final) return;
   const phrase = matchPhrase(text, way);
-  if (!phrase) { $("#conversation-status").textContent = "I heard you, but that phrase is not in the local library yet. Nothing was invented or saved."; return; }
-  const translation = translatedText(phrase, way);
+  let translation;
+  if (phrase) {
+    translation = translatedText(phrase, way);
+  } else {
+    $("#conversation-status").textContent = "Translating…";
+    try { translation = await requestGeneralTranslation(text, way); }
+    catch { $("#conversation-status").textContent = "Translation is temporarily unavailable. Please check the connection and try again."; return; }
+  }
   turns.push({speaker, source:text, translation});
   renderTurns();
   say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
-  $("#conversation-status").textContent = "Translated and spoken. Ready for the other person.";
+  $("#conversation-status").textContent = phrase ? "Ecuadorian-verified phrase translated and spoken." : "General translation spoken · Ecuadorian review pending.";
 }
 
 async function loadEvidence() {
@@ -460,8 +512,13 @@ function init() {
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   $("#swap-button").addEventListener("click", swapDirection);
-  $("#translator-input").addEventListener("input", renderTranslation);
-  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:text => { $("#translator-input").value = text; renderTranslation(); }}));
+  $("#translator-input").addEventListener("input", () => {
+    clearTimeout(translationTimer);
+    const local = matchPhrase($("#translator-input").value);
+    if (local) renderTranslation();
+    else translationTimer = setTimeout(renderTranslation, 550);
+  });
+  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
   $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
     englishVariant = button.dataset.variant;
