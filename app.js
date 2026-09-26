@@ -29,7 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.9 · build 20";
+const APP_VERSION = "0.12.0 · build 21";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -37,7 +37,7 @@ const culturalExpressions = [
   {category:"slang", spanish:"¡Qué bacán!", us:"That's cool! / That's great!", uk:"That's brilliant! / That's great!", note:"Bacán is widely understood, but it is especially comfortable and natural in everyday Ecuadorian speech.", naturalness:"Sounds natural in Ecuador", register:"Informal · enthusiastic"},
   {category:"slang", spanish:"Chuta, qué pena.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", note:"Chuta can show surprise, frustration, sympathy, or disappointment. The speaker's tone supplies much of the meaning.", naturalness:"Sounds natural in Ecuador", register:"Informal · mild exclamation"},
   {category:"slang", spanish:"acolitar", us:"to help / support / back someone up", uk:"to help / support / back someone up", exampleEs:"¿Me acolitas con esto?", exampleUs:"Can you help me with this?", exampleUk:"Can you give me a hand with this?", note:"In Ecuador, acolitar can mean supporting someone, helping with an activity, or backing up an idea.", naturalness:"Ecuador meaning attested by ASALE", register:"Informal · friendly · not vulgar", intensity:"Mild", comparisons:["Colombia: ASALE records the same support or solidarity sense."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/acolitar"}},
-  {category:"slang", spanish:"camello", literalUs:"camel", literalUk:"camel", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
+  {category:"slang", spanish:"camello", literalUs:"camel", literalUk:"camel", standardEs:"trabajo / empleo / lugar de trabajo", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
   {category:"slang", spanish:"chiro / chira", us:"broke / out of money", uk:"broke / out of money", exampleEs:"Estoy chiro hasta fin de mes.", exampleUs:"I'm broke until the end of the month.", exampleUk:"I'm broke until the end of the month.", note:"In Ecuador, chiro or chira describes someone who has no money. It can be matter-of-fact or lightly self-deprecating.", naturalness:"Ecuador meaning attested by ASALE", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not assume the same meaning across countries.", comparisons:["Mexico: ASALE records chiro as pretty, cute, or very good—not broke."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/chiro"}},
   {category:"slang", spanish:"aniñado / aniñada", us:"posh / upper-class / bourgeois-styled", uk:"posh / upper-class / bourgeois-styled", exampleEs:"Ese lugar es medio aniñado.", exampleUs:"That place is kind of upscale.", exampleUk:"That place is a bit posh.", note:"In Ecuador, aniñado can describe a person associated with the upper class or something that looks elegant or bourgeois. Tone can make it neutral, teasing, or critical.", naturalness:"Ecuador meaning attested by ASALE", register:"Youth usage · informal · context-sensitive", intensity:"Mild to pointed", warning:"Use carefully about a person; it can sound socially judgmental.", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/ani%C3%B1ado"}},
   {category:"culture", spanish:"¡Achachay, qué frío!", us:"It's so cold!", uk:"It's absolutely freezing!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", naturalness:"Natural in Ecuador; especially Andean", register:"Expressive · regional"},
@@ -69,6 +69,7 @@ let reviewIndex = 0;
 let translationTimer = 0;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
+let preservedCulturalContext = null;
 let speechVoices = [];
 let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
@@ -242,7 +243,13 @@ async function requestGeneralTranslation(text, way=direction) {
 async function renderTranslation() {
   const requestId = ++translationRequest;
   const sourceText = $("#translator-input").value.trim();
-  const phrase = matchPhrase($("#translator-input").value);
+  const preservedEntry = direction === "en-ec"
+    && preservedCulturalContext
+    && normalize(sourceText) === normalize(preservedCulturalContext.input)
+      ? preservedCulturalContext.entry
+      : null;
+  if (preservedCulturalContext && direction === "en-ec" && !preservedEntry) preservedCulturalContext = null;
+  const phrase = preservedEntry || matchPhrase($("#translator-input").value);
   const result = $("#translation-result");
   const missing = $("#no-result");
   if (!sourceText) {
@@ -277,16 +284,21 @@ async function renderTranslation() {
   result.hidden = false;
   missing.hidden = true;
   const isCultural = phrase.culturalEntry === true;
-  $(".result-label").textContent = direction === "en-ec"
-    ? "Verified Ecuadorian Spanish"
+  const isPreservedCultural = Boolean(preservedEntry);
+  $(".result-label").textContent = isPreservedCultural
+    ? "Ecuadorian Spanish · preserved slang sense"
+    : direction === "en-ec"
+      ? "Verified Ecuadorian Spanish"
     : isCultural
       ? `${englishVariant === "uk" ? "UK" : "U.S."} English · Ecuadorian slang`
       : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
-  const target = translatedText(phrase);
+  const target = isPreservedCultural ? phrase.spanish : translatedText(phrase);
   $("#natural-result").textContent = target;
-  lastCompletedTranslation = { source: sourceText, target, way: direction };
+  lastCompletedTranslation = { source: sourceText, target, way: direction, culturalEntry: isCultural };
   const literal = englishVariant === "uk" ? phrase.literalUk : phrase.literalUs;
-  $("#literal-result").textContent = isCultural && literal
+  $("#literal-result").textContent = isPreservedCultural
+    ? [`Literal meaning: ${literal}`, phrase.standardEs ? `Standard Spanish: ${phrase.standardEs}` : ""].filter(Boolean).join(" · ")
+    : isCultural && literal
     ? `Literal meaning: ${literal}`
     : direction === "en-ec" && phrase.es !== phrase.natural
       ? `Direct version: ${phrase.es}`
@@ -294,19 +306,37 @@ async function renderTranslation() {
         ? `Source sense: ${phrase.en}`
         : "";
   const warning = phrase.warning ? ` ${phrase.warning}` : "";
-  $("#usage-note").innerHTML = `<strong>${isCultural ? "Ecuadorian slang · " : ""}${phrase.register}</strong><span>${phrase.note}${warning}</span>`;
+  const preservedNote = isPreservedCultural
+    ? "This reversal preserves the Ecuadorian slang sense selected in the previous translation. "
+    : "";
+  $("#usage-note").innerHTML = `<strong>${isCultural ? "Ecuadorian slang · " : ""}${phrase.register}</strong><span>${preservedNote}${phrase.note}${warning}</span>`;
 }
 
 function swapDirection() {
   const input = $("#translator-input");
   const sourceText = input.value.trim();
-  const current = matchPhrase(sourceText, direction);
+  const currentPreserved = direction === "en-ec"
+    && preservedCulturalContext
+    && normalize(sourceText) === normalize(preservedCulturalContext.input)
+      ? preservedCulturalContext
+      : null;
+  const current = currentPreserved?.entry || matchPhrase(sourceText, direction);
   const completedTarget = lastCompletedTranslation
     && lastCompletedTranslation.way === direction
     && lastCompletedTranslation.source === sourceText
       ? lastCompletedTranslation.target
       : null;
-  const nextSource = completedTarget || (current ? translatedText(current, direction) : sourceText);
+  let nextSource;
+  if (direction === "ec-en" && current?.culturalEntry) {
+    nextSource = completedTarget || translatedText(current, direction);
+    preservedCulturalContext = { input: nextSource, originalSource: sourceText, entry: current };
+  } else if (currentPreserved) {
+    nextSource = completedTarget || currentPreserved.originalSource;
+    preservedCulturalContext = null;
+  } else {
+    nextSource = completedTarget || (current ? translatedText(current, direction) : sourceText);
+    preservedCulturalContext = null;
+  }
 
   translationRequest += 1;
   direction = direction === "en-ec" ? "ec-en" : "en-ec";
@@ -709,12 +739,13 @@ function init() {
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   $("#swap-button").addEventListener("click", swapDirection);
   $("#translator-input").addEventListener("input", () => {
+    if (preservedCulturalContext && normalize($("#translator-input").value) !== normalize(preservedCulturalContext.input)) preservedCulturalContext = null;
     clearTimeout(translationTimer);
     const local = matchPhrase($("#translator-input").value);
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
   });
-  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { $("#translator-input").value = text; if (final) renderTranslation(); }}));
+  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
   $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
     englishVariant = button.dataset.variant;
@@ -727,7 +758,7 @@ function init() {
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   const suggestions = ["Maybe another time.","Can you say it more slowly?","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
-  $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { $("#translator-input").value = button.textContent; renderTranslation(); }));
+  $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   $$("[data-speaker]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speaker, current)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
@@ -758,7 +789,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=20a").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=21a").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
