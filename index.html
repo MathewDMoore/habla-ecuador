@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=14">
-  <script src="app.js?v=14" defer></script>
+  <link rel="stylesheet" href="styles.css?v=15">
+  <script src="app.js?v=15" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.11.3 · build 14</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.11.4 · build 15</span></div>
     </header>
 
     <main>
@@ -88,6 +88,11 @@
               <button data-speed="0.68">Slow</button>
               <button class="active" data-speed="0.94">Natural</button>
             </div>
+          </div>
+
+          <div class="voice-correction">
+            <button id="voice-correction-toggle" type="button" aria-pressed="false">Voices sound swapped? Correct them</button>
+            <small id="voice-correction-status">Standard language-to-voice matching is active.</small>
           </div>
 
           <section id="translation-result" class="result-card" aria-live="polite">
