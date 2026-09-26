@@ -29,8 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.6 · build 17";
-const VOICE_CORRECTION_KEY = "habla-ecuador-ios-voice-correction-v1";
+const APP_VERSION = "0.11.7 · build 18";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -72,7 +71,6 @@ let translationRequest = 0;
 let lastCompletedTranslation = null;
 let speechVoices = [];
 let speechRequestId = 0;
-let swapVoiceAssignments = false;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
@@ -100,10 +98,7 @@ function normalizedLocale(value="") {
 }
 
 function voiceForLanguage(lang) {
-  const original = normalizedLocale(lang);
-  const requested = swapVoiceAssignments
-    ? (original.startsWith("es") ? "en-us" : "es-ec")
-    : original;
+  const requested = normalizedLocale(lang);
   const base = requested.split("-")[0];
   const matching = speechVoices.filter(voice => {
     const locale = normalizedLocale(voice.lang);
@@ -120,18 +115,6 @@ function voiceForLanguage(lang) {
     if (exact) return exact;
   }
   return matching[0];
-}
-
-function updateVoiceCorrectionUI() {
-  const button = $("#voice-correction-toggle");
-  const status = $("#voice-correction-status");
-  if (!button || !status) return;
-  button.classList.toggle("active", swapVoiceAssignments);
-  button.setAttribute("aria-pressed", String(swapVoiceAssignments));
-  button.textContent = swapVoiceAssignments ? "iPhone voice correction: On" : "Voices sound swapped? Correct them";
-  status.textContent = swapVoiceAssignments
-    ? "Spanish and English voice assignments are reversed on this device."
-    : "Standard language-to-voice matching is active.";
 }
 
 function refreshSpeechVoices() {
@@ -692,15 +675,12 @@ function escapeHtml(value) {
 
 function init() {
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || new URLSearchParams(location.search).get("standalone") === "translator";
-  const savedVoiceCorrection = localStorage.getItem(VOICE_CORRECTION_KEY);
-  const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  swapVoiceAssignments = savedVoiceCorrection === null ? isIOSDevice : savedVoiceCorrection === "true";
+  localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
   }
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
-  updateVoiceCorrectionUI();
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
@@ -713,12 +693,6 @@ function init() {
   });
   bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
-  $("#voice-correction-toggle")?.addEventListener("click", () => {
-    swapVoiceAssignments = !swapVoiceAssignments;
-    localStorage.setItem(VOICE_CORRECTION_KEY, String(swapVoiceAssignments));
-    updateVoiceCorrectionUI();
-    showToast(swapVoiceAssignments ? "iPhone voice correction enabled." : "Standard voice matching restored.");
-  });
   $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
     englishVariant = button.dataset.variant;
     $$("[data-variant]").forEach(item => item.classList.toggle("active", item === button));
@@ -761,7 +735,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=17a").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=18a").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
