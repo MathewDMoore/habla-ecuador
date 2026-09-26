@@ -29,7 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.8 · build 19";
+const APP_VERSION = "0.11.9 · build 20";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -76,13 +76,20 @@ const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 function matchPhrase(value, way=direction) {
   const clean = normalize(value);
   if (!clean) return null;
-  return phrases.find(phrase => {
+  const phraseMatch = phrases.find(phrase => {
     const candidates = way === "en-ec" ? [phrase.en, phrase.us, phrase.uk] : [phrase.es, phrase.natural, ...(phrase.keys || [])];
     return candidates.filter(Boolean).some(candidate => {
       const normalized = normalize(candidate);
       return normalized === clean || (clean.length > 7 && (normalized.includes(clean) || clean.includes(normalized)));
     });
-  }) || null;
+  });
+  if (phraseMatch) return phraseMatch;
+  if (way !== "ec-en") return null;
+  const culturalMatch = culturalExpressions.find(entry => {
+    const spanish = normalize(entry.spanish);
+    return spanish === clean || (clean.length >= 4 && spanish.split(" ").includes(clean)) || (clean.length >= 6 && spanish.includes(clean));
+  });
+  return culturalMatch ? {...culturalMatch, culturalEntry:true} : null;
 }
 
 function openView(id) {
@@ -269,12 +276,25 @@ async function renderTranslation() {
   }
   result.hidden = false;
   missing.hidden = true;
-  $(".result-label").textContent = direction === "en-ec" ? "Verified Ecuadorian Spanish" : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
+  const isCultural = phrase.culturalEntry === true;
+  $(".result-label").textContent = direction === "en-ec"
+    ? "Verified Ecuadorian Spanish"
+    : isCultural
+      ? `${englishVariant === "uk" ? "UK" : "U.S."} English · Ecuadorian slang`
+      : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
   const target = translatedText(phrase);
   $("#natural-result").textContent = target;
   lastCompletedTranslation = { source: sourceText, target, way: direction };
-  $("#literal-result").textContent = direction === "en-ec" && phrase.es !== phrase.natural ? `Direct version: ${phrase.es}` : direction === "ec-en" ? `Source sense: ${phrase.en}` : "";
-  $("#usage-note").innerHTML = `<strong>${phrase.register}</strong><span>${phrase.note}</span>`;
+  const literal = englishVariant === "uk" ? phrase.literalUk : phrase.literalUs;
+  $("#literal-result").textContent = isCultural && literal
+    ? `Literal meaning: ${literal}`
+    : direction === "en-ec" && phrase.es !== phrase.natural
+      ? `Direct version: ${phrase.es}`
+      : direction === "ec-en" && phrase.en
+        ? `Source sense: ${phrase.en}`
+        : "";
+  const warning = phrase.warning ? ` ${phrase.warning}` : "";
+  $("#usage-note").innerHTML = `<strong>${isCultural ? "Ecuadorian slang · " : ""}${phrase.register}</strong><span>${phrase.note}${warning}</span>`;
 }
 
 function swapDirection() {
@@ -738,7 +758,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=19a").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=20a").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
