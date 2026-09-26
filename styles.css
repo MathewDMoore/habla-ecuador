@@ -79,6 +79,7 @@ textarea { width: 100%; min-height: 106px; resize: vertical; border: 0; outline:
 textarea::placeholder { color: #9ca39f; }
 .round-action { position: absolute; right: 16px; bottom: 14px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--mint); color: var(--green); font-size: 20px; }
 .round-action.listening { background: var(--orange); color: white; animation: pulse 1s infinite alternate; }
+.translation-privacy { margin: 8px 7px 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 @keyframes pulse { to { transform: scale(1.08); } }
 .speed-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 2px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .segmented { display: flex; padding: 3px; border-radius: 12px; background: #eae1d4; }
