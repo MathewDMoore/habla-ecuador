@@ -29,7 +29,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.11.1";
+const APP_VERSION = "0.11.2";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -65,6 +65,7 @@ let reviewIndex = 0;
 let translationTimer = 0;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
+let speechVoices = [];
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
@@ -87,15 +88,54 @@ function openView(id) {
   if (id === "review-view") renderReview();
 }
 
-function say(text, lang="es-EC") {
+function normalizedLocale(value="") {
+  return value.replace("_", "-").toLowerCase();
+}
+
+function voiceForLanguage(lang) {
+  const requested = normalizedLocale(lang);
+  const base = requested.split("-")[0];
+  const matching = speechVoices.filter(voice => {
+    const locale = normalizedLocale(voice.lang);
+    return locale === base || locale.startsWith(`${base}-`);
+  });
+  if (!matching.length) return null;
+  const preferredLocales = base === "es"
+    ? [requested, "es-419", "es-ec", "es-us", "es-mx", "es-co", "es-es"]
+    : requested === "en-gb"
+      ? [requested, "en-ie", "en-au", "en-us"]
+      : [requested, "en-us", "en-ca", "en-gb"];
+  for (const locale of preferredLocales) {
+    const exact = matching.find(voice => normalizedLocale(voice.lang) === locale);
+    if (exact) return exact;
+  }
+  return matching[0];
+}
+
+function refreshSpeechVoices() {
+  if (!("speechSynthesis" in window)) return [];
+  speechVoices = speechSynthesis.getVoices();
+  return speechVoices;
+}
+
+function say(text, lang="es-EC", attempt=0) {
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
   speechSynthesis.cancel();
+  refreshSpeechVoices();
+  if (!speechVoices.length && attempt < 8) {
+    setTimeout(() => say(text, lang, attempt + 1), 125);
+    return;
+  }
+  const target = voiceForLanguage(lang);
+  if (!target) {
+    const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
+    showToast(`${label} speech is unavailable on this device.`);
+    return;
+  }
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang;
+  utterance.lang = target.lang;
   utterance.rate = voiceRate;
-  const voices = speechSynthesis.getVoices();
-  const target = voices.find(v => v.lang.toLowerCase() === lang.toLowerCase()) || voices.find(v => v.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));
-  if (target) utterance.voice = target;
+  utterance.voice = target;
   speechSynthesis.speak(utterance);
 }
 
@@ -596,6 +636,10 @@ function escapeHtml(value) {
 
 function init() {
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || new URLSearchParams(location.search).get("standalone") === "translator";
+  if ("speechSynthesis" in window) {
+    refreshSpeechVoices();
+    speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
+  }
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
@@ -651,7 +695,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=12").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
