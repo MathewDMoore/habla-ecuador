@@ -48,6 +48,7 @@ let comparisonIndex = new Map();
 let reviewIndex = 0;
 let translationTimer = 0;
 let translationRequest = 0;
+let lastCompletedTranslation = null;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
@@ -165,7 +166,12 @@ async function renderTranslation() {
   const phrase = matchPhrase($("#translator-input").value);
   const result = $("#translation-result");
   const missing = $("#no-result");
-  if (!sourceText) { result.hidden = true; missing.hidden = true; return; }
+  if (!sourceText) {
+    lastCompletedTranslation = null;
+    result.hidden = true;
+    missing.hidden = true;
+    return;
+  }
   if (!phrase) {
     result.hidden = false;
     missing.hidden = true;
@@ -177,6 +183,7 @@ async function renderTranslation() {
       const translated = await requestGeneralTranslation(sourceText);
       if (requestId !== translationRequest) return;
       $("#natural-result").textContent = translated;
+      lastCompletedTranslation = { source: sourceText, target: translated, way: direction };
       $("#literal-result").textContent = direction === "en-ec" ? "General Spanish draft · Ecuadorian review pending" : `${englishVariant === "uk" ? "UK" : "U.S."} English refinement pending`;
       $("#usage-note").innerHTML = `<strong>General machine translation · not yet Ecuadorian-verified</strong><span>This works for text outside the local phrase library. Use the verified entries when the app offers one.</span>`;
     } catch {
@@ -193,14 +200,25 @@ async function renderTranslation() {
   $(".result-label").textContent = direction === "en-ec" ? "Verified Ecuadorian Spanish" : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
   const target = translatedText(phrase);
   $("#natural-result").textContent = target;
+  lastCompletedTranslation = { source: sourceText, target, way: direction };
   $("#literal-result").textContent = direction === "en-ec" && phrase.es !== phrase.natural ? `Direct version: ${phrase.es}` : direction === "ec-en" ? `Source sense: ${phrase.en}` : "";
   $("#usage-note").innerHTML = `<strong>${phrase.register}</strong><span>${phrase.note}</span>`;
 }
 
 function swapDirection() {
-  const current = matchPhrase($("#translator-input").value);
-  if (current) $("#translator-input").value = direction === "en-ec" ? current.natural : current.en;
+  const input = $("#translator-input");
+  const sourceText = input.value.trim();
+  const current = matchPhrase(sourceText, direction);
+  const completedTarget = lastCompletedTranslation
+    && lastCompletedTranslation.way === direction
+    && lastCompletedTranslation.source === sourceText
+      ? lastCompletedTranslation.target
+      : null;
+  const nextSource = completedTarget || (current ? translatedText(current, direction) : sourceText);
+
+  translationRequest += 1;
   direction = direction === "en-ec" ? "ec-en" : "en-ec";
+  input.value = nextSource;
   $("#source-label").textContent = direction === "en-ec" ? "English" : "Ecuadorian Spanish";
   $("#target-label").textContent = direction === "en-ec" ? "Ecuadorian Spanish" : englishVariant === "uk" ? "UK English" : "U.S. English";
   $("#english-variant-row").hidden = direction === "en-ec";
