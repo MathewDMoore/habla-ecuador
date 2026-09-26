@@ -221,6 +221,10 @@ textarea::placeholder { color: #9ca39f; }
 .toast { position: fixed; z-index: 20; right: 18px; bottom: 92px; left: 18px; max-width: 440px; margin: auto; padding: 12px 15px; transform: translateY(20px); border-radius: 14px; background: #111d19; color: white; opacity: 0; pointer-events: none; text-align: center; transition: .2s ease; }
 .toast.show { transform: none; opacity: 1; }
 [hidden] { display: none !important; }
+.standalone-translator .bottom-nav,
+.standalone-translator #translator-view .back-button { display: none; }
+.standalone-translator .app-shell { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+.standalone-translator #translator-view .view-heading { padding-top: 4px; }
 
 @media (min-width: 650px) {
   body { padding: 28px 0; }
