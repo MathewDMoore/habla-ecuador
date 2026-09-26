@@ -56,6 +56,7 @@ h1 span { color: var(--orange); }
 .path-grid article > span { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 14px; background: #fff0dc; font-size: 21px; }
 .path-grid h2 { margin: 0; font-size: 16px; }
 .path-grid p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.evidence-link { width: 100%; margin: 16px 0 0; padding: 15px; border: 1px solid #bad8c6; border-radius: 17px; background: var(--mint); color: var(--green); font-weight: 850; text-align: left; }
 
 .view-heading { display: flex; align-items: center; gap: 14px; min-height: 72px; }
 .view-heading .eyebrow { margin: 0 0 4px; }
@@ -117,6 +118,35 @@ textarea::placeholder { color: #9ca39f; }
 .turn .translated { color: var(--green-2); }
 .text-button { display: block; margin: 18px auto; border: 0; background: transparent; color: var(--muted); text-decoration: underline; }
 
+.dictionary-intro { margin: 8px 0 18px; color: var(--muted); line-height: 1.55; }
+.evidence-counts { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.evidence-counts article { padding: 13px 8px; border-radius: 16px; background: white; text-align: center; box-shadow: 0 5px 18px rgba(20,40,31,.05); }
+.evidence-counts strong { display: block; color: var(--green); font-size: 21px; }
+.evidence-counts span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 800; line-height: 1.25; text-transform: uppercase; }
+.dictionary-search { display: block; padding: 4px 15px; border: 1px solid var(--line); border-radius: 16px; background: white; }
+.dictionary-search input { width: 100%; min-height: 46px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; }
+.evidence-filters { display: flex; gap: 7px; margin: 12px 0; overflow-x: auto; padding-bottom: 3px; }
+.evidence-filters button { flex: 0 0 auto; padding: 9px 11px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: 11px; font-weight: 800; }
+.evidence-filters button.active { border-color: var(--green); background: var(--green); color: white; }
+.dictionary-results { display: grid; gap: 12px; margin-top: 13px; }
+.evidence-card { padding: 18px; border: 1px solid var(--line); border-radius: 22px; background: white; }
+.evidence-card header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.evidence-card h2 { margin: 0; color: var(--green); font-size: 24px; line-height: 1.15; }
+.evidence-card .english-gloss { margin: 5px 0 0; color: var(--ink); font-size: 15px; }
+.evidence-badge { flex: 0 0 auto; padding: 6px 8px; border-radius: 999px; background: var(--mint); color: var(--green-2); font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+.evidence-badge.research { background: #fff0dc; color: #9b4f25; }
+.evidence-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0; }
+.evidence-meta span { padding: 5px 8px; border-radius: 8px; background: #f2ede4; color: #5f6763; font-size: 10px; font-weight: 800; }
+.evidence-example { margin: 11px 0; padding: 12px; border-left: 3px solid var(--orange); border-radius: 0 12px 12px 0; background: #fff7eb; }
+.evidence-example p { margin: 0; line-height: 1.45; }
+.evidence-example small { display: block; margin-top: 5px; color: var(--muted); }
+.evidence-section { margin-top: 12px; }
+.evidence-section h3 { margin: 0 0 5px; color: var(--muted); font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
+.evidence-section p { margin: 0; color: #4f5954; font-size: 13px; line-height: 1.5; }
+.comparison { margin-top: 7px !important; padding: 8px 10px; border-radius: 10px; background: #eef4fb; color: #405b75 !important; }
+.source-links { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.source-links a { color: var(--green-2); font-size: 11px; font-weight: 800; text-decoration-thickness: 1px; }
+
 .lesson-progress { height: 8px; flex: 1; overflow: hidden; border-radius: 99px; background: #eee2d2; }
 .lesson-progress span { display: block; width: 25%; height: 100%; border-radius: inherit; background: var(--orange); transition: width .3s ease; }
 #lesson-step-count { color: var(--muted); font-size: 12px; font-weight: 800; }
@@ -147,7 +177,7 @@ textarea::placeholder { color: #9ca39f; }
 .map-card button { width: 38px; height: 38px; border: 0; border-radius: 12px; background: var(--mint); }
 .map-card p { margin: 9px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
-.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(3,1fr); margin: auto; padding: 8px 18px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
+.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(4,1fr); margin: auto; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
 .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px; border: 0; background: transparent; color: #7a817d; font-size: 11px; font-weight: 800; }
 .bottom-nav button span { font-size: 20px; line-height: 1; }
 .bottom-nav button.active { color: var(--green); }

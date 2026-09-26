@@ -40,6 +40,11 @@ let lessonStep = 1;
 let selectedChoice = "";
 let turns = [];
 let recognition = null;
+let evidenceFilter = "all";
+let evidenceEntries = [];
+let evidenceSources = new Map();
+let reviewQueue = new Map();
+let comparisonIndex = new Map();
 
 function matchPhrase(value, way=direction) {
   const clean = normalize(value);
@@ -153,6 +158,118 @@ function startConversation(speaker, button) {
   }});
 }
 
+async function loadEvidence() {
+  const status = $("#dictionary-status");
+  try {
+    const paths = [
+      "data/learner-entries-v1.json",
+      "data/vocabulary.json",
+      "data/candidate-lexicon.json",
+      "data/sources.json",
+      "data/review-queue.json",
+      "data/ecuador-bolivia-comparisons-v1.json"
+    ];
+    const responses = await Promise.all(paths.map(path => fetch(path, {cache:"no-cache"})));
+    if (responses.some(response => !response.ok)) throw new Error("source file unavailable");
+    const [learner, vocabulary, candidates, sources, queue, comparisons] = await Promise.all(responses.map(response => response.json()));
+    evidenceSources = new Map(sources.map(source => [source.id, source]));
+    reviewQueue = new Map(queue.map(item => [item.entryId, item]));
+    comparisonIndex = new Map(comparisons.map(item => [item.entryId, item]));
+
+    const combined = [
+      ...learner.map(item => ({...item, origin:"learner-ready"})),
+      ...vocabulary.map(item => ({...item, origin:"project-reference"})),
+      ...candidates.map(item => ({...item, origin:item.status || "research-lead"}))
+    ];
+    const ranked = {"learner-ready":3,"project-reference":2,"dictionary-attested":1,"research-lead":0};
+    const merged = new Map();
+    combined.forEach(item => {
+      const current = merged.get(item.id);
+      if (!current || (ranked[item.origin] ?? 0) > (ranked[current.origin] ?? 0)) merged.set(item.id, item);
+    });
+    evidenceEntries = [...merged.values()].sort((a,b) => (a.spanish || "").localeCompare(b.spanish || "", "es"));
+    $("#evidence-counts").innerHTML = `
+      <article><strong>${learner.length}</strong><span>Learner-ready</span></article>
+      <article><strong>${sources.length}</strong><span>Named sources</span></article>
+      <article><strong>${queue.length}</strong><span>Review queue</span></article>`;
+    status.hidden = true;
+    renderDictionary();
+  } catch (error) {
+    status.hidden = false;
+    status.textContent = "The evidence files could not be loaded. The translator still works, but no verification claims are being shown.";
+  }
+}
+
+function entryStatus(entry) {
+  if (entry.origin === "learner-ready") return "learner-ready";
+  if (reviewQueue.has(entry.id)) return "research-lead";
+  if (entry.verification?.dictionaryAttested || entry.status === "dictionary-attested") return "dictionary-attested";
+  return entry.origin || "research-lead";
+}
+
+function statusLabel(value) {
+  return ({
+    "learner-ready":"Learner-ready",
+    "dictionary-attested":"Dictionary-attested",
+    "project-reference":"Project reference",
+    "research-lead":"Needs review"
+  })[value] || value;
+}
+
+function renderDictionary() {
+  const root = $("#dictionary-results");
+  if (!root || !evidenceEntries.length) return;
+  const query = normalize($("#dictionary-search").value);
+  const visible = evidenceEntries.filter(entry => {
+    const status = entryStatus(entry);
+    const searchable = normalize([
+      entry.spanish,
+      entry.usEnglish,
+      entry.ukEnglish,
+      entry.provisionalMeaning,
+      entry.regionStatus,
+      entry.register
+    ].filter(Boolean).join(" "));
+    return (evidenceFilter === "all" || status === evidenceFilter) && (!query || searchable.includes(query));
+  });
+  $("#dictionary-status").hidden = visible.length > 0;
+  if (!visible.length) $("#dictionary-status").textContent = "No entries match that search and verification filter.";
+  root.innerHTML = visible.map(renderEvidenceCard).join("");
+}
+
+function renderEvidenceCard(entry) {
+  const status = entryStatus(entry);
+  const verification = entry.verification || {};
+  const gloss = entry.usEnglish || entry.provisionalMeaning || "Meaning still under review";
+  const sourceIds = entry.sources || [];
+  const sourceLinks = sourceIds.map(id => evidenceSources.get(id)).filter(Boolean).map(source => `<a href="${source.url}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("");
+  const queueItem = reviewQueue.get(entry.id);
+  const comparison = comparisonIndex.get(entry.id);
+  const inlineComparisons = entry.comparisons || [];
+  const comparisonHtml = [
+    comparison ? `<p class="comparison"><b>Bolivia:</b> ${escapeHtml(comparison.bolivia)} <span>· ${escapeHtml(comparison.learnerAlert || "")}</span></p>` : "",
+    ...inlineComparisons.map(item => `<p class="comparison"><b>${escapeHtml(item.country)}:</b> ${escapeHtml(item.meaning)}${item.note ? ` · ${escapeHtml(item.note)}` : ""}</p>`)
+  ].join("");
+  const verificationBits = [
+    entry.level ? `CEFR ${entry.level}` : "",
+    verification.dictionaryAttested === true ? "Dictionary ✓" : "",
+    verification.corpusChecked === true ? "Corpus ✓" : verification.corpusChecked === false ? "Corpus pending" : "",
+    verification.nativeSpeakerReviewed === true ? "Native review ✓" : verification.nativeSpeakerReviewed === false ? "Native review pending" : ""
+  ].filter(Boolean);
+  const reviewText = queueItem?.needs?.length ? queueItem.needs.join(" · ") : entry.nextChecks?.length ? entry.nextChecks.join(" · ") : "";
+  return `<article class="evidence-card">
+    <header><div><h2>${escapeHtml(entry.spanish || "Untitled entry")}</h2><p class="english-gloss">${escapeHtml(gloss)}</p></div><span class="evidence-badge ${status === "research-lead" ? "research" : ""}">${statusLabel(status)}</span></header>
+    <div class="evidence-meta">${verificationBits.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+    ${entry.exampleEs ? `<div class="evidence-example"><p>${escapeHtml(entry.exampleEs)}</p>${entry.exampleUs ? `<small>${escapeHtml(entry.exampleUs)}</small>` : ""}</div>` : ""}
+    ${entry.regionStatus ? `<div class="evidence-section"><h3>Regional status</h3><p>${escapeHtml(entry.regionStatus)}</p></div>` : ""}
+    ${entry.register ? `<div class="evidence-section"><h3>Register & tone</h3><p>${escapeHtml(entry.register)}${entry.intensity ? ` ${escapeHtml(entry.intensity)}` : ""}</p></div>` : ""}
+    ${(entry.naturalness || entry.warning) ? `<div class="evidence-section"><h3>Naturalness & warning</h3><p>${escapeHtml([entry.naturalness,entry.warning].filter(Boolean).join(" "))}</p></div>` : ""}
+    ${comparisonHtml ? `<div class="evidence-section"><h3>Regional comparison</h3>${comparisonHtml}</div>` : ""}
+    ${reviewText ? `<div class="evidence-section"><h3>Still to verify</h3><p>${escapeHtml(reviewText)}</p></div>` : ""}
+    <div class="evidence-section"><h3>Sources</h3><div class="source-links">${sourceLinks || "<span>No named source linked yet</span>"}</div></div>
+  </article>`;
+}
+
 function renderLesson() {
   const content = $("#lesson-content");
   $("#lesson-step-count").textContent = `${lessonStep}/4`;
@@ -215,8 +332,15 @@ function init() {
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { $("#translator-input").value = button.textContent; renderTranslation(); }));
   $$("[data-speaker]").forEach(button => button.addEventListener("click", () => startConversation(button.dataset.speaker, button)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
+  $("#dictionary-search").addEventListener("input", renderDictionary);
+  $$("[data-evidence-filter]").forEach(button => button.addEventListener("click", () => {
+    evidenceFilter = button.dataset.evidenceFilter;
+    $$("[data-evidence-filter]").forEach(item => item.classList.toggle("active", item === button));
+    renderDictionary();
+  }));
   renderTranslation();
   renderLesson();
+  loadEvidence();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 

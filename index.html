@@ -46,6 +46,7 @@
           <article><span>👂</span><div><h2>Listening & rhythm</h2><p>Slow and natural playback.</p></div></article>
           <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
         </div>
+        <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
       </section>
 
       <section id="translator-view" class="view" aria-labelledby="translator-title">
@@ -122,6 +123,24 @@
         </div>
       </section>
 
+      <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Ecuadorian dictionary</h1></div>
+        </div>
+        <p class="dictionary-intro">Every entry shows what supports it, what has been checked, and what still needs Ecuadorian review.</p>
+        <div id="evidence-counts" class="evidence-counts" aria-live="polite"></div>
+        <label class="dictionary-search"><span class="sr-only">Search evidence-backed entries</span><input id="dictionary-search" type="search" placeholder="Search Spanish, English, or a region…"></label>
+        <div class="evidence-filters" role="group" aria-label="Verification filter">
+          <button class="active" data-evidence-filter="all">All</button>
+          <button data-evidence-filter="learner-ready">Learner-ready</button>
+          <button data-evidence-filter="dictionary-attested">Dictionary-attested</button>
+          <button data-evidence-filter="research-lead">Needs review</button>
+        </div>
+        <p id="dictionary-status" class="status">Loading the project’s source files…</p>
+        <div id="dictionary-results" class="dictionary-results"></div>
+      </section>
+
       <section id="lesson-view" class="view" aria-labelledby="lesson-title">
         <div class="view-heading">
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
@@ -135,6 +154,7 @@
     <nav class="bottom-nav" aria-label="Main navigation">
       <button class="active" data-open="home-view"><span>⌂</span>Today</button>
       <button data-open="translator-view"><span>⇄</span>Translate</button>
+      <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
       <button data-open="lesson-view"><span>◉</span>Practice</button>
     </nav>
   </div>
