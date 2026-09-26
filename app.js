@@ -98,6 +98,39 @@ function startListening({way=direction, button, onText}={}) {
   recognition.start();
 }
 
+function stopListening() {
+  if (!recognition) return;
+  try { recognition.stop(); } catch {}
+}
+
+function bindPushToTalk(button, getOptions) {
+  if (!button) return;
+  let pointerActive = false;
+  let suppressNextClick = false;
+  button.addEventListener("pointerdown", event => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    pointerActive = true;
+    suppressNextClick = true;
+    button.setPointerCapture?.(event.pointerId);
+    startListening(getOptions(button));
+  });
+  const release = event => {
+    if (!pointerActive) return;
+    event.preventDefault();
+    pointerActive = false;
+    stopListening();
+    setTimeout(() => { suppressNextClick = false; }, 450);
+  };
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", release);
+  button.addEventListener("click", event => {
+    if (suppressNextClick) { event.preventDefault(); return; }
+    startListening(getOptions(button));
+  });
+}
+
 function translatedText(phrase, way=direction) {
   if (way === "en-ec") return phrase.natural;
   return (englishVariant === "uk" ? phrase.uk : phrase.us) || phrase.en;
@@ -146,19 +179,26 @@ function renderTurns() {
 }
 
 function startConversation(speaker, button) {
+  startListening(conversationOptions(speaker, button));
+}
+
+function conversationOptions(speaker, button) {
   const way = speaker === "Maria" ? "ec-en" : "en-ec";
   $("#conversation-status").textContent = speaker === "Maria" ? "Escuchando español…" : "Listening for English…";
-  startListening({way, button, onText:(text, final) => {
-    $("#conversation-status").textContent = `I heard: ${text}`;
-    if (!final) return;
-    const phrase = matchPhrase(text, way);
-    if (!phrase) { $("#conversation-status").textContent = "I heard you, but that phrase is not in the local library yet. Nothing was invented or saved."; return; }
-    const translation = translatedText(phrase, way);
-    turns.push({speaker, source:text, translation});
-    renderTurns();
-    say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
-    $("#conversation-status").textContent = "Translated and spoken. Ready for the other person.";
-  }});
+  return {way, button, onText:(text, final) => handleConversationText(speaker, text, final)};
+}
+
+function handleConversationText(speaker, text, final) {
+  const way = speaker === "Maria" ? "ec-en" : "en-ec";
+  $("#conversation-status").textContent = `I heard: ${text}`;
+  if (!final) return;
+  const phrase = matchPhrase(text, way);
+  if (!phrase) { $("#conversation-status").textContent = "I heard you, but that phrase is not in the local library yet. Nothing was invented or saved."; return; }
+  const translation = translatedText(phrase, way);
+  turns.push({speaker, source:text, translation});
+  renderTurns();
+  say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
+  $("#conversation-status").textContent = "Translated and spoken. Ready for the other person.";
 }
 
 async function loadEvidence() {
@@ -380,7 +420,7 @@ function renderLesson() {
   if (lessonStep === 1) content.innerHTML = `
     <div class="lesson-stage"><p class="eyebrow">Scene first</p><h1 id="lesson-title">Make a plan before sunset.</h1><p class="lead">You want to meet someone while there is still daylight. Hear the natural question before you say it.</p><div class="scene" aria-label="Sunset over Ecuador">🌄</div><div class="phrase-card"><button class="play-button" id="lesson-play" aria-label="Hear the Spanish phrase">▶</button><p class="spanish">¿A qué hora se pone el sol?</p><p class="english">What time does the sun set?</p></div><button class="primary-button" id="lesson-next">Now say it</button></div>`;
   if (lessonStep === 2) content.innerHTML = `
-    <div class="lesson-stage"><p class="eyebrow">Speak from memory</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Aim for clear key words: <em>hora</em>, <em>pone</em>, and <em>sol</em>. Flow matters more than perfection.</p><div class="mic-practice"><button id="lesson-mic" aria-label="Start speaking">🎙️</button><p>Tap the microphone, then speak.</p><div id="lesson-heard"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
+    <div class="lesson-stage"><p class="eyebrow">Speak from memory</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Aim for clear key words: <em>hora</em>, <em>pone</em>, and <em>sol</em>. Flow matters more than perfection.</p><div class="mic-practice"><button id="lesson-mic" class="push-to-talk" aria-label="Hold to speak">🎙️</button><p>Hold the microphone while speaking. Release when finished.</p><div id="lesson-heard"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
   if (lessonStep === 3) content.innerHTML = `
     <div class="lesson-stage"><p class="eyebrow">Naturalness check</p><h1 id="lesson-title">What would you say in conversation?</h1><p class="lead">Choose the most natural everyday way to ask about sunset.</p><div class="choice-list"><button class="choice" data-correct="true">¿A qué hora se pone el sol?</button><button class="choice">¿A qué hora ocurre el ocaso?</button><button class="choice">¿Cuál es la hora de la puesta solar?</button></div><button class="primary-button" id="lesson-next" disabled>See the language map</button></div>`;
   if (lessonStep === 4) content.innerHTML = `
@@ -391,7 +431,7 @@ function renderLesson() {
 function bindLesson() {
   $("#lesson-play")?.addEventListener("click", () => say("¿A qué hora se pone el sol?"));
   $("#lesson-next")?.addEventListener("click", () => { if (lessonStep < 4) { lessonStep += 1; renderLesson(); } });
-  $("#lesson-mic")?.addEventListener("click", event => startListening({way:"ec-en",button:event.currentTarget,onText:text => {
+  bindPushToTalk($("#lesson-mic"), button => ({way:"ec-en",button,onText:text => {
     const heard = normalize(text);
     const understood = ["hora","pone","sol"].filter(word => heard.includes(word)).length >= 2;
     $("#lesson-heard").innerHTML = `<div class="heard"><small>I heard</small><p>${escapeHtml(text)}</p><p>${understood ? "✓ Understood — your key words came through." : "Try again and make hora, pone, and sol clear."}</p></div>`;
@@ -420,7 +460,7 @@ function init() {
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   $("#swap-button").addEventListener("click", swapDirection);
   $("#translator-input").addEventListener("input", renderTranslation);
-  $("#input-mic").addEventListener("click", event => startListening({way:direction,button:event.currentTarget,onText:text => { $("#translator-input").value = text; renderTranslation(); }}));
+  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:text => { $("#translator-input").value = text; renderTranslation(); }}));
   $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
   $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
     englishVariant = button.dataset.variant;
@@ -433,7 +473,7 @@ function init() {
   const suggestions = ["Maybe another time.","Can you say it more slowly?","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { $("#translator-input").value = button.textContent; renderTranslation(); }));
-  $$("[data-speaker]").forEach(button => button.addEventListener("click", () => startConversation(button.dataset.speaker, button)));
+  $$("[data-speaker]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speaker, current)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $$("[data-evidence-filter]").forEach(button => button.addEventListener("click", () => {
