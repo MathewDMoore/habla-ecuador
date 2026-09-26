@@ -45,6 +45,8 @@ let evidenceEntries = [];
 let evidenceSources = new Map();
 let reviewQueue = new Map();
 let comparisonIndex = new Map();
+let reviewIndex = 0;
+const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 
 function matchPhrase(value, way=direction) {
   const clean = normalize(value);
@@ -63,6 +65,7 @@ function openView(id) {
   $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
   window.scrollTo({top:0, behavior:"smooth"});
   if (id === "lesson-view") renderLesson();
+  if (id === "review-view") renderReview();
 }
 
 function say(text, lang="es-EC") {
@@ -253,7 +256,9 @@ function renderEvidenceCard(entry) {
   const verificationBits = [
     entry.level ? `CEFR ${entry.level}` : "",
     verification.dictionaryAttested === true ? "Dictionary ✓" : "",
-    verification.corpusChecked === true ? "Corpus ✓" : verification.corpusChecked === false ? "Corpus pending" : "",
+    verification.corpusChecked === true && entry.corpusEvidence?.meaningSupported === true ? "Corpus supports ✓" : "",
+    verification.corpusChecked === true && entry.corpusEvidence?.meaningSupported === false ? "Corpus checked · no exact support" : "",
+    verification.corpusChecked === false ? "Corpus pending" : "",
     verification.nativeSpeakerReviewed === true ? "Native review ✓" : verification.nativeSpeakerReviewed === false ? "Native review pending" : ""
   ].filter(Boolean);
   const reviewText = queueItem?.needs?.length ? queueItem.needs.join(" · ") : entry.nextChecks?.length ? entry.nextChecks.join(" · ") : "";
@@ -264,10 +269,108 @@ function renderEvidenceCard(entry) {
     ${entry.regionStatus ? `<div class="evidence-section"><h3>Regional status</h3><p>${escapeHtml(entry.regionStatus)}</p></div>` : ""}
     ${entry.register ? `<div class="evidence-section"><h3>Register & tone</h3><p>${escapeHtml(entry.register)}${entry.intensity ? ` ${escapeHtml(entry.intensity)}` : ""}</p></div>` : ""}
     ${(entry.naturalness || entry.warning) ? `<div class="evidence-section"><h3>Naturalness & warning</h3><p>${escapeHtml([entry.naturalness,entry.warning].filter(Boolean).join(" "))}</p></div>` : ""}
+    ${entry.corpusEvidence ? `<div class="evidence-section corpus-evidence"><h3>CORPHA corpus check</h3><p>${escapeHtml(entry.corpusEvidence.note || "Exact-term search completed.")}</p><small>${entry.corpusEvidence.documentCount} matching documents · checked ${escapeHtml(entry.corpusEvidence.checkedOn || "")}${entry.corpusEvidence.observedRegions?.length ? ` · first results: ${escapeHtml(entry.corpusEvidence.observedRegions.join(", "))}` : ""}</small></div>` : ""}
     ${comparisonHtml ? `<div class="evidence-section"><h3>Regional comparison</h3>${comparisonHtml}</div>` : ""}
     ${reviewText ? `<div class="evidence-section"><h3>Still to verify</h3><p>${escapeHtml(reviewText)}</p></div>` : ""}
     <div class="evidence-section"><h3>Sources</h3><div class="source-links">${sourceLinks || "<span>No named source linked yet</span>"}</div></div>
   </article>`;
+}
+
+function readReviewPackage() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REVIEW_STORAGE_KEY) || "{}");
+    return {reviewer:saved.reviewer || "", reviews:saved.reviews || {}};
+  } catch {
+    return {reviewer:"", reviews:{}};
+  }
+}
+
+function writeReviewPackage(value) {
+  localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(value));
+}
+
+function reviewEntries() {
+  return evidenceEntries.filter(entry => entry.origin === "learner-ready");
+}
+
+function renderReview() {
+  const root = $("#review-card");
+  if (!root) return;
+  const entries = reviewEntries();
+  if (!entries.length) {
+    root.innerHTML = `<p class="status">The learner-ready entries are still loading.</p>`;
+    return;
+  }
+  reviewIndex = Math.max(0, Math.min(reviewIndex, entries.length - 1));
+  const entry = entries[reviewIndex];
+  const pack = readReviewPackage();
+  const saved = pack.reviews[entry.id] || {};
+  $("#reviewer-name").value = pack.reviewer;
+  const reviewed = Object.values(pack.reviews).filter(item => item.rating).length;
+  $("#review-progress").innerHTML = `<span style="width:${(reviewed / entries.length) * 100}%"></span><small>${reviewed} of ${entries.length} reviewed · entry ${reviewIndex + 1}</small>`;
+  const choices = [
+    ["natural", "Natural in Ecuador"],
+    ["awkward", "Understandable but awkward"],
+    ["regional", "Regional / depends where"],
+    ["correction", "Needs correction"]
+  ];
+  root.innerHTML = `<article class="review-card">
+    <p class="review-entry-number">Entry ${reviewIndex + 1} of ${entries.length}</p>
+    <h2>${escapeHtml(entry.spanish)}</h2>
+    <p class="review-gloss">${escapeHtml(entry.usEnglish || "")}</p>
+    ${entry.exampleEs ? `<div class="evidence-example"><p>${escapeHtml(entry.exampleEs)}</p><small>${escapeHtml(entry.exampleUs || "")}</small></div>` : ""}
+    <div class="review-evidence"><b>Existing evidence</b><span>Dictionary ${entry.verification?.dictionaryAttested ? "✓" : "pending"}</span><span>${entry.corpusEvidence?.meaningSupported ? "CORPHA meaning support ✓" : entry.verification?.corpusChecked ? "CORPHA checked; no exact support" : "CORPHA pending"}</span></div>
+    <fieldset><legend>How does this wording sound?</legend><div class="review-choices">${choices.map(([value,label]) => `<button type="button" data-review-choice="${value}" class="${saved.rating === value ? "selected" : ""}">${label}</button>`).join("")}</div></fieldset>
+    <label>Region or city <span>(optional)</span><input id="review-region" value="${escapeHtml(saved.region || "")}" placeholder="e.g. Quito, Guayaquil, Cuenca"></label>
+    <label>Preferred wording or notes <span>(optional)</span><textarea id="review-notes" rows="3" placeholder="What would you say instead?">${escapeHtml(saved.notes || "")}</textarea></label>
+  </article>`;
+  $("#review-prev").disabled = reviewIndex === 0;
+  $("#review-next").disabled = reviewIndex === entries.length - 1;
+  $$('[data-review-choice]').forEach(button => button.addEventListener("click", () => saveCurrentReview({rating:button.dataset.reviewChoice})));
+  $("#review-region").addEventListener("change", event => saveCurrentReview({region:event.target.value}));
+  $("#review-notes").addEventListener("change", event => saveCurrentReview({notes:event.target.value}));
+}
+
+function saveCurrentReview(change) {
+  const entry = reviewEntries()[reviewIndex];
+  if (!entry) return;
+  const pack = readReviewPackage();
+  pack.reviews[entry.id] = {...(pack.reviews[entry.id] || {}), ...change, reviewedAt:new Date().toISOString()};
+  writeReviewPackage(pack);
+  renderReview();
+}
+
+function reviewSummary() {
+  const pack = readReviewPackage();
+  const labels = {natural:"Natural in Ecuador",awkward:"Understandable but awkward",regional:"Regional / depends where",correction:"Needs correction"};
+  const lines = ["Habla Ecuador — Ecuadorian usage review", `Reviewer: ${pack.reviewer || "Not provided"}`, `Exported: ${new Date().toISOString()}`, ""];
+  reviewEntries().forEach(entry => {
+    const item = pack.reviews[entry.id];
+    if (!item?.rating) return;
+    lines.push(`${entry.spanish} — ${labels[item.rating] || item.rating}`);
+    if (item.region) lines.push(`Region/city: ${item.region}`);
+    if (item.notes) lines.push(`Notes: ${item.notes}`);
+    lines.push("");
+  });
+  return lines.join("\n").trim();
+}
+
+async function copyReviewSummary() {
+  const summary = reviewSummary();
+  if (!Object.values(readReviewPackage().reviews).some(item => item.rating)) return showToast("Review at least one entry first.");
+  try { await navigator.clipboard.writeText(summary); showToast("Review summary copied."); }
+  catch { showToast("Press and hold to copy the review summary."); }
+}
+
+async function shareReviewSummary() {
+  const summary = reviewSummary();
+  if (!Object.values(readReviewPackage().reviews).some(item => item.rating)) return showToast("Review at least one entry first.");
+  if (navigator.share) {
+    try { await navigator.share({title:"Habla Ecuador usage review", text:summary}); }
+    catch (error) { if (error.name !== "AbortError") showToast("Sharing was unavailable."); }
+  } else {
+    await copyReviewSummary();
+  }
 }
 
 function renderLesson() {
@@ -338,6 +441,15 @@ function init() {
     $$("[data-evidence-filter]").forEach(item => item.classList.toggle("active", item === button));
     renderDictionary();
   }));
+  $("#reviewer-name").addEventListener("change", event => {
+    const pack = readReviewPackage();
+    pack.reviewer = event.target.value.trim();
+    writeReviewPackage(pack);
+  });
+  $("#review-prev").addEventListener("click", () => { reviewIndex -= 1; renderReview(); window.scrollTo({top:0,behavior:"smooth"}); });
+  $("#review-next").addEventListener("click", () => { reviewIndex += 1; renderReview(); window.scrollTo({top:0,behavior:"smooth"}); });
+  $("#copy-review").addEventListener("click", copyReviewSummary);
+  $("#share-review").addEventListener("click", shareReviewSummary);
   renderTranslation();
   renderLesson();
   loadEvidence();
