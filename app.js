@@ -455,6 +455,7 @@ function escapeHtml(value) {
 }
 
 function init() {
+  const standaloneTranslator = location.pathname.endsWith("/translator.html") || new URLSearchParams(location.search).get("standalone") === "translator";
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
@@ -493,6 +494,11 @@ function init() {
   renderTranslation();
   renderLesson();
   loadEvidence();
+  if (standaloneTranslator) {
+    document.body.classList.add("standalone-translator");
+    openView("translator-view");
+    setMode("translate");
+  }
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
