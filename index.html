@@ -78,7 +78,7 @@
           <label class="input-card">
             <span class="sr-only">Text to translate</span>
             <textarea id="translator-input" rows="4" placeholder="Type or speak a sentence…">Maybe another time.</textarea>
-            <button id="input-mic" class="round-action" type="button" aria-label="Speak instead of typing">🎙</button>
+            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Hold to speak instead of typing">🎙</button>
           </label>
 
           <div class="speed-row">
@@ -112,10 +112,10 @@
         </div>
 
         <div id="conversation-panel" hidden>
-          <p class="conversation-help">Tap a side, speak one sentence, and the phone will say the matched translation aloud. Nothing is saved.</p>
+          <p class="conversation-help">Press and hold your side while speaking, then release. The phone will say the matched translation aloud. Nothing is saved.</p>
           <div class="speaker-grid">
-            <button class="speaker mathew" data-speaker="Mathew"><span>🎙️</span><strong>Mathew</strong><small>Speak English</small></button>
-            <button class="speaker maria" data-speaker="Maria"><span>🎙️</span><strong>Maria</strong><small>Habla español</small></button>
+            <button class="speaker mathew push-to-talk" data-speaker="Mathew"><span>🎙️</span><strong>Mathew</strong><small>Hold · speak English</small></button>
+            <button class="speaker maria push-to-talk" data-speaker="Maria"><span>🎙️</span><strong>Maria</strong><small>Mantén · habla español</small></button>
           </div>
           <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
           <div id="conversation-turns" class="turns"></div>
