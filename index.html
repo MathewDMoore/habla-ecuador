@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=25">
-  <script src="app.js?v=25" defer></script>
+  <link rel="stylesheet" href="styles.css?v=26">
+  <script src="app.js?v=26" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.13.0 · build 25</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.14.0 · build 26</span></div>
     </header>
 
     <main>
@@ -44,7 +44,7 @@
         <button class="feature-card music-card" data-open="music-view">
           <span class="card-kicker">Music, culture & speaking rhythm</span>
           <strong>Hear how language moves</strong>
-          <span>Original drills + Ecuadorian musical context</span>
+          <span>Open recordings + original speaking drills</span>
           <i aria-hidden="true">🎶</i>
         </button>
 
@@ -61,7 +61,13 @@
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
           <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
         </div>
-        <p class="music-intro">Music can show rhythm, emotion, identity, regional language, and how an expression lands. Habla Ecuador records linguistic observations and links to lawful sources; it does not copy lyrics, recordings, or melodies.</p>
+        <p class="music-intro">Listen to actual openly licensed Ecuadorian music, then use original Habla Ecuador drills to practice speaking rhythm. Every recording shows its performer, source, and license.</p>
+        <section class="music-section" aria-labelledby="recordings-title">
+          <p class="eyebrow">Open listening library</p>
+          <h2 id="recordings-title">Actual music</h2>
+          <p>These complete recordings are streamed from Wikimedia Commons under the license shown on each card. They are listening and cultural references—not automatically evidence for slang.</p>
+          <div id="open-music-tracks" class="open-music-tracks"></div>
+        </section>
         <section class="music-section" aria-labelledby="rhythm-title">
           <p class="eyebrow">Speak in rhythm</p>
           <h2 id="rhythm-title">Original rhythm recall</h2>

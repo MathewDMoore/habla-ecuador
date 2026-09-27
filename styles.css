@@ -267,7 +267,15 @@ textarea::placeholder { color: #9ca39f; }
 .music-section > .eyebrow { margin: 0 0 6px; }
 .music-section > h2, .music-method h2 { margin: 0; color: var(--green); font-size: 24px; }
 .music-section > p:not(.eyebrow) { margin: 8px 0 15px; color: var(--muted); font-size: 13px; line-height: 1.5; }
-.rhythm-drills, .music-traditions { display: grid; gap: 12px; }
+.open-music-tracks, .rhythm-drills, .music-traditions { display: grid; gap: 12px; }
+.open-music-card { padding: 16px; border: 1px solid #d7c9df; border-radius: 19px; background: linear-gradient(145deg,#fbf8fd,#f3ecf7); }
+.open-music-card h2 { margin: 4px 0 2px; color: #2c1e35; font-size: 20px; }
+.open-music-card > p:not(.music-region):not(.music-credit) { margin: 10px 0 0; color: #5e5366; font-size: 12px; line-height: 1.5; }
+.music-credit { margin: 0 0 12px; color: #72528f; font-size: 11px; font-weight: 750; }
+.open-music-card audio { display: block; width: 100%; min-height: 44px; }
+.music-license { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; font-size: 10px; font-weight: 850; }
+.music-license a { color: #5b3d74; }
+.music-license span { color: #978b9d; }
 .rhythm-card { padding: 16px; border-radius: 19px; background: #f4edf8; }
 .rhythm-card h2, .music-culture-card h2 { margin: 4px 0 7px; font-size: 19px; }
 .music-region { margin: 0; color: #72528f; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; line-height: 1.4; }

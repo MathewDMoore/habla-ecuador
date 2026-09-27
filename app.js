@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.13.0 · build 25";
+const APP_VERSION = "0.14.0 · build 26";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -71,6 +71,45 @@ const musicTraditions = [
     languageFocus:"Oral tradition, community identity, storytelling, celebration, and culturally situated vocabulary",
     note:"A valuable listening and culture source. Language observations must remain tied to Esmeraldas and the specific performance context.",
     source:{name:"UNESCO · Ecuador intangible cultural heritage",url:"https://ich.unesco.org/en/state/ecuador-EC?info=elements-on-the-lists"}
+  }
+];
+
+const openMusicTracks = [
+  {
+    title:"Pasillo Sinfónico",
+    artist:"Jorge Valverde",
+    region:"Ecuador · pasillo-inspired instrumental",
+    year:"2010",
+    note:"A full instrumental listening example in an Ecuadorian pasillo style. Use it to notice phrasing, pulse, and emotional shape; it contains no lyrics to study.",
+    license:"CC BY-SA 3.0",
+    licenseUrl:"https://creativecommons.org/licenses/by-sa/3.0/",
+    sourceUrl:"https://commons.wikimedia.org/wiki/File:PasilloSinfonico3.ogg",
+    audioMp3:"https://upload.wikimedia.org/wikipedia/commons/transcoded/2/24/PasilloSinfonico3.ogg/PasilloSinfonico3.ogg.mp3",
+    audioOgg:"https://upload.wikimedia.org/wikipedia/commons/2/24/PasilloSinfonico3.ogg"
+  },
+  {
+    title:"Himno de Portoviejo",
+    artist:"Dfvm2424",
+    region:"Portoviejo, Manabí · civic song",
+    year:"2024 recording",
+    note:"Actual Ecuadorian civic music for regional and listening context. A civic song is cultural material, not proof that a word is everyday slang.",
+    license:"CC0 1.0",
+    licenseUrl:"https://creativecommons.org/publicdomain/zero/1.0/",
+    sourceUrl:"https://commons.wikimedia.org/wiki/File:Himno_de_Portoviejo.ogg",
+    audioMp3:"https://upload.wikimedia.org/wikipedia/commons/transcoded/3/31/Himno_de_Portoviejo.ogg/Himno_de_Portoviejo.ogg.mp3",
+    audioOgg:"https://upload.wikimedia.org/wikipedia/commons/3/31/Himno_de_Portoviejo.ogg"
+  },
+  {
+    title:"Himno de Rocafuerte",
+    artist:"Dfvm2424",
+    region:"Rocafuerte, Manabí · civic song",
+    year:"2024 recording",
+    note:"A second openly released regional listening sample. Compare its pace and form with the pasillo track without treating formal song language as ordinary conversation.",
+    license:"CC0 1.0",
+    licenseUrl:"https://creativecommons.org/publicdomain/zero/1.0/",
+    sourceUrl:"https://commons.wikimedia.org/wiki/File:Himno_de_Rocafuerte.ogg",
+    audioMp3:"https://upload.wikimedia.org/wikipedia/commons/transcoded/7/7c/Himno_de_Rocafuerte.ogg/Himno_de_Rocafuerte.ogg.mp3",
+    audioOgg:"https://upload.wikimedia.org/wikipedia/commons/7/7c/Himno_de_Rocafuerte.ogg"
   }
 ];
 
@@ -548,9 +587,22 @@ function renderExpressionLibrary(query="") {
 }
 
 function renderMusic() {
+  const recordings = $("#open-music-tracks");
   const traditions = $("#music-traditions");
   const drills = $("#rhythm-drills");
-  if (!traditions || !drills) return;
+  if (!recordings || !traditions || !drills) return;
+  recordings.innerHTML = openMusicTracks.map(track => `<article class="open-music-card">
+    <p class="music-region">${escapeHtml(track.region)}</p>
+    <h2>${escapeHtml(track.title)}</h2>
+    <p class="music-credit">${escapeHtml(track.artist)} · ${escapeHtml(track.year)}</p>
+    <audio controls preload="none" aria-label="Play ${escapeHtml(track.title)}">
+      <source src="${escapeHtml(track.audioMp3)}" type="audio/mpeg">
+      <source src="${escapeHtml(track.audioOgg)}" type="audio/ogg">
+      Your browser cannot play this recording.
+    </audio>
+    <p>${escapeHtml(track.note)}</p>
+    <div class="music-license"><a href="${escapeHtml(track.sourceUrl)}" target="_blank" rel="noreferrer">Recording source</a><span>·</span><a href="${escapeHtml(track.licenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(track.license)}</a></div>
+  </article>`).join("");
   traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
     <p class="music-region">${escapeHtml(item.region)}</p>
     <h2>${escapeHtml(item.name)}</h2>
@@ -897,7 +949,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=25").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
