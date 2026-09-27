@@ -316,7 +316,8 @@ function populateVoiceSelectors() {
     select.innerHTML = `<option value="auto">${automatic}</option>` + available.map(voice => {
       const key = voiceKey(voice);
       const local = voice.localService ? " · on device" : " · device/browser";
-      return `<option value="${escapeHtml(key)}">${escapeHtml(voice.name)} · ${escapeHtml(voice.lang)}${local}</option>`;
+      const displayName = voice.name.replace(/\bpremium\b/gi,"Apple high quality · free");
+      return `<option value="${escapeHtml(key)}">${escapeHtml(displayName)} · ${escapeHtml(voice.lang)}${local}</option>`;
     }).join("");
     select.value = available.some(voice => voiceKey(voice) === selected) ? selected : "auto";
   });
