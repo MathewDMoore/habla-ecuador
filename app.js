@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.16.0 · build 29";
+const APP_VERSION = "0.16.1 · build 30";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -171,13 +171,23 @@ const rhythmDrills = [
   {
     title:"Everyday Ecuador rhythm",
     focus:"Agreement → reaction → feeling",
-    lines:["De ley.","¡Qué bacán!","Chuta, qué pena.","Estoy hecho funda."],
+    lines:[
+      {es:"De ley.",en:"Definitely. / For sure.",note:"Informal Ecuadorian agreement; it signals strong certainty."},
+      {es:"¡Qué bacán!",en:"How cool! / That’s great!",note:"Bacán means cool or great here; informal and positive."},
+      {es:"Chuta, qué pena.",en:"Oh no, what a shame.",note:"Chuta is a mild exclamation of surprise, frustration, or sympathy."},
+      {es:"Estoy hecho funda.",en:"I’m completely exhausted.",note:"Hecho funda is an informal Ecuadorian way to say physically or mentally worn out."}
+    ],
     note:"An original Habla Ecuador sequence made from independently sourced expressions—not a song lyric. Echo each line, then use it in a new sentence."
   },
   {
     title:"Warm conversation rhythm",
     focus:"Invite → clarify → connect",
-    lines:["¿Te gustaría ir?","¿Me puedes repetir?","Mucho gusto.","Nos vemos pronto."],
+    lines:[
+      {es:"¿Te gustaría ir?",en:"Would you like to go?",note:"A warm, neutral invitation."},
+      {es:"¿Me puedes repetir?",en:"Can you repeat that for me?",note:"A useful polite clarification when you did not catch something."},
+      {es:"Mucho gusto.",en:"Nice to meet you.",note:"A standard courteous response when meeting someone."},
+      {es:"Nos vemos pronto.",en:"See you soon.",note:"A friendly way to close a conversation while expecting future contact."}
+    ],
     note:"Practice connected speech and conversational timing. The goal is a natural response rhythm, not singing accuracy."
   }
 ];
@@ -699,7 +709,10 @@ function renderMusic() {
     <p class="music-region">Original Habla Ecuador drill</p>
     <h2>${escapeHtml(drill.title)}</h2>
     <p class="rhythm-focus">${escapeHtml(drill.focus)}</p>
-    <ol>${drill.lines.map(line => `<li><span>${escapeHtml(line)}</span><button type="button" data-rhythm-line="${escapeHtml(line)}" aria-label="Hear ${escapeHtml(line)}">🔊</button></li>`).join("")}</ol>
+    <ol>${drill.lines.map(line => `<li>
+      <div class="rhythm-definition"><span lang="es-EC">${escapeHtml(line.es)}</span><strong>${escapeHtml(line.en)}</strong><small>${escapeHtml(line.note)}</small></div>
+      <button type="button" data-rhythm-line="${escapeHtml(line.es)}" aria-label="Hear ${escapeHtml(line.es)}">🔊</button>
+    </li>`).join("")}</ol>
     <button class="primary-button music-play" type="button" data-rhythm-drill="${index}">▶ Hear the whole rhythm</button>
     <p class="music-note">${escapeHtml(drill.note)}</p>
   </article>`).join("");
@@ -732,7 +745,7 @@ function playRhythmDrill(index, button) {
       button.disabled = false;
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(drill.lines[lineIndex]);
+    const utterance = new SpeechSynthesisUtterance(drill.lines[lineIndex].es);
     utterance.voice = voice;
     utterance.lang = voice.lang;
     utterance.rate = lineIndex === 0 ? .82 : .9;
@@ -1041,7 +1054,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=29").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=30").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
