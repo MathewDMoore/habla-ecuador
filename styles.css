@@ -276,6 +276,19 @@ textarea::placeholder { color: #9ca39f; }
 .music-license { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; font-size: 10px; font-weight: 850; }
 .music-license a { color: #5b3d74; }
 .music-license span { color: #978b9d; }
+.lyric-companion { margin-top: 12px; padding: 13px; border-radius: 15px; background: #241c2d; color: #fff; }
+.lyric-companion header { display: grid; gap: 10px; }
+.lyric-companion h3 { margin: 2px 0 0; font-size: 17px; }
+.lyric-companion .music-region { color: #cbb5dc; }
+.subtitle-switch { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; padding: 4px; border-radius: 12px; background: #3a2d47; }
+.subtitle-switch button { min-height: 36px; padding: 6px; border: 0; border-radius: 9px; background: transparent; color: #dfd3e7; font-size: 11px; font-weight: 850; }
+.subtitle-switch button.active { background: #fff; color: #352541; }
+.lyric-note { margin: 11px 0 !important; color: #cfc4d5 !important; font-size: 10px !important; }
+.lyric-lines { max-height: 280px; overflow-y: auto; padding-right: 5px; scroll-behavior: smooth; }
+.lyric-line { display: grid; gap: 3px; margin: 0 !important; padding: 10px 2px; border-top: 1px solid rgba(255,255,255,.12); }
+.lyric-es { color: #fff; font-size: 14px; line-height: 1.4; }
+.lyric-en { color: #c8e5da; font-size: 13px; line-height: 1.4; }
+.instrumental-label { padding: 9px 11px; border-radius: 11px; background: #e8e1ec; color: #5e5366 !important; font-weight: 800; }
 .music-rights-note { margin-top: 14px !important; padding: 11px 12px; border-radius: 13px; background: #fff7df; color: #66592e !important; }
 .heritage-music { margin: 16px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 20px; background: #f8f5ef; }
 .heritage-music summary { cursor: pointer; color: var(--green); font-size: 15px; font-weight: 850; }
