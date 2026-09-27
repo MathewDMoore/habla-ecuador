@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.15.0 · build 28";
+const APP_VERSION = "0.16.0 · build 29";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -84,7 +84,25 @@ const contemporaryMusicTracks = [
     license:"CC BY-NC-SA 4.0",
     licenseUrl:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
     sourceUrl:"https://caecae.bandcamp.com/album/ubicaci-n-de-muebles-dos-nicos-hombres",
-    audioMp3:"assets/music/caecae-dos-unicos-hombres.mp3"
+    audioMp3:"assets/music/caecae-dos-unicos-hombres.mp3",
+    lyricsNote:"Artist-published wording is preserved, including nonstandard grammar and English borrowings. The English column explains the intended meaning rather than forcing a word-for-word translation.",
+    lyrics:[
+      {es:"Siempre busco y no encontró / un hombre como él",en:"He kept searching but never found / a man like him"},
+      {es:"Cada que iba de party / encontraba frustración",en:"Every time he went partying / he ended up frustrated"},
+      {es:"Skinny jeans, oversized tees / Inditex basic boy fit",en:"Skinny jeans, oversized T-shirts / a basic-boy Inditex outfit"},
+      {es:"Potheads van sin afeitar / espejos lo calmarán",en:"Stoners go unshaven / mirrors will calm him down"},
+      {es:"Músculos se inflan, inflan, inflan / su cara maquilla, quilla, quilla",en:"Muscles swell, swell, swell / he makes up his face"},
+      {es:"Frunce el ceño, ceño, ceño / la barba se afeita, feita, feita",en:"He furrows his brow / he shaves his beard"},
+      {es:"Cuidadoso aplica rímel, rímel / se pone cera en su side part",en:"Carefully, he applies mascara / he waxes his side-parted hair"},
+      {es:"Se coloca tres aretes, aretes / se pone su traje, traje, traje",en:"He puts in three earrings / he puts on his outfit"},
+      {es:"Himbo, grandes bíceps / lo encontró en el gym",en:"A himbo with big biceps / he found him at the gym"},
+      {es:"Shorts cortos con crop top / y cheekbones para morir",en:"Short shorts with a crop top / and cheekbones to die for"},
+      {es:"Y lo empezó a mirar / ¿Cómo te llamas? Yo quiero saber quién es",en:"And he began looking at him / What’s your name? I want to know who he is"},
+      {es:"Y vio ojos devolver / este caballero de fina estampa",en:"And saw the gaze returned / this fine-looking gentleman"},
+      {es:"Las palabras ya suenan / ¿Cómo te llamas? Yo quiero saber quién es",en:"The words are sounding now / What’s your name? I want to know who he is"},
+      {es:"No se quedaron en pensar / este caballero de fina estampa",en:"They didn’t stop at merely thinking / this fine-looking gentleman"},
+      {es:"Así que así se siente el amor / así que así se siente desear",en:"So this is what love feels like / so this is what desire feels like"}
+    ]
   },
   {
     title:"Simples Maneras",
@@ -628,7 +646,7 @@ function renderMusic() {
   const traditions = $("#music-traditions");
   const drills = $("#rhythm-drills");
   if (!recordings || !heritageRecordings || !traditions || !drills) return;
-  const renderTrackCards = tracks => tracks.map(track => `<article class="open-music-card">
+  const renderTrackCards = tracks => tracks.map((track,index) => `<article class="open-music-card">
     <p class="music-region">${escapeHtml(track.region)}</p>
     <h2>${escapeHtml(track.title)}</h2>
     <p class="music-credit">${escapeHtml(track.artist)} · ${escapeHtml(track.year)}</p>
@@ -637,6 +655,18 @@ function renderMusic() {
       ${track.audioOgg ? `<source src="${escapeHtml(track.audioOgg)}" type="audio/ogg">` : ""}
       Your browser cannot play this recording.
     </audio>
+    ${track.lyrics ? `<section class="lyric-companion" data-lyric-companion="${index}">
+      <header>
+        <div><p class="music-region">Lyric companion</p><h3>Follow the meaning</h3></div>
+        <div class="subtitle-switch" role="group" aria-label="Subtitle language">
+          <button type="button" class="active" data-lyric-mode="en" data-track-index="${index}">English</button>
+          <button type="button" data-lyric-mode="es" data-track-index="${index}">Español</button>
+          <button type="button" data-lyric-mode="both" data-track-index="${index}">Both</button>
+        </div>
+      </header>
+      <p class="lyric-note">${escapeHtml(track.lyricsNote)}</p>
+      <div class="lyric-lines" data-lyric-lines="${index}">${renderLyricLines(track.lyrics,"en")}</div>
+    </section>` : `<p class="instrumental-label">Instrumental track · no lyric subtitles</p>`}
     <p>${escapeHtml(track.note)}</p>
     <div class="music-license"><a href="${escapeHtml(track.sourceUrl)}" target="_blank" rel="noreferrer">Recording source</a><span>·</span><a href="${escapeHtml(track.licenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(track.license)}</a></div>
   </article>`).join("");
@@ -647,6 +677,16 @@ function renderMusic() {
     players.forEach(otherPlayer => {
       if (otherPlayer !== player && !otherPlayer.paused) otherPlayer.pause();
     });
+  }));
+  $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
+    const trackIndex = Number(button.dataset.trackIndex);
+    const mode = button.dataset.lyricMode;
+    const companion = $(`[data-lyric-companion="${trackIndex}"]`);
+    const lines = $(`[data-lyric-lines="${trackIndex}"]`);
+    const track = contemporaryMusicTracks[trackIndex];
+    if (!companion || !lines || !track?.lyrics) return;
+    companion.querySelectorAll('[data-lyric-mode]').forEach(item => item.classList.toggle("active",item === button));
+    lines.innerHTML = renderLyricLines(track.lyrics,mode);
   }));
   traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
     <p class="music-region">${escapeHtml(item.region)}</p>
@@ -665,6 +705,13 @@ function renderMusic() {
   </article>`).join("");
   $$('[data-rhythm-line]').forEach(button => button.addEventListener("click", () => say(button.dataset.rhythmLine,"es-EC")));
   $$('[data-rhythm-drill]').forEach(button => button.addEventListener("click", () => playRhythmDrill(Number(button.dataset.rhythmDrill),button)));
+}
+
+function renderLyricLines(lyrics, mode) {
+  return lyrics.map(line => `<p class="lyric-line">
+    ${mode !== "en" ? `<span lang="es-EC" class="lyric-es">${escapeHtml(line.es)}</span>` : ""}
+    ${mode !== "es" ? `<span lang="en-US" class="lyric-en">${escapeHtml(line.en)}</span>` : ""}
+  </p>`).join("");
 }
 
 function playRhythmDrill(index, button) {
@@ -994,7 +1041,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=29").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
