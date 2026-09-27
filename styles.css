@@ -54,6 +54,8 @@ h1 span { color: var(--orange); }
 .translator-card { background: var(--green); }
 .lesson-card { background: linear-gradient(145deg, #d9612a, #ee8c44); }
 .lesson-card .card-kicker { color: #ffe1c7; }
+.music-card { background: linear-gradient(145deg, #493464, #72528f); }
+.music-card .card-kicker { color: #eadcf5; }
 .path-grid { display: grid; gap: 10px; margin-top: 24px; }
 .path-grid article { display: flex; gap: 14px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: 20px; background: white; }
 .path-grid article > span { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 14px; background: #fff0dc; font-size: 21px; }
@@ -158,10 +160,12 @@ textarea::placeholder { color: #9ca39f; }
 .expression-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .expression-kind { color: var(--orange); font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .natural-indicator { color: var(--green-2); font-size: 9px; font-weight: 850; text-align: right; }
+.natural-indicator.pending { color: #87502e; }
 .expression-spanish { margin: 11px 0 4px; color: var(--green); font-size: 20px; font-weight: 750; line-height: 1.3; }
 .expression-literal { margin: 0 0 3px; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .expression-english { margin: 0; color: var(--ink); font-size: 14px; font-weight: 400; line-height: 1.4; }
 .expression-note { margin: 10px 0 6px; color: #56605b; font-size: 12px; line-height: 1.5; }
+.expression-naturalness { margin: 7px 0; color: #56605b; font-size: 11px; line-height: 1.45; }
 .expression-example { position: relative; margin: 12px 0; padding: 11px 44px 11px 12px; border-left: 3px solid var(--orange); border-radius: 0 12px 12px 0; background: #fff7eb; }
 .expression-example p { margin: 0; color: var(--green); font-size: 14px; line-height: 1.4; }
 .expression-example small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.4; }
@@ -258,7 +262,30 @@ textarea::placeholder { color: #9ca39f; }
 .map-card button { width: 38px; height: 38px; border: 0; border-radius: 12px; background: var(--mint); }
 .map-card p { margin: 9px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
-.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(4,1fr); margin: auto; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
+.music-intro { margin: 8px 0 18px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.music-section { margin: 16px 0; padding: 18px; border: 1px solid var(--line); border-radius: 24px; background: white; }
+.music-section > .eyebrow { margin: 0 0 6px; }
+.music-section > h2, .music-method h2 { margin: 0; color: var(--green); font-size: 24px; }
+.music-section > p:not(.eyebrow) { margin: 8px 0 15px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.rhythm-drills, .music-traditions { display: grid; gap: 12px; }
+.rhythm-card { padding: 16px; border-radius: 19px; background: #f4edf8; }
+.rhythm-card h2, .music-culture-card h2 { margin: 4px 0 7px; font-size: 19px; }
+.music-region { margin: 0; color: #72528f; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; line-height: 1.4; }
+.rhythm-focus { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+.rhythm-card ol { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.rhythm-card li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 10px; border-radius: 12px; background: white; color: var(--green); font-size: 15px; }
+.rhythm-card li button { width: 34px; height: 34px; flex: 0 0 auto; border: 0; border-radius: 10px; background: var(--mint); }
+.music-play { min-height: 46px; margin-top: 12px; background: #493464; font-size: 14px; }
+.music-play:disabled { opacity: .62; }
+.music-note { margin: 11px 0 0; color: #5e5366; font-size: 11px; line-height: 1.5; }
+.music-culture-card { padding: 15px; border: 1px solid #d8cbe0; border-radius: 17px; background: #fbf8fd; }
+.music-culture-card p:not(.music-region) { margin: 7px 0; color: #5e5366; font-size: 12px; line-height: 1.5; }
+.music-culture-card a { color: #5b3d74; font-size: 10px; font-weight: 850; }
+.music-method { margin: 16px 0 22px; padding: 19px; border-radius: 23px; background: var(--mint); }
+.music-method ol { margin: 13px 0 0; padding-left: 21px; color: #456056; font-size: 12px; line-height: 1.55; }
+.music-method li + li { margin-top: 7px; }
+
+.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(5,1fr); margin: auto; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
 .bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px; border: 0; background: transparent; color: #7a817d; font-size: 11px; font-weight: 800; }
 .bottom-nav button span { font-size: 20px; line-height: 1; }
 .bottom-nav button.active { color: var(--green); }

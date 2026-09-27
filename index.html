@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=24a">
-  <script src="app.js?v=24a" defer></script>
+  <link rel="stylesheet" href="styles.css?v=25">
+  <script src="app.js?v=25" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.12.2 · build 24</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.13.0 · build 25</span></div>
     </header>
 
     <main>
@@ -41,12 +41,49 @@
           <i aria-hidden="true">🎙️</i>
         </button>
 
+        <button class="feature-card music-card" data-open="music-view">
+          <span class="card-kicker">Music, culture & speaking rhythm</span>
+          <strong>Hear how language moves</strong>
+          <span>Original drills + Ecuadorian musical context</span>
+          <i aria-hidden="true">🎶</i>
+        </button>
+
         <div class="path-grid" aria-label="Learning paths">
           <article><span>💬</span><div><h2>Real conversation</h2><p>Warm, useful phrases for actual people.</p></div></article>
           <article><span>👂</span><div><h2>Listening & rhythm</h2><p>Slow and natural playback.</p></div></article>
           <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
         </div>
         <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
+      </section>
+
+      <section id="music-view" class="view" aria-labelledby="music-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
+        </div>
+        <p class="music-intro">Music can show rhythm, emotion, identity, regional language, and how an expression lands. Habla Ecuador records linguistic observations and links to lawful sources; it does not copy lyrics, recordings, or melodies.</p>
+        <section class="music-section" aria-labelledby="rhythm-title">
+          <p class="eyebrow">Speak in rhythm</p>
+          <h2 id="rhythm-title">Original rhythm recall</h2>
+          <p>Listen, echo the cadence, then break the sequence apart and use each phrase in conversation.</p>
+          <div id="rhythm-drills" class="rhythm-drills"></div>
+        </section>
+        <section class="music-section" aria-labelledby="traditions-title">
+          <p class="eyebrow">Cultural listening map</p>
+          <h2 id="traditions-title">Ecuadorian musical traditions</h2>
+          <p>Genres are tied to their communities and regions rather than treated as one generic Ecuadorian sound.</p>
+          <div id="music-traditions" class="music-traditions"></div>
+        </section>
+        <section class="music-method">
+          <h2>How a song becomes language evidence</h2>
+          <ol>
+            <li>Confirm the artist, Ecuador connection, genre, region, and date.</li>
+            <li>Record the expression and paraphrase its situation—without storing copied lyrics.</li>
+            <li>Cross-check the meaning in CORPHA, the Ecuadorian Academy, ASALE, or another documented source.</li>
+            <li>Label the register, intensity, generation, region, and whether it sounds natural in conversation.</li>
+            <li>Write a new Habla Ecuador example and send uncertain usage for Ecuadorian review.</li>
+          </ol>
+        </section>
       </section>
 
       <section id="translator-view" class="view" aria-labelledby="translator-title">
@@ -198,6 +235,7 @@
       <button class="active" data-open="home-view"><span>⌂</span>Today</button>
       <button data-open="translator-view"><span>⇄</span>Translate</button>
       <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
+      <button data-open="music-view"><span>♫</span>Music</button>
       <button data-open="lesson-view"><span>◉</span>Practice</button>
     </nav>
   </div>

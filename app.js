@@ -23,6 +23,7 @@ const phrases = [
   { en:"Bring a jacket.", us:"Bring a jacket.", uk:"Bring a jumper or jacket.", es:"Lleva una chaqueta.", natural:"Lleva una chompa.", note:"Chompa is normal in Ecuador for a warm upper garment; the English match can be jacket, sweater, or jumper.", register:"Ecuador-natural · clothing", keys:["lleva una chompa","trae una chompa","chompa"] },
   { en:"He's my close friend.", us:"He's a close friend of mine.", uk:"He's a close mate of mine.", es:"Es un amigo cercano.", natural:"Es mi pana.", note:"In Ecuador, pana means a close friend or inseparable companion, not merely any acquaintance.", register:"Ecuador-natural · affectionate", keys:["es mi pana","mi pana","pana"] },
   { en:"I'm completely worn out.", us:"I'm completely wiped out.", uk:"I'm completely shattered.", es:"Estoy completamente agotado.", natural:"Estoy hecho funda.", note:"Hecho funda can describe someone exhausted, battered, emotionally low, or very drunk. Context determines the meaning.", register:"Ecuadorian · very informal · context warning", keys:["estoy hecho funda","estoy hecha funda","hecho funda"] },
+  { en:"I'm so fucking tired!", us:"I'm so fucking tired!", uk:"I'm so fucking tired!", es:"Estoy jodidamente cansado.", natural:"¡Estoy hecho mierda!", note:"The strong vulgar option preserves the force more naturally than a word-for-word translation. A less vulgar Ecuadorian colloquial candidate is Estoy hecho funda; a neutral emphatic option is Estoy cansadísimo. Regional and native-speaker review is still required.", register:"Strong vulgarity · adult language · review candidate", verificationLabel:"Ecuadorian usage candidate · native review pending", keys:["im so fucking tired","i am so fucking tired","estoy hecho mierda","estoy jodidamente cansado"] },
   { en:"They gave him a nickname.", es:"Le pusieron un apodo.", natural:"Le pusieron una chapa.", note:"Chapa can mean a nickname in Ecuador, often humorous. It can feel teasing or unkind depending on the relationship.", register:"Ecuadorian · informal · teasing possible", keys:["le pusieron una chapa","una chapa","chapa"] },
   { en:"They fired him.", us:"They fired him.", uk:"They sacked him.", es:"Lo despidieron.", natural:"Lo cancelaron del trabajo.", note:"Ecuador also uses cancelar for dismissing an employee. Lo despidieron is safest across countries.", register:"Ecuadorian sense · employment", keys:["lo cancelaron del trabajo","lo cancelaron"] },
   { en:"Where is your workplace?", us:"Where is your workplace? / Where do you work?", uk:"Where is your workplace? / Where do you work?", es:"¿Dónde está tu trabajo?", natural:"¿Dónde queda tu camello?", spanish:"¿Dónde queda tu camello?", standardEs:"¿Dónde está tu trabajo?", literalUs:"Where are you, camel?", literalUk:"Where are you, camel?", note:"The typed form ¿Dónde estás tú, camello? literally addresses someone as ‘camel.’ If you mean the Ecuadorian slang for a job or workplace, use ¿Dónde queda tu camello? Possessive tu means ‘your’ and has no accent.", register:"Informal · context-sensitive", warning:"The verb, accent, and punctuation change the meaning.", culturalEntry:true, keys:["donde queda tu camello","donde esta tu camello","donde estas tu camello"] },
@@ -30,23 +31,62 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.12.2 · build 24";
+const APP_VERSION = "0.13.0 · build 25";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
   {category:"idiom", spanish:"Estoy hecho funda.", us:"I'm completely wiped out.", uk:"I'm completely shattered.", note:"A vivid Ecuadorian expression for being exhausted, battered, emotionally low, or very drunk. Context matters.", naturalness:"Sounds natural in Ecuador", register:"Very informal · context-sensitive"},
   {category:"slang", spanish:"¡Qué bacán!", us:"That's cool! / That's great!", uk:"That's brilliant! / That's great!", note:"Bacán is widely understood, but it is especially comfortable and natural in everyday Ecuadorian speech.", naturalness:"Sounds natural in Ecuador", register:"Informal · enthusiastic"},
-  {category:"slang", spanish:"Chuta, qué pena.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", note:"Chuta can show surprise, frustration, sympathy, or disappointment. The speaker's tone supplies much of the meaning.", naturalness:"Sounds natural in Ecuador", register:"Informal · mild exclamation"},
-  {category:"slang", spanish:"acolitar", us:"to help / support / back someone up", uk:"to help / support / back someone up", exampleEs:"¿Me acolitas con esto?", exampleUs:"Can you help me with this?", exampleUk:"Can you give me a hand with this?", note:"In Ecuador, acolitar can mean supporting someone, helping with an activity, or backing up an idea.", naturalness:"Ecuador meaning attested by ASALE", register:"Informal · friendly · not vulgar", intensity:"Mild", comparisons:["Colombia: ASALE records the same support or solidarity sense."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/acolitar"}},
-  {category:"slang", spanish:"camello", literalUs:"camel", literalUk:"camel", standardEs:"trabajo / empleo / lugar de trabajo", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
-  {category:"slang", spanish:"chiro / chira", us:"broke / out of money", uk:"broke / out of money", exampleEs:"Estoy chiro hasta fin de mes.", exampleUs:"I'm broke until the end of the month.", exampleUk:"I'm broke until the end of the month.", note:"In Ecuador, chiro or chira describes someone who has no money. It can be matter-of-fact or lightly self-deprecating.", naturalness:"Ecuador meaning attested by ASALE", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not assume the same meaning across countries.", comparisons:["Mexico: ASALE records chiro as pretty, cute, or very good—not broke."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/chiro"}},
-  {category:"slang", spanish:"aniñado / aniñada", us:"posh / upper-class / bourgeois-styled", uk:"posh / upper-class / bourgeois-styled", exampleEs:"Ese lugar es medio aniñado.", exampleUs:"That place is kind of upscale.", exampleUk:"That place is a bit posh.", note:"In Ecuador, aniñado can describe a person associated with the upper class or something that looks elegant or bourgeois. Tone can make it neutral, teasing, or critical.", naturalness:"Ecuador meaning attested by ASALE", register:"Youth usage · informal · context-sensitive", intensity:"Mild to pointed", warning:"Use carefully about a person; it can sound socially judgmental.", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/ani%C3%B1ado"}},
+  {category:"slang", spanish:"Chuta, qué pena.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", note:"Chuta can show surprise, frustration, sympathy, or disappointment. The speaker's tone supplies much of the meaning.", naturalness:"Ecuador meanings attested by ASALE", verification:"Source-attested", register:"Informal · mild exclamation", intensity:"Mild", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/%C2%A1chuta%21"}},
+  {category:"slang", spanish:"acolitar", us:"to help / support / back someone up", uk:"to help / support / back someone up", exampleEs:"¿Me acolitas con esto?", exampleUs:"Can you help me with this?", exampleUk:"Can you give me a hand with this?", note:"In Ecuador, acolitar can mean supporting someone, helping with an activity, or backing up an idea.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Informal · friendly · not vulgar", intensity:"Mild", comparisons:["Colombia: ASALE records the same support or solidarity sense."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/acolitar"}},
+  {category:"slang", spanish:"camello", literalUs:"camel", literalUk:"camel", standardEs:"trabajo / empleo / lugar de trabajo", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", verification:"Source-attested", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
+  {category:"slang", spanish:"chiro / chira", us:"broke / out of money", uk:"broke / out of money", exampleEs:"Estoy chiro hasta fin de mes.", exampleUs:"I'm broke until the end of the month.", exampleUk:"I'm broke until the end of the month.", note:"In Ecuador, chiro or chira describes someone who has no money. It can be matter-of-fact or lightly self-deprecating.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not assume the same meaning across countries.", comparisons:["Mexico: ASALE records chiro as pretty, cute, or very good—not broke."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/chiro"}},
+  {category:"slang", spanish:"aniñado / aniñada", us:"posh / upper-class / bourgeois-styled", uk:"posh / upper-class / bourgeois-styled", exampleEs:"Ese lugar es medio aniñado.", exampleUs:"That place is kind of upscale.", exampleUk:"That place is a bit posh.", note:"In Ecuador, aniñado can describe a person associated with the upper class or something that looks elegant or bourgeois. Tone can make it neutral, teasing, or critical.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Youth usage · informal · context-sensitive", intensity:"Mild to pointed", warning:"Use carefully about a person; it can sound socially judgmental.", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/ani%C3%B1ado"}},
   {category:"culture", spanish:"¡Achachay, qué frío!", us:"It's so cold!", uk:"It's absolutely freezing!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", naturalness:"Natural in Ecuador; especially Andean", register:"Expressive · regional"},
   {category:"culture", spanish:"¿Me da la yapa, por favor?", us:"Could you add a little extra, please?", uk:"Could you add a little extra, please?", note:"La yapa is the small extra amount or gift a seller may add at a market.", naturalness:"Sounds natural in Ecuador", register:"Friendly · market language"},
   {category:"culture", spanish:"Mi ñaño viene.", us:"My brother is coming.", uk:"My brother is coming.", note:"Ñaño or ñaña can affectionately mean brother or sister in Ecuador. It does not travel safely to every country.", naturalness:"Sounds natural in Ecuador", register:"Familiar · affectionate"},
   {category:"personal", spanish:"¿Te gustaría que hiciéramos algo el 20?", us:"Would you like us to do something on the 20th?", uk:"Would you like to do something on the 20th?", note:"A warm, low-pressure way to suggest spending time together.", naturalness:"Natural, neutral wording in Ecuador", register:"Warm invitation"},
   {category:"personal", spanish:"¿Te gustaría ir a tomar un cafecito?", us:"Would you like to get coffee?", uk:"Would you like to go for a coffee?", note:"Cafecito adds conversational warmth; it does not require the coffee to be small.", naturalness:"Natural in Ecuador", register:"Warm · everyday"},
   {category:"personal", spanish:"Disculpa, no entendí bien. ¿Me puedes repetir más despacio, por favor?", us:"Sorry, I didn't quite understand. Could you repeat that more slowly, please?", uk:"Sorry, I didn't quite catch that. Could you say it again more slowly, please?", note:"A practical learner phrase that keeps a real conversation moving politely.", naturalness:"Natural, polite wording in Ecuador", register:"Polite · learner-essential"}
+];
+
+const musicTraditions = [
+  {
+    name:"Pasillo",
+    region:"National tradition · Coast, Sierra, and urban Ecuador",
+    languageFocus:"Love, heartbreak, memory, family, homeland, and poetic emotional language",
+    note:"Useful for cultural imagery, formal or poetic vocabulary, and how emotion is expressed. It should not be treated as a direct model of casual modern speech.",
+    source:{name:"UNESCO · Pasillo, song and poetry",url:"https://ich.unesco.org/en/RL/pasillo-song-and-poetry-01702"}
+  },
+  {
+    name:"Bomba del Chota",
+    region:"Afro-Ecuadorian tradition · Chota-Mira valley and nearby communities",
+    languageFocus:"Community history, everyday life, humor, identity, movement, and regional expression",
+    note:"Useful for regionally grounded cultural context. Entries must identify the community and region instead of labeling every feature as general Ecuadorian Spanish.",
+    source:{name:"Ecuador INPC · La Bomba as intangible heritage",url:"https://www.patrimoniocultural.gob.ec/la-bomba-es-parte-del-patrimonio-cultural-inmaterial-del-ecuador/"}
+  },
+  {
+    name:"Marimba esmeraldeña",
+    region:"Afro-Ecuadorian tradition · Esmeraldas",
+    languageFocus:"Oral tradition, community identity, storytelling, celebration, and culturally situated vocabulary",
+    note:"A valuable listening and culture source. Language observations must remain tied to Esmeraldas and the specific performance context.",
+    source:{name:"UNESCO · Ecuador intangible cultural heritage",url:"https://ich.unesco.org/en/state/ecuador-EC?info=elements-on-the-lists"}
+  }
+];
+
+const rhythmDrills = [
+  {
+    title:"Everyday Ecuador rhythm",
+    focus:"Agreement → reaction → feeling",
+    lines:["De ley.","¡Qué bacán!","Chuta, qué pena.","Estoy hecho funda."],
+    note:"An original Habla Ecuador sequence made from independently sourced expressions—not a song lyric. Echo each line, then use it in a new sentence."
+  },
+  {
+    title:"Warm conversation rhythm",
+    focus:"Invite → clarify → connect",
+    lines:["¿Te gustaría ir?","¿Me puedes repetir?","Mucho gusto.","Nos vemos pronto."],
+    note:"Practice connected speech and conversational timing. The goal is a natural response rhythm, not singing accuracy."
+  }
 ];
 
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -100,6 +140,7 @@ function openView(id) {
   window.scrollTo({top:0, behavior:"smooth"});
   if (id === "lesson-view") renderLesson();
   if (id === "review-view") renderReview();
+  if (id === "music-view") renderMusic();
 }
 
 function normalizedLocale(value="") {
@@ -288,8 +329,10 @@ async function renderTranslation() {
   const isPreservedCultural = Boolean(preservedEntry);
   $(".result-label").textContent = isPreservedCultural
     ? "Ecuadorian Spanish · preserved slang sense"
+    : phrase.verificationLabel
+      ? phrase.verificationLabel
     : direction === "en-ec"
-      ? "Verified Ecuadorian Spanish"
+      ? "Habla Ecuador local phrase"
     : isCultural
       ? `${englishVariant === "uk" ? "UK" : "U.S."} English · Ecuadorian slang`
       : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
@@ -447,6 +490,12 @@ function expressionCategoryLabel(category) {
   })[category] || category;
 }
 
+function expressionVerificationLabel(entry) {
+  if (entry.verification) return entry.verification;
+  if (entry.source || entry.literalSource) return "Source-attested";
+  return "Native review pending";
+}
+
 function renderSlangIndex(query="") {
   const root = $("#slang-index-list");
   if (!root) return;
@@ -477,8 +526,9 @@ function renderExpressionLibrary(query="") {
     const english = englishVariant === "uk" ? entry.uk : entry.us;
     const literal = englishVariant === "uk" ? entry.literalUk : entry.literalUs;
     const exampleEnglish = englishVariant === "uk" ? entry.exampleUk : entry.exampleUs;
+    const verification = expressionVerificationLabel(entry);
     return `<article class="expression-card">
-      <header><span class="expression-kind">${escapeHtml(expressionCategoryLabel(entry.category))}</span><span class="natural-indicator">✓ ${escapeHtml(entry.naturalness)}</span></header>
+      <header><span class="expression-kind">${escapeHtml(expressionCategoryLabel(entry.category))}</span><span class="natural-indicator ${verification === "Native review pending" ? "pending" : ""}">${verification === "Native review pending" ? "◌" : "✓"} ${escapeHtml(verification)}</span></header>
       <p class="expression-spanish">${escapeHtml(entry.spanish)}</p>
       ${literal ? `<p class="expression-literal">Literal English: ${escapeHtml(literal)}</p><p class="expression-english">Ecuadorian slang: ${escapeHtml(english)}</p>` : `<p class="expression-english">${escapeHtml(english)}</p>`}
       <div class="dictionary-audio" aria-label="Spoken audio">
@@ -488,12 +538,68 @@ function renderExpressionLibrary(query="") {
       </div>
       ${entry.exampleEs ? `<div class="expression-example"><p>${escapeHtml(entry.exampleEs)}</p><small>${escapeHtml(exampleEnglish)}</small><button type="button" data-dictionary-audio="${escapeHtml(entry.exampleEs)}" data-audio-lang="es-EC">🔊 Example</button></div>` : ""}
       <p class="expression-note">${escapeHtml(entry.note)}</p>
+      <p class="expression-naturalness"><b>Usage:</b> ${escapeHtml(entry.naturalness)}</p>
       <div class="expression-meta"><span>${escapeHtml(entry.register)}</span>${entry.intensity ? `<span>Intensity: ${escapeHtml(entry.intensity)}</span>` : ""}</div>
       ${entry.warning ? `<p class="expression-warning">⚠ ${escapeHtml(entry.warning)}</p>` : ""}
       ${entry.comparisons?.length ? `<div class="expression-comparisons"><strong>Regional comparison</strong>${entry.comparisons.map(item => `<p>${escapeHtml(item)}</p>`).join("")}</div>` : ""}
       ${[entry.literalSource, entry.source].filter(Boolean).map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">Source: ${escapeHtml(source.name)}</a>`).join("")}
     </article>`;
   }).join("") : `<p class="status">No expressions match this search and category.</p>`;
+}
+
+function renderMusic() {
+  const traditions = $("#music-traditions");
+  const drills = $("#rhythm-drills");
+  if (!traditions || !drills) return;
+  traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
+    <p class="music-region">${escapeHtml(item.region)}</p>
+    <h2>${escapeHtml(item.name)}</h2>
+    <p><b>Language value:</b> ${escapeHtml(item.languageFocus)}</p>
+    <p>${escapeHtml(item.note)}</p>
+    <a href="${escapeHtml(item.source.url)}" target="_blank" rel="noreferrer">Source: ${escapeHtml(item.source.name)}</a>
+  </article>`).join("");
+  drills.innerHTML = rhythmDrills.map((drill,index) => `<article class="rhythm-card">
+    <p class="music-region">Original Habla Ecuador drill</p>
+    <h2>${escapeHtml(drill.title)}</h2>
+    <p class="rhythm-focus">${escapeHtml(drill.focus)}</p>
+    <ol>${drill.lines.map(line => `<li><span>${escapeHtml(line)}</span><button type="button" data-rhythm-line="${escapeHtml(line)}" aria-label="Hear ${escapeHtml(line)}">🔊</button></li>`).join("")}</ol>
+    <button class="primary-button music-play" type="button" data-rhythm-drill="${index}">▶ Hear the whole rhythm</button>
+    <p class="music-note">${escapeHtml(drill.note)}</p>
+  </article>`).join("");
+  $$('[data-rhythm-line]').forEach(button => button.addEventListener("click", () => say(button.dataset.rhythmLine,"es-EC")));
+  $$('[data-rhythm-drill]').forEach(button => button.addEventListener("click", () => playRhythmDrill(Number(button.dataset.rhythmDrill),button)));
+}
+
+function playRhythmDrill(index, button) {
+  const drill = rhythmDrills[index];
+  if (!drill || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
+  speechRequestId += 1;
+  const requestId = speechRequestId;
+  speechSynthesis.cancel();
+  refreshSpeechVoices();
+  const voice = voiceForLanguage("es-EC");
+  if (!voice) return showToast("Spanish speech is unavailable on this device.");
+  const originalLabel = button.textContent;
+  button.textContent = "Playing…";
+  button.disabled = true;
+  const playLine = lineIndex => {
+    if (requestId !== speechRequestId || lineIndex >= drill.lines.length) {
+      button.textContent = originalLabel;
+      button.disabled = false;
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(drill.lines[lineIndex]);
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+    utterance.rate = lineIndex === 0 ? .82 : .9;
+    utterance.onend = () => setTimeout(() => playLine(lineIndex + 1), 420);
+    utterance.onerror = () => {
+      button.textContent = originalLabel;
+      button.disabled = false;
+    };
+    speechSynthesis.speak(utterance);
+  };
+  playLine(0);
 }
 
 function entryStatus(entry) {
@@ -757,7 +863,7 @@ function init() {
   }));
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
-  const suggestions = ["Maybe another time.","Can you say it more slowly?","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
+  const suggestions = ["Maybe another time.","Can you say it more slowly?","I'm so fucking tired!","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   $$("[data-speaker]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speaker, current)));
@@ -784,13 +890,14 @@ function init() {
   $("#share-review").addEventListener("click", shareReviewSummary);
   renderTranslation();
   renderLesson();
+  renderMusic();
   loadEvidence();
   if (standaloneTranslator) {
     document.body.classList.add("standalone-translator");
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=24a").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=25").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
