@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=26">
-  <script src="app.js?v=26" defer></script>
+  <link rel="stylesheet" href="styles.css?v=28">
+  <script src="app.js?v=28" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.14.0 · build 26</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.15.0 · build 28</span></div>
     </header>
 
     <main>
@@ -63,10 +63,11 @@
         </div>
         <p class="music-intro">Listen to actual openly licensed Ecuadorian music, then use original Habla Ecuador drills to practice speaking rhythm. Every recording shows its performer, source, and license.</p>
         <section class="music-section" aria-labelledby="recordings-title">
-          <p class="eyebrow">Open listening library</p>
-          <h2 id="recordings-title">Actual music</h2>
-          <p>These complete recordings are streamed from Wikimedia Commons under the license shown on each card. They are listening and cultural references—not automatically evidence for slang.</p>
+          <p class="eyebrow">Contemporary open listening</p>
+          <h2 id="recordings-title">Ecuador now</h2>
+          <p>Starting another track pauses the current one. Return to it later and it resumes from the same place.</p>
           <div id="open-music-tracks" class="open-music-tracks"></div>
+          <p class="music-rights-note">These tracks permit noncommercial sharing with attribution. If Habla Ecuador later becomes commercial, we will obtain direct permission or replace them.</p>
         </section>
         <section class="music-section" aria-labelledby="rhythm-title">
           <p class="eyebrow">Speak in rhythm</p>
@@ -80,6 +81,11 @@
           <p>Genres are tied to their communities and regions rather than treated as one generic Ecuadorian sound.</p>
           <div id="music-traditions" class="music-traditions"></div>
         </section>
+        <details class="heritage-music">
+          <summary>Optional civic & heritage recordings</summary>
+          <p>These remain available for regional cultural reference, but they are no longer the main music experience.</p>
+          <div id="heritage-music-tracks" class="open-music-tracks"></div>
+        </details>
         <section class="music-method">
           <h2>How a song becomes language evidence</h2>
           <ol>

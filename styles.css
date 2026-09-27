@@ -276,6 +276,11 @@ textarea::placeholder { color: #9ca39f; }
 .music-license { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; font-size: 10px; font-weight: 850; }
 .music-license a { color: #5b3d74; }
 .music-license span { color: #978b9d; }
+.music-rights-note { margin-top: 14px !important; padding: 11px 12px; border-radius: 13px; background: #fff7df; color: #66592e !important; }
+.heritage-music { margin: 16px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 20px; background: #f8f5ef; }
+.heritage-music summary { cursor: pointer; color: var(--green); font-size: 15px; font-weight: 850; }
+.heritage-music > p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.heritage-music[open] summary { margin-bottom: 12px; }
 .rhythm-card { padding: 16px; border-radius: 19px; background: #f4edf8; }
 .rhythm-card h2, .music-culture-card h2 { margin: 4px 0 7px; font-size: 19px; }
 .music-region { margin: 0; color: #72528f; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; line-height: 1.4; }

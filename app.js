@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.14.0 · build 26";
+const APP_VERSION = "0.15.0 · build 28";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -74,7 +74,43 @@ const musicTraditions = [
   }
 ];
 
-const openMusicTracks = [
+const contemporaryMusicTracks = [
+  {
+    title:"Dos Únicos Hombres",
+    artist:"Caecae",
+    region:"Quito · experimental Latin pop",
+    year:"2022",
+    note:"Contemporary Ecuadorian pop with playful lyrics, party language, fashion vocabulary, English borrowings, and queer social context. Artistic lyrics are a research lead—not automatic proof of general Ecuadorian usage.",
+    license:"CC BY-NC-SA 4.0",
+    licenseUrl:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    sourceUrl:"https://caecae.bandcamp.com/album/ubicaci-n-de-muebles-dos-nicos-hombres",
+    audioMp3:"assets/music/caecae-dos-unicos-hombres.mp3"
+  },
+  {
+    title:"Simples Maneras",
+    artist:"DUNE",
+    region:"Riobamba · wave / synthwave",
+    year:"2017",
+    note:"Modern Ecuadorian electronic music with an ’80s-inspired synthwave sound. It is instrumental, so use it for musical discovery and rhythm rather than vocabulary evidence.",
+    license:"CC BY-NC-SA 4.0",
+    licenseUrl:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    sourceUrl:"https://dunemusic.bandcamp.com/track/simples-maneras",
+    audioMp3:"assets/music/dune-simples-maneras.mp3"
+  },
+  {
+    title:"Dar",
+    artist:"Huaya-Nay",
+    region:"Quito · Andean / Afro-Ecuadorian electronic fusion",
+    year:"2019",
+    note:"Electronic fusion drawing on Pasto cultural sound and regional forms including bambuco, yumbo, pasillo, and Afro-Ecuadorian elements. It connects living production with regional tradition.",
+    license:"CC BY-NC-SA 4.0",
+    licenseUrl:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    sourceUrl:"https://reptilrecords.bandcamp.com/album/para-dar-recibir-ep",
+    audioMp3:"assets/music/huaya-nay-dar.mp3"
+  }
+];
+
+const heritageMusicTracks = [
   {
     title:"Pasillo Sinfónico",
     artist:"Jorge Valverde",
@@ -588,21 +624,30 @@ function renderExpressionLibrary(query="") {
 
 function renderMusic() {
   const recordings = $("#open-music-tracks");
+  const heritageRecordings = $("#heritage-music-tracks");
   const traditions = $("#music-traditions");
   const drills = $("#rhythm-drills");
-  if (!recordings || !traditions || !drills) return;
-  recordings.innerHTML = openMusicTracks.map(track => `<article class="open-music-card">
+  if (!recordings || !heritageRecordings || !traditions || !drills) return;
+  const renderTrackCards = tracks => tracks.map(track => `<article class="open-music-card">
     <p class="music-region">${escapeHtml(track.region)}</p>
     <h2>${escapeHtml(track.title)}</h2>
     <p class="music-credit">${escapeHtml(track.artist)} · ${escapeHtml(track.year)}</p>
     <audio controls preload="none" aria-label="Play ${escapeHtml(track.title)}">
       <source src="${escapeHtml(track.audioMp3)}" type="audio/mpeg">
-      <source src="${escapeHtml(track.audioOgg)}" type="audio/ogg">
+      ${track.audioOgg ? `<source src="${escapeHtml(track.audioOgg)}" type="audio/ogg">` : ""}
       Your browser cannot play this recording.
     </audio>
     <p>${escapeHtml(track.note)}</p>
     <div class="music-license"><a href="${escapeHtml(track.sourceUrl)}" target="_blank" rel="noreferrer">Recording source</a><span>·</span><a href="${escapeHtml(track.licenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(track.license)}</a></div>
   </article>`).join("");
+  recordings.innerHTML = renderTrackCards(contemporaryMusicTracks);
+  heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks);
+  const players = $$("#music-view audio");
+  players.forEach(player => player.addEventListener("play", () => {
+    players.forEach(otherPlayer => {
+      if (otherPlayer !== player && !otherPlayer.paused) otherPlayer.pause();
+    });
+  }));
   traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
     <p class="music-region">${escapeHtml(item.region)}</p>
     <h2>${escapeHtml(item.name)}</h2>
@@ -949,7 +994,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
