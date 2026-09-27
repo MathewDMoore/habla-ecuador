@@ -299,7 +299,11 @@ textarea::placeholder { color: #9ca39f; }
 .music-region { margin: 0; color: #72528f; font-size: 10px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; line-height: 1.4; }
 .rhythm-focus { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
 .rhythm-card ol { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.rhythm-card li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 10px; border-radius: 12px; background: white; color: var(--green); font-size: 15px; }
+.rhythm-card li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 10px; border-radius: 12px; background: white; color: var(--green); font-size: 15px; }
+.rhythm-definition { display: grid; gap: 3px; min-width: 0; }
+.rhythm-definition > span { color: var(--green); font-size: 16px; }
+.rhythm-definition strong { color: #493464; font-size: 12px; line-height: 1.35; }
+.rhythm-definition small { color: var(--muted); font-size: 10px; line-height: 1.4; }
 .rhythm-card li button { width: 34px; height: 34px; flex: 0 0 auto; border: 0; border-radius: 10px; background: var(--mint); }
 .music-play { min-height: 46px; margin-top: 12px; background: #493464; font-size: 14px; }
 .music-play:disabled { opacity: .62; }
