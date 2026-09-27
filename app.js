@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.16.2 · build 31";
+const APP_VERSION = "0.17.0 · build 32";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -217,6 +217,25 @@ let preservedCulturalContext = null;
 let speechVoices = [];
 let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
+const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
+let voicePreferences = readVoicePreferences();
+
+function readVoicePreferences() {
+  try {
+    return {...{es:"auto",en:"auto"}, ...JSON.parse(localStorage.getItem(VOICE_STORAGE_KEY) || "{}")};
+  } catch {
+    return {es:"auto",en:"auto"};
+  }
+}
+
+function voiceKey(voice) {
+  return `${voice.name}|||${voice.lang}`;
+}
+
+function saveVoicePreference(language, value) {
+  voicePreferences[language] = value;
+  localStorage.setItem(VOICE_STORAGE_KEY, JSON.stringify(voicePreferences));
+}
 
 function matchPhrase(value, way=direction) {
   const clean = normalize(value);
@@ -258,8 +277,13 @@ function voiceForLanguage(lang) {
     return locale === base || locale.startsWith(`${base}-`);
   });
   if (!matching.length) return null;
+  const saved = voicePreferences[base];
+  if (saved && saved !== "auto") {
+    const chosen = matching.find(voice => voiceKey(voice) === saved);
+    if (chosen) return chosen;
+  }
   const preferredLocales = base === "es"
-    ? [requested, "es-419", "es-ec", "es-us", "es-mx", "es-co", "es-es"]
+    ? [requested, "es-ec", "es-co", "es-419", "es-mx", "es-us", "es-es"]
     : requested === "en-gb"
       ? [requested, "en-ie", "en-au", "en-us"]
       : [requested, "en-us", "en-ca", "en-gb"];
@@ -273,7 +297,29 @@ function voiceForLanguage(lang) {
 function refreshSpeechVoices() {
   if (!("speechSynthesis" in window)) return [];
   speechVoices = speechSynthesis.getVoices();
+  populateVoiceSelectors();
   return speechVoices;
+}
+
+function populateVoiceSelectors() {
+  const groups = [
+    {selector:"#spanish-voice-select",base:"es",automatic:"Automatic · Colombia → Latin America → Mexico"},
+    {selector:"#english-voice-select",base:"en",automatic:"Automatic · match U.S. or U.K. setting"}
+  ];
+  groups.forEach(({selector,base,automatic}) => {
+    const select = $(selector);
+    if (!select) return;
+    const available = speechVoices
+      .filter(voice => normalizedLocale(voice.lang).split("-")[0] === base)
+      .sort((a,b) => `${a.lang} ${a.name}`.localeCompare(`${b.lang} ${b.name}`));
+    const selected = voicePreferences[base] || "auto";
+    select.innerHTML = `<option value="auto">${automatic}</option>` + available.map(voice => {
+      const key = voiceKey(voice);
+      const local = voice.localService ? " · on device" : " · device/browser";
+      return `<option value="${escapeHtml(key)}">${escapeHtml(voice.name)} · ${escapeHtml(voice.lang)}${local}</option>`;
+    }).join("");
+    select.value = available.some(voice => voiceKey(voice) === selected) ? selected : "auto";
+  });
 }
 
 function speechProfile(text, lang="es-EC") {
@@ -324,7 +370,7 @@ function say(text, lang="es-EC") {
       if (requestId === speechRequestId) speechSynthesis.speak(utterance);
     }, 160);
   };
-  setTimeout(() => speakWithFreshVoice(), 160);
+  setTimeout(() => speakWithFreshVoice(),160);
 }
 
 function startListening({way=direction, button, onText}={}) {
@@ -1019,6 +1065,14 @@ function init() {
     refreshSpeechVoices();
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
   }
+  [["#spanish-voice-select","es"],["#english-voice-select","en"]].forEach(([selector,language]) => {
+    $(selector)?.addEventListener("change", event => {
+      saveVoicePreference(language, event.target.value);
+      const sample = language === "es" ? "Hola, mucho gusto." : "Hello, nice to meet you.";
+      const locale = language === "es" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US";
+      say(sample,locale);
+    });
+  });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
