@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=31">
-  <script src="app.js?v=31" defer></script>
+  <link rel="stylesheet" href="styles.css?v=32">
+  <script src="app.js?v=32" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.16.2 · build 31</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.17.0 · build 32</span></div>
     </header>
 
     <main>
@@ -138,6 +138,29 @@
               <button class="active" data-speed="0.94">Natural</button>
             </div>
           </div>
+
+          <section class="voice-settings" aria-labelledby="voice-settings-title">
+            <div class="voice-settings-heading">
+              <div>
+                <p class="voice-settings-kicker">Free device voices</p>
+                <h2 id="voice-settings-title">Choose how each language sounds</h2>
+              </div>
+              <span aria-hidden="true">🔊</span>
+            </div>
+            <label>
+              <span>Spanish voice</span>
+              <select id="spanish-voice-select" aria-describedby="voice-settings-note">
+                <option value="auto">Automatic · closest available Latin American voice</option>
+              </select>
+            </label>
+            <label>
+              <span>English voice</span>
+              <select id="english-voice-select" aria-describedby="voice-settings-note">
+                <option value="auto">Automatic · match U.S. or U.K. setting</option>
+              </select>
+            </label>
+            <p id="voice-settings-note">Uses voices already available through this device. Apple currently offers no Ecuador- or Bolivia-labelled system voice, so other Latin American voices are identified as approximations—not authentic Ecuadorian or Bolivian voices.</p>
+          </section>
 
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
