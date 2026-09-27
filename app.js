@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.16.1 · build 30";
+const APP_VERSION = "0.16.2 · build 31";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -276,6 +276,22 @@ function refreshSpeechVoices() {
   return speechVoices;
 }
 
+function speechProfile(text, lang="es-EC") {
+  const clean = normalize(text);
+  const base = normalizedLocale(lang).split("-")[0];
+  const profile = {text, rate:voiceRate, pitch:1, volume:1};
+  if (base !== "es") return profile;
+  if (clean.includes("chuta que pena")) return {...profile,text:"Chuta... qué pena.",rate:.78,pitch:.88,volume:.92};
+  if (clean.includes("que bacan")) return {...profile,text:"¡Qué bacán!",rate:.91,pitch:1.13,volume:1};
+  if (clean.includes("de ley")) return {...profile,text:"De ley.",rate:.86,pitch:.96,volume:1};
+  if (clean.includes("estoy hecho funda")) return {...profile,text:"Estoy... hecho funda.",rate:.72,pitch:.82,volume:.9};
+  if (clean.includes("mucho gusto")) return {...profile,rate:.88,pitch:1.06,volume:1};
+  if (clean.includes("nos vemos pronto")) return {...profile,rate:.88,pitch:1.04,volume:1};
+  if (text.trim().startsWith("¡")) return {...profile,rate:Math.min(voiceRate,.92),pitch:1.09};
+  if (text.trim().startsWith("¿")) return {...profile,rate:Math.min(voiceRate,.9),pitch:1.04};
+  return profile;
+}
+
 function say(text, lang="es-EC") {
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
   const requestId = ++speechRequestId;
@@ -293,10 +309,13 @@ function say(text, lang="es-EC") {
       showToast(`${label} speech is unavailable on this device.`);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(text);
+    const profile = speechProfile(text,lang);
+    const utterance = new SpeechSynthesisUtterance(profile.text);
     utterance.voice = target;
     utterance.lang = target.lang;
-    utterance.rate = voiceRate;
+    utterance.rate = profile.rate;
+    utterance.pitch = profile.pitch;
+    utterance.volume = profile.volume;
     utterance.onerror = event => {
       if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
     };
@@ -745,10 +764,13 @@ function playRhythmDrill(index, button) {
       button.disabled = false;
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(drill.lines[lineIndex].es);
+    const profile = speechProfile(drill.lines[lineIndex].es,"es-EC");
+    const utterance = new SpeechSynthesisUtterance(profile.text);
     utterance.voice = voice;
     utterance.lang = voice.lang;
-    utterance.rate = lineIndex === 0 ? .82 : .9;
+    utterance.rate = profile.rate;
+    utterance.pitch = profile.pitch;
+    utterance.volume = profile.volume;
     utterance.onend = () => setTimeout(() => playLine(lineIndex + 1), 420);
     utterance.onerror = () => {
       button.textContent = originalLabel;
@@ -1054,7 +1076,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=30").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=31").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
