@@ -8,8 +8,8 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=34">
-  <script src="app.js?v=34" defer></script>
+  <link rel="stylesheet" href="styles.css?v=35">
+  <script src="app.js?v=35" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -131,11 +131,15 @@
           </label>
           <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text uses the MyMemory translation service and is labeled as a general translation until Ecuadorian review.</p>
 
-          <div class="speed-row">
-            <span>Voice pace</span>
-            <div class="segmented" role="group" aria-label="Voice pace">
-              <button data-speed="0.68">Slow</button>
-              <button class="active" data-speed="0.94">Natural</button>
+          <div class="speed-control">
+            <div class="speed-control-heading">
+              <label for="voice-rate-slider">Playback speed</label>
+              <output id="voice-rate-value" for="voice-rate-slider">Natural · 0.95×</output>
+            </div>
+            <div class="speed-slider-row">
+              <span>Slower</span>
+              <input id="voice-rate-slider" type="range" min="0.55" max="1.20" step="0.05" value="0.95" aria-label="Translation playback speed">
+              <span>Faster</span>
             </div>
           </div>
 
