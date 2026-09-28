@@ -8,8 +8,8 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=36">
-  <script src="app.js?v=36" defer></script>
+  <link rel="stylesheet" href="styles.css?v=37">
+  <script src="app.js?v=37" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.16.2 · build 31</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.2 · build 37</span></div>
     </header>
 
     <main>
@@ -80,9 +80,11 @@
             <textarea id="translator-input" rows="4" placeholder="Type or hold the microphone to speak…"></textarea>
             <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Hold to speak instead of typing">🎙</button>
           </label>
-          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text uses the MyMemory translation service and is labeled as a general translation until Ecuadorian review.</p>
-
-          <div class="speed-control">
+          <section id="translation-result" class="result-card" aria-live="polite">
+            <p class="result-label">Natural Ecuadorian Spanish</p>
+            <p id="natural-result" class="translation-text"></p>
+            <p id="literal-result" class="literal-text"></p>
+          <div class="speed-control result-speed-control">
             <div class="speed-control-heading">
               <label for="voice-rate-slider">Playback speed</label>
               <output id="voice-rate-value" for="voice-rate-slider">Natural · 0.95×</output>
@@ -93,11 +95,6 @@
               <span>Faster</span>
             </div>
           </div>
-
-          <section id="translation-result" class="result-card" aria-live="polite">
-            <p class="result-label">Natural Ecuadorian Spanish</p>
-            <p id="natural-result" class="translation-text"></p>
-            <p id="literal-result" class="literal-text"></p>
             <div class="result-actions">
               <button id="hear-result">🔊 Hear it</button>
               <button id="copy-result">Copy</button>
@@ -109,6 +106,8 @@
             <p>I heard you, but this sentence is not in the local Ecuadorian phrase library yet.</p>
             <small>This free prototype will not invent a translation. Try one of the suggestions below.</small>
           </section>
+
+          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text uses the MyMemory translation service and is labeled as a general translation until Ecuadorian review.</p>
 
           <div class="suggestions">
             <p>Try a phrase</p>
