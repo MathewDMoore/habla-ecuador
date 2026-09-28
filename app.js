@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.17.2 · build 34";
+const APP_VERSION = "0.18.0 · build 35";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -169,7 +169,7 @@ const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[
 
 let direction = "en-ec";
 let englishVariant = "us";
-let voiceRate = .94;
+let voiceRate = readVoiceRate();
 let lessonStep = 1;
 let selectedChoice = "";
 let turns = [];
@@ -189,6 +189,7 @@ let speechVoices = [];
 let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
+const SPEECH_RATE_STORAGE_KEY = "habla-ecuador-speech-rate-v1";
 let voicePreferences = readVoicePreferences();
 
 function readVoicePreferences() {
@@ -206,6 +207,23 @@ function voiceKey(voice) {
 function saveVoicePreference(language, value) {
   voicePreferences[language] = value;
   localStorage.setItem(VOICE_STORAGE_KEY, JSON.stringify(voicePreferences));
+}
+
+function readVoiceRate() {
+  const saved = Number(localStorage.getItem(SPEECH_RATE_STORAGE_KEY));
+  return Number.isFinite(saved) && saved >= .55 && saved <= 1.2 ? saved : .95;
+}
+
+function speechRateLabel(value) {
+  const pace = value <= .65 ? "Very slow" : value <= .85 ? "Slow" : value <= 1 ? "Natural" : "Faster";
+  return `${pace} · ${value.toFixed(2)}×`;
+}
+
+function setSpeechRate(value) {
+  voiceRate = Math.max(.55,Math.min(1.2,Number(value) || .95));
+  localStorage.setItem(SPEECH_RATE_STORAGE_KEY,String(voiceRate));
+  const output = $("#voice-rate-value");
+  if (output) output.textContent = speechRateLabel(voiceRate);
 }
 
 function matchPhrase(value, way=direction) {
@@ -1085,7 +1103,16 @@ function init() {
     else translationTimer = setTimeout(renderTranslation, 550);
   });
   bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
-  $$("[data-speed]").forEach(button => button.addEventListener("click", () => { voiceRate = Number(button.dataset.speed); $$("[data-speed]").forEach(item => item.classList.toggle("active", item === button)); say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"); }));
+  const rateSlider = $("#voice-rate-slider");
+  if (rateSlider) {
+    rateSlider.value = String(voiceRate);
+    setSpeechRate(voiceRate);
+    rateSlider.addEventListener("input", event => setSpeechRate(event.target.value));
+    rateSlider.addEventListener("change", () => {
+      const preview = $("#natural-result").textContent.trim();
+      if (preview) say(preview,direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
+    });
+  }
   $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
     englishVariant = button.dataset.variant;
     $$("[data-variant]").forEach(item => item.classList.toggle("active", item === button));
@@ -1129,7 +1156,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=34").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=35").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
