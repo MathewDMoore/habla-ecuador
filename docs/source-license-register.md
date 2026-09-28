@@ -1,6 +1,6 @@
 # Habla Ecuador — Source and License Register
 
-_Last verified: 2026-09-27_
+_Last verified: 2026-09-28_
 
 This register controls whether external linguistic or cultural material may be used in Habla Ecuador. “Free to access,” “free app,” “publicly audible,” and “open source software” do **not** automatically grant permission to copy, redistribute, adapt, train on, or synthesize a person’s voice.
 
@@ -24,7 +24,7 @@ This is a product compliance record, not legal advice.
 | **Simi (Cochabamba Quechua app)** | Volunteer-built Cochabamba/Bolivian Quechua learning app from Laboratorio de Tecnologías Sociales | The project describes lessons with audio, illustration, and animation, but no content license authorizing third-party reuse was located. Public GitHub/profile references do not establish that the lesson corpus or voices are open. | Do not copy, extract, or redistribute audio, text, or artwork. Product research and direct collaboration inquiries are acceptable. | No training, cloning, or corpus ingestion without written permission and speaker/community consent. | **Permission required.** |
 | **SimiGPT initiative** | Proposed Bolivian Quechua language-model/corpus initiative from Laboratorio de Tecnologías Sociales | Public project description emphasizes corpus, tools, methods, evaluation, and community agreements; no downloadable corpus license was confirmed. | Not an app-content source unless a separately licensed release appears or a collaboration agreement is made. | No ingestion. A future partnership may be valuable because the project explicitly recognizes community agreements. | **Collaboration prospect; permission required.** |
 | **Southern Bolivian Quechua Living Dictionary / Living Dictionaries** | Community dictionary entries and named-speaker audio hosted by Living Dictionaries | Current Terms retain contributor ownership, provide only limited personal/educational/research/community use, prohibit systematic retrieval without written permission, restrict commercial exploitation, and preserve community/speaker removal rights. | Browsing for research is allowed. Do not scrape, bulk export, copy recordings, or redistribute entries in Habla Ecuador without written permission from the dictionary managers/rights holders and applicable community/speakers. | No training or voice synthesis. | **Reference only / permission required.** |
-| **Oralidad Modernidad (Ecuador)** | Interdisciplinary Ecuadorian Indigenous-language documentation program; community narratives, interviews, audio/video, educational and lexical materials | The reviewed site asks users to cite the program and describes community consultation and validation. No unambiguous blanket license covering all participant audio/video was confirmed on the reviewed pages. A website citation instruction is not sufficient permission to reuse identifiable voices. | Use as a scholarly/reference source and link to it. Do not ingest or redistribute recordings until an item-level license or written authorization confirms both rights and community/speaker consent. Independently written summaries may cite the project. | No training, cloning, or generative voice use. | **Reference only / permission required for media.** |
+| **Oralidad Modernidad (Ecuador)** | Interdisciplinary Ecuadorian Indigenous-language documentation program; community narratives, interviews, audio/video, educational and lexical materials | The site footer states CC BY 4.0, but individual language-material pages expressly prohibit copying, distribution, publication, or any other use without prior authorization from oralidadmodernidad@gmail.com and limit use to cultural/academic, noncommercial purposes. The specific item restriction controls our intake decision. | Use as a scholarly/reference source and link to it. Do not ingest or redistribute recordings until written item-level authorization confirms the exact media, allowed app use, speaker consent, and community consent. | No training, cloning, biometric use, or generative voice use. | **Reference only / explicit prior permission required.** |
 | **ABNB / CREM returned Bolivian recordings** | 157 historic recordings (1903–2001) returned by France’s CREM to Archivo y Biblioteca Nacionales de Bolivia (ABNB); Indigenous communities are central rights/ethical stakeholders | Reporting quoting ABNB’s archive head states that descendants/communities can obtain free copies, institutional consultation is for research, commercial use/reproduction is prohibited, and some communities do not want dissemination. No open license was identified. | Do not copy, stream, redistribute, or include in the app. A researcher may consult according to ABNB rules; community access is not a public reuse license. | No training, dataset creation, voice synthesis, or commercial/noncommercial app ingestion. | **Restricted.** |
 | **Killkan Kichwa ASR dataset/code** | Roughly four hours of Kichwa audio, transcriptions, and Spanish translations derived from “Jaboneropak Ayllullaktapi” by Radialistas; maintained by ctaguchi | Repository states **CC BY 4.0**. The repository and paper document the dataset’s source and purpose. | Potentially reusable with attribution after confirming every bundled asset is covered, recording provenance is adequate, and project attribution is preserved. It is Kichwa ASR research data—not Ecuadorian Spanish TTS. | Copyright license is permissive, but voice-cloning use is outside Habla Ecuador’s approved purpose. Any ML use needs a documented purpose, provenance review, speaker/community-risk review, and attribution plan. | **Confirmed open candidate; not yet approved for production voice.** |
 
@@ -74,5 +74,17 @@ No external clip enters the app unless its record contains:
 1. Identify Lingua Libre speakers with documented Ecuadorian or Bolivian provenance.
 2. Ask AlliKichwa whether any word/phrase recordings may be licensed individually for attribution-based app use.
 3. Ask Simi/Laboratorio de Tecnologías Sociales about collaboration, corpus licensing, and community-consent governance.
-4. Ask Oralidad Modernidad whether specific materials have item-level licenses suitable for educational app playback and whether participant consent covers third-party redistribution.
+4. Permission request prepared for Oralidad Modernidad at its stated authorization address; await written item-level approval and confirmation that participant/community consent covers third-party playback.
 5. Treat ABNB/CREM recordings as unavailable unless ABNB and the relevant community provide a specific written authorization.
+
+
+## Outreach status — 2026-09-28
+
+Permission and collaboration requests are prepared for:
+
+- David Tabi / AlliKichwa
+- Laboratorio de Tecnologías Sociales / Simi and SimiGPT
+- Oralidad Modernidad
+- Living Tongues Institute / Living Dictionaries
+
+The approved request text is stored in `docs/permissions/outreach-kit.md`. A speaker permission form and machine-readable audio source manifest schema were also added. No external audio has been ingested.
