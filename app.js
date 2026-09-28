@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.17.0 · build 32";
+const APP_VERSION = "0.17.1 · build 33";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -269,29 +269,56 @@ function normalizedLocale(value="") {
   return value.replace("_", "-").toLowerCase();
 }
 
+const VOICE_NAME_BLOCKLIST = /albert|bad news|bahh|bells|boing|bubbles|cellos|fred|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox/i;
+const QUALITY_MARKER = /enhanced|premium|neural|natural/i;
+const TRUSTED_DEVICE_VOICES = {
+  es:["mónica","monica","paulina","ximena","jorge","diego","luciana"],
+  en:["ava","samantha","nathan","daniel","jamie","karen","moira","rishi"]
+};
+
+function voiceDisplayName(voice) {
+  return voice.name
+    .replace(/\bpremium\b/gi,"High quality")
+    .replace(/\benhanced\b/gi,"Enhanced");
+}
+
+function isCuratedVoice(voice,base) {
+  if (normalizedLocale(voice.lang).split("-")[0] !== base || VOICE_NAME_BLOCKLIST.test(voice.name)) return false;
+  const name = voice.name.toLowerCase();
+  return QUALITY_MARKER.test(name) || (TRUSTED_DEVICE_VOICES[base] || []).some(item => name.includes(item));
+}
+
+function voiceQualityScore(voice,requested,base) {
+  const locale = normalizedLocale(voice.lang);
+  const name = voice.name.toLowerCase();
+  const localeOrder = base === "es"
+    ? [requested,"es-ec","es-co","es-419","es-mx","es-us","es-es"]
+    : requested === "en-gb"
+      ? [requested,"en-ie","en-au","en-us"]
+      : [requested,"en-us","en-ca","en-gb"];
+  const localeIndex = localeOrder.indexOf(locale);
+  let score = localeIndex < 0 ? 0 : 80 - (localeIndex * 8);
+  if (/premium|neural|natural/i.test(name)) score += 55;
+  else if (/enhanced/i.test(name)) score += 40;
+  if (voice.localService) score += 12;
+  if ((TRUSTED_DEVICE_VOICES[base] || []).some(item => name.includes(item))) score += 18;
+  if (VOICE_NAME_BLOCKLIST.test(name)) score -= 500;
+  return score;
+}
+
 function voiceForLanguage(lang) {
   const requested = normalizedLocale(lang);
   const base = requested.split("-")[0];
-  const matching = speechVoices.filter(voice => {
-    const locale = normalizedLocale(voice.lang);
-    return locale === base || locale.startsWith(`${base}-`);
-  });
+  const matching = speechVoices
+    .filter(voice => normalizedLocale(voice.lang).split("-")[0] === base)
+    .filter(voice => !VOICE_NAME_BLOCKLIST.test(voice.name));
   if (!matching.length) return null;
   const saved = voicePreferences[base];
   if (saved && saved !== "auto") {
-    const chosen = matching.find(voice => voiceKey(voice) === saved);
+    const chosen = matching.find(voice => voiceKey(voice) === saved && isCuratedVoice(voice,base));
     if (chosen) return chosen;
   }
-  const preferredLocales = base === "es"
-    ? [requested, "es-ec", "es-co", "es-419", "es-mx", "es-us", "es-es"]
-    : requested === "en-gb"
-      ? [requested, "en-ie", "en-au", "en-us"]
-      : [requested, "en-us", "en-ca", "en-gb"];
-  for (const locale of preferredLocales) {
-    const exact = matching.find(voice => normalizedLocale(voice.lang) === locale);
-    if (exact) return exact;
-  }
-  return matching[0];
+  return [...matching].sort((a,b) => voiceQualityScore(b,requested,base) - voiceQualityScore(a,requested,base))[0];
 }
 
 function refreshSpeechVoices() {
@@ -303,23 +330,23 @@ function refreshSpeechVoices() {
 
 function populateVoiceSelectors() {
   const groups = [
-    {selector:"#spanish-voice-select",base:"es",automatic:"Automatic · Colombia → Latin America → Mexico"},
-    {selector:"#english-voice-select",base:"en",automatic:"Automatic · match U.S. or U.K. setting"}
+    {selector:"#spanish-voice-select",base:"es",automatic:"Best available Latin American Spanish voice"},
+    {selector:"#english-voice-select",base:"en",automatic:"Best available voice for the selected English style"}
   ];
   groups.forEach(({selector,base,automatic}) => {
     const select = $(selector);
     if (!select) return;
     const available = speechVoices
-      .filter(voice => normalizedLocale(voice.lang).split("-")[0] === base)
-      .sort((a,b) => `${a.lang} ${a.name}`.localeCompare(`${b.lang} ${b.name}`));
+      .filter(voice => isCuratedVoice(voice,base))
+      .sort((a,b) => voiceQualityScore(b,base === "es" ? "es-EC" : "en-US",base) - voiceQualityScore(a,base === "es" ? "es-EC" : "en-US",base));
     const selected = voicePreferences[base] || "auto";
     select.innerHTML = `<option value="auto">${automatic}</option>` + available.map(voice => {
       const key = voiceKey(voice);
-      const local = voice.localService ? " · on device" : " · device/browser";
-      const displayName = voice.name.replace(/\bpremium\b/gi,"Apple high quality · free");
-      return `<option value="${escapeHtml(key)}">${escapeHtml(displayName)} · ${escapeHtml(voice.lang)}${local}</option>`;
+      const locality = voice.localService ? " · on device" : "";
+      return `<option value="${escapeHtml(key)}">${escapeHtml(voiceDisplayName(voice))} · ${escapeHtml(voice.lang)}${locality}</option>`;
     }).join("");
     select.value = available.some(voice => voiceKey(voice) === selected) ? selected : "auto";
+    if (select.value === "auto" && selected !== "auto") saveVoicePreference(base,"auto");
   });
 }
 
@@ -328,14 +355,14 @@ function speechProfile(text, lang="es-EC") {
   const base = normalizedLocale(lang).split("-")[0];
   const profile = {text, rate:voiceRate, pitch:1, volume:1};
   if (base !== "es") return profile;
-  if (clean.includes("chuta que pena")) return {...profile,text:"Chuta... qué pena.",rate:.78,pitch:.88,volume:.92};
-  if (clean.includes("que bacan")) return {...profile,text:"¡Qué bacán!",rate:.91,pitch:1.13,volume:1};
-  if (clean.includes("de ley")) return {...profile,text:"De ley.",rate:.86,pitch:.96,volume:1};
-  if (clean.includes("estoy hecho funda")) return {...profile,text:"Estoy... hecho funda.",rate:.72,pitch:.82,volume:.9};
-  if (clean.includes("mucho gusto")) return {...profile,rate:.88,pitch:1.06,volume:1};
-  if (clean.includes("nos vemos pronto")) return {...profile,rate:.88,pitch:1.04,volume:1};
-  if (text.trim().startsWith("¡")) return {...profile,rate:Math.min(voiceRate,.92),pitch:1.09};
-  if (text.trim().startsWith("¿")) return {...profile,rate:Math.min(voiceRate,.9),pitch:1.04};
+  // Browser voices cannot create genuine acting. Punctuation and restrained pacing
+  // preserve intelligibility without the cartoonish pitch shifts used previously.
+  if (clean.includes("chuta que pena")) return {...profile,text:"Chuta… qué pena.",rate:Math.min(voiceRate,.88)};
+  if (clean.includes("que bacan")) return {...profile,text:"¡Qué bacán!",rate:Math.min(voiceRate,.94),pitch:1.02};
+  if (clean.includes("de ley")) return {...profile,text:"De ley.",rate:Math.min(voiceRate,.92)};
+  if (clean.includes("estoy hecho funda")) return {...profile,text:"Estoy hecho funda.",rate:Math.min(voiceRate,.86),pitch:.98};
+  if (text.trim().startsWith("¡")) return {...profile,rate:Math.min(voiceRate,.95),pitch:1.02};
+  if (text.trim().startsWith("¿")) return {...profile,rate:Math.min(voiceRate,.94)};
   return profile;
 }
 
@@ -1131,7 +1158,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=31").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=33").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
