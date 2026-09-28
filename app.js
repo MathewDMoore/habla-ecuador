@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.0 · build 35";
+const APP_VERSION = "0.18.1 · build 36";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -167,6 +167,8 @@ const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
+const SPEECH_RATE_STORAGE_KEY = "habla-ecuador-speech-rate-v1";
+
 let direction = "en-ec";
 let englishVariant = "us";
 let voiceRate = readVoiceRate();
@@ -189,7 +191,6 @@ let speechVoices = [];
 let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
-const SPEECH_RATE_STORAGE_KEY = "habla-ecuador-speech-rate-v1";
 let voicePreferences = readVoicePreferences();
 
 function readVoicePreferences() {
@@ -1156,7 +1157,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=35").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=36").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
