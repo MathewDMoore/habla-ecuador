@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.2 · build 37";
+const APP_VERSION = "0.18.3 · build 38";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -191,7 +191,38 @@ let speechVoices = [];
 let speechRequestId = 0;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
+const SPEAKER_NAMES_STORAGE_KEY = "habla-ecuador-speaker-names-v1";
 let voicePreferences = readVoicePreferences();
+let speakerNames = readSpeakerNames();
+
+function readSpeakerNames() {
+  try {
+    return {...{english:"Mathew",spanish:"Maria"}, ...JSON.parse(localStorage.getItem(SPEAKER_NAMES_STORAGE_KEY) || "{}")};
+  } catch {
+    return {english:"Mathew",spanish:"Maria"};
+  }
+}
+
+function speakerName(role) {
+  const fallback = role === "spanish" ? "Maria" : "Mathew";
+  return String(speakerNames[role] || fallback).trim().slice(0,24) || fallback;
+}
+
+function saveSpeakerName(role, value) {
+  speakerNames[role] = String(value || "").trim().slice(0,24) || (role === "spanish" ? "Maria" : "Mathew");
+  localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
+  $('[data-speaker-label="' + role + '"]').forEach(label => { label.textContent = speakerNames[role]; });
+}
+
+function syncSpeakerNames() {
+  ["english","spanish"].forEach(role => {
+    const name = speakerName(role);
+    speakerNames[role] = name;
+    const input = $('[data-speaker-name="' + role + '"]');
+    if (input) input.value = name;
+    $('[data-speaker-label="' + role + '"]').forEach(label => { label.textContent = name; });
+  });
+}
 
 function readVoicePreferences() {
   try {
@@ -593,21 +624,22 @@ function showToast(message) {
 
 function renderTurns() {
   const box = $("#conversation-turns");
-  box.innerHTML = turns.map(turn => `<article class="turn ${turn.speaker.toLowerCase()}"><small>${turn.speaker}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation)}</p></article>`).join("");
+  box.innerHTML = turns.map(turn => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"}"><small>${escapeHtml(turn.speaker)}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation)}</p></article>`).join("");
 }
 
-function startConversation(speaker, button) {
-  startListening(conversationOptions(speaker, button));
+function startConversation(role, button) {
+  startListening(conversationOptions(role, button));
 }
 
-function conversationOptions(speaker, button) {
-  const way = speaker === "Maria" ? "ec-en" : "en-ec";
-  $("#conversation-status").textContent = speaker === "Maria" ? "Escuchando español…" : "Listening for English…";
-  return {way, button, onText:(text, final) => handleConversationText(speaker, text, final)};
+function conversationOptions(role, button) {
+  const way = role === "spanish" ? "ec-en" : "en-ec";
+  const name = speakerName(role);
+  $("#conversation-status").textContent = role === "spanish" ? `Escuchando a ${name} en español…` : `Listening to ${name} in English…`;
+  return {way, button, onText:(text, final) => handleConversationText(role, name, text, final)};
 }
 
-async function handleConversationText(speaker, text, final) {
-  const way = speaker === "Maria" ? "ec-en" : "en-ec";
+async function handleConversationText(role, speaker, text, final) {
+  const way = role === "spanish" ? "ec-en" : "en-ec";
   $("#conversation-status").textContent = `I heard: ${text}`;
   if (!final) return;
   const phrase = matchPhrase(text, way);
@@ -619,7 +651,7 @@ async function handleConversationText(speaker, text, final) {
     try { translation = await requestGeneralTranslation(text, way); }
     catch { $("#conversation-status").textContent = "Translation is temporarily unavailable. Please check the connection and try again."; return; }
   }
-  turns.push({speaker, source:text, translation});
+  turns.push({role, speaker, source:text, translation});
   renderTurns();
   say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
   $("#conversation-status").textContent = phrase ? "Ecuadorian-verified phrase translated and spoken." : "General translation spoken · Ecuadorian review pending.";
@@ -1126,7 +1158,11 @@ function init() {
   const suggestions = ["Maybe another time.","Can you say it more slowly?","I'm so fucking tired!","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
-  $$("[data-speaker]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speaker, current)));
+  syncSpeakerNames();
+  $("[data-speaker-name]").forEach(input => input.addEventListener("input", event => {
+    saveSpeakerName(event.target.dataset.speakerName, event.target.value);
+  }));
+  $("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
@@ -1157,7 +1193,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=37").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=38").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
