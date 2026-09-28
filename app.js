@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.17.1 · build 33";
+const APP_VERSION = "0.17.2 · build 34";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -75,35 +75,6 @@ const musicTraditions = [
 ];
 
 const contemporaryMusicTracks = [
-  {
-    title:"Dos Únicos Hombres",
-    artist:"Caecae",
-    region:"Quito · experimental Latin pop",
-    year:"2022",
-    note:"Contemporary Ecuadorian pop with playful lyrics, party language, fashion vocabulary, English borrowings, and queer social context. Artistic lyrics are a research lead—not automatic proof of general Ecuadorian usage.",
-    license:"CC BY-NC-SA 4.0",
-    licenseUrl:"https://creativecommons.org/licenses/by-nc-sa/4.0/",
-    sourceUrl:"https://caecae.bandcamp.com/album/ubicaci-n-de-muebles-dos-nicos-hombres",
-    audioMp3:"assets/music/caecae-dos-unicos-hombres.mp3",
-    lyricsNote:"Artist-published wording is preserved, including nonstandard grammar and English borrowings. The English column explains the intended meaning rather than forcing a word-for-word translation.",
-    lyrics:[
-      {es:"Siempre busco y no encontró / un hombre como él",en:"He kept searching but never found / a man like him"},
-      {es:"Cada que iba de party / encontraba frustración",en:"Every time he went partying / he ended up frustrated"},
-      {es:"Skinny jeans, oversized tees / Inditex basic boy fit",en:"Skinny jeans, oversized T-shirts / a basic-boy Inditex outfit"},
-      {es:"Potheads van sin afeitar / espejos lo calmarán",en:"Stoners go unshaven / mirrors will calm him down"},
-      {es:"Músculos se inflan, inflan, inflan / su cara maquilla, quilla, quilla",en:"Muscles swell, swell, swell / he makes up his face"},
-      {es:"Frunce el ceño, ceño, ceño / la barba se afeita, feita, feita",en:"He furrows his brow / he shaves his beard"},
-      {es:"Cuidadoso aplica rímel, rímel / se pone cera en su side part",en:"Carefully, he applies mascara / he waxes his side-parted hair"},
-      {es:"Se coloca tres aretes, aretes / se pone su traje, traje, traje",en:"He puts in three earrings / he puts on his outfit"},
-      {es:"Himbo, grandes bíceps / lo encontró en el gym",en:"A himbo with big biceps / he found him at the gym"},
-      {es:"Shorts cortos con crop top / y cheekbones para morir",en:"Short shorts with a crop top / and cheekbones to die for"},
-      {es:"Y lo empezó a mirar / ¿Cómo te llamas? Yo quiero saber quién es",en:"And he began looking at him / What’s your name? I want to know who he is"},
-      {es:"Y vio ojos devolver / este caballero de fina estampa",en:"And saw the gaze returned / this fine-looking gentleman"},
-      {es:"Las palabras ya suenan / ¿Cómo te llamas? Yo quiero saber quién es",en:"The words are sounding now / What’s your name? I want to know who he is"},
-      {es:"No se quedaron en pensar / este caballero de fina estampa",en:"They didn’t stop at merely thinking / this fine-looking gentleman"},
-      {es:"Así que así se siente el amor / así que así se siente desear",en:"So this is what love feels like / so this is what desire feels like"}
-    ]
-  },
   {
     title:"Simples Maneras",
     artist:"DUNE",
@@ -1158,7 +1129,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=33").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=34").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
