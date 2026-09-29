@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.7 · build 42";
+const APP_VERSION = "0.18.8 · build 43";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -1165,10 +1165,10 @@ function init() {
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   syncSpeakerNames();
-  $("[data-speaker-name]").forEach(input => input.addEventListener("input", event => {
+  document.querySelectorAll("[data-speaker-name]").forEach(input => input.addEventListener("input", event => {
     saveSpeakerName(event.target.dataset.speakerName, event.target.value);
   }));
-  $("[data-speaker-preset]").forEach(select => select.addEventListener("change", event => {
+  document.querySelectorAll("[data-speaker-preset]").forEach(select => select.addEventListener("change", event => {
     const role = event.target.dataset.speakerPreset;
     const input = $('[data-speaker-name="' + role + '"]');
     if (event.target.value) {
@@ -1178,7 +1178,7 @@ function init() {
       input?.focus();
     }
   }));
-  $("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
+  document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
   $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
@@ -1209,7 +1209,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=42").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=43").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
