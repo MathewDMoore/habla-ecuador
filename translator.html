@@ -8,8 +8,8 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=43">
-  <script src="app.js?v=43" defer></script>
+  <link rel="stylesheet" href="styles.css?v=44">
+  <script src="app.js?v=44" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.8 · build 43</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.9 · build 44</span></div>
     </header>
 
     <main>
@@ -77,8 +77,8 @@
 
           <label class="input-card">
             <span class="sr-only">Text to translate</span>
-            <textarea id="translator-input" rows="4" placeholder="Type or hold the microphone to speak…"></textarea>
-            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Hold to speak instead of typing">🎙</button>
+            <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
           </label>
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
@@ -116,7 +116,7 @@
         </div>
 
         <div id="conversation-panel" hidden>
-          <p class="conversation-help">Choose or type each speaker’s name. Then press and hold your side while speaking; release when finished. Names stay only on this device.</p>
+          <p class="conversation-help">Choose or type each speaker’s name. Tap your microphone once, speak, then tap it again to finish. Names stay only on this device.</p>
           <section class="conversation-names" aria-labelledby="conversation-names-title">
             <div class="conversation-names-heading">
               <div><p class="voice-settings-kicker">Conversation setup</p><h2 id="conversation-names-title">Who is speaking?</h2></div>
@@ -215,8 +215,8 @@
             <p>Choose from the visible male, female, or role lists—or type absolutely any name. Names never change their assigned language.</p>
           </section>
           <div class="speaker-grid">
-            <button class="speaker english-speaker push-to-talk" data-speaker-role="english"><span>🎙️</span><strong data-speaker-label="english">Mathew</strong><small>Hold · speak English</small></button>
-            <button class="speaker spanish-speaker push-to-talk" data-speaker-role="spanish"><span>🎙️</span><strong data-speaker-label="spanish">Maria</strong><small>Mantén · habla español</small></button>
+            <button class="speaker english-speaker push-to-talk" data-speaker-role="english" type="button" aria-label="Tap to record English; tap again to finish" data-idle-hint="Tap · speak English" data-active-hint="Listening… tap to finish" data-finishing-hint="Finishing…"><span>🎙️</span><strong data-speaker-label="english">Mathew</strong><small>Tap · speak English</small></button>
+            <button class="speaker spanish-speaker push-to-talk" data-speaker-role="spanish" type="button" aria-label="Toca para grabar español; toca otra vez para terminar" data-idle-hint="Toca · habla español" data-active-hint="Escuchando… toca para terminar" data-finishing-hint="Terminando…"><span>🎙️</span><strong data-speaker-label="spanish">Maria</strong><small>Toca · habla español</small></button>
           </div>
           <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
           <div id="conversation-turns" class="turns"></div>
