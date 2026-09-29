@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.8 · build 43";
+const APP_VERSION = "0.18.9 · build 44";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -428,53 +428,85 @@ function say(text, lang="es-EC") {
   setTimeout(() => speakWithFreshVoice(),160);
 }
 
+let activeRecognitionButton = null;
+
+function setListeningButton(button, listening, finishing=false) {
+  if (!button) return;
+  button.classList.toggle("listening", listening);
+  button.setAttribute("aria-pressed", listening ? "true" : "false");
+  const hint = button.querySelector("small");
+  if (!hint) return;
+  if (!button.dataset.idleHint) button.dataset.idleHint = hint.textContent.trim();
+  hint.textContent = listening
+    ? (finishing ? (button.dataset.finishingHint || "Finishing…") : (button.dataset.activeHint || "Listening… tap to finish"))
+    : button.dataset.idleHint;
+}
+
+function recognitionErrorMessage(error) {
+  if (error === "not-allowed" || error === "service-not-allowed") return "Microphone access is blocked for this page. Allow microphone access, then tap again.";
+  if (error === "audio-capture") return "No microphone was available to the browser.";
+  if (error === "no-speech") return "No speech was detected. Tap the microphone, start speaking, then tap again when finished.";
+  if (error === "network") return "Speech recognition could not reach the free browser service. Please try again.";
+  return "Speech recognition stopped unexpectedly. Please tap the microphone and try again.";
+}
+
 function startListening({way=direction, button, onText}={}) {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
-  if (recognition) { recognition.abort(); recognition = null; button?.classList.remove("listening"); return; }
-  recognition = new Recognition();
-  recognition.lang = way === "en-ec" ? "en-US" : "es-EC";
-  recognition.interimResults = true;
-  recognition.continuous = false;
-  button?.classList.add("listening");
-  recognition.onresult = event => {
-    const text = [...event.results].map(result => result[0].transcript).join(" ");
-    onText?.(text, event.results[event.results.length-1].isFinal);
+
+  if (recognition) {
+    if (activeRecognitionButton === button) return stopListening();
+    try { recognition.abort(); } catch {}
+    recognition = null;
+    setListeningButton(activeRecognitionButton, false);
+    activeRecognitionButton = null;
+  }
+
+  const instance = new Recognition();
+  recognition = instance;
+  activeRecognitionButton = button || null;
+  instance.lang = way === "en-ec" ? "en-US" : "es-EC";
+  instance.interimResults = true;
+  instance.continuous = false;
+  instance.maxAlternatives = 1;
+
+  instance.onstart = () => setListeningButton(button, true);
+  instance.onspeechstart = () => setListeningButton(button, true);
+  instance.onresult = event => {
+    const text = [...event.results].map(result => result[0].transcript).join(" ").trim();
+    if (text) onText?.(text, event.results[event.results.length-1].isFinal);
   };
-  recognition.onerror = () => showToast("I couldn't hear that clearly. Please try again.");
-  recognition.onend = () => { button?.classList.remove("listening"); recognition = null; };
-  recognition.start();
+  instance.onerror = event => {
+    if (event.error !== "aborted") showToast(recognitionErrorMessage(event.error));
+  };
+  instance.onend = () => {
+    setListeningButton(button, false);
+    if (recognition === instance) recognition = null;
+    if (activeRecognitionButton === button) activeRecognitionButton = null;
+  };
+
+  try {
+    instance.start();
+    setListeningButton(button, true);
+  } catch {
+    setListeningButton(button, false);
+    recognition = null;
+    activeRecognitionButton = null;
+    showToast("The microphone could not start. Please tap it again.");
+  }
 }
 
 function stopListening() {
   if (!recognition) return;
+  setListeningButton(activeRecognitionButton, true, true);
   try { recognition.stop(); } catch {}
 }
 
 function bindPushToTalk(button, getOptions) {
   if (!button) return;
-  let pointerActive = false;
-  let suppressNextClick = false;
-  button.addEventListener("pointerdown", event => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    event.preventDefault();
-    pointerActive = true;
-    suppressNextClick = true;
-    button.setPointerCapture?.(event.pointerId);
-    startListening(getOptions(button));
-  });
-  const release = event => {
-    if (!pointerActive) return;
-    event.preventDefault();
-    pointerActive = false;
-    stopListening();
-    setTimeout(() => { suppressNextClick = false; }, 450);
-  };
-  button.addEventListener("pointerup", release);
-  button.addEventListener("pointercancel", release);
-  button.addEventListener("lostpointercapture", release);
+  button.setAttribute("aria-pressed", "false");
   button.addEventListener("click", event => {
-    if (suppressNextClick) { event.preventDefault(); return; }
+    event.preventDefault();
     startListening(getOptions(button));
   });
 }
