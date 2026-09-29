@@ -17,7 +17,7 @@ html { background: #f2ece1; }
 body { margin: 0; min-height: 100vh; background: var(--cream); color: var(--ink); }
 button, textarea, select { font: inherit; }
 button { cursor: pointer; }
-.push-to-talk { touch-action: none; user-select: none; -webkit-user-select: none; }
+.push-to-talk { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
 .app-shell {
@@ -378,3 +378,13 @@ button:active:not(:disabled) { transform: translateY(2px) scaleX(1.025) scaleY(.
 .push-to-talk:active:not(:disabled),
 .round-action:active:not(:disabled) { transform: translateY(2px) scaleX(1.05) scaleY(.88); }
 button:disabled { cursor: default; }
+
+
+@media (max-width: 520px) {
+  .speaker-name-fields { grid-template-columns: 1fr; }
+  .speaker-name-field { min-width: 0; }
+  .speaker-grid { gap: 8px; }
+  .speaker { min-width: 0; min-height: 150px; padding: 12px 8px; }
+  .speaker strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .speaker small { max-width: 100%; font-size: 10px; line-height: 1.3; text-align: center; }
+}
