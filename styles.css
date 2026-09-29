@@ -370,3 +370,9 @@ textarea::placeholder { color: #9ca39f; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+button { font: inherit; cursor: pointer; transform-origin: center; transition: transform .1s ease, filter .1s ease; -webkit-tap-highlight-color: transparent; }
+button:active:not(:disabled) { transform: translateY(2px) scaleX(1.025) scaleY(.93); filter: brightness(.94); }
+.push-to-talk:active:not(:disabled),
+.round-action:active:not(:disabled) { transform: translateY(2px) scaleX(1.05) scaleY(.88); }
+button:disabled { cursor: default; }
