@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.6 · build 41";
+const APP_VERSION = "0.18.7 · build 42";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -211,7 +211,8 @@ function speakerName(role) {
 function saveSpeakerName(role, value) {
   speakerNames[role] = String(value || "").trim().slice(0,24) || (role === "spanish" ? "Maria" : "Mathew");
   localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
-  $('[data-speaker-label="' + role + '"]').forEach(label => { label.textContent = speakerNames[role]; });
+  const label = $('[data-speaker-label="' + role + '"]');
+  if (label) label.textContent = speakerNames[role];
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
 }
@@ -224,7 +225,8 @@ function syncSpeakerNames() {
     if (input) input.value = name;
     const preset = $('[data-speaker-preset="' + role + '"]');
     if (preset) preset.value = Array.from(preset.options).some(option => option.value === name) ? name : "";
-    $('[data-speaker-label="' + role + '"]').forEach(label => { label.textContent = name; });
+    const label = $('[data-speaker-label="' + role + '"]');
+    if (label) label.textContent = name;
   });
 }
 
@@ -1207,7 +1209,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=41").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=42").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
