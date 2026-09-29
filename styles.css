@@ -137,8 +137,10 @@ textarea::placeholder { color: #9ca39f; }
 .conversation-names-heading h2 { margin: 0; color: var(--green); font-size: 16px; }
 .conversation-names-heading > span { font-size: 21px; }
 .speaker-name-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 11px; }
+.speaker-name-field { display: grid; gap: 9px; }
 .speaker-name-fields label { display: grid; gap: 5px; color: var(--green); font-size: 11px; font-weight: 850; }
-.speaker-name-fields input { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid #b9d2c3; border-radius: 12px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
+.speaker-name-fields input,
+.speaker-name-fields select { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid #b9d2c3; border-radius: 12px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
 .conversation-names > p { margin: 9px 1px 0; color: #586c63; font-size: 10px; line-height: 1.45; }
 .speaker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .speaker { display: flex; min-height: 165px; flex-direction: column; align-items: center; justify-content: center; border: 0; border-radius: 27px; color: white; }
