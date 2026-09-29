@@ -1,4 +1,4 @@
-const CACHE = "habla-ecuador-v43";
+const CACHE = "habla-ecuador-v44";
 const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=43", "app.js?v=43", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg"];
 
 self.addEventListener("install", event => {
