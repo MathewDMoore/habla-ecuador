@@ -8,8 +8,8 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=37">
-  <script src="app.js?v=37" defer></script>
+  <link rel="stylesheet" href="styles.css?v=38">
+  <script src="app.js?v=38" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.2 · build 37</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.3 · build 38</span></div>
     </header>
 
     <main>
@@ -116,10 +116,42 @@
         </div>
 
         <div id="conversation-panel" hidden>
-          <p class="conversation-help">Press and hold your side while speaking, then release. The phone will say the matched translation aloud. Nothing is saved.</p>
+          <p class="conversation-help">Choose or type each speaker’s name. Then press and hold your side while speaking; release when finished. Names stay only on this device.</p>
+          <section class="conversation-names" aria-labelledby="conversation-names-title">
+            <div class="conversation-names-heading">
+              <div><p class="voice-settings-kicker">Conversation setup</p><h2 id="conversation-names-title">Who is speaking?</h2></div>
+              <span aria-hidden="true">👥</span>
+            </div>
+            <div class="speaker-name-fields">
+              <label><span>English speaker</span><input id="english-speaker-name" data-speaker-name="english" list="speaker-name-options" maxlength="24" autocomplete="off" value="Mathew" placeholder="Type any name"></label>
+              <label><span>Spanish speaker</span><input id="spanish-speaker-name" data-speaker-name="spanish" list="speaker-name-options" maxlength="24" autocomplete="off" value="Maria" placeholder="Type any name"></label>
+            </div>
+            <datalist id="speaker-name-options">
+              <option value="Mathew"></option>
+              <option value="Maria"></option>
+              <option value="Alex"></option>
+              <option value="Ana"></option>
+              <option value="Carlos"></option>
+              <option value="Daniela"></option>
+              <option value="Elena"></option>
+              <option value="José"></option>
+              <option value="Lucía"></option>
+              <option value="Mateo"></option>
+              <option value="Sofía"></option>
+              <option value="Me"></option>
+              <option value="Friend"></option>
+              <option value="Family"></option>
+              <option value="Coworker"></option>
+              <option value="Tutor"></option>
+              <option value="Learner"></option>
+              <option value="Speaker 1"></option>
+              <option value="Speaker 2"></option>
+            </datalist>
+            <p>Pick a suggestion or type any name. Changing a name never changes its language.</p>
+          </section>
           <div class="speaker-grid">
-            <button class="speaker mathew push-to-talk" data-speaker="Mathew"><span>🎙️</span><strong>Mathew</strong><small>Hold · speak English</small></button>
-            <button class="speaker maria push-to-talk" data-speaker="Maria"><span>🎙️</span><strong>Maria</strong><small>Mantén · habla español</small></button>
+            <button class="speaker english-speaker push-to-talk" data-speaker-role="english"><span>🎙️</span><strong data-speaker-label="english">Mathew</strong><small>Hold · speak English</small></button>
+            <button class="speaker spanish-speaker push-to-talk" data-speaker-role="spanish"><span>🎙️</span><strong data-speaker-label="spanish">Maria</strong><small>Mantén · habla español</small></button>
           </div>
           <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
           <div id="conversation-turns" class="turns"></div>
