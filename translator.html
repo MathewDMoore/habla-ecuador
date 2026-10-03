@@ -8,8 +8,8 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=44">
-  <script src="app.js?v=44" defer></script>
+  <link rel="stylesheet" href="styles.css?v=45">
+  <script src="app.js?v=45" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.18.9 · build 44</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.19.0 · build 45</span></div>
     </header>
 
     <main>
@@ -82,7 +82,7 @@
           </label>
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
-            <p id="natural-result" class="translation-text"></p>
+            <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
             <p id="literal-result" class="literal-text"></p>
           <div class="speed-control result-speed-control">
             <div class="speed-control-heading">
@@ -98,7 +98,9 @@
             <div class="result-actions">
               <button id="hear-result">🔊 Hear it</button>
               <button id="copy-result">Copy</button>
+              <button id="restore-translation" hidden>Restore generated</button>
             </div>
+            <p id="translation-edit-status" class="translation-edit-status">Tap the translation above to edit it. Changes stay on this device.</p>
             <div id="usage-note" class="usage-note"></div>
           </section>
 

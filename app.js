@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.18.9 · build 44";
+const APP_VERSION = "0.19.0 · build 45";
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -168,6 +168,7 @@ const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
 const SPEECH_RATE_STORAGE_KEY = "habla-ecuador-speech-rate-v1";
+const TRANSLATION_EDITS_STORAGE_KEY = "habla-ecuador-translation-edits-v1";
 
 let direction = "en-ec";
 let englishVariant = "us";
@@ -186,6 +187,8 @@ let reviewIndex = 0;
 let translationTimer = 0;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
+let activeTranslationEdit = null;
+let translationEdits = readTranslationEdits();
 let preservedCulturalContext = null;
 let speechVoices = [];
 let speechRequestId = 0;
@@ -537,6 +540,94 @@ async function requestGeneralTranslation(text, way=direction) {
   }
 }
 
+
+function readTranslationEdits() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TRANSLATION_EDITS_STORAGE_KEY) || "{}");
+    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function translationEditKey(source, way=direction, variant=englishVariant) {
+  const targetVariant = way === "ec-en" ? variant : "es";
+  return `${way}|${targetVariant}|${normalize(source)}`;
+}
+
+function persistTranslationEdits() {
+  try {
+    localStorage.setItem(TRANSLATION_EDITS_STORAGE_KEY, JSON.stringify(translationEdits));
+  } catch {}
+}
+
+function updateTranslationEditUi() {
+  const status = $("#translation-edit-status");
+  const restore = $("#restore-translation");
+  if (!status || !restore) return;
+  if (!activeTranslationEdit) {
+    status.textContent = "Translation is being generated…";
+    restore.hidden = true;
+    return;
+  }
+  const currentText = $("#natural-result").textContent.trim();
+  const edited = currentText !== activeTranslationEdit.generated;
+  status.textContent = edited
+    ? "Your edited translation is saved on this device."
+    : "Tap the translation above to edit it. Changes stay on this device.";
+  restore.hidden = !edited;
+}
+
+function setEditableTranslation(source, generated, metadata={}) {
+  const result = $("#natural-result");
+  const key = translationEditKey(source);
+  const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
+  const target = savedText || generated;
+  result.textContent = target;
+  result.setAttribute("contenteditable", "true");
+  activeTranslationEdit = {key, source, way:direction, variant:englishVariant, generated, metadata};
+  lastCompletedTranslation = {source, target, way:direction, ...metadata, edited:target !== generated};
+  updateTranslationEditUi();
+}
+
+function saveActiveTranslationEdit() {
+  if (!activeTranslationEdit) return;
+  const result = $("#natural-result");
+  const text = result.textContent.trim();
+  if (!text) {
+    result.textContent = activeTranslationEdit.generated;
+    showToast("A translation cannot be empty.");
+  }
+  const finalText = result.textContent.trim();
+  if (finalText === activeTranslationEdit.generated) delete translationEdits[activeTranslationEdit.key];
+  else translationEdits[activeTranslationEdit.key] = {text:finalText, updatedAt:new Date().toISOString()};
+  persistTranslationEdits();
+  lastCompletedTranslation = {
+    source:activeTranslationEdit.source,
+    target:finalText,
+    way:activeTranslationEdit.way,
+    ...activeTranslationEdit.metadata,
+    edited:finalText !== activeTranslationEdit.generated
+  };
+  updateTranslationEditUi();
+}
+
+function restoreGeneratedTranslation() {
+  if (!activeTranslationEdit) return;
+  delete translationEdits[activeTranslationEdit.key];
+  persistTranslationEdits();
+  $("#natural-result").textContent = activeTranslationEdit.generated;
+  lastCompletedTranslation = {
+    source:activeTranslationEdit.source,
+    target:activeTranslationEdit.generated,
+    way:activeTranslationEdit.way,
+    ...activeTranslationEdit.metadata,
+    edited:false
+  };
+  updateTranslationEditUi();
+  showToast("Generated translation restored.");
+}
+
 async function renderTranslation() {
   const requestId = ++translationRequest;
   const sourceText = $("#translator-input").value.trim();
@@ -551,6 +642,9 @@ async function renderTranslation() {
   const missing = $("#no-result");
   if (!sourceText) {
     lastCompletedTranslation = null;
+    activeTranslationEdit = null;
+    $("#natural-result").removeAttribute("contenteditable");
+    updateTranslationEditUi();
     result.hidden = true;
     missing.hidden = true;
     return;
@@ -559,18 +653,23 @@ async function renderTranslation() {
     result.hidden = false;
     missing.hidden = true;
     $(".result-label").textContent = direction === "en-ec" ? "General Spanish translation" : `${englishVariant === "uk" ? "UK" : "U.S."} English translation`;
+    activeTranslationEdit = null;
+    $("#natural-result").removeAttribute("contenteditable");
     $("#natural-result").textContent = "Translating…";
+    updateTranslationEditUi();
     $("#literal-result").textContent = "";
     $("#usage-note").innerHTML = `<strong>General translation</strong><span>Checking an external translation service. Ecuadorian naturalness has not yet been verified.</span>`;
     try {
       const translated = await requestGeneralTranslation(sourceText);
       if (requestId !== translationRequest) return;
-      $("#natural-result").textContent = translated;
-      lastCompletedTranslation = { source: sourceText, target: translated, way: direction };
+      setEditableTranslation(sourceText, translated);
       $("#literal-result").textContent = direction === "en-ec" ? "General Spanish draft · Ecuadorian review pending" : `${englishVariant === "uk" ? "UK" : "U.S."} English refinement pending`;
       $("#usage-note").innerHTML = `<strong>General machine translation · not yet Ecuadorian-verified</strong><span>This works for text outside the local phrase library. Use the verified entries when the app offers one.</span>`;
     } catch {
       if (requestId !== translationRequest) return;
+      activeTranslationEdit = null;
+      $("#natural-result").removeAttribute("contenteditable");
+      updateTranslationEditUi();
       result.hidden = true;
       missing.hidden = false;
       $("#no-result p").textContent = "Translation is temporarily unavailable.";
@@ -592,8 +691,7 @@ async function renderTranslation() {
       ? `${englishVariant === "uk" ? "UK" : "U.S."} English · Ecuadorian slang`
       : `${englishVariant === "uk" ? "UK" : "U.S."} English`;
   const target = isPreservedCultural ? phrase.spanish : translatedText(phrase);
-  $("#natural-result").textContent = target;
-  lastCompletedTranslation = { source: sourceText, target, way: direction, culturalEntry: isCultural };
+  setEditableTranslation(sourceText, target, {culturalEntry:isCultural});
   const literal = englishVariant === "uk" ? phrase.literalUk : phrase.literalUs;
   $("#literal-result").textContent = isPreservedCultural
     ? [`Literal meaning: ${literal}`, phrase.standardEs ? `Standard Spanish: ${phrase.standardEs}` : ""].filter(Boolean).join(" · ")
@@ -1193,6 +1291,9 @@ function init() {
   }));
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
+  $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
+  $("#natural-result").addEventListener("blur", saveActiveTranslationEdit);
+  $("#restore-translation").addEventListener("click", restoreGeneratedTranslation);
   const suggestions = ["Maybe another time.","Can you say it more slowly?","I'm so fucking tired!","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));

@@ -117,9 +117,12 @@ textarea::placeholder { color: #9ca39f; }
 .voice-settings > p:last-child { margin: 12px 1px 0; color: #586c63; font-size: 10px; line-height: 1.5; }
 .result-card { margin-top: 8px; padding: 17px; border-radius: 25px; background: var(--green); color: white; }
 .result-label { margin: 0; color: #a9d2bd; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.translation-text { margin: 8px 0 0; font-size: 25px; font-weight: 400; line-height: 1.35; }
+.translation-text { margin: 8px 0 0; padding: 7px 9px; border: 1px solid transparent; border-radius: 12px; font-size: 25px; font-weight: 400; line-height: 1.35; white-space: pre-wrap; }
+.translation-text[contenteditable="true"] { cursor: text; }
+.translation-text[contenteditable="true"]:focus { outline: none; border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.1); box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
 .literal-text { margin: 7px 0 0; color: #cfe4d8; font-size: 14px; line-height: 1.45; }
-.result-actions { display: flex; gap: 8px; margin-top: 10px; }
+.result-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.translation-edit-status { margin: 9px 2px 0; color: #cfe4d8; font-size: 11px; line-height: 1.4; }
 .result-actions button { padding: 10px 13px; border: 1px solid rgba(255,255,255,.22); border-radius: 12px; background: rgba(255,255,255,.09); color: white; font-size: 13px; font-weight: 800; }
 .usage-note { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.16); color: #d8e9df; font-size: 13px; line-height: 1.55; }
 .usage-note strong { display: block; margin-bottom: 4px; color: #f6ad57; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
