@@ -89,6 +89,16 @@ textarea::placeholder { color: #9ca39f; }
 .segmented { display: flex; padding: 3px; border-radius: 12px; background: #eae1d4; }
 .segmented button { padding: 7px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; }
 .segmented button.active { background: white; color: var(--green); }
+.translation-purpose { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 2px 10px; }
+.translation-purpose > div:first-child { display: grid; gap: 2px; color: var(--ink); font-size: 13px; font-weight: 900; }
+.translation-purpose small { color: var(--muted); font-size: 10px; font-weight: 650; }
+.purpose-switch { flex: 0 0 auto; }
+.research-mode-note { margin: 0 2px 12px; padding: 12px 13px; border: 1px solid #d7c9df; border-radius: 15px; background: #f4edf8; color: #5e5366; font-size: 11px; line-height: 1.5; }
+.research-mode .input-card { border-color: #bca8ca; box-shadow: 0 10px 30px rgba(73,52,100,.09); }
+.research-mode #translator-input { min-height: 190px; font-family: Georgia,"Times New Roman",serif; font-size: 17px; line-height: 1.55; }
+.research-mode .result-card { background: #2f2440; }
+.research-mode .result-label { color: #d7c5e5; }
+.research-mode .translation-text { font-family: Georgia,"Times New Roman",serif; font-size: 20px; line-height: 1.55; }
 .speed-control { margin: 16px 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.72); }
 .speed-control-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .speed-control-heading label { color: var(--ink); font-size: 13px; font-weight: 900; }
