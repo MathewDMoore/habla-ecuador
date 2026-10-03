@@ -77,6 +77,10 @@ h1 span { color: var(--orange); }
 .direction-row small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
 .direction-row span { margin-top: 2px; font-weight: 900; }
 .direction-row .right { text-align: right; }
+.language-picker-row label { display: grid; min-width: 0; gap: 4px; }
+.language-picker-row select { width: 100%; min-height: 48px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 14px; background: white; color: var(--ink); font: inherit; font-size: 13px; font-weight: 850; }
+.language-picker-row .right select { text-align: right; }
+.language-pair-note { margin: -2px 5px 14px; color: var(--muted); font-size: 10px; line-height: 1.45; }
 #swap-button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--green); color: white; font-size: 23px; }
 .input-card { position: relative; display: block; padding: 15px 16px 52px; border: 1px solid var(--line); border-radius: 25px; background: white; box-shadow: 0 10px 30px rgba(23,63,53,.07); }
 textarea { width: 100%; min-height: 82px; resize: vertical; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 20px; line-height: 1.45; }

@@ -31,7 +31,14 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.20.0 · build 46";
+const APP_VERSION = "0.21.0 · build 47";
+
+const TRANSLATOR_LANGUAGES = {
+  "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
+  "en-GB": {label:"U.K. English", family:"en", voice:"en-GB"},
+  "es-EC": {label:"Ecuadorian Spanish", family:"es", voice:"es-EC"},
+  "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"}
+};
 
 const culturalExpressions = [
   {category:"idiom", spanish:"De ley.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", note:"A very common informal Ecuadorian way to agree strongly or say something is certain.", naturalness:"Sounds natural in Ecuador", register:"Informal · positive"},
@@ -167,12 +174,54 @@ const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zñ0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
+function languageFamily(code) {
+  return TRANSLATOR_LANGUAGES[code]?.family || code.split("-")[0];
+}
+
+function translatorRoute() {
+  const sourceFamily = languageFamily(sourceLanguage);
+  const targetFamily = languageFamily(targetLanguage);
+  if (sourceFamily === "en" && targetFamily === "es") return "en-ec";
+  if (sourceFamily === "es" && targetFamily === "en") return "ec-en";
+  if (sourceFamily === "es" && targetFamily === "es") return "regional-es";
+  return "regional-en";
+}
+
+function languageLabel(code) {
+  return TRANSLATOR_LANGUAGES[code]?.label || code;
+}
+
+function syncLanguagePair({persist=true}={}) {
+  direction = translatorRoute();
+  englishVariant = targetLanguage === "en-GB" || (languageFamily(targetLanguage) !== "en" && sourceLanguage === "en-GB") ? "uk" : "us";
+  if (persist) localStorage.setItem(TRANSLATOR_PAIR_STORAGE_KEY, JSON.stringify({source:sourceLanguage,target:targetLanguage}));
+  const sourceSelect = $("#source-language-select");
+  const targetSelect = $("#target-language-select");
+  if (sourceSelect) sourceSelect.value = sourceLanguage;
+  if (targetSelect) targetSelect.value = targetLanguage;
+}
+
+function sourceSpeechLocale() {
+  return TRANSLATOR_LANGUAGES[sourceLanguage]?.voice || sourceLanguage;
+}
+
+function targetSpeechLocale() {
+  return TRANSLATOR_LANGUAGES[targetLanguage]?.voice || targetLanguage;
+}
+
 const SPEECH_RATE_STORAGE_KEY = "habla-ecuador-speech-rate-v1";
 const TRANSLATION_EDITS_STORAGE_KEY = "habla-ecuador-translation-edits-v1";
 const TRANSLATION_PURPOSE_STORAGE_KEY = "habla-ecuador-translation-purpose-v1";
+const TRANSLATOR_PAIR_STORAGE_KEY = "habla-ecuador-language-pair-v1";
 
-let direction = "en-ec";
-let englishVariant = "us";
+let savedLanguagePair = (() => {
+  try { return JSON.parse(localStorage.getItem(TRANSLATOR_PAIR_STORAGE_KEY) || "{}"); }
+  catch { return {}; }
+})();
+let sourceLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.source] ? savedLanguagePair.source : "en-US";
+let targetLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.target] ? savedLanguagePair.target : "es-EC";
+let direction = TRANSLATOR_LANGUAGES[sourceLanguage].family === "en" && TRANSLATOR_LANGUAGES[targetLanguage].family === "es" ? "en-ec" : "ec-en";
+let englishVariant = (targetLanguage === "en-GB" || (TRANSLATOR_LANGUAGES[targetLanguage].family !== "en" && sourceLanguage === "en-GB")) ? "uk" : "us";
 let translationPurpose = localStorage.getItem(TRANSLATION_PURPOSE_STORAGE_KEY) === "academic" ? "academic" : "everyday";
 let voiceRate = readVoiceRate();
 let lessonStep = 1;
@@ -455,7 +504,7 @@ function recognitionErrorMessage(error) {
   return "Speech recognition stopped unexpectedly. Please tap the microphone and try again.";
 }
 
-function startListening({way=direction, button, onText}={}) {
+function startListening({way=direction, lang, button, onText}={}) {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
 
@@ -470,7 +519,7 @@ function startListening({way=direction, button, onText}={}) {
   const instance = new Recognition();
   recognition = instance;
   activeRecognitionButton = button || null;
-  instance.lang = way === "en-ec" ? "en-US" : "es-EC";
+  instance.lang = lang || (way === "en-ec" ? "en-US" : "es-EC");
   instance.interimResults = true;
   instance.continuous = false;
   instance.maxAlternatives = 1;
@@ -593,6 +642,23 @@ function refineAcademicEnglish(text) {
   return refined;
 }
 
+function convertEnglishVariety(text, target=targetLanguage) {
+  const ukPairs = [
+    ["color","colour"],["colors","colours"],["center","centre"],["centers","centres"],
+    ["analyze","analyse"],["analyzed","analysed"],["analyzing","analysing"],
+    ["organization","organisation"],["organizations","organisations"],
+    ["behavior","behaviour"],["behaviors","behaviours"],["labor","labour"],
+    ["favorite","favourite"],["favorites","favourites"],["traveling","travelling"],
+    ["traveled","travelled"],["program","programme"]
+  ];
+  const pairs = target === "en-GB" ? ukPairs : ukPairs.map(([us,uk]) => [uk,us]);
+  return pairs.reduce((result,[from,to]) => result.replace(new RegExp(`\\b${from}\\b`,"gi"), match => {
+    if (match === match.toUpperCase()) return to.toUpperCase();
+    if (match[0] === match[0].toUpperCase()) return `${to[0].toUpperCase()}${to.slice(1)}`;
+    return to;
+  }),text);
+}
+
 async function requestTranslationChunk(text, way=direction) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
   const protectedText = translationPurpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
@@ -612,7 +678,8 @@ async function requestTranslationChunk(text, way=direction) {
 async function requestGeneralTranslation(text, way=direction) {
   if (translationPurpose !== "academic" || text.length <= 430) {
     const translated = await requestTranslationChunk(text, way);
-    return translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated) : translated;
+    const refined = translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated) : translated;
+    return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
   }
   if (text.length > 8000) throw new Error("research text exceeds free prototype limit");
   const protectedDocument = protectResearchTokens(text);
@@ -623,7 +690,8 @@ async function requestGeneralTranslation(text, way=direction) {
     translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way));
   }
   const combined = protectedDocument.restore(translated.join(""));
-  return way === "ec-en" ? refineAcademicEnglish(combined) : combined;
+  const refined = way === "ec-en" ? refineAcademicEnglish(combined) : combined;
+  return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
 }
 
 
@@ -646,9 +714,9 @@ function academicSourceFingerprint(source) {
 }
 
 function translationEditKey(source, way=direction, variant=englishVariant, purpose=translationPurpose) {
-  const targetVariant = way === "ec-en" ? variant : "es";
+  const targetVariant = languageFamily(targetLanguage) === "en" ? variant : targetLanguage;
   const sourceKey = purpose === "academic" ? academicSourceFingerprint(source) : normalize(source);
-  return `${purpose}|${way}|${targetVariant}|${sourceKey}`;
+  return `${purpose}|${sourceLanguage}>${targetLanguage}|${way}|${targetVariant}|${sourceKey}`;
 }
 
 function persistTranslationEdits() {
@@ -681,8 +749,8 @@ function setEditableTranslation(source, generated, metadata={}) {
   const target = savedText || generated;
   result.textContent = target;
   result.setAttribute("contenteditable", "true");
-  activeTranslationEdit = {key, source, way:direction, variant:englishVariant, purpose:translationPurpose, generated, metadata};
-  lastCompletedTranslation = {source, target, way:direction, purpose:translationPurpose, ...metadata, edited:target !== generated};
+  activeTranslationEdit = {key, source, way:direction, sourceLanguage, targetLanguage, variant:englishVariant, purpose:translationPurpose, generated, metadata};
+  lastCompletedTranslation = {source, target, way:direction, sourceLanguage, targetLanguage, purpose:translationPurpose, ...metadata, edited:target !== generated};
   updateTranslationEditUi();
 }
 
@@ -702,6 +770,8 @@ function saveActiveTranslationEdit() {
     source:activeTranslationEdit.source,
     target:finalText,
     way:activeTranslationEdit.way,
+    sourceLanguage:activeTranslationEdit.sourceLanguage,
+    targetLanguage:activeTranslationEdit.targetLanguage,
     purpose:activeTranslationEdit.purpose,
     ...activeTranslationEdit.metadata,
     edited:finalText !== activeTranslationEdit.generated
@@ -718,12 +788,63 @@ function restoreGeneratedTranslation() {
     source:activeTranslationEdit.source,
     target:activeTranslationEdit.generated,
     way:activeTranslationEdit.way,
+    sourceLanguage:activeTranslationEdit.sourceLanguage,
+    targetLanguage:activeTranslationEdit.targetLanguage,
     purpose:activeTranslationEdit.purpose,
     ...activeTranslationEdit.metadata,
     edited:false
   };
   updateTranslationEditUi();
   showToast("Generated translation restored.");
+}
+
+function regionalSpanishBridge(sourceText) {
+  if (sourceLanguage === targetLanguage) return {
+    text:sourceText,
+    label:`${languageLabel(targetLanguage)} · unchanged`,
+    detail:"The source and target varieties are the same, so the wording is preserved."
+  };
+  const phrase = matchPhrase(sourceText,"ec-en");
+  if (sourceLanguage === "es-EC" && targetLanguage === "es-BO") {
+    return {
+      text:phrase?.standardEs || phrase?.es || sourceText,
+      label:"Bolivian-facing neutral Spanish bridge",
+      detail:phrase
+        ? "Ecuadorian-specific wording was normalized to broadly understood Spanish. This does not claim a uniquely Bolivian idiom."
+        : "The wording is preserved as broadly understandable Spanish. Bolivian regional review is still pending."
+    };
+  }
+  if (sourceLanguage === "es-BO" && targetLanguage === "es-EC") {
+    return {
+      text:phrase?.natural || phrase?.spanish || phrase?.es || sourceText,
+      label:phrase ? "Habla Ecuador regional adaptation" : "Ecuadorian regional adaptation pending",
+      detail:phrase
+        ? "A matching Ecuadorian expression was found in the local, source-labeled phrase library."
+        : "The source is preserved rather than inventing Ecuadorian wording. Ecuadorian review is still required."
+    };
+  }
+  return {text:sourceText,label:"Regional Spanish bridge",detail:"The wording is preserved pending regional review."};
+}
+
+function regionalEnglishBridge(sourceText) {
+  const converted = convertEnglishVariety(sourceText,targetLanguage);
+  return {
+    text:converted,
+    label:`${languageLabel(targetLanguage)} regional adaptation`,
+    detail:sourceLanguage === targetLanguage
+      ? "The source and target varieties are the same, so the wording is preserved."
+      : "Common regional spellings are adapted. Meaning and specialist terminology are preserved for human review."
+  };
+}
+
+function renderRegionalTranslation(sourceText,result,missing) {
+  const bridge = languageFamily(sourceLanguage) === "es" ? regionalSpanishBridge(sourceText) : regionalEnglishBridge(sourceText);
+  result.hidden = false;
+  missing.hidden = true;
+  $(".result-label").textContent = bridge.label;
+  setEditableTranslation(sourceText,bridge.text,{regionalBridge:true});
+  $("#literal-result").textContent = `${languageLabel(sourceLanguage)} → ${languageLabel(targetLanguage)} · editable regional draft`;
+  $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
 }
 
 async function renderTranslation() {
@@ -735,7 +856,6 @@ async function renderTranslation() {
       ? preservedCulturalContext.entry
       : null;
   if (preservedCulturalContext && direction === "en-ec" && !preservedEntry) preservedCulturalContext = null;
-  const phrase = translationPurpose === "academic" ? null : preservedEntry || matchPhrase($("#translator-input").value);
   const result = $("#translation-result");
   const missing = $("#no-result");
   if (!sourceText) {
@@ -747,14 +867,18 @@ async function renderTranslation() {
     missing.hidden = true;
     return;
   }
+  if (languageFamily(sourceLanguage) === languageFamily(targetLanguage)) {
+    renderRegionalTranslation(sourceText,result,missing);
+    return;
+  }
+  const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
+  const phrase = translationPurpose === "academic" || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
     result.hidden = false;
     missing.hidden = true;
     $(".result-label").textContent = translationPurpose === "academic"
-      ? direction === "ec-en"
-        ? `${englishVariant === "uk" ? "UK" : "U.S."} academic English draft`
-        : "Academic Spanish draft"
-      : direction === "en-ec" ? "General Spanish translation" : `${englishVariant === "uk" ? "UK" : "U.S."} English translation`;
+      ? `${languageLabel(targetLanguage)} academic draft`
+      : `${languageLabel(targetLanguage)} translation`;
     activeTranslationEdit = null;
     $("#natural-result").removeAttribute("contenteditable");
     $("#natural-result").textContent = "Translating…";
@@ -762,17 +886,22 @@ async function renderTranslation() {
     $("#literal-result").textContent = "";
     $("#usage-note").innerHTML = translationPurpose === "academic"
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
-      : `<strong>General translation</strong><span>Checking an external translation service. Ecuadorian naturalness has not yet been verified.</span>`;
+      : `<strong>General translation</strong><span>Checking the free translation service. Regional naturalness has not yet been verified.</span>`;
     try {
       const translated = await requestGeneralTranslation(sourceText);
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated);
+      const regionalReview = targetLanguage === "es-EC"
+        ? "Ecuadorian review pending"
+        : targetLanguage === "es-BO"
+          ? "Bolivian review pending"
+          : `${languageLabel(targetLanguage)} refinement pending`;
       $("#literal-result").textContent = translationPurpose === "academic"
-        ? `${direction === "ec-en" ? `${englishVariant === "uk" ? "UK" : "U.S."} academic English` : "Academic Spanish"} · editable research draft`
-        : direction === "en-ec" ? "General Spanish draft · Ecuadorian review pending" : `${englishVariant === "uk" ? "UK" : "U.S."} English refinement pending`;
+        ? `${languageLabel(targetLanguage)} · editable research draft`
+        : `General draft · ${regionalReview}`;
       $("#usage-note").innerHTML = translationPurpose === "academic"
         ? `<strong>Academic machine draft · source structure preserved</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Check discipline-specific terminology and claims before publication.</span>`
-        : `<strong>General machine translation · not yet Ecuadorian-verified</strong><span>This works for text outside the local phrase library. Use the verified entries when the app offers one.</span>`;
+        : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
     } catch {
       if (requestId !== translationRequest) return;
       activeTranslationEdit = null;
@@ -832,44 +961,28 @@ function setTranslationPurpose(purpose, rerender=true) {
   if (input) {
     input.rows = translationPurpose === "academic" ? 8 : 4;
     input.placeholder = translationPurpose === "academic"
-      ? "Paste Spanish research text, an abstract, or several paragraphs…"
+      ? `Paste ${languageLabel(sourceLanguage)} research text, an abstract, or several paragraphs…`
       : "Type or tap the microphone to speak…";
   }
   if (rerender && input?.value.trim()) renderTranslation();
 }
 
 function swapDirection() {
+  saveActiveTranslationEdit();
   const input = $("#translator-input");
   const sourceText = input.value.trim();
-  const currentPreserved = direction === "en-ec"
-    && preservedCulturalContext
-    && normalize(sourceText) === normalize(preservedCulturalContext.input)
-      ? preservedCulturalContext
-      : null;
-  const current = currentPreserved?.entry || matchPhrase(sourceText, direction);
   const completedTarget = lastCompletedTranslation
-    && lastCompletedTranslation.way === direction
+    && lastCompletedTranslation.sourceLanguage === sourceLanguage
+    && lastCompletedTranslation.targetLanguage === targetLanguage
     && lastCompletedTranslation.source === sourceText
       ? lastCompletedTranslation.target
       : null;
-  let nextSource;
-  if (direction === "ec-en" && current?.culturalEntry) {
-    nextSource = completedTarget || translatedText(current, direction);
-    preservedCulturalContext = { input: nextSource, originalSource: sourceText, entry: current };
-  } else if (currentPreserved) {
-    nextSource = completedTarget || currentPreserved.originalSource;
-    preservedCulturalContext = null;
-  } else {
-    nextSource = completedTarget || (current ? translatedText(current, direction) : sourceText);
-    preservedCulturalContext = null;
-  }
-
   translationRequest += 1;
-  direction = direction === "en-ec" ? "ec-en" : "en-ec";
-  input.value = nextSource;
-  $("#source-label").textContent = direction === "en-ec" ? "English" : "Ecuadorian Spanish";
-  $("#target-label").textContent = direction === "en-ec" ? "Ecuadorian Spanish" : englishVariant === "uk" ? "UK English" : "U.S. English";
-  $("#english-variant-row").hidden = direction === "en-ec";
+  [sourceLanguage,targetLanguage] = [targetLanguage,sourceLanguage];
+  preservedCulturalContext = null;
+  syncLanguagePair();
+  input.value = completedTarget || sourceText;
+  setTranslationPurpose(translationPurpose,false);
   renderTranslation();
 }
 
@@ -1389,11 +1502,28 @@ function init() {
     });
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
+  syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   $("#swap-button").addEventListener("click", swapDirection);
+  $("#source-language-select")?.addEventListener("change", event => {
+    sourceLanguage = event.target.value;
+    preservedCulturalContext = null;
+    translationRequest += 1;
+    syncLanguagePair();
+    setTranslationPurpose(translationPurpose,false);
+    renderTranslation();
+  });
+  $("#target-language-select")?.addEventListener("change", event => {
+    targetLanguage = event.target.value;
+    preservedCulturalContext = null;
+    translationRequest += 1;
+    syncLanguagePair();
+    renderTranslation();
+    renderDictionary();
+  });
   $("#translator-input").addEventListener("input", () => {
     if (preservedCulturalContext && normalize($("#translator-input").value) !== normalize(preservedCulturalContext.input)) preservedCulturalContext = null;
     clearTimeout(translationTimer);
@@ -1401,7 +1531,7 @@ function init() {
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
   });
-  bindPushToTalk($("#input-mic"), button => ({way:direction,button,onText:(text, final) => { preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
+  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);
@@ -1409,18 +1539,11 @@ function init() {
     rateSlider.addEventListener("input", event => setSpeechRate(event.target.value));
     rateSlider.addEventListener("change", () => {
       const preview = $("#natural-result").textContent.trim();
-      if (preview) say(preview,direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
+      if (preview) say(preview,targetSpeechLocale());
     });
   }
-  $$("[data-variant]").forEach(button => button.addEventListener("click", () => {
-    englishVariant = button.dataset.variant;
-    $$("[data-variant]").forEach(item => item.classList.toggle("active", item === button));
-    $("#target-label").textContent = englishVariant === "uk" ? "UK English" : "U.S. English";
-    renderTranslation();
-    renderDictionary();
-  }));
   $$('[data-purpose]').forEach(button => button.addEventListener("click", () => setTranslationPurpose(button.dataset.purpose)));
-  $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent, direction === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US"));
+  $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent,targetSpeechLocale()));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
   $("#natural-result").addEventListener("blur", saveActiveTranslationEdit);
@@ -1473,7 +1596,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=46r1").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=47").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

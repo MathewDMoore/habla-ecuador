@@ -8,8 +8,8 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=46">
-  <script src="app.js?v=46r1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=47">
+  <script src="app.js?v=47" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.20.0 · build 46</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.0 · build 47</span></div>
     </header>
 
     <main>
@@ -61,19 +61,12 @@
         </div>
 
         <div id="translate-panel">
-          <div class="direction-row">
-            <div><small>From</small><span id="source-label">English</span></div>
+          <div class="direction-row language-picker-row">
+            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option></select></label>
             <button id="swap-button" aria-label="Swap languages">⇄</button>
-            <div class="right"><small>To</small><span id="target-label">Ecuadorian Spanish</span></div>
+            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
           </div>
-
-          <div id="english-variant-row" class="speed-row" hidden>
-            <span>English style</span>
-            <div class="segmented" role="group" aria-label="English style">
-              <button class="active" data-variant="us">U.S.</button>
-              <button data-variant="uk">U.K.</button>
-            </div>
-          </div>
+          <p class="language-pair-note">Choose either side independently. Regional Spanish-to-Spanish results are labeled as verified adaptations or honest review drafts.</p>
 
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
             <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
