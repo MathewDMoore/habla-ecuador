@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://habla-ecuador.local/schemas/lexicon.schema.json",
+  "title": "Habla Ecuador Lexicon Entry",
+  "type": "object",
+  "required": ["id", "spanish", "usEnglish", "ukEnglish", "regionStatus", "register", "sources", "evidence"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "spanish": {"type": "string", "minLength": 1},
+    "usEnglish": {"type": "string", "minLength": 1},
+    "ukEnglish": {"type": "string", "minLength": 1},
+    "level": {"type": "string"},
+    "regionStatus": {"type": "string", "enum": ["Ecuador-specific", "Ecuador-associated", "Regional Ecuador", "Shared Andean", "General Spanish used in Ecuador", "Research lead", "Ecuador-documented", "Ecuador reference — not exclusive", "Ecuador reference — verify before labeling"]},
+    "regions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "register": {"type": "string"},
+    "intensity": {"type": "string"},
+    "warning": {"type": "string"},
+    "exampleEs": {"type": "string"},
+    "exampleUs": {"type": "string"},
+    "exampleUk": {"type": "string"},
+    "naturalness": {"type": "string"},
+    "comparisons": {"type": "array", "items": {"type": "object", "required": ["country", "meaning"], "properties": {"country": {"type": "string"}, "meaning": {"type": "string"}, "note": {"type": "string"}}, "additionalProperties": false}},
+    "sources": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "evidence": {"type": "string"},
+    "verification": {"type": "object", "properties": {"dictionaryAttested": {"type": "boolean"}, "corpusChecked": {"type": "boolean"}, "nativeSpeakerReviewed": {"type": "boolean"}, "lastReviewed": {"type": ["string", "null"], "format": "date"}, "confidence": {"type": "string", "enum": ["research-lead", "dictionary-attested", "corpus-supported", "native-reviewed", "multi-source-confirmed"]}}, "additionalProperties": false}
+  },
+  "additionalProperties": true
+}

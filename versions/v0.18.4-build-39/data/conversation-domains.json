@@ -1,0 +1,60 @@
+{
+  "domains": [
+    {
+      "id": "reactions",
+      "label": "Reactions & interjections",
+      "priority": 1,
+      "entries": ["achachay", "atatay", "chuta", "ele"],
+      "goal": "Teach emotional reactions with context, tone and intensity rather than one-word glosses."
+    },
+    {
+      "id": "friends-family",
+      "label": "Friends & family",
+      "priority": 1,
+      "entries": ["nano", "pana", "yunta-friend", "naneria", "guagua", "guambra"],
+      "goal": "Distinguish kinship terms, affectionate address and close-friend vocabulary."
+    },
+    {
+      "id": "requests-responses",
+      "label": "Requests, replies & conversational particles",
+      "priority": 1,
+      "entries": ["mande", "nomas", "vuelta-discourse", "de-ley"],
+      "goal": "Focus on high-frequency interaction patterns that make speech sound locally natural."
+    },
+    {
+      "id": "help-social",
+      "label": "Helping, agreeing & social action",
+      "priority": 1,
+      "entries": ["acolitar", "pilas", "cachar"],
+      "goal": "Teach verbs and expressions used to coordinate plans, help others and react in conversation."
+    },
+    {
+      "id": "food-market",
+      "label": "Food & market life",
+      "priority": 2,
+      "entries": ["canguil", "yapa", "yapar", "chapo-food"],
+      "goal": "Cover everyday food, shopping and market interactions."
+    },
+    {
+      "id": "people-tone",
+      "label": "People, personality & tone",
+      "priority": 2,
+      "entries": ["sabido-person", "muergano", "bacan"],
+      "goal": "Teach praise, criticism and personality descriptions with strong register warnings where needed."
+    },
+    {
+      "id": "rural-andean",
+      "label": "Rural & Andean life",
+      "priority": 2,
+      "entries": ["chacra", "chaucha-work"],
+      "goal": "Preserve Andean cultural vocabulary while clearly marking what is shared beyond Ecuador."
+    },
+    {
+      "id": "style-appearance",
+      "label": "Style & appearance",
+      "priority": 3,
+      "entries": ["encachinarse"],
+      "goal": "Capture natural everyday expressions around clothing and appearance."
+    }
+  ]
+}

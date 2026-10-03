@@ -1,0 +1,516 @@
+[
+  {
+    "id": "atatay",
+    "spanish": "¡atatay!",
+    "usEnglish": "ew!; gross!",
+    "ukEnglish": "ugh!; disgusting!",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented; shared with Peru for disgust",
+    "register": "Popular, spontaneous interjection.",
+    "intensity": "Mild to moderate disgust.",
+    "warning": "Do not transfer the Ecuadorian meaning automatically to Bolivia: ASALE records Bolivian atatay primarily for pain, especially from a burn.",
+    "exampleEs": "¡Atatay! Ese olor está horrible.",
+    "exampleUs": "Ew! That smell is awful.",
+    "exampleUk": "Ugh! That smell is horrible.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "An exclamation of pain, especially from a burn, in the ASALE entry.",
+        "note": "A useful Ecuador–Bolivia false-friend-style contrast."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/atatay/",
+      "https://www.asale.org/damer/%C2%A1atatay%21",
+      "https://corpha.ec/?s=atatay&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "atatay",
+      "checkedOn": "2026-09-26",
+      "documentCount": 3,
+      "visibleFirstPageHits": 11,
+      "observedRegions": [
+        "Sierra Centro",
+        "Costa",
+        "Sierra Norte"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include an explicit Ecuadorian gloss identifying atatay as an exclamation of disgust.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "guagua",
+    "spanish": "guagua",
+    "usEnglish": "baby; little one; young child",
+    "ukEnglish": "baby; little one; young child",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented; shared Andean vocabulary",
+    "register": "Everyday family and familiar speech.",
+    "intensity": "Neutral to affectionate.",
+    "warning": "The word has unrelated meanings elsewhere in the Spanish-speaking world, including 'bus' in some regions.",
+    "exampleEs": "¿Cómo está tu guagua?",
+    "exampleUs": "How's your little one?",
+    "exampleUk": "How's your little one?",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "Young child is also documented; ASALE additionally records Bolivia-specific senses.",
+        "note": "The child sense overlaps, but the full semantic range is not identical."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/guagua/",
+      "https://www.asale.org/damer/guagua",
+      "https://corpha.ec/?s=guagua&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "guagua",
+      "checkedOn": "2026-09-26",
+      "documentCount": 70,
+      "visibleFirstPageHits": 80,
+      "observedRegions": [
+        "Austro",
+        "Sierra Norte",
+        "Sierra Centro"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include the child sense, alongside compounds and other uses; the results therefore support the meaning but also show why context matters.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "pana",
+    "spanish": "pana",
+    "usEnglish": "close friend; buddy",
+    "ukEnglish": "close friend; mate",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented; widely shared in the Americas",
+    "register": "Colloquial, friendly.",
+    "intensity": "Warm and familiar.",
+    "warning": "Not Ecuador-exclusive. ASALE documents the close-friend sense in many countries, including Ecuador and Bolivia.",
+    "exampleEs": "Voy al partido con un pana del trabajo.",
+    "exampleUs": "I'm going to the game with a buddy from work.",
+    "exampleUk": "I'm going to the match with a mate from work.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "Close friend is also documented by ASALE.",
+        "note": "Useful as a shared term rather than an Ecuador–Bolivia contrast."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/pana/",
+      "https://www.asale.org/damer/pana",
+      "https://corpha.ec/?s=pana&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "pana",
+      "checkedOn": "2026-09-26",
+      "documentCount": 50,
+      "visibleFirstPageHits": 16,
+      "observedRegions": [
+        "Sierra Norte",
+        "Costa",
+        "Sierra Centro"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include direct address and references to a friend or buddy; unrelated senses such as the fabric also occur.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "yunta-friend",
+    "spanish": "yunta",
+    "usEnglish": "close friend; best buddy",
+    "ukEnglish": "close mate; best mate",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented but less frequent in ASALE; strongly shared elsewhere including Bolivia",
+    "register": "Colloquial and familiar.",
+    "intensity": "Warm, close friendship.",
+    "warning": "ASALE marks the intimate-friend sense as infrequent in Ecuador and more broadly documented in Bolivia and several other countries.",
+    "exampleEs": "Él es mi yunta desde hace años.",
+    "exampleUs": "He's been one of my closest buddies for years.",
+    "exampleUk": "He's been one of my closest mates for years.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "Close friend and closely bonded pair are both documented senses.",
+        "note": "Bolivia has a broader documented friendship range for yunta in ASALE."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/yunta/",
+      "https://www.asale.org/damer/yunta",
+      "https://corpha.ec/?s=yunta&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "yunta",
+      "checkedOn": "2026-09-26",
+      "documentCount": 25,
+      "visibleFirstPageHits": 23,
+      "observedRegions": [
+        "Amazonía",
+        "Sierra Centro",
+        "Austro",
+        "Sierra Norte",
+        "Costa"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include the friendship sense in Guayaquil material, alongside the much older pair-of-draft-animals sense.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "acolitar",
+    "spanish": "acolitar",
+    "usEnglish": "to back someone up; support; go along with",
+    "ukEnglish": "to back someone up; support; go along with",
+    "level": "B1",
+    "regionStatus": "Ecuador-documented; support sense shared with Colombia",
+    "register": "Colloquial.",
+    "intensity": "Neutral; context can make it positive or negative.",
+    "warning": "The Ecuador dictionary also records a complicity/covering-for sense, so context matters.",
+    "exampleEs": "¿Me acolitas con esta idea?",
+    "exampleUs": "Will you back me up on this idea?",
+    "exampleUk": "Will you back me up on this idea?",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "No Bolivia comparison is established by the attached ASALE entry.",
+        "note": "Do not infer absence from Bolivia without additional evidence."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/acolitar/",
+      "https://www.asale.org/damer/acolitar",
+      "https://corpha.ec/?s=acolitar&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "acolitar",
+      "checkedOn": "2026-09-26",
+      "documentCount": 5,
+      "visibleFirstPageHits": 5,
+      "observedRegions": [
+        "Sierra Norte",
+        "Costa"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include helping or supporting someone and also complicity/covering-for uses, confirming the entry's context warning.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "mande",
+    "spanish": "mande",
+    "usEnglish": "pardon?; yes?",
+    "ukEnglish": "pardon?; yes?",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented; cross-country comparison pending",
+    "register": "Polite conversational response.",
+    "intensity": "Neutral and courteous.",
+    "warning": "English depends on context: it can request repetition or answer when someone calls you.",
+    "exampleEs": "—María. —¿Mande?",
+    "exampleUs": "—Maria. —Yes?",
+    "exampleUk": "—Maria. —Yes?",
+    "comparisons": [],
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/mande/",
+      "https://corpha.ec/?s=mande&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "mande",
+      "checkedOn": "2026-09-26",
+      "documentCount": 34,
+      "visibleFirstPageHits": 16,
+      "observedRegions": [
+        "Sierra Centro",
+        "Costa",
+        "Sierra Norte",
+        "Loja",
+        "Austro"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term results include Ecuadorian discussion of mande as a conversational response used for courtesy or deference; verb forms of mandar also occur.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "nomas",
+    "spanish": "nomás",
+    "usEnglish": "just; only; go ahead (after an imperative)",
+    "ukEnglish": "just; only; go ahead (after an imperative)",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented conversational particle; broader Andean comparison pending",
+    "register": "Colloquial.",
+    "intensity": "Neutral; pragmatic meaning depends on position.",
+    "warning": "Do not memorize one English translation. Ecuador's DAE documents several functions, including restriction, permission/confidence after an imperative, and emphasis with time/place expressions.",
+    "exampleEs": "Pasa nomás, no hay problema.",
+    "exampleUs": "Go ahead and come in, no problem.",
+    "exampleUk": "Come on in, no problem.",
+    "comparisons": [],
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/nomas/",
+      "https://corpha.ec/?s=nom%C3%A1s&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "nomás",
+      "checkedOn": "2026-09-26",
+      "documentCount": 103,
+      "visibleFirstPageHits": 48,
+      "observedRegions": [
+        "Sierra Norte",
+        "Sierra Centro",
+        "Costa"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include permissive and emphatic uses such as dejémosle nomás así, supporting the warning that nomás has several pragmatic functions.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "canguil",
+    "spanish": "canguil",
+    "usEnglish": "popcorn",
+    "ukEnglish": "popcorn",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented",
+    "register": "Everyday food vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "ASALE's canguil entry tags the popcorn sense for Ecuador. That does not prove the word is absent from every other variety.",
+    "exampleEs": "Hagamos canguil para la película.",
+    "exampleUs": "Let's make popcorn for the movie.",
+    "exampleUk": "Let's make popcorn for the film.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "ASALE separately documents popcorn as a term used in Bolivia.",
+        "note": "Treat this as a vocabulary contrast to research further, not proof that canguil is never used there."
+      }
+    ],
+    "sources": [
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://www.asale.org/damer/canguil",
+      "https://www.asale.org/damer/popcorn",
+      "https://corpha.ec/?s=canguil&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "canguil",
+      "checkedOn": "2026-09-26",
+      "documentCount": 45,
+      "visibleFirstPageHits": 13,
+      "observedRegions": [
+        "Costa",
+        "Sierra Norte",
+        "Sierra Centro",
+        "Austro"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts repeatedly use canguil for popcorn, including cinema and food contexts.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "yapa",
+    "spanish": "yapa",
+    "usEnglish": "a little extra; a small free extra",
+    "ukEnglish": "a little extra; a small free extra",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented; widely shared South American/Latin American term",
+    "register": "Colloquial, especially shopping/market contexts.",
+    "intensity": "Friendly and neutral.",
+    "warning": "Not Ecuador-exclusive. ASALE documents the small-extra-gift sense in Ecuador, Bolivia and numerous other countries.",
+    "exampleEs": "¿Me da una yapita, por favor?",
+    "exampleUs": "Could you give me a little extra, please?",
+    "exampleUk": "Could you give me a little extra, please?",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "A small extra gift with a purchase is also documented; additional Bolivia-specific expressions with yapa exist.",
+        "note": "Strong shared Andean/Latin American overlap rather than a simple contrast."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/yapa/",
+      "https://www.asale.org/damer/yapa",
+      "https://corpha.ec/?s=yapa&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-and-corpus-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "yapa",
+      "checkedOn": "2026-09-26",
+      "documentCount": 23,
+      "visibleFirstPageHits": 22,
+      "observedRegions": [
+        "Sierra Centro",
+        "Sierra Norte",
+        "Costa",
+        "Austro"
+      ],
+      "meaningSupported": true,
+      "note": "Exact-term contexts include the extra amount or gift given to a customer, including market and food-service settings.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  },
+  {
+    "id": "yapar",
+    "spanish": "yapar",
+    "usEnglish": "to throw in a little extra",
+    "ukEnglish": "to add a little extra for free",
+    "level": "B1",
+    "regionStatus": "Ecuador-documented sense; related senses shared elsewhere",
+    "register": "Colloquial, shopping/market vocabulary.",
+    "intensity": "Neutral and friendly.",
+    "warning": "ASALE specifically records Ecuadorian yapar as giving a yapa/gift, while Bolivia has related add/increase senses.",
+    "exampleEs": "La vendedora me yapó un poquito más de fruta.",
+    "exampleUs": "The vendor threw in a little extra fruit.",
+    "exampleUk": "The seller added a little extra fruit for free.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "ASALE records related senses meaning to add or increase something, especially in eastern Bolivia.",
+        "note": "Related word family, but the documented sense inventory differs."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/yapa/",
+      "https://www.asale.org/damer/yapar",
+      "https://corpha.ec/?s=yapar&pub_title=&pub_start=&pub_finish="
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": true,
+      "nativeSpeakerReviewed": false,
+      "lastReviewed": "2026-09-26",
+      "confidence": "dictionary-attested"
+    },
+    "corpusEvidence": {
+      "source": "corpha",
+      "query": "yapar",
+      "checkedOn": "2026-09-26",
+      "documentCount": 0,
+      "visibleFirstPageHits": 0,
+      "observedRegions": [],
+      "meaningSupported": false,
+      "note": "The exact CORPHA query returned no documents. The entry remains dictionary-attested, but the corpus does not independently support this verb form in the current exact-search index.",
+      "regionScope": "Observed regions are from the first results page, not a complete regional distribution."
+    }
+  }
+]

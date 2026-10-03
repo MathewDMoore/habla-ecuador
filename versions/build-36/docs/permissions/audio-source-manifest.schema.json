@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MathewDMoore/habla-ecuador/docs/permissions/audio-source-manifest.schema.json",
+  "title": "Habla Ecuador approved audio source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "sourceUrl",
+    "speaker",
+    "language",
+    "regionalVariety",
+    "provenanceEvidence",
+    "license",
+    "approvedUse",
+    "attribution",
+    "noVoiceCloning",
+    "noModelTraining",
+    "reviewedBy",
+    "reviewedAt",
+    "removalContact"
+  ],
+  "properties": {
+    "id": {"type": "string"},
+    "title": {"type": "string"},
+    "localAssetPath": {"type": ["string", "null"]},
+    "sourceUrl": {"type": "string", "format": "uri"},
+    "immutableSourceUrl": {"type": ["string", "null"], "format": "uri"},
+    "speaker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "consentStatus"],
+      "properties": {
+        "displayName": {"type": "string"},
+        "publicIdentity": {"type": "boolean", "default": true},
+        "consentStatus": {"enum": ["documented", "license-implied", "pending", "not-permitted"]},
+        "consentEvidence": {"type": ["string", "null"]}
+      }
+    },
+    "language": {"type": "string"},
+    "regionalVariety": {"type": "string"},
+    "provenanceEvidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "communityAuthorization": {
+      "enum": ["not-applicable", "documented", "pending", "required", "denied"]
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "url", "evidenceUrl"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "url": {"type": "string", "format": "uri"},
+        "evidenceUrl": {"type": "string", "format": "uri"}
+      }
+    },
+    "approvedUse": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "pronunciation-playback",
+          "lesson-example",
+          "cultural-reference",
+          "research-only"
+        ]
+      }
+    },
+    "modifications": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "none",
+          "trim-silence",
+          "noise-reduction",
+          "volume-normalization",
+          "format-conversion"
+        ]
+      }
+    },
+    "attribution": {"type": "string"},
+    "noVoiceCloning": {"const": true},
+    "noModelTraining": {"const": true},
+    "reviewedBy": {"type": "string"},
+    "reviewedAt": {"type": "string", "format": "date"},
+    "removalContact": {"type": "string"},
+    "notes": {"type": "string"}
+  }
+}

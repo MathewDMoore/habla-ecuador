@@ -1,0 +1,440 @@
+[
+  {
+    "id": "achachay",
+    "spanish": "¡achachay!",
+    "provisionalMeaning": "interjection expressing a sensation of cold",
+    "status": "dictionary-attested",
+    "regionStatus": "Shared Andean / Ecuador-documented",
+    "sources": [
+      "ael_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://www.academiaecuatorianadelalengua.org/el-diccionario-academico-del-habla-del-ecuador-en-mundo-diners/",
+      "https://www.asale.org/damer/%C2%A1achachay%21"
+    ],
+    "comparisonNote": "ASALE records the cold-sensation use in Ecuador, southwestern Colombia and Peru, so it must not be labeled Ecuador-exclusive.",
+    "nextChecks": [
+      "Log CORPHA frequency and Ecuador regions",
+      "Check current register and age distribution",
+      "Write original US/UK English learner examples"
+    ]
+  },
+  {
+    "id": "agache",
+    "spanish": "de agache",
+    "provisionalMeaning": "without making an effort; in pasar de agache, acting discreetly or slipping by without drawing attention",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; sense-dependent",
+    "sources": [
+      "ael_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://www.academiaecuatorianadelalengua.org/el-diccionario-academico-del-habla-del-ecuador-en-mundo-diners/",
+      "https://www.asale.org/damer/agache",
+      "https://www.asale.org/damer/pasar"
+    ],
+    "comparisonNote": "ASALE marks de agache 'without effort' for Ecuador and pasar de agache 'act discreetly' for Colombia and Ecuador; the senses should be taught separately.",
+    "nextChecks": [
+      "Log CORPHA contexts for each sense",
+      "Check regional distribution inside Ecuador",
+      "Write separate learner examples by sense"
+    ]
+  },
+  {
+    "id": "chulla-vida",
+    "spanish": "¡chulla vida!",
+    "provisionalMeaning": "an exhortation to make the most of the present",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented",
+    "sources": [
+      "ael_dae",
+      "minedu_dae",
+      "corpha",
+      "hablemos_ecuatoriano"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chulla/",
+      "https://www.academiaecuatorianadelalengua.org/el-diccionario-academico-del-habla-del-ecuador-en-mundo-diners/"
+    ],
+    "nextChecks": [
+      "Log modern CORPHA examples",
+      "Verify tone, age and regional spread",
+      "Create original conversational examples"
+    ]
+  },
+  {
+    "id": "acholarse",
+    "spanish": "acholarse",
+    "provisionalMeaning": "Ecuadorian verb requiring sense-by-sense verification",
+    "status": "research-lead",
+    "sources": [
+      "ael_dae",
+      "corpha"
+    ],
+    "nextChecks": [
+      "Confirm current AEL senses",
+      "Log CORPHA contexts before writing a learner definition",
+      "Check whether regional labels apply"
+    ]
+  },
+  {
+    "id": "chuta",
+    "spanish": "¡chuta!",
+    "provisionalMeaning": "interjection for surprise, anger or frustration; in Ecuador also compassion or disappointment",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-associated; some senses shared with Chile",
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha",
+      "hablemos_ecuatoriano"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chuta/",
+      "https://www.asale.org/damer/%C2%A1chuta%21"
+    ],
+    "comparisonNote": "ASALE records surprise/anger/frustration in Ecuador and Chile, while compassion or disappointment is specifically tagged Ecuador in that entry.",
+    "nextChecks": [
+      "Log CORPHA contexts by pragmatic sense",
+      "Check intensity and politeness",
+      "Write separate context-specific examples"
+    ]
+  },
+  {
+    "id": "ele",
+    "spanish": "¡elé!",
+    "provisionalMeaning": "Ecuadorian expression whose learner-facing senses still require entry-level verification",
+    "status": "dictionary-listed",
+    "regionStatus": "Ecuador-documented; sense verification pending",
+    "sources": [
+      "minedu_dae",
+      "corpha",
+      "hablemos_ecuatoriano"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/",
+      "https://recursos.educacion.gob.ec/wp-content/uploads/2024/Textos/Media/5to_EGB/5to_EGB_LENGUA_Y_LITERATURA.pdf"
+    ],
+    "nextChecks": [
+      "Retrieve the full DAE entry and verify senses",
+      "Log CORPHA contexts",
+      "Avoid treating one English rendering as universal"
+    ]
+  },
+  {
+    "id": "pana",
+    "spanish": "pana",
+    "provisionalMeaning": "close friend; familiar form of address between friends",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; not yet tested for exclusivity",
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/pana/"
+    ],
+    "nextChecks": [
+      "Run ASALE cross-country comparison",
+      "Log CORPHA regional distribution",
+      "Write US/UK English examples"
+    ]
+  },
+  {
+    "id": "acolitar",
+    "spanish": "acolitar",
+    "provisionalMeaning": "to support or go along with an activity, idea or initiative; also to cover for or enable an activity in another sense",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; sense-dependent",
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/acolitar/"
+    ],
+    "nextChecks": [
+      "Separate supportive and complicity senses",
+      "Run cross-country comparison",
+      "Log CORPHA register and regions"
+    ]
+  },
+  {
+    "id": "pilas",
+    "spanish": "pilas",
+    "provisionalMeaning": "quick-witted, mentally sharp person; also investigate Ecuadorian imperative/exhortative uses separately",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; broader phraseology needs comparison",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/pilas/"
+    ],
+    "nextChecks": [
+      "Separate adjective/noun from ponte las pilas uses",
+      "Check cross-country distribution",
+      "Write original conversational examples"
+    ]
+  },
+  {
+    "id": "yunta-friend",
+    "spanish": "yunta",
+    "provisionalMeaning": "a person with whom one has a close friendship",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; comparison pending",
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/yunta/"
+    ],
+    "nextChecks": [
+      "Check cross-country senses",
+      "Log Ecuador regional distribution",
+      "Compare tone with pana and ñaño"
+    ]
+  },
+  {
+    "id": "encachinarse",
+    "spanish": "encachinarse",
+    "provisionalMeaning": "to dress up or groom oneself carefully and stylishly",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; comparison pending",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/encachinarse/"
+    ],
+    "nextChecks": [
+      "Log contemporary CORPHA contexts",
+      "Check regional and age distribution",
+      "Find natural US/UK English equivalents"
+    ]
+  },
+  {
+    "id": "chaucha-work",
+    "spanish": "chaucha",
+    "provisionalMeaning": "occasional low-paid job; by extension, a small earning from such work",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; Kichwa/Quichua-derived",
+    "sources": [
+      "minedu_dae",
+      "corpha",
+      "kichwa_contact"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chaucha/"
+    ],
+    "nextChecks": [
+      "Check cross-country senses",
+      "Log CORPHA regions and register",
+      "Preserve etymology without implying all senses are uniquely Ecuadorian"
+    ]
+  },
+  {
+    "id": "vuelta-discourse",
+    "spanish": "vuelta",
+    "provisionalMeaning": "again/once more; also a discourse connector meaning roughly 'on the other hand/in turn' in an Ecuadorian entry",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; multiple senses",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/vuelta/"
+    ],
+    "nextChecks": [
+      "Separate adverb and discourse-connector senses",
+      "Check regional distribution",
+      "Create natural English examples rather than literal glosses"
+    ]
+  },
+  {
+    "id": "cachar",
+    "spanish": "cachar",
+    "provisionalMeaning": "multiple colloquial senses including catching someone doing something, understanding, catching an object, and realizing something",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; highly sense-dependent and likely shared elsewhere",
+    "sources": [
+      "minedu_dae",
+      "asale_damer",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/cachar/"
+    ],
+    "nextChecks": [
+      "Run sense-by-sense cross-country comparison",
+      "Log Ecuador frequency by sense",
+      "Avoid presenting cachar as uniquely Ecuadorian"
+    ]
+  },
+  {
+    "id": "nano",
+    "spanish": "ñaño / ñaña",
+    "provisionalMeaning": "brother/sister; also familiar affectionate address or close-friend term depending on context",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; Kichwa/Quichua-derived; conversational use needs regional review",
+    "sources": [
+      "minedu_dae",
+      "corpha",
+      "kichwa_contact"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/"
+    ],
+    "nextChecks": [
+      "Retrieve the full DAE entry",
+      "Log CORPHA regions and relationship contexts",
+      "Distinguish literal sibling use from friendly address"
+    ]
+  },
+  {
+    "id": "chapa-police",
+    "spanish": "chapa",
+    "provisionalMeaning": "colloquial term for a police officer; the DAE also lists unrelated senses such as lock, cheek colour and nickname",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; Kichwa/Quichua-derived police sense",
+    "sources": [
+      "minedu_dae",
+      "corpha",
+      "kichwa_contact"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chapa/"
+    ],
+    "nextChecks": [
+      "Separate police sense from unrelated senses",
+      "Check tone and whether the police sense can sound disrespectful",
+      "Log CORPHA regional and register evidence"
+    ]
+  },
+  {
+    "id": "mande",
+    "spanish": "mande",
+    "provisionalMeaning": "polite response asking someone to repeat what they said, or answering when called",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; not assumed exclusive",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/mande/"
+    ],
+    "nextChecks": [
+      "Check age and regional distribution in CORPHA",
+      "Compare with other countries before labeling it Ecuador-associated",
+      "Write natural US/UK dialogue equivalents"
+    ]
+  },
+  {
+    "id": "nomas",
+    "spanish": "nomás",
+    "provisionalMeaning": "colloquial particle meaning only/just, and after imperatives can signal that an action may be done freely or without hesitation",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; multiple conversational functions",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/nomas/"
+    ],
+    "nextChecks": [
+      "Separate each pragmatic function",
+      "Compare Andean distribution",
+      "Create learner examples that show meaning in context"
+    ]
+  },
+  {
+    "id": "sabido-person",
+    "spanish": "sabido / sabida",
+    "provisionalMeaning": "colloquial person who is crafty or sharp and can take advantage of situations; another sense is resourcefully experienced",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; sense and tone dependent",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/sabido/"
+    ],
+    "nextChecks": [
+      "Separate negative and admiring senses",
+      "Check intensity and politeness",
+      "Find natural US/UK English equivalents by context"
+    ]
+  },
+  {
+    "id": "muergano",
+    "spanish": "muérgano / muérgana",
+    "provisionalMeaning": "colloquial or disparaging term for a lazy, contemptible, rough or rude person depending on sense",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented; potentially insulting",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/muergano/"
+    ],
+    "nextChecks": [
+      "Map each sense to a separate intensity label",
+      "Check modern frequency",
+      "Add a strong learner warning before surfacing it in speaking practice"
+    ]
+  },
+  {
+    "id": "chapo-food",
+    "spanish": "chapo",
+    "provisionalMeaning": "thick mixture made with barley flour and liquids or sweet ingredients",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented food vocabulary",
+    "sources": [
+      "minedu_dae",
+      "corpha"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chapo/"
+    ],
+    "nextChecks": [
+      "Check regional concentration",
+      "Clarify relationship to máchica-based preparations",
+      "Add food-category tagging and original example"
+    ]
+  },
+  {
+    "id": "chacra",
+    "spanish": "chacra",
+    "provisionalMeaning": "small agricultural plot or farmed piece of land",
+    "status": "dictionary-attested",
+    "regionStatus": "Ecuador-documented rural vocabulary; broader Andean comparison needed",
+    "sources": [
+      "minedu_dae",
+      "corpha",
+      "kichwa_contact"
+    ],
+    "evidenceUrls": [
+      "https://recursos.educacion.gob.ec/diccionario/chacra/"
+    ],
+    "nextChecks": [
+      "Check broader Andean distribution",
+      "Log Ecuador regional contexts",
+      "Avoid presenting it as uniquely Ecuadorian"
+    ]
+  }
+]

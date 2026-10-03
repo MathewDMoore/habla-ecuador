@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="Ecuadorian-first Spanish translation and speaking practice.">
+  <title>Habla Ecuador</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="app-icon.svg">
+  <link rel="stylesheet" href="styles.css?v=26">
+  <script src="app.js?v=26" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button id="home-button" class="brand" aria-label="Habla Ecuador home">
+        <span class="brand-mark">H</span>
+        <span><small>Habla</small>Ecuador</span>
+      </button>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.14.0 · build 26</span></div>
+    </header>
+
+    <main>
+      <section id="home-view" class="view active" aria-labelledby="home-title">
+        <p class="eyebrow">Today · 8–10 minutes</p>
+        <h1 id="home-title">Speak a little.<br><span>Connect a lot.</span></h1>
+        <p class="intro">Translate what you need, hear natural Ecuadorian phrasing, and practice speaking it aloud.</p>
+
+        <button class="feature-card lesson-card" data-open="lesson-view">
+          <span class="card-kicker">A1 speaking lesson</span>
+          <strong>Meet before sunset</strong>
+          <span>Listen → speak → choose → use it</span>
+          <i aria-hidden="true">🌅</i>
+        </button>
+
+        <button class="feature-card translator-card" data-open="translator-view">
+          <span class="card-kicker">Standalone translator</span>
+          <strong>Say it naturally</strong>
+          <span>English ↔ Ecuadorian Spanish</span>
+          <i aria-hidden="true">🎙️</i>
+        </button>
+
+        <button class="feature-card music-card" data-open="music-view">
+          <span class="card-kicker">Music, culture & speaking rhythm</span>
+          <strong>Hear how language moves</strong>
+          <span>Open recordings + original speaking drills</span>
+          <i aria-hidden="true">🎶</i>
+        </button>
+
+        <div class="path-grid" aria-label="Learning paths">
+          <article><span>💬</span><div><h2>Real conversation</h2><p>Warm, useful phrases for actual people.</p></div></article>
+          <article><span>👂</span><div><h2>Listening & rhythm</h2><p>Slow and natural playback.</p></div></article>
+          <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
+        </div>
+        <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
+      </section>
+
+      <section id="music-view" class="view" aria-labelledby="music-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
+        </div>
+        <p class="music-intro">Listen to actual openly licensed Ecuadorian music, then use original Habla Ecuador drills to practice speaking rhythm. Every recording shows its performer, source, and license.</p>
+        <section class="music-section" aria-labelledby="recordings-title">
+          <p class="eyebrow">Open listening library</p>
+          <h2 id="recordings-title">Actual music</h2>
+          <p>These complete recordings are streamed from Wikimedia Commons under the license shown on each card. They are listening and cultural references—not automatically evidence for slang.</p>
+          <div id="open-music-tracks" class="open-music-tracks"></div>
+        </section>
+        <section class="music-section" aria-labelledby="rhythm-title">
+          <p class="eyebrow">Speak in rhythm</p>
+          <h2 id="rhythm-title">Original rhythm recall</h2>
+          <p>Listen, echo the cadence, then break the sequence apart and use each phrase in conversation.</p>
+          <div id="rhythm-drills" class="rhythm-drills"></div>
+        </section>
+        <section class="music-section" aria-labelledby="traditions-title">
+          <p class="eyebrow">Cultural listening map</p>
+          <h2 id="traditions-title">Ecuadorian musical traditions</h2>
+          <p>Genres are tied to their communities and regions rather than treated as one generic Ecuadorian sound.</p>
+          <div id="music-traditions" class="music-traditions"></div>
+        </section>
+        <section class="music-method">
+          <h2>How a song becomes language evidence</h2>
+          <ol>
+            <li>Confirm the artist, Ecuador connection, genre, region, and date.</li>
+            <li>Record the expression and paraphrase its situation—without storing copied lyrics.</li>
+            <li>Cross-check the meaning in CORPHA, the Ecuadorian Academy, ASALE, or another documented source.</li>
+            <li>Label the register, intensity, generation, region, and whether it sounds natural in conversation.</li>
+            <li>Write a new Habla Ecuador example and send uncertain usage for Ecuadorian review.</li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="translator-view" class="view" aria-labelledby="translator-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Ecuador translator</p><h1 id="translator-title">Say what you mean.</h1></div>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="Translator mode">
+          <button class="mode active" data-mode="translate" role="tab" aria-selected="true">Translate</button>
+          <button class="mode" data-mode="conversation" role="tab" aria-selected="false">Conversation</button>
+        </div>
+
+        <div id="translate-panel">
+          <div class="direction-row">
+            <div><small>From</small><span id="source-label">English</span></div>
+            <button id="swap-button" aria-label="Swap languages">⇄</button>
+            <div class="right"><small>To</small><span id="target-label">Ecuadorian Spanish</span></div>
+          </div>
+
+          <div id="english-variant-row" class="speed-row" hidden>
+            <span>English style</span>
+            <div class="segmented" role="group" aria-label="English style">
+              <button class="active" data-variant="us">U.S.</button>
+              <button data-variant="uk">U.K.</button>
+            </div>
+          </div>
+
+          <label class="input-card">
+            <span class="sr-only">Text to translate</span>
+            <textarea id="translator-input" rows="4" placeholder="Type or hold the microphone to speak…"></textarea>
+            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Hold to speak instead of typing">🎙</button>
+          </label>
+          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text uses the MyMemory translation service and is labeled as a general translation until Ecuadorian review.</p>
+
+          <div class="speed-row">
+            <span>Voice pace</span>
+            <div class="segmented" role="group" aria-label="Voice pace">
+              <button data-speed="0.68">Slow</button>
+              <button class="active" data-speed="0.94">Natural</button>
+            </div>
+          </div>
+
+          <section id="translation-result" class="result-card" aria-live="polite">
+            <p class="result-label">Natural Ecuadorian Spanish</p>
+            <p id="natural-result" class="translation-text"></p>
+            <p id="literal-result" class="literal-text"></p>
+            <div class="result-actions">
+              <button id="hear-result">🔊 Hear it</button>
+              <button id="copy-result">Copy</button>
+            </div>
+            <div id="usage-note" class="usage-note"></div>
+          </section>
+
+          <section id="no-result" class="no-result" hidden>
+            <p>I heard you, but this sentence is not in the local Ecuadorian phrase library yet.</p>
+            <small>This free prototype will not invent a translation. Try one of the suggestions below.</small>
+          </section>
+
+          <div class="suggestions">
+            <p>Try a phrase</p>
+            <div id="suggestion-list"></div>
+          </div>
+        </div>
+
+        <div id="conversation-panel" hidden>
+          <p class="conversation-help">Press and hold your side while speaking, then release. The phone will say the matched translation aloud. Nothing is saved.</p>
+          <div class="speaker-grid">
+            <button class="speaker mathew push-to-talk" data-speaker="Mathew"><span>🎙️</span><strong>Mathew</strong><small>Hold · speak English</small></button>
+            <button class="speaker maria push-to-talk" data-speaker="Maria"><span>🎙️</span><strong>Maria</strong><small>Mantén · habla español</small></button>
+          </div>
+          <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
+          <div id="conversation-turns" class="turns"></div>
+          <button id="clear-conversation" class="text-button">Clear this conversation</button>
+        </div>
+      </section>
+
+      <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Ecuadorian dictionary</h1></div>
+        </div>
+        <p class="dictionary-intro">Every entry shows what supports it, what has been checked, and what still needs Ecuadorian review.</p>
+        <div id="evidence-counts" class="evidence-counts" aria-live="polite"></div>
+        <label class="dictionary-search"><span class="sr-only">Search evidence-backed entries</span><input id="dictionary-search" type="search" placeholder="Search Spanish, English, or a region…"></label>
+        <div class="evidence-filters" role="group" aria-label="Verification filter">
+          <button class="active" data-evidence-filter="all">All</button>
+          <button data-evidence-filter="learner-ready">Learner-ready</button>
+          <button data-evidence-filter="dictionary-attested">Dictionary-attested</button>
+          <button data-evidence-filter="research-lead">Needs review</button>
+        </div>
+        <button class="review-callout" data-open="review-view">
+          <span><strong>Review Ecuadorian usage</strong><small>No login · saved only on this device</small></span>
+          <b aria-hidden="true">→</b>
+        </button>
+        <section class="expression-library" aria-labelledby="expression-title">
+          <p class="eyebrow">Speak beyond the dictionary</p>
+          <h2 id="expression-title">Ecuadorian expressions & slang</h2>
+          <p>Source-backed slang, idioms, metaphors, cultural language, and phrases that matter in real conversations.</p>
+          <div class="expression-filters" role="group" aria-label="Expression category">
+            <button class="active" data-expression-filter="all">All</button>
+            <button data-expression-filter="idiom">Idioms & metaphors</button>
+            <button data-expression-filter="slang">Slang</button>
+            <button data-expression-filter="culture">Culture</button>
+            <button data-expression-filter="personal">Our phrases</button>
+          </div>
+          <section class="slang-index" aria-labelledby="slang-index-title">
+            <h3 id="slang-index-title">Slang words & sayings</h3>
+            <p>Quick meanings and the context that determines how each expression lands.</p>
+            <ul id="slang-index-list"></ul>
+          </section>
+          <div id="expression-results" class="expression-results"></div>
+        </section>
+        <p id="dictionary-status" class="status">Loading the project’s source files…</p>
+        <div id="dictionary-results" class="dictionary-results"></div>
+      </section>
+
+      <section id="review-view" class="view" aria-labelledby="review-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="dictionary-view" aria-label="Back to dictionary">←</button>
+          <div><p class="eyebrow">Ecuadorian reviewer mode</p><h1 id="review-title">Does this sound natural?</h1></div>
+        </div>
+        <p class="review-intro">An Ecuadorian speaker can review each entry without an account. Reviews stay on this device until they are copied or shared.</p>
+        <label class="reviewer-name">Reviewer name <span>(optional)</span><input id="reviewer-name" autocomplete="name" placeholder="Name or initials"></label>
+        <div id="review-progress" class="review-progress" aria-live="polite"></div>
+        <div id="review-card"></div>
+        <div class="review-navigation">
+          <button id="review-prev" type="button">← Previous</button>
+          <button id="review-next" type="button">Next →</button>
+        </div>
+        <div class="review-export">
+          <button id="copy-review" class="primary-button" type="button">Copy review summary</button>
+          <button id="share-review" class="secondary-button" type="button">Share review summary</button>
+          <p>No review is transmitted automatically. Sharing the summary lets Mathew send it back for inclusion in the project.</p>
+        </div>
+      </section>
+
+      <section id="lesson-view" class="view" aria-labelledby="lesson-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div class="lesson-progress"><span id="lesson-progress-bar"></span></div>
+          <span id="lesson-step-count">1/4</span>
+        </div>
+        <div id="lesson-content"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="active" data-open="home-view"><span>⌂</span>Today</button>
+      <button data-open="translator-view"><span>⇄</span>Translate</button>
+      <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
+      <button data-open="music-view"><span>♫</span>Music</button>
+      <button data-open="lesson-view"><span>◉</span>Practice</button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

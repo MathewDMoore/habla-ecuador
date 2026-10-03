@@ -1,0 +1,448 @@
+[
+  {
+    "id": "puesta-del-sol",
+    "spanish": "puesta del sol",
+    "usEnglish": "sunset",
+    "ukEnglish": "sunset",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "¿A qué hora se pone el sol?",
+    "exampleUs": "What time does the sun set?",
+    "usage": "Natural question about sunset. This wording is not exclusive to Ecuador.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Neutral reference vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "puesta-de-sol",
+    "spanish": "puesta de sol",
+    "usEnglish": "sunset",
+    "ukEnglish": "sunset",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "al ponerse el sol",
+    "exampleUs": "at sunset; as the sun sets",
+    "usage": "A listed variant; the example is a phrase rather than a full sentence.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Neutral reference vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "puesta-solar",
+    "spanish": "puesta solar",
+    "usEnglish": "sunset; setting of the sun",
+    "ukEnglish": "sunset; setting of the sun",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm register and context with additional sources before presenting it as everyday speech.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Potentially formal or less common; confirm in context.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "ocaso",
+    "spanish": "ocaso",
+    "usEnglish": "sunset; dusk",
+    "ukEnglish": "sunset; dusk",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Context can make it sound more literary or formal.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Potentially formal or less common; confirm in context.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "salida-del-sol",
+    "spanish": "salida del sol",
+    "usEnglish": "sunrise",
+    "ukEnglish": "sunrise",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "ver salir el sol",
+    "exampleUs": "to watch the sun rise",
+    "usage": "Straightforward sunrise wording; the example is a useful verb phrase.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Neutral reference vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "salida-de-sol",
+    "spanish": "salida de sol",
+    "usEnglish": "sunrise",
+    "ukEnglish": "sunrise",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a variant of “salida del sol.”",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Neutral reference vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "salida-solar",
+    "spanish": "salida solar",
+    "usEnglish": "sunrise; rising of the sun",
+    "ukEnglish": "sunrise; rising of the sun",
+    "level": "B1",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm register and context with additional sources before presenting it as everyday speech.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Potentially formal or less common; confirm in context.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "orto",
+    "spanish": "orto",
+    "usEnglish": "sunrise; rising of the sun",
+    "ukEnglish": "sunrise; rising of the sun",
+    "level": "B2",
+    "region": "Ecuador reference",
+    "usage": "Listed as a related term. Confirm that it fits the intended register before using it in conversation.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Potentially formal or less common; confirm in context.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "amanecer",
+    "spanish": "amanecer",
+    "usEnglish": "dawn; to become light",
+    "ukEnglish": "dawn; to become light",
+    "level": "A1",
+    "region": "Ecuador reference",
+    "exampleEs": "antes de que amanezca",
+    "exampleUs": "before dawn; before it gets light",
+    "usage": "Can refer to dawn or to daylight beginning, depending on how it is used.",
+    "source": "MITAD — Spanish Dictionary for Ecuador; supplied by the project owner.",
+    "sources": [
+      "mitad_user_material"
+    ],
+    "regionStatus": "Ecuador reference — not exclusive",
+    "register": "Neutral reference vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "The selected source does not establish that this term is exclusive to Ecuador.",
+    "naturalness": "Listed in MITAD material supplied by the project owner; regional naturalness and frequency have not been independently checked.",
+    "comparisons": [],
+    "evidence": "User-supplied dictionary reference; licensing/reuse terms not established."
+  },
+  {
+    "id": "bacan",
+    "spanish": "bacán",
+    "usEnglish": "great; cool",
+    "ukEnglish": "great; cool",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented",
+    "register": "Youthful, informal; positive when describing a person or thing.",
+    "intensity": "Mild; complimentary.",
+    "warning": "ASALE also records a different Bolivian sense referring to a wealthy person. Check country and context; do not assume the meanings match.",
+    "naturalness": "Ecuadorian sense is listed by ASALE; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "¡Qué bacán estuvo el concierto!",
+    "exampleUs": "The concert was so great!",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "ASALE records a separate sense for a wealthy person.",
+        "note": "A potential false friend; it does not mean “cool” in every context."
+      },
+      {
+        "country": "Mexico",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Do not infer that the word is absent from Mexican speech."
+      }
+    ],
+    "sources": [
+      "ael_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "guagua",
+    "spanish": "guagua",
+    "usEnglish": "baby; young child",
+    "ukEnglish": "baby; young child",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented",
+    "register": "Everyday family and familiar speech.",
+    "intensity": "Neutral to affectionate, depending on context.",
+    "warning": "Meaning shifts by region: ASALE records “bus” for northwestern Mexico. A comparison label is not a claim about every speaker.",
+    "naturalness": "Ecuador child sense is listed by AEL/ASALE; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "¿Cómo está tu guagua?",
+    "exampleUs": "How is your little one?",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "Young child; ASALE also records it as a familiar way for an adult to address someone younger.",
+        "note": "The child sense overlaps with Ecuadorian use."
+      },
+      {
+        "country": "Mexico (northwest)",
+        "meaning": "Bus, according to ASALE’s regional label.",
+        "note": "This is a different sense from the Ecuadorian family term."
+      }
+    ],
+    "sources": [
+      "ael_dae",
+      "minedu_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "guambra",
+    "spanish": "guambra",
+    "usEnglish": "kid; teenager",
+    "ukEnglish": "kid; teenager",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented",
+    "register": "Informal; age and familiarity matter.",
+    "intensity": "Low; not inherently insulting.",
+    "warning": "ASALE also records it in southwestern Colombia and a different, more specific rural sense in Peru. Regional familiarity can vary.",
+    "naturalness": "Ecuador use is listed by AEL/ASALE; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "Los guambras salieron juntos del colegio.",
+    "exampleUs": "The kids left school together.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Do not infer absence from the selected dictionaries."
+      },
+      {
+        "country": "Mexico",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Do not infer absence from the selected dictionaries."
+      },
+      {
+        "country": "Peru",
+        "meaning": "ASALE marks a rural sense referring especially to a young woman.",
+        "note": "Not identical to the Ecuadorian child or adolescent sense."
+      }
+    ],
+    "sources": [
+      "ael_dae",
+      "minedu_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "canguil",
+    "spanish": "canguil",
+    "usEnglish": "popcorn",
+    "ukEnglish": "popcorn",
+    "level": "A1",
+    "regionStatus": "Ecuador-documented",
+    "register": "Everyday food vocabulary.",
+    "intensity": "Neutral.",
+    "warning": "ASALE’s entry marks the popcorn sense for Ecuador. The selected source does not establish what speakers in every other country say.",
+    "naturalness": "Ecuador meaning is listed by ASALE; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "Compramos canguil para ver una película.",
+    "exampleUs": "We bought popcorn to watch a movie.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Check a country-specific source before comparing."
+      },
+      {
+        "country": "Mexico",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Check a country-specific source before comparing."
+      }
+    ],
+    "sources": [
+      "ael_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "atatay",
+    "spanish": "¡atatay!",
+    "usEnglish": "ew!; yuck!",
+    "ukEnglish": "ugh!; yuck!",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented",
+    "register": "Informal interjection.",
+    "intensity": "Mild to moderate expression of disgust.",
+    "warning": "Strong regional contrast: ASALE records a Bolivian use for pain, especially from a burn. In Ecuador the cited sense expresses disgust or revulsion.",
+    "naturalness": "Ecuador sense is listed by ASALE and the Ministry dictionary; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "¡Atatay, esta leche ya se dañó!",
+    "exampleUs": "Yuck, this milk has gone bad!",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "Pain, especially from a burn, according to ASALE.",
+        "note": "Different communicative meaning from the Ecuadorian disgust interjection."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "yapa",
+    "spanish": "yapa",
+    "usEnglish": "a little extra; a small free extra",
+    "ukEnglish": "a little extra; a small free extra",
+    "level": "A2",
+    "regionStatus": "Ecuador-documented",
+    "register": "Informal, often in a shop or market exchange.",
+    "intensity": "Neutral; often friendly.",
+    "warning": "ASALE records several regional senses, including “free” in Ecuador and Bolivia. This entry covers the extra item a seller gives with a purchase.",
+    "naturalness": "Ecuador market sense is listed by AEL/ASALE; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "La señora me dio una yapa con la compra.",
+    "exampleUs": "The woman gave me a little extra with my purchase.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "ASALE records an “extra or added amount” sense, along with other senses.",
+        "note": "Related to Ecuadorian use, but the precise sense varies."
+      },
+      {
+        "country": "Mexico",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Do not infer absence from the selected dictionaries."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "naneria",
+    "spanish": "ñañería",
+    "usEnglish": "warm closeness; familiar affection",
+    "ukEnglish": "warm closeness; familiar affection",
+    "level": "B1",
+    "regionStatus": "Ecuador-documented",
+    "register": "Colloquial, familiar.",
+    "intensity": "Warm and affectionate; context-dependent.",
+    "warning": "Related to ñaño/ñaño, but not a universal form of address. Check relationship and context before using it.",
+    "naturalness": "Ecuador use is recorded by ASALE and the Ministry dictionary; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "Entre ellos hay mucha ñañería.",
+    "exampleUs": "There is a lot of warmth and closeness between them.",
+    "comparisons": [
+      {
+        "country": "Bolivia",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "A shared family of words does not establish the same sense or frequency."
+      },
+      {
+        "country": "Mexico",
+        "meaning": "No comparison verified in the sources attached to this entry.",
+        "note": "Do not infer absence from the selected dictionaries."
+      }
+    ],
+    "sources": [
+      "minedu_dae",
+      "asale_damer"
+    ],
+    "evidence": "Country-tagged dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "yapar",
+    "spanish": "yapar",
+    "usEnglish": "to give a little extra with a purchase",
+    "ukEnglish": "to give a little extra with a purchase",
+    "level": "B1",
+    "regionStatus": "Ecuador-documented",
+    "register": "Colloquial, associated with buying and selling.",
+    "intensity": "Neutral; often friendly.",
+    "warning": "This entry follows the Ecuadorian market sense; avoid treating it as a universal meaning across Spanish-speaking countries.",
+    "naturalness": "Ecuador use is listed by the Ministry dictionary; original practice sentence still needs Ecuadorian-speaker review. CORPHA check not yet logged.",
+    "exampleEs": "En la tienda me yaparon una mandarina.",
+    "exampleUs": "At the shop they threw in a mandarin for me.",
+    "comparisons": [],
+    "sources": [
+      "minedu_dae"
+    ],
+    "evidence": "Ecuador dictionary evidence; corpus verification pending."
+  },
+  {
+    "id": "de-ley",
+    "spanish": "de ley",
+    "usEnglish": "for sure; definitely",
+    "ukEnglish": "for sure; definitely",
+    "level": "B1",
+    "regionStatus": "Ecuador reference — verify before labeling",
+    "register": "Colloquial in Ecuadorian usage according to the earlier project source note.",
+    "intensity": "Neutral.",
+    "warning": "This phrase was suggested in the earlier source discussion but has not yet been checked against a specific dictionary entry or corpus context. Use as a research lead, not as a confirmed app recommendation.",
+    "naturalness": "Verification pending: dictionary entry and CORPHA query still needed.",
+    "exampleEs": "",
+    "exampleUs": "",
+    "comparisons": [],
+    "sources": [
+      "ael_dae",
+      "corpha"
+    ],
+    "evidence": "Unverified lead; not presented as confirmed."
+  }
+]

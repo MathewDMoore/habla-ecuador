@@ -1,0 +1,58 @@
+[
+  {
+    "entryId": "atatay",
+    "ecuador": "Disgust or revulsion.",
+    "bolivia": "Pain, especially from a burn, in the ASALE entry.",
+    "relationship": "meaning-contrast",
+    "learnerAlert": "High-value contrast: the same-looking interjection can cue a different reaction.",
+    "sourceUrl": "https://www.asale.org/damer/%C2%A1atatay%21"
+  },
+  {
+    "entryId": "guagua",
+    "ecuador": "Baby, young child, and especially one's child while young are documented senses.",
+    "bolivia": "Young child is shared; ASALE also documents Bolivia-specific senses and expressions.",
+    "relationship": "shared-core-different-extensions",
+    "learnerAlert": "Safe shared core meaning, but do not assume every extended sense transfers.",
+    "sourceUrl": "https://www.asale.org/damer/guagua"
+  },
+  {
+    "entryId": "pana",
+    "ecuador": "Close friend; familiar address among close friends.",
+    "bolivia": "Close friend is also documented by ASALE.",
+    "relationship": "shared",
+    "learnerAlert": "Useful in both comparison columns; not an Ecuador-exclusive badge candidate.",
+    "sourceUrl": "https://www.asale.org/damer/pana"
+  },
+  {
+    "entryId": "yunta-friend",
+    "ecuador": "Close friend is documented, but ASALE marks the Ecuadorian sense as infrequent.",
+    "bolivia": "Close friend and a closely bonded pair are documented senses.",
+    "relationship": "shared-with-frequency-range-difference",
+    "learnerAlert": "Teach as a friendship term with a frequency note rather than as uniquely Ecuadorian.",
+    "sourceUrl": "https://www.asale.org/damer/yunta"
+  },
+  {
+    "entryId": "yapa",
+    "ecuador": "A small extra gift with a purchase; also a humorous sense for the last child in a large family.",
+    "bolivia": "The purchase-extra sense is shared; ASALE also records additional Bolivia uses and expressions.",
+    "relationship": "shared-core-different-extensions",
+    "learnerAlert": "Excellent shared-Andean comparison with country-specific extensions.",
+    "sourceUrl": "https://www.asale.org/damer/yapa"
+  },
+  {
+    "entryId": "yapar",
+    "ecuador": "To give a yapa or small extra gift.",
+    "bolivia": "Related add/increase senses are documented, especially in eastern Bolivia.",
+    "relationship": "related-senses",
+    "learnerAlert": "Show the shared word family while keeping the documented verb senses separate.",
+    "sourceUrl": "https://www.asale.org/damer/yapar"
+  },
+  {
+    "entryId": "acolitar",
+    "ecuador": "To support someone in an activity or idea; Ecuador's DAE also documents a complicity sense.",
+    "bolivia": "No Bolivia sense is established by the attached ASALE acolitar entry.",
+    "relationship": "comparison-pending",
+    "learnerAlert": "Do not display 'not used in Bolivia'; display 'Bolivia evidence pending.'",
+    "sourceUrl": "https://www.asale.org/damer/acolitar"
+  }
+]
