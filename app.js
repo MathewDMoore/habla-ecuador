@@ -615,13 +615,14 @@ async function requestGeneralTranslation(text, way=direction) {
     return translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated) : translated;
   }
   if (text.length > 8000) throw new Error("research text exceeds free prototype limit");
-  const chunks = splitLongTranslationText(text);
+  const protectedDocument = protectResearchTokens(text);
+  const chunks = splitLongTranslationText(protectedDocument.text);
   if (chunks.filter(chunk => !chunk.separator).length > 20) throw new Error("research text requires too many translation segments");
   const translated = [];
   for (const chunk of chunks) {
     translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way));
   }
-  const combined = translated.join("");
+  const combined = protectedDocument.restore(translated.join(""));
   return way === "ec-en" ? refineAcademicEnglish(combined) : combined;
 }
 
