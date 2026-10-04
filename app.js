@@ -28,11 +28,12 @@ const phrases = [
   { en:"They gave him a nickname.", es:"Le pusieron un apodo.", natural:"Le pusieron una chapa.", note:"Chapa can mean a nickname in Ecuador, often humorous. It can feel teasing or unkind depending on the relationship.", register:"Ecuadorian · informal · teasing possible", keys:["le pusieron una chapa","una chapa","chapa"] },
   { en:"They fired him.", us:"They fired him.", uk:"They sacked him.", es:"Lo despidieron.", natural:"Lo cancelaron del trabajo.", note:"Ecuador also uses cancelar for dismissing an employee. Lo despidieron is safest across countries.", register:"Ecuadorian sense · employment", keys:["lo cancelaron del trabajo","lo cancelaron"] },
   { en:"Where is your workplace?", us:"Where is your workplace? / Where do you work?", uk:"Where is your workplace? / Where do you work?", es:"¿Dónde está tu trabajo?", natural:"¿Dónde queda tu camello?", spanish:"¿Dónde queda tu camello?", standardEs:"¿Dónde está tu trabajo?", literalUs:"Where are you, camel?", literalUk:"Where are you, camel?", note:"The typed form ¿Dónde estás tú, camello? literally addresses someone as ‘camel.’ If you mean the Ecuadorian slang for a job or workplace, use ¿Dónde queda tu camello? Possessive tu means ‘your’ and has no accent.", register:"Informal · context-sensitive", warning:"The verb, accent, and punctuation change the meaning.", culturalEntry:true, keys:["donde queda tu camello","donde esta tu camello","donde estas tu camello"] },
+  { en:"They're going to my workplace.", us:"They're going to my workplace.", uk:"They're going to my workplace.", es:"Van a mi trabajo.", natural:"Van a mi camello.", standardEs:"Van a mi trabajo.", literalUs:"They go to my camel.", literalUk:"They go to my camel.", note:"Here camello is Ecuadorian slang for work, a job, or a workplace—not the animal. In conversation, Van a… can mean they are going now or soon; in a habitual context it can mean they go.", register:"Ecuadorian slang · informal · context-sensitive", warning:"The literal animal meaning remains possible only when the surrounding context is actually about a camel.", culturalEntry:true, keys:["van a mi camello"] },
   { en:"I go back to work on the 21st. Can we do something on the 20th?", es:"Regreso a trabajar el 21. ¿Podemos hacer algo el 20?", natural:"Regreso a trabajar el 21. ¿Te gustaría que hiciéramos algo el 20?", note:"This sounds natural, warm, and neutral in Ecuador. ¿Te gustaría que hiciéramos…? makes the invitation gentler.", register:"Warm invitation · neutral Ecuador", keys:["vuelvo al trabajo el 21 podemos hacer algo el 20","regreso a trabajar el 21"] },
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.21.2 · build 49";
+const APP_VERSION = "0.21.3 · build 50";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -48,7 +49,7 @@ const culturalExpressions = [
   {category:"slang", spanish:"¡Qué bacán!", us:"That's cool! / That's great!", uk:"That's brilliant! / That's great!", note:"Bacán is widely understood, but it is especially comfortable and natural in everyday Ecuadorian speech.", naturalness:"Sounds natural in Ecuador", register:"Informal · enthusiastic"},
   {category:"slang", spanish:"Chuta, qué pena.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", note:"Chuta can show surprise, frustration, sympathy, or disappointment. The speaker's tone supplies much of the meaning.", naturalness:"Ecuador meanings attested by ASALE", verification:"Source-attested", register:"Informal · mild exclamation", intensity:"Mild", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/%C2%A1chuta%21"}},
   {category:"slang", spanish:"acolitar", us:"to help / support / back someone up", uk:"to help / support / back someone up", exampleEs:"¿Me acolitas con esto?", exampleUs:"Can you help me with this?", exampleUk:"Can you give me a hand with this?", note:"In Ecuador, acolitar can mean supporting someone, helping with an activity, or backing up an idea.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Informal · friendly · not vulgar", intensity:"Mild", comparisons:["Colombia: ASALE records the same support or solidarity sense."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/acolitar"}},
-  {category:"slang", spanish:"camello", literalUs:"camel", literalUk:"camel", standardEs:"trabajo / empleo / lugar de trabajo", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", verification:"Source-attested", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
+  {category:"slang", spanish:"camello", embeddedReplacements:{camello:"trabajo"}, literalUs:"camel", literalUk:"camel", standardEs:"trabajo / empleo / lugar de trabajo", us:"work / job / workplace", uk:"work / job / workplace", exampleEs:"Ya me voy al camello.", exampleUs:"I'm heading to work now.", exampleUk:"I'm off to work now.", note:"The ordinary literal meaning is camel. In Ecuadorian slang, camello can instead refer to work, a job, or the place where someone works. The surrounding sentence determines the meaning.", naturalness:"Ecuador slang meaning attested by ASALE", verification:"Source-attested", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not translate camello as work unless the context clearly concerns employment or somebody's livelihood.", comparisons:["Mexico: the work or job sense is also recorded.","Bolivia: ASALE records a shoemaking tool sense instead, so context matters."], literalSource:{name:"RAE · Diccionario de la lengua española",url:"https://dle.rae.es/camello"}, source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/camello"}},
   {category:"slang", spanish:"chiro / chira", us:"broke / out of money", uk:"broke / out of money", exampleEs:"Estoy chiro hasta fin de mes.", exampleUs:"I'm broke until the end of the month.", exampleUk:"I'm broke until the end of the month.", note:"In Ecuador, chiro or chira describes someone who has no money. It can be matter-of-fact or lightly self-deprecating.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Popular · informal · not vulgar", intensity:"Mild", warning:"Do not assume the same meaning across countries.", comparisons:["Mexico: ASALE records chiro as pretty, cute, or very good—not broke."], source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/chiro"}},
   {category:"slang", spanish:"aniñado / aniñada", us:"posh / upper-class / bourgeois-styled", uk:"posh / upper-class / bourgeois-styled", exampleEs:"Ese lugar es medio aniñado.", exampleUs:"That place is kind of upscale.", exampleUk:"That place is a bit posh.", note:"In Ecuador, aniñado can describe a person associated with the upper class or something that looks elegant or bourgeois. Tone can make it neutral, teasing, or critical.", naturalness:"Ecuador meaning attested by ASALE", verification:"Source-attested", register:"Youth usage · informal · context-sensitive", intensity:"Mild to pointed", warning:"Use carefully about a person; it can sound socially judgmental.", source:{name:"ASALE · Diccionario de americanismos",url:"https://www.asale.org/damer/ani%C3%B1ado"}},
   {category:"culture", spanish:"¡Achachay, qué frío!", us:"It's so cold!", uk:"It's absolutely freezing!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", naturalness:"Natural in Ecuador; especially Andean", register:"Expressive · regional"},
@@ -345,6 +346,25 @@ function matchPhrase(value, way=direction) {
   if (way !== "ec-en") return null;
   const culturalMatch = culturalExpressions.find(entry => matchesPhraseCandidate(clean,entry.spanish));
   return culturalMatch ? {...culturalMatch, culturalEntry:true} : null;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^{}$()|[\]\\]/g, "\\function openView(id) {");
+}
+
+function prepareEmbeddedEcuadorianSlang(text, way=direction) {
+  if (way !== "ec-en" || translationPurpose === "academic" || sourceLanguage !== "es-EC") return {text, entries:[]};
+  let rewritten = text;
+  const matchedEntries = [];
+  culturalExpressions.forEach(entry => {
+    Object.entries(entry.embeddedReplacements || {}).forEach(([term,replacement]) => {
+      const pattern = new RegExp(`\\b${escapeRegExp(term)}\\b`, "gi");
+      if (!pattern.test(rewritten)) return;
+      rewritten = rewritten.replace(pattern,replacement);
+      matchedEntries.push(entry);
+    });
+  });
+  return {text:rewritten, entries:[...new Set(matchedEntries)]};
 }
 
 function openView(id) {
@@ -895,6 +915,7 @@ async function renderTranslation() {
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
   const phrase = translationPurpose === "academic" || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
+    const embeddedSlang = prepareEmbeddedEcuadorianSlang(sourceText,direction);
     result.hidden = false;
     missing.hidden = true;
     $(".result-label").textContent = translationPurpose === "academic"
@@ -909,9 +930,9 @@ async function renderTranslation() {
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
       : `<strong>General translation</strong><span>Checking the free translation service. Regional naturalness has not yet been verified.</span>`;
     try {
-      const translated = await requestGeneralTranslation(sourceText);
+      const translated = await requestGeneralTranslation(embeddedSlang.text);
       if (requestId !== translationRequest) return;
-      setEditableTranslation(sourceText, translated);
+      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" && findPragmaticsReference(sourceText) !== null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
@@ -926,6 +947,14 @@ async function renderTranslation() {
           ? `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
+      const embeddedEntry = embeddedSlang.entries[0];
+      if (embeddedEntry && translationPurpose !== "academic") {
+        const literalMeaning = englishVariant === "uk" ? embeddedEntry.literalUk : embeddedEntry.literalUs;
+        const regionalMeaning = englishVariant === "uk" ? embeddedEntry.uk : embeddedEntry.us;
+        $(".result-label").textContent = `${languageLabel(targetLanguage)} · Ecuadorian slang-aware translation`;
+        $("#literal-result").textContent = `Recognized Ecuadorian slang: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
+        $("#usage-note").innerHTML = `<strong>Ecuadorian slang recognized · ${escapeHtml(embeddedEntry.register)}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
+      }
     } catch {
       if (requestId !== translationRequest) return;
       activeTranslationEdit = null;
