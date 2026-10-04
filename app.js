@@ -31,7 +31,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.21.1 · build 48";
+const APP_VERSION = "0.21.2 · build 49";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -319,22 +319,30 @@ function setSpeechRate(value) {
   if (output) output.textContent = speechRateLabel(voiceRate);
 }
 
+function containsWholePhrase(text, phrase) {
+  return ` ${text} `.includes(` ${phrase} `);
+}
+
+function matchesPhraseCandidate(clean, candidate) {
+  const normalized = normalize(candidate);
+  if (!normalized) return false;
+  if (normalized === clean) return true;
+  const cleanWords = clean.split(" ");
+  const candidateWords = normalized.split(" ");
+  if (Math.min(cleanWords.length,candidateWords.length) < 2) return false;
+  return containsWholePhrase(clean,normalized) || containsWholePhrase(normalized,clean);
+}
+
 function matchPhrase(value, way=direction) {
   const clean = normalize(value);
   if (!clean) return null;
   const phraseMatch = phrases.find(phrase => {
     const candidates = way === "en-ec" ? [phrase.en, phrase.us, phrase.uk] : [phrase.es, phrase.natural, ...(phrase.keys || [])];
-    return candidates.filter(Boolean).some(candidate => {
-      const normalized = normalize(candidate);
-      return normalized === clean || (clean.length > 7 && (normalized.includes(clean) || clean.includes(normalized)));
-    });
+    return candidates.filter(Boolean).some(candidate => matchesPhraseCandidate(clean,candidate));
   });
   if (phraseMatch) return phraseMatch;
   if (way !== "ec-en") return null;
-  const culturalMatch = culturalExpressions.find(entry => {
-    const spanish = normalize(entry.spanish);
-    return spanish === clean || (clean.length >= 4 && spanish.split(" ").includes(clean)) || (clean.length >= 6 && spanish.includes(clean));
-  });
+  const culturalMatch = culturalExpressions.find(entry => matchesPhraseCandidate(clean,entry.spanish));
   return culturalMatch ? {...culturalMatch, culturalEntry:true} : null;
 }
 
@@ -1625,7 +1633,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=48").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=49").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
