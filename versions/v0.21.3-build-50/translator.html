@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="Standalone English and Ecuadorian Spanish translator with speech.">
+  <title>Habla Ecuador Translator</title>
+  <link rel="manifest" href="translator.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="app-icon.svg">
+  <link rel="stylesheet" href="styles.css?v=49">
+  <script src="research-reference.js?v=49" defer></script>
+  <script src="app.js?v=50r1" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button id="home-button" class="brand" aria-label="Habla Ecuador home">
+        <span class="brand-mark">H</span>
+        <span><small>Habla</small>Ecuador</span>
+      </button>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.3 · build 50</span></div>
+    </header>
+
+    <main>
+      <section id="home-view" class="view active" aria-labelledby="home-title">
+        <p class="eyebrow">Today · 8–10 minutes</p>
+        <h1 id="home-title">Speak a little.<br><span>Connect a lot.</span></h1>
+        <p class="intro">Translate what you need, hear natural Ecuadorian phrasing, and practice speaking it aloud.</p>
+
+        <button class="feature-card lesson-card" data-open="lesson-view">
+          <span class="card-kicker">A1 speaking lesson</span>
+          <strong>Meet before sunset</strong>
+          <span>Listen → speak → choose → use it</span>
+          <i aria-hidden="true">🌅</i>
+        </button>
+
+        <button class="feature-card translator-card" data-open="translator-view">
+          <span class="card-kicker">Standalone translator</span>
+          <strong>Say it naturally</strong>
+          <span>English ↔ Ecuadorian Spanish</span>
+          <i aria-hidden="true">🎙️</i>
+        </button>
+
+        <div class="path-grid" aria-label="Learning paths">
+          <article><span>💬</span><div><h2>Real conversation</h2><p>Warm, useful phrases for actual people.</p></div></article>
+          <article><span>👂</span><div><h2>Listening & rhythm</h2><p>Slow and natural playback.</p></div></article>
+          <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
+        </div>
+        <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
+      </section>
+
+      <section id="translator-view" class="view" aria-labelledby="translator-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Ecuador translator</p><h1 id="translator-title">Say what you mean.</h1></div>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="Translator mode">
+          <button class="mode active" data-mode="translate" role="tab" aria-selected="true">Translate</button>
+          <button class="mode" data-mode="conversation" role="tab" aria-selected="false">Conversation</button>
+        </div>
+
+        <div id="translate-panel">
+          <div class="direction-row language-picker-row">
+            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option></select></label>
+            <button id="swap-button" aria-label="Swap languages">⇄</button>
+            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
+          </div>
+          <p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p>
+
+          <section class="translation-purpose" aria-labelledby="translation-purpose-title">
+            <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
+            <div class="segmented purpose-switch" role="group" aria-label="Translation purpose">
+              <button class="active" data-purpose="everyday" aria-pressed="true">Everyday</button>
+              <button data-purpose="academic" aria-pressed="false">Research</button>
+            </div>
+          </section>
+          <p id="research-mode-note" class="research-mode-note" hidden>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p>
+
+          <div id="research-reference-tools" class="research-mode-note" hidden>
+            <button id="load-research-reference" type="button">Try the reference abstract</button>
+            <span>Escalante (2017) · northern Mexico · editorial English</span>
+          </div>
+
+          <label class="input-card">
+            <span class="sr-only">Text to translate</span>
+            <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
+          </label>
+          <section id="translation-result" class="result-card" aria-live="polite">
+            <p class="result-label">Natural Ecuadorian Spanish</p>
+            <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
+            <p id="literal-result" class="literal-text"></p>
+          <div class="speed-control result-speed-control">
+            <div class="speed-control-heading">
+              <label for="voice-rate-slider">Playback speed</label>
+              <output id="voice-rate-value" for="voice-rate-slider">Natural · 0.95×</output>
+            </div>
+            <div class="speed-slider-row">
+              <span>Slower</span>
+              <input id="voice-rate-slider" type="range" min="0.55" max="1.20" step="0.05" value="0.95" aria-label="Translation playback speed">
+              <span>Faster</span>
+            </div>
+          </div>
+            <div class="result-actions">
+              <button id="hear-result">🔊 Hear it</button>
+              <button id="copy-result">Copy</button>
+              <button id="restore-translation" hidden>Restore generated</button>
+            </div>
+            <p id="translation-edit-status" class="translation-edit-status">Tap the translation above to edit it. Changes stay on this device.</p>
+            <div id="usage-note" class="usage-note"></div>
+          </section>
+
+          <section id="no-result" class="no-result" hidden>
+            <p>I heard you, but this sentence is not in the local Ecuadorian phrase library yet.</p>
+            <small>This free prototype will not invent a translation. Try one of the suggestions below.</small>
+          </section>
+
+          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. The matched reference abstract stays local. Other text—including new research passages—is sent to the free MyMemory service for a labeled, editable draft. Research mode protects structure and reference strings where possible; confidential or unpublished material should not be pasted into this web prototype.</p>
+
+          <div class="suggestions">
+            <p>Try a phrase</p>
+            <div id="suggestion-list"></div>
+          </div>
+        </div>
+
+        <div id="conversation-panel" hidden>
+          <p class="conversation-help">Choose or type each speaker’s name. Tap your microphone once, speak, then tap it again to finish. Names stay only on this device.</p>
+          <section class="conversation-names" aria-labelledby="conversation-names-title">
+            <div class="conversation-names-heading">
+              <div><p class="voice-settings-kicker">Conversation setup</p><h2 id="conversation-names-title">Who is speaking?</h2></div>
+              <span aria-hidden="true">👥</span>
+            </div>
+            <div class="speaker-name-fields">
+              <div class="speaker-name-field">
+                <label><span>English speaker · quick choice</span>
+                  <select data-speaker-preset="english" aria-label="Choose English speaker name">
+                  <option value="">Custom name…</option>
+                  <optgroup label="Male names">
+                    <option value="Mathew">Mathew</option>
+                    <option value="Alejandro">Alejandro</option>
+                    <option value="Carlos">Carlos</option>
+                    <option value="Daniel">Daniel</option>
+                    <option value="Diego">Diego</option>
+                    <option value="José">José</option>
+                    <option value="Luis">Luis</option>
+                    <option value="Mateo">Mateo</option>
+                    <option value="Miguel">Miguel</option>
+                    <option value="Nicolás">Nicolás</option>
+                    <option value="Sebastián">Sebastián</option>
+                  </optgroup>
+                  <optgroup label="Female names">
+                    <option value="Maria">Maria</option>
+                    <option value="Ana">Ana</option>
+                    <option value="Camila">Camila</option>
+                    <option value="Daniela">Daniela</option>
+                    <option value="Elena">Elena</option>
+                    <option value="Isabella">Isabella</option>
+                    <option value="Lucía">Lucía</option>
+                    <option value="Sofía">Sofía</option>
+                    <option value="Valentina">Valentina</option>
+                    <option value="Victoria">Victoria</option>
+                  </optgroup>
+                  <optgroup label="Roles and other">
+                    <option value="Alex">Alex</option>
+                    <option value="Me">Me</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Family">Family</option>
+                    <option value="Coworker">Coworker</option>
+                    <option value="Tutor">Tutor</option>
+                    <option value="Learner">Learner</option>
+                    <option value="Speaker 1">Speaker 1</option>
+                    <option value="Speaker 2">Speaker 2</option>
+                  </optgroup>
+                  </select>
+                </label>
+                <label><span>Chosen or custom name</span><input id="english-speaker-name" data-speaker-name="english" maxlength="24" autocomplete="off" value="Mathew" placeholder="Type any name"></label>
+              </div>
+              <div class="speaker-name-field">
+                <label><span>Spanish speaker · quick choice</span>
+                  <select data-speaker-preset="spanish" aria-label="Choose Spanish speaker name">
+                  <option value="">Custom name…</option>
+                  <optgroup label="Male names">
+                    <option value="Mathew">Mathew</option>
+                    <option value="Alejandro">Alejandro</option>
+                    <option value="Carlos">Carlos</option>
+                    <option value="Daniel">Daniel</option>
+                    <option value="Diego">Diego</option>
+                    <option value="José">José</option>
+                    <option value="Luis">Luis</option>
+                    <option value="Mateo">Mateo</option>
+                    <option value="Miguel">Miguel</option>
+                    <option value="Nicolás">Nicolás</option>
+                    <option value="Sebastián">Sebastián</option>
+                  </optgroup>
+                  <optgroup label="Female names">
+                    <option value="Maria">Maria</option>
+                    <option value="Ana">Ana</option>
+                    <option value="Camila">Camila</option>
+                    <option value="Daniela">Daniela</option>
+                    <option value="Elena">Elena</option>
+                    <option value="Isabella">Isabella</option>
+                    <option value="Lucía">Lucía</option>
+                    <option value="Sofía">Sofía</option>
+                    <option value="Valentina">Valentina</option>
+                    <option value="Victoria">Victoria</option>
+                  </optgroup>
+                  <optgroup label="Roles and other">
+                    <option value="Alex">Alex</option>
+                    <option value="Me">Me</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Family">Family</option>
+                    <option value="Coworker">Coworker</option>
+                    <option value="Tutor">Tutor</option>
+                    <option value="Learner">Learner</option>
+                    <option value="Speaker 1">Speaker 1</option>
+                    <option value="Speaker 2">Speaker 2</option>
+                  </optgroup>
+                  </select>
+                </label>
+                <label><span>Chosen or custom name</span><input id="spanish-speaker-name" data-speaker-name="spanish" maxlength="24" autocomplete="off" value="Maria" placeholder="Type any name"></label>
+              </div>
+            </div>
+            <p>Choose from the visible male, female, or role lists—or type absolutely any name. Names never change their assigned language.</p>
+          </section>
+          <div class="speaker-grid">
+            <button class="speaker english-speaker push-to-talk" data-speaker-role="english" type="button" aria-label="Tap to record English; tap again to finish" data-idle-hint="Tap · speak English" data-active-hint="Listening… tap to finish" data-finishing-hint="Finishing…"><span>🎙️</span><strong data-speaker-label="english">Mathew</strong><small>Tap · speak English</small></button>
+            <button class="speaker spanish-speaker push-to-talk" data-speaker-role="spanish" type="button" aria-label="Toca para grabar español; toca otra vez para terminar" data-idle-hint="Toca · habla español" data-active-hint="Escuchando… toca para terminar" data-finishing-hint="Terminando…"><span>🎙️</span><strong data-speaker-label="spanish">Maria</strong><small>Toca · habla español</small></button>
+          </div>
+          <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
+          <div id="conversation-turns" class="turns"></div>
+          <button id="clear-conversation" class="text-button">Clear this conversation</button>
+        </div>
+      </section>
+
+      <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Ecuadorian dictionary</h1></div>
+        </div>
+        <p class="dictionary-intro">Every entry shows what supports it, what has been checked, and what still needs Ecuadorian review.</p>
+        <div id="evidence-counts" class="evidence-counts" aria-live="polite"></div>
+        <label class="dictionary-search"><span class="sr-only">Search evidence-backed entries</span><input id="dictionary-search" type="search" placeholder="Search Spanish, English, or a region…"></label>
+        <div class="evidence-filters" role="group" aria-label="Verification filter">
+          <button class="active" data-evidence-filter="all">All</button>
+          <button data-evidence-filter="learner-ready">Learner-ready</button>
+          <button data-evidence-filter="dictionary-attested">Dictionary-attested</button>
+          <button data-evidence-filter="research-lead">Needs review</button>
+        </div>
+        <button class="review-callout" data-open="review-view">
+          <span><strong>Review Ecuadorian usage</strong><small>No login · saved only on this device</small></span>
+          <b aria-hidden="true">→</b>
+        </button>
+        <section class="expression-library" aria-labelledby="expression-title">
+          <p class="eyebrow">Speak beyond the dictionary</p>
+          <h2 id="expression-title">Ecuadorian expressions & slang</h2>
+          <p>Source-backed slang, idioms, metaphors, cultural language, and phrases that matter in real conversations.</p>
+          <div class="expression-filters" role="group" aria-label="Expression category">
+            <button class="active" data-expression-filter="all">All</button>
+            <button data-expression-filter="idiom">Idioms & metaphors</button>
+            <button data-expression-filter="slang">Slang</button>
+            <button data-expression-filter="culture">Culture</button>
+            <button data-expression-filter="personal">Our phrases</button>
+          </div>
+          <section class="slang-index" aria-labelledby="slang-index-title">
+            <h3 id="slang-index-title">Slang words & sayings</h3>
+            <p>Quick meanings and the context that determines how each expression lands.</p>
+            <ul id="slang-index-list"></ul>
+          </section>
+          <div id="expression-results" class="expression-results"></div>
+        </section>
+        <p id="dictionary-status" class="status">Loading the project’s source files…</p>
+        <div id="dictionary-results" class="dictionary-results"></div>
+      </section>
+
+      <section id="review-view" class="view" aria-labelledby="review-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="dictionary-view" aria-label="Back to dictionary">←</button>
+          <div><p class="eyebrow">Ecuadorian reviewer mode</p><h1 id="review-title">Does this sound natural?</h1></div>
+        </div>
+        <p class="review-intro">An Ecuadorian speaker can review each entry without an account. Reviews stay on this device until they are copied or shared.</p>
+        <label class="reviewer-name">Reviewer name <span>(optional)</span><input id="reviewer-name" autocomplete="name" placeholder="Name or initials"></label>
+        <div id="review-progress" class="review-progress" aria-live="polite"></div>
+        <div id="review-card"></div>
+        <div class="review-navigation">
+          <button id="review-prev" type="button">← Previous</button>
+          <button id="review-next" type="button">Next →</button>
+        </div>
+        <div class="review-export">
+          <button id="copy-review" class="primary-button" type="button">Copy review summary</button>
+          <button id="share-review" class="secondary-button" type="button">Share review summary</button>
+          <p>No review is transmitted automatically. Sharing the summary lets Mathew send it back for inclusion in the project.</p>
+        </div>
+      </section>
+
+      <section id="lesson-view" class="view" aria-labelledby="lesson-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div class="lesson-progress"><span id="lesson-progress-bar"></span></div>
+          <span id="lesson-step-count">1/4</span>
+        </div>
+        <div id="lesson-content"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="active" data-open="home-view"><span>⌂</span>Today</button>
+      <button data-open="translator-view"><span>⇄</span>Translate</button>
+      <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
+      <button data-open="lesson-view"><span>◉</span>Practice</button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
+
