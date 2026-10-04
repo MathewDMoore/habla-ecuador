@@ -2,6 +2,7 @@ const phrases = [
   { en:"How are you?", us:"How are you? / How's it going?", uk:"How are you? / You alright?", es:"¿Cómo estás?", natural:"¿Cómo estás? / ¿Qué tal?", note:"Both sound natural in Ecuador. ¿Qué tal? is relaxed and conversational.", register:"Friendly · everyday", keys:["como estas","que tal"] },
   { en:"Maybe another time.", es:"Tal vez en otra ocasión.", natural:"Quizás otro día.", note:"Quizás otro día is the warmer everyday option when declining without sounding final.", register:"Friendly · neutral Ecuador", keys:["tal vez otra vez","talvez un otra vez","quizas otro dia"] },
   { en:"What happened?", us:"What happened? / What's going on?", uk:"What happened? / What's going on?", es:"¿Qué pasó?", natural:"¿Qué pasó? / ¿Qué fue?", note:"¿Qué pasó? works everywhere. ¿Qué fue? is much more informal and depends on the relationship.", register:"Everyday · informal alternative", keys:["que paso","que fue"] },
+  { en:"What strength! / You’re so strong!", us:"What strength! / You’re so strong!", uk:"What strength! / You’re so strong!", es:"¡Qué fuerza!", natural:"¡Qué fuerzas!", literalUs:"What forces? / What strengths?", literalUk:"What forces? / What strengths?", note:"As an exclamation admiring a person, natural English focuses on their strength: What strength! or You’re so strong! In a technical discussion, fuerzas means forces; when discussing several abilities or advantages, strengths may fit. Context and punctuation determine the intended sense.", register:"Context-sensitive · exclamation or literal plural", keys:["que fuerzas"] },
   { en:"I don't understand.", es:"No entiendo.", natural:"Disculpa, no entendí bien.", note:"The natural version softens the interruption: Sorry, I didn't quite understand.", register:"Polite · everyday", keys:["no entiendo","no entendi bien"] },
   { en:"Can you say it more slowly?", us:"Could you say that more slowly, please?", uk:"Could you say that again more slowly, please?", es:"¿Puedes decirlo más despacio?", natural:"¿Me puedes repetir más despacio, por favor?", note:"This asks the person to repeat themselves and sounds courteous in a real conversation.", register:"Polite · everyday", keys:["puedes decirlo mas despacio","repetir mas despacio"] },
   { en:"Nice to meet you.", es:"Mucho gusto.", natural:"Mucho gusto, qué gusto conocerte.", note:"Mucho gusto is the safest everyday choice. The longer version adds warmth.", register:"Warm · neutral Ecuador", keys:["mucho gusto","gusto conocerte"] },
@@ -955,8 +956,8 @@ async function renderTranslation() {
   const literal = englishVariant === "uk" ? phrase.literalUk : phrase.literalUs;
   $("#literal-result").textContent = isPreservedCultural
     ? [`Literal meaning: ${literal}`, phrase.standardEs ? `Standard Spanish: ${phrase.standardEs}` : ""].filter(Boolean).join(" · ")
-    : isCultural && literal
-    ? `Literal meaning: ${literal}`
+    : literal
+    ? `Literal/context alternatives: ${literal}`
     : direction === "en-ec" && phrase.es !== phrase.natural
       ? `Direct version: ${phrase.es}`
       : direction === "ec-en" && phrase.en
@@ -1633,7 +1634,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=49").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=49r1").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
