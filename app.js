@@ -9,6 +9,7 @@ const phrases = [
   { en:"Do you want to go fishing with me?", us:"Would you like to go fishing with me?", uk:"Would you like to come fishing with me?", es:"¿Quieres ir a pescar conmigo?", natural:"¿Te gustaría ir a pescar conmigo?", note:"¿Te gustaría…? sounds inviting and gives the other person less pressure.", register:"Warm invitation · neutral", keys:["quieres ir a pescar","gustaria ir a pescar"] },
   { en:"I want to go with you.", es:"Quiero ir contigo.", natural:"Me gustaría ir contigo.", note:"The direct version is correct. Me gustaría… can sound gentler when making a new plan.", register:"Friendly · neutral", keys:["quiero ir contigo","gustaria ir contigo"] },
   { en:"I'm tired.", es:"Estoy cansado.", natural:"Estoy cansado, mejor seguimos mañana.", note:"Use cansado for a man and cansada for a woman. The longer version closes the conversation kindly.", register:"Everyday · neutral", keys:["estoy cansado","estoy cansada"] },
+  { en:"After eating, I'm walking around the block.", us:"After eating, I'm walking around the block.", uk:"After eating, I'm walking around the block.", es:"Después de comer, estoy caminando alrededor de la cuadra.", natural:"Después de comer, estoy caminando alrededor de la cuadra.", note:"Alrededor de la cuadra means around the block. Aterrorizando means terrifying and is a speech-recognition error in this walking context.", register:"Everyday activity · speech-recognition safeguard", keys:["despues de comer estoy caminando alrededor de la cuadra"] },
   { en:"I miss you.", es:"Te extraño.", natural:"Te he extrañado.", note:"Te extraño is direct. Te he extrañado can feel warmer: I've missed you.", register:"Personal · warm", keys:["te extrano","te he extranado"] },
   { en:"Do you want to get coffee?", us:"Do you want to get coffee?", uk:"Would you like to go for a coffee?", es:"¿Quieres ir a tomar un café?", natural:"¿Te gustaría ir a tomar un cafecito?", note:"Un cafecito adds warmth; it does not necessarily mean the coffee must be small.", register:"Warm invitation · everyday", keys:["quieres ir a tomar un cafe","tomar un cafecito"] },
   { en:"Definitely.", us:"Definitely. / For sure.", uk:"Definitely. / Absolutely.", es:"Definitivamente.", natural:"De ley.", note:"In Ecuador, de ley informally means definitely or of course. It may sound unfamiliar elsewhere.", register:"Distinctly Ecuadorian · informal", keys:["de ley"] },
@@ -33,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.21.3 · build 50";
+const APP_VERSION = "0.21.4 · build 51";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -534,6 +535,17 @@ function recognitionErrorMessage(error) {
   return "Speech recognition stopped unexpectedly. Please tap the microphone and try again.";
 }
 
+function correctSpeechRecognitionTranscript(text, lang="") {
+  if (!normalizedLocale(lang).startsWith("es")) return {text, corrected:false, reason:""};
+  const walkingContext = /\bcaminando\s+aterrorizando\s+la\s+cuadra\b/i;
+  if (!walkingContext.test(text)) return {text, corrected:false, reason:""};
+  return {
+    text:text.replace(/\baterrorizando\s+la\s+cuadra\b/gi,"alrededor de la cuadra"),
+    corrected:true,
+    reason:"Walking context: corrected ‘aterrorizando la cuadra’ to ‘alrededor de la cuadra’."
+  };
+}
+
 function startListening({way=direction, lang, button, onText}={}) {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -557,8 +569,11 @@ function startListening({way=direction, lang, button, onText}={}) {
   instance.onstart = () => setListeningButton(button, true);
   instance.onspeechstart = () => setListeningButton(button, true);
   instance.onresult = event => {
-    const text = [...event.results].map(result => result[0].transcript).join(" ").trim();
-    if (text) onText?.(text, event.results[event.results.length-1].isFinal);
+    const rawText = [...event.results].map(result => result[0].transcript).join(" ").trim();
+    const isFinal = event.results[event.results.length-1].isFinal;
+    const correction = correctSpeechRecognitionTranscript(rawText, instance.lang);
+    if (isFinal && correction.corrected) showToast(correction.reason);
+    if (correction.text) onText?.(correction.text, isFinal);
   };
   instance.onerror = event => {
     if (event.error !== "aborted") showToast(recognitionErrorMessage(event.error));
