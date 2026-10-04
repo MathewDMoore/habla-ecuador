@@ -42,8 +42,3 @@ The nine initial sunrise/sunset items came from MITAD material supplied by the p
 - Expand the learner-ready batch beyond the first 10 entries.
 - Add microphone-based speaking practice.
 - Evaluate on-device translation and offline support before claiming either feature.
-
-
-## Research reference (v0.21.1 · build 48)
-
-Research mode includes a local editorial reference for the paired Escalante (2017) abstract supplied by Mathew. It applies contextual pragmatics terminology to general Spanish-to-English research drafts and provides a “Try the reference abstract” button. This adds reference retrieval and translation rules; it does not fine-tune the free translation service. See [the reference and fidelity notes](docs/RESEARCH_ABSTRACT_REFERENCE.md).

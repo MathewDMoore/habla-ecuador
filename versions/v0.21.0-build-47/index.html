@@ -4,13 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#173f35">
-  <meta name="description" content="Standalone English and Ecuadorian Spanish translator with speech.">
-  <title>Habla Ecuador Translator</title>
-  <link rel="manifest" href="translator.webmanifest">
+  <meta name="description" content="Ecuadorian-first Spanish translation and speaking practice.">
+  <title>Habla Ecuador</title>
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=48">
-  <script src="research-reference.js?v=48" defer></script>
-  <script src="app.js?v=48" defer></script>
+  <link rel="stylesheet" href="styles.css?v=47">
+  <script src="app.js?v=47" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +18,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.1 · build 48</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.0 · build 47</span></div>
     </header>
 
     <main>
@@ -42,12 +41,61 @@
           <i aria-hidden="true">🎙️</i>
         </button>
 
+        <button class="feature-card music-card" data-open="music-view">
+          <span class="card-kicker">Music, culture & speaking rhythm</span>
+          <strong>Hear how language moves</strong>
+          <span>Open recordings + original speaking drills</span>
+          <i aria-hidden="true">🎶</i>
+        </button>
+
         <div class="path-grid" aria-label="Learning paths">
           <article><span>💬</span><div><h2>Real conversation</h2><p>Warm, useful phrases for actual people.</p></div></article>
           <article><span>👂</span><div><h2>Listening & rhythm</h2><p>Slow and natural playback.</p></div></article>
           <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
         </div>
         <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
+      </section>
+
+      <section id="music-view" class="view" aria-labelledby="music-title">
+        <div class="view-heading">
+          <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
+        </div>
+        <p class="music-intro">Listen to actual openly licensed Ecuadorian music, then use original Habla Ecuador drills to practice speaking rhythm. Every recording shows its performer, source, and license.</p>
+        <section class="music-section" aria-labelledby="recordings-title">
+          <p class="eyebrow">Contemporary open listening</p>
+          <h2 id="recordings-title">Ecuador now</h2>
+          <p>Starting another track pauses the current one. Return to it later and it resumes from the same place.</p>
+          <div id="open-music-tracks" class="open-music-tracks"></div>
+          <p class="music-rights-note">These tracks permit noncommercial sharing with attribution. If Habla Ecuador later becomes commercial, we will obtain direct permission or replace them.</p>
+        </section>
+        <section class="music-section" aria-labelledby="rhythm-title">
+          <p class="eyebrow">Speak in rhythm</p>
+          <h2 id="rhythm-title">Original rhythm recall</h2>
+          <p>Listen, echo the cadence, then break the sequence apart and use each phrase in conversation.</p>
+          <div id="rhythm-drills" class="rhythm-drills"></div>
+        </section>
+        <section class="music-section" aria-labelledby="traditions-title">
+          <p class="eyebrow">Cultural listening map</p>
+          <h2 id="traditions-title">Ecuadorian musical traditions</h2>
+          <p>Genres are tied to their communities and regions rather than treated as one generic Ecuadorian sound.</p>
+          <div id="music-traditions" class="music-traditions"></div>
+        </section>
+        <details class="heritage-music">
+          <summary>Optional civic & heritage recordings</summary>
+          <p>These remain available for regional cultural reference, but they are no longer the main music experience.</p>
+          <div id="heritage-music-tracks" class="open-music-tracks"></div>
+        </details>
+        <section class="music-method">
+          <h2>How a song becomes language evidence</h2>
+          <ol>
+            <li>Confirm the artist, Ecuador connection, genre, region, and date.</li>
+            <li>Show full lyrics only when their license permits reuse; otherwise store a short observation and write an original example.</li>
+            <li>Cross-check the meaning in CORPHA, the Ecuadorian Academy, ASALE, or another documented source.</li>
+            <li>Label the register, intensity, generation, region, and whether it sounds natural in conversation.</li>
+            <li>Write a new Habla Ecuador example and send uncertain usage for Ecuadorian review.</li>
+          </ol>
+        </section>
       </section>
 
       <section id="translator-view" class="view" aria-labelledby="translator-title">
@@ -63,11 +111,11 @@
 
         <div id="translate-panel">
           <div class="direction-row language-picker-row">
-            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option></select></label>
+            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option></select></label>
             <button id="swap-button" aria-label="Swap languages">⇄</button>
-            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
+            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
           </div>
-          <p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p>
+          <p class="language-pair-note">Choose either side independently. Regional Spanish-to-Spanish results are labeled as verified adaptations or honest review drafts.</p>
 
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
             <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
@@ -77,11 +125,6 @@
             </div>
           </section>
           <p id="research-mode-note" class="research-mode-note" hidden>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p>
-
-          <div id="research-reference-tools" class="research-mode-note" hidden>
-            <button id="load-research-reference" type="button">Try the reference abstract</button>
-            <span>Escalante (2017) · northern Mexico · editorial English</span>
-          </div>
 
           <label class="input-card">
             <span class="sr-only">Text to translate</span>
@@ -117,7 +160,30 @@
             <small>This free prototype will not invent a translation. Try one of the suggestions below.</small>
           </section>
 
-          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. The matched reference abstract stays local. Other text—including new research passages—is sent to the free MyMemory service for a labeled, editable draft. Research mode protects structure and reference strings where possible; confidential or unpublished material should not be pasted into this web prototype.</p>
+          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text—including research passages—is sent to the free MyMemory service for a labeled, editable draft. Research mode protects structure and reference strings where possible; confidential or unpublished material should not be pasted into this web prototype.</p>
+
+          <section class="voice-settings" aria-labelledby="voice-settings-title">
+            <div class="voice-settings-heading">
+              <div>
+                <p class="voice-settings-kicker">Free device voices</p>
+                <h2 id="voice-settings-title">Choose how each language sounds</h2>
+              </div>
+              <span aria-hidden="true">🔊</span>
+            </div>
+            <label>
+              <span>Spanish voice</span>
+              <select id="spanish-voice-select" aria-describedby="voice-settings-note">
+                <option value="auto">Automatic · closest available Latin American voice</option>
+              </select>
+            </label>
+            <label>
+              <span>English voice</span>
+              <select id="english-voice-select" aria-describedby="voice-settings-note">
+                <option value="auto">Automatic · match U.S. or U.K. setting</option>
+              </select>
+            </label>
+            <p id="voice-settings-note">Only free voices already available through this device are listed. If Apple names a system voice “Premium,” Habla Ecuador shows it as “Apple high quality · free.” Apple currently offers no Ecuador- or Bolivia-labelled system voice, so other Latin American voices are identified as approximations—not authentic Ecuadorian or Bolivian voices.</p>
+          </section>
 
           <div class="suggestions">
             <p>Try a phrase</p>
@@ -308,6 +374,7 @@
       <button class="active" data-open="home-view"><span>⌂</span>Today</button>
       <button data-open="translator-view"><span>⇄</span>Translate</button>
       <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
+      <button data-open="music-view"><span>♫</span>Music</button>
       <button data-open="lesson-view"><span>◉</span>Practice</button>
     </nav>
   </div>
@@ -315,4 +382,3 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
-

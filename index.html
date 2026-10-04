@@ -8,8 +8,9 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=47">
-  <script src="app.js?v=47" defer></script>
+  <link rel="stylesheet" href="styles.css?v=48">
+  <script src="research-reference.js?v=48" defer></script>
+  <script src="app.js?v=48" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +19,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.0 · build 47</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.21.1 · build 48</span></div>
     </header>
 
     <main>
@@ -111,11 +112,11 @@
 
         <div id="translate-panel">
           <div class="direction-row language-picker-row">
-            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option></select></label>
+            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option></select></label>
             <button id="swap-button" aria-label="Swap languages">⇄</button>
-            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
+            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
           </div>
-          <p class="language-pair-note">Choose either side independently. Regional Spanish-to-Spanish results are labeled as verified adaptations or honest review drafts.</p>
+          <p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p>
 
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
             <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
@@ -125,6 +126,11 @@
             </div>
           </section>
           <p id="research-mode-note" class="research-mode-note" hidden>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p>
+
+          <div id="research-reference-tools" class="research-mode-note" hidden>
+            <button id="load-research-reference" type="button">Try the reference abstract</button>
+            <span>Escalante (2017) · northern Mexico · editorial English</span>
+          </div>
 
           <label class="input-card">
             <span class="sr-only">Text to translate</span>
@@ -160,7 +166,7 @@
             <small>This free prototype will not invent a translation. Try one of the suggestions below.</small>
           </section>
 
-          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. Other text—including research passages—is sent to the free MyMemory service for a labeled, editable draft. Research mode protects structure and reference strings where possible; confidential or unpublished material should not be pasted into this web prototype.</p>
+          <p class="translation-privacy">Verified Habla Ecuador phrases stay local. The matched reference abstract stays local. Other text—including new research passages—is sent to the free MyMemory service for a labeled, editable draft. Research mode protects structure and reference strings where possible; confidential or unpublished material should not be pasted into this web prototype.</p>
 
           <section class="voice-settings" aria-labelledby="voice-settings-title">
             <div class="voice-settings-heading">
@@ -382,3 +388,4 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
+

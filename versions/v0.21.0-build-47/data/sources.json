@@ -1,0 +1,79 @@
+[
+  {
+    "id": "ael_dae",
+    "name": "Academia Ecuatoriana de la Lengua — Diccionario académico de ecuatorianismos",
+    "kind": "Ecuador-focused dictionary",
+    "url": "https://www.academiaecuatorianadelalengua.org/diccionario-academico-de-ecuatorianismos/",
+    "use": "Primary Ecuador lexicon reference. Use to identify regional senses and regional labels; paraphrase entries and write original examples rather than copying definitions or example sentences."
+  },
+  {
+    "id": "minedu_dae",
+    "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+    "kind": "Searchable Ecuador dictionary",
+    "url": "https://recursos.educacion.gob.ec/diccionario/",
+    "use": "Searchable entry pages for Ecuadorian words, including guagua, guambra, yapa, yapar, ñañería, and atatay. Use as a source of leads and confirm the current entry before adding it."
+  },
+  {
+    "id": "corpha",
+    "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+    "kind": "Regional corpus",
+    "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+    "use": "Check authentic contexts, region, date, source type, and repeated occurrences. Each app entry should record an actual corpus query before claiming corpus evidence; none of the new entries in this initial update has a logged CORPHA query."
+  },
+  {
+    "id": "asale_damer",
+    "name": "ASALE — Diccionario de americanismos",
+    "kind": "Cross-country dictionary",
+    "url": "https://www.asale.org/damer/",
+    "use": "Compare country-tagged meanings and register across Spanish varieties. Useful comparisons here include bacán, guagua, atatay, guambra, canguil, and yapa."
+  },
+  {
+    "id": "cordova",
+    "name": "Carlos Joaquín Córdova — El habla del Ecuador",
+    "kind": "Historical and cultural reference",
+    "url": "https://biblioteca.casadelacultura.gob.ec/bib/10317",
+    "use": "Bibliographic lead for deeper Ecuadorian vocabulary history and usage. Consult the work directly; do not reproduce its entries."
+  },
+  {
+    "id": "hablemos_ecuatoriano",
+    "name": "Hablemos Ecuatoriano, de chulla vida a YOLO",
+    "kind": "Contemporary Ecuadorian expressions",
+    "url": "https://www.cec-epn.edu.ec/instructora-del-cec-epn-publica-innovador-libro-de-ecuatorianismos/",
+    "use": "A contemporary reference to explore colloquial phrases. Treat it as a discovery source; create original app explanations and examples."
+  },
+  {
+    "id": "dialnet_phraseology",
+    "name": "Ecuadorian phraseology study — coastal and Manabí expressions",
+    "kind": "Regional phraseology research",
+    "url": "https://dialnet.unirioja.es/servlet/articulo?codigo=6680897",
+    "use": "Research lead for fixed expressions and cultural context, with emphasis on the Ecuadorian coast and Manabí. Use the paper as scholarship, not as a pool of text to copy."
+  },
+  {
+    "id": "kichwa_contact",
+    "name": "Ecuadorian Spanish and Quichua contact — phraseology study",
+    "kind": "Language-contact research",
+    "url": "https://dialnet.unirioja.es/servlet/articulo?codigo=6680895",
+    "use": "Research lead on Quichua words in Ecuadorian Spanish phraseological units. Check linguistic and community context before adding etymology or cultural claims."
+  },
+  {
+    "id": "mitad_user_material",
+    "name": "Mitad — Spanish Dictionary for Ecuador",
+    "kind": "Ecuador reference app",
+    "url": "https://play.google.com/store/apps/details?id=com.jrigg.spanish.dictionary.ecuador",
+    "use": "The project owner supplied MITAD sunrise and sunset vocabulary and example structures. Use as a cited lead; reuse permissions for its dictionary content are not established."
+  },
+  {
+    "id": "ael_diatopic_corrections",
+    "name": "AEL — Fichero de correcciones, precisiones y adendas a la marcación diatópica",
+    "kind": "Geographic-label quality control",
+    "url": "https://www.academiaecuatorianadelalengua.org/fichero-de-correcciones-precisiones-y-adendas-a-la-marcacion-diatopica-de-ecuatorianismos-en-los-repertorios-academicos/",
+    "use": "Use to catch omissions or inaccurate Ecuador geographic labels in broader RAE/ASALE repertories before assigning an Ecuador-specific or regional tag."
+  },
+  {
+    "id": "ael_dae_method",
+    "name": "AEL — Method notes for the Diccionario académico del habla del Ecuador",
+    "kind": "Lexicographic methodology",
+    "url": "https://www.academiaecuatorianadelalengua.org/elaboracion-de-un-diccionario-regional-descriptivo-contrastivo-por-dona-valeria-guzman/",
+    "use": "Documents AEL's evidence workflow: CORPHA first, then additional Ecuadorian sources when corpus evidence is insufficient. Use as a model for Habla Ecuador verification."
+  }
+]

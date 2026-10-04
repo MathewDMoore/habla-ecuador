@@ -31,14 +31,13 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.21.1 · build 48";
+const APP_VERSION = "0.21.0 · build 47";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
   "en-GB": {label:"U.K. English", family:"en", voice:"en-GB"},
   "es-EC": {label:"Ecuadorian Spanish", family:"es", voice:"es-EC"},
-  "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"},
-  "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"}
+  "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"}
 };
 
 const culturalExpressions = [
@@ -630,7 +629,7 @@ function splitLongTranslationText(text, limit=430) {
   return chunks;
 }
 
-function refineAcademicEnglish(text, source="") {
+function refineAcademicEnglish(text) {
   const contractions = [
     [/\bcan't\b/gi,"cannot"],[/\bwon't\b/gi,"will not"],[/\bdoesn't\b/gi,"does not"],
     [/\bdon't\b/gi,"do not"],[/\bdidn't\b/gi,"did not"],[/\bisn't\b/gi,"is not"],
@@ -640,8 +639,7 @@ function refineAcademicEnglish(text, source="") {
   ];
   let refined = text.replace(/[ \t]+([,.;:!?])/g,"$1").replace(/[ \t]{2,}/g," ");
   contractions.forEach(([pattern,replacement]) => { refined = refined.replace(pattern,replacement); });
-  const protectedDraft = protectResearchTokens(refined);
-  return protectedDraft.restore(refinePragmaticsTerminology(protectedDraft.text, source));
+  return refined;
 }
 
 function convertEnglishVariety(text, target=targetLanguage) {
@@ -678,13 +676,9 @@ async function requestTranslationChunk(text, way=direction) {
 }
 
 async function requestGeneralTranslation(text, way=direction) {
-  if (translationPurpose === "academic" && way === "ec-en") {
-    const reference = findPragmaticsReference(text);
-    if (reference !== null) return convertEnglishVariety(reference,targetLanguage);
-  }
   if (translationPurpose !== "academic" || text.length <= 430) {
     const translated = await requestTranslationChunk(text, way);
-    const refined = translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated,text) : translated;
+    const refined = translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated) : translated;
     return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
   }
   if (text.length > 8000) throw new Error("research text exceeds free prototype limit");
@@ -695,9 +689,8 @@ async function requestGeneralTranslation(text, way=direction) {
   for (const chunk of chunks) {
     translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way));
   }
-  const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? ` ${value}` : value).join("");
-  const combined = protectedDocument.restore(joined);
-  const refined = way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
+  const combined = protectedDocument.restore(translated.join(""));
+  const refined = way === "ec-en" ? refineAcademicEnglish(combined) : combined;
   return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
 }
 
@@ -806,11 +799,6 @@ function restoreGeneratedTranslation() {
 }
 
 function regionalSpanishBridge(sourceText) {
-  if (translationPurpose === "academic") return {
-    text:sourceText,
-    label:`${languageLabel(targetLanguage)} · research wording preserved`,
-    detail:`Research retains the ${languageLabel(sourceLanguage)} source and specialist terms. Conversational Ecuadorian or Bolivian rewrites are not applied; regional academic adaptation needs review.`
-  };
   if (sourceLanguage === targetLanguage) return {
     text:sourceText,
     label:`${languageLabel(targetLanguage)} · unchanged`,
@@ -903,19 +891,16 @@ async function renderTranslation() {
       const translated = await requestGeneralTranslation(sourceText);
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated);
-      const referenceMatch = translationPurpose === "academic" && direction === "ec-en" && findPragmaticsReference(sourceText) !== null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
-        : targetLanguage === "es-BO" || targetLanguage === "es-MX"
-          ? `${languageLabel(targetLanguage)} review pending`
+        : targetLanguage === "es-BO"
+          ? "Bolivian review pending"
           : `${languageLabel(targetLanguage)} refinement pending`;
       $("#literal-result").textContent = translationPurpose === "academic"
-        ? `${languageLabel(targetLanguage)} · ${referenceMatch ? "reference-based editorial draft" : "editable research draft"}`
+        ? `${languageLabel(targetLanguage)} · editable research draft`
         : `General draft · ${regionalReview}`;
       $("#usage-note").innerHTML = translationPurpose === "academic"
-        ? referenceMatch
-          ? `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
-          : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
+        ? `<strong>Academic machine draft · source structure preserved</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Check discipline-specific terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
     } catch {
       if (requestId !== translationRequest) return;
@@ -971,12 +956,7 @@ function setTranslationPurpose(purpose, rerender=true) {
   });
   document.body.classList.toggle("research-mode", translationPurpose === "academic");
   const note = $("#research-mode-note");
-  if (note) {
-    note.hidden = translationPurpose !== "academic";
-    note.textContent = `Research context: ${languageLabel(sourceLanguage)}. Specialist terminology follows the paper’s field and source context, independently of Ecuadorian or Bolivian conversational rules. Longer passages retain paragraph breaks and protected reference strings. Drafts require expert review before publication.`;
-  }
-  const referenceTools = $("#research-reference-tools");
-  if (referenceTools) referenceTools.hidden = translationPurpose !== "academic";
+  if (note) note.hidden = translationPurpose !== "academic";
   const input = $("#translator-input");
   if (input) {
     input.rows = translationPurpose === "academic" ? 8 : 4;
@@ -1563,15 +1543,6 @@ function init() {
     });
   }
   $$('[data-purpose]').forEach(button => button.addEventListener("click", () => setTranslationPurpose(button.dataset.purpose)));
-  $("#load-research-reference")?.addEventListener("click", () => {
-    sourceLanguage = "es-MX";
-    if (languageFamily(targetLanguage) !== "en") targetLanguage = "en-US";
-    preservedCulturalContext = null;
-    syncLanguagePair();
-    setTranslationPurpose("academic",false);
-    $("#translator-input").value = PRAGMATICS_REFERENCE.sourceEs + "\n\n" + PRAGMATICS_REFERENCE.sentences[4].es;
-    renderTranslation();
-  });
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent,targetSpeechLocale()));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
@@ -1625,7 +1596,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=48").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=47").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
