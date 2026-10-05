@@ -53,3 +53,9 @@ Research mode includes a local editorial reference for the paired Escalante (201
 Research mode offers three Ecuadorian papers: Cuenca air quality, fish diversity in Sangay National Park, and a bat specimen from Morona Santiago. Select a paper, then press “Try Ecuadorian research” to load two credited abstract sentences. Six Spanish/English pairs now use local editorial English for exact matches; source credit and the article-specific CC BY 3.0 link appear with each result. Dates, counts and names must match; altered text uses the existing general service. The existing edit and restore controls work on these drafts too.
 
 See `data/research-source-manifest.json` and the [research-source registry](docs/research-translation-sources.md) for licensing, modifications, and quarantined candidates. This is reference retrieval, not model fine-tuning or a held-out benchmark. No paid API or large corpus download was added.
+
+## Playback and full-paper access (v0.22.5 · build 57)
+
+Pause becomes Resume based on the app's playback state. Resume uses the last reported word position; if the device supplies no word positions, it repeats the current sentence or short segment. The selected voice, language and speed are retained. “Hear it” starts playback again from the beginning.
+
+Research samples are two-sentence excerpts. “Read full paper” opens the selected original paper. Longer research text can be translated by pasting sections, up to 8,000 characters and 20 service segments per request; the free service's quota still applies. These references do not constitute full-article training or full-paper translated editions.

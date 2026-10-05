@@ -412,3 +412,6 @@ button:disabled { cursor: default; }
 
 .result-actions button:disabled, .speech-pause-button:disabled { opacity: .45; cursor: default; }
 .speech-pause-button { min-height: 44px; }
+
+.speech-resume-note { margin: 7px 2px 0; color: #cfe4d8; font-size: 11px; line-height: 1.4; }
+#read-ecuador-paper { color: #463254; font-weight: 800; }

@@ -8,9 +8,9 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=56">
-  <script src="research-reference.js?v=56" defer></script>
-  <script src="app.js?v=56" defer></script>
+  <link rel="stylesheet" href="styles.css?v=57">
+  <script src="research-reference.js?v=57" defer></script>
+  <script src="app.js?v=57" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +19,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.4 · build 56</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.5 · build 57</span></div>
     </header>
 
     <main>
@@ -87,8 +87,11 @@
               <option value="anaguano-2017-sangay-fishes">Sangay · fish diversity</option>
               <option value="fernandez-2017-morona-bat">Morona Santiago · bat specimen</option>
             </select>
-            <button id="load-ecuador-research-reference" type="button">Try Ecuadorian research</button>
+            <button id="load-ecuador-research-reference" type="button">Try Ecuadorian research excerpt</button>
             <span>3 Ecuadorian papers · selected excerpts · CC BY 3.0</span>
+            <span>Each sample contains two abstract sentences, not a full article.</span>
+            <a id="read-ecuador-paper" href="https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087" target="_blank" rel="noopener">Read full paper ↗</a>
+            <span>To translate a longer paper, paste one section at a time (up to 8,000 characters). New text uses the free service and its quota.</span>
           </div>
 
           <label class="input-card">
@@ -118,6 +121,7 @@
               <button id="restore-translation" hidden>Restore generated</button>
             </div>
             <p id="translation-edit-status" class="translation-edit-status">Tap the translation above to edit it. Changes stay on this device.</p>
+            <p class="speech-resume-note">Resume may repeat the current sentence if your device does not report word positions.</p>
             <div id="usage-note" class="usage-note"></div>
           </section>
 

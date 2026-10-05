@@ -1,13 +1,13 @@
 # Habla Ecuador development handoff
 
-Updated October 5, 2026 UTC (October 4 in Wyoming).
+Updated October 5, 2026 (Wyoming and UTC).
 
 ## Current app
 
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.4, build 56; continue from these root files.
+- Current source: v0.22.5, build 57; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -39,6 +39,14 @@ Both translator screens now have an accessible Ecuadorian sample selector. Resul
 ## Build 56
 
 Added Pause/Resume beside Hear it and in Conversation mode for synthesized translation playback. The controls track a playback request, including the short voice-loading delay; end/error disables them. Replacement playback, microphone start, conversation clearing and rhythm drills reset the paused synthesizer. Late events from canceled utterances cannot change the current controls. Existing speech voice selection, rate and language behavior are preserved. The browser SpeechSynthesis pause/resume API is used without a paid service or dependency. Real iPhone pause/resume behavior still needs on-device checking.
+
+## Build 57
+
+User reported that Pause sometimes stayed visible with no Resume action on iPhone. The old control trusted `speechSynthesis.paused` from asynchronous events. Playback now owns its paused state, cancels the current utterance while retaining a word position, and submits the remaining text when Resume is tapped. Each sentence or short segment has its own utterance; cancellation events are invalidated before canceling, so late end/error/boundary callbacks cannot reset Resume or skip text. On voices with no boundary events, Resume repeats the current sentence or short segment; the translator explains this fallback. Voice, language and rate are retained through resumption. Native pause/resume events no longer govern the label.
+
+Added a per-paper “Read full paper” link next to an explicitly named excerpt button. The UI states that each reference is two abstract sentences and explains section-by-section translation for longer papers. Full-paper ingestion, full-paper bilingual alignment and model training are not implemented. Over-limit research input now shows the actual 8,000-character/20-segment limit instead of an unrelated network-error message.
+
+Regression checks simulate stale native flags, synchronous cancellation errors, late end/boundary events, pausing before loading, rapid taps, word-position resume, sentence fallback, three-sentence completion, and replacement/cancellation. Existing conversation, editable translation and research tests pass. Actual iPhone audio and resume still require the user's next check; the cloud browser has no installed speech voices.
 
 ## Verification
 

@@ -57,6 +57,9 @@ async function main(){
  }
  context.mixed=references[1].sentences[0].es+'\n\n'+references[2].sentences[0].es;
  assert.equal(run('findAcademicReference(mixed)'),null,'never attribute mixed-paper content to one source');
+ const callsBeforeLimit=calls;
+ await assert.rejects(run('requestGeneralTranslation("texto ".repeat(1400),"ec-en",{purpose:"academic",target:"en-US"})'),error=>error.code==='research_limit');
+ assert.equal(calls,callsBeforeLimit,'overlong paper sections must fail locally without sending partial text');
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'data/research-source-manifest.json'),'utf8'));
  const approved=manifest.find(item=>item.source_id==='sellers-espinoza-2017-cuenca-air-quality');
  assert.equal(approved.review_status,'approved');

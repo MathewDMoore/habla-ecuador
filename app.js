@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.4 · build 56";
+const APP_VERSION = "0.22.5 · build 57";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -483,7 +483,7 @@ function speechProfile(text, lang="es-EC") {
 
 function updateSpeechPauseControls() {
   const supported = "speechSynthesis" in window
-    && typeof speechSynthesis.pause === "function" && typeof speechSynthesis.resume === "function";
+    && typeof speechSynthesis.speak === "function" && typeof speechSynthesis.cancel === "function";
   for (const selector of ["#pause-result", "#pause-conversation"]) {
     const button = $(selector);
     if (!button) continue;
@@ -506,64 +506,111 @@ function stopSpeechPlayback() {
   updateSpeechPauseControls();
 }
 
+function splitSpeechPlaybackText(text, limit=220) {
+  const chunks = [];
+  for (const sentence of text.split(/(?<=[.!?])\s+|\n+/u)) {
+    let current = "";
+    for (const word of sentence.trim().split(/\s+/)) {
+      if (!word) continue;
+      if (current && current.length + word.length + 1 > limit) {
+        chunks.push(current);
+        current = "";
+      }
+      current += (current ? " " : "") + word;
+    }
+    if (current) chunks.push(current);
+  }
+  return chunks;
+}
+
+function startSpeechSegment(session) {
+  if (activeSpeechPlayback !== session || session.paused || !session.chunks || session.utterance) return;
+  while (session.index < session.chunks.length && session.offset >= session.chunks[session.index].length) {
+    session.index += 1;
+    session.offset = 0;
+  }
+  if (session.index >= session.chunks.length) {
+    activeSpeechPlayback = null;
+    updateSpeechPauseControls();
+    return;
+  }
+  const baseOffset = session.offset;
+  const token = ++session.token;
+  const utterance = new SpeechSynthesisUtterance(session.chunks[session.index].slice(baseOffset));
+  session.utterance = utterance;
+  utterance.voice = session.voice;
+  utterance.lang = session.voice.lang;
+  utterance.rate = session.profile.rate;
+  utterance.pitch = session.profile.pitch;
+  utterance.volume = session.profile.volume;
+  const current = () => activeSpeechPlayback === session && session.token === token;
+  utterance.onboundary = event => {
+    if (!current() || session.paused || !Number.isInteger(event.charIndex)) return;
+    let position = Math.min(session.chunks[session.index].length, baseOffset + Math.max(0,event.charIndex));
+    // Re-enter at the current word, never halfway through a word or past it.
+    while (position > 0 && position < session.chunks[session.index].length
+        && !/\s/.test(session.chunks[session.index][position-1])) position -= 1;
+    session.offset = Math.max(session.offset,position);
+  };
+  utterance.onend = () => {
+    if (!current() || session.paused) return;
+    session.utterance = null;
+    session.index += 1;
+    session.offset = 0;
+    setTimeout(() => startSpeechSegment(session),80);
+  };
+  utterance.onerror = event => {
+    if (!current()) return;
+    activeSpeechPlayback = null;
+    updateSpeechPauseControls();
+    if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
+  };
+  document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(session.voice.lang);
+  speechSynthesis.resume?.();
+  speechSynthesis.speak(utterance);
+}
+
 function toggleSpeechPause() {
-  if (!activeSpeechPlayback || typeof speechSynthesis.pause !== "function"
-      || typeof speechSynthesis.resume !== "function") return;
-  activeSpeechPlayback.paused = !activeSpeechPlayback.paused;
-  if (activeSpeechPlayback.paused) speechSynthesis.pause();
-  else speechSynthesis.resume();
+  const session = activeSpeechPlayback;
+  if (!session) return;
+  session.paused = !session.paused;
+  // The app owns Pause/Resume. Native paused flags and delayed pause/end events
+  // must never overwrite the user's choice or discard the remembered position.
   updateSpeechPauseControls();
+  if (session.paused) {
+    session.token += 1;
+    session.utterance = null;
+    speechSynthesis.cancel();
+    speechSynthesis.resume?.();
+  } else {
+    setTimeout(() => startSpeechSegment(session),160);
+  }
 }
 
 function say(text, lang="es-EC") {
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
   stopSpeechPlayback();
-  const requestId = speechRequestId;
-  activeSpeechPlayback = {requestId, paused:false};
+  const session = {requestId:speechRequestId, paused:false, token:0, index:0, offset:0, utterance:null};
+  activeSpeechPlayback = session;
   updateSpeechPauseControls();
-  const finish = () => {
-    if (requestId !== speechRequestId) return;
-    activeSpeechPlayback = null;
-    updateSpeechPauseControls();
-  };
   const speakWithFreshVoice = (attempt=0) => {
-    if (requestId !== speechRequestId) return;
+    if (activeSpeechPlayback !== session) return;
     refreshSpeechVoices();
     if (!speechVoices.length && attempt < 8) {
-      setTimeout(() => speakWithFreshVoice(attempt + 1), 125);
+      setTimeout(() => speakWithFreshVoice(attempt + 1),125);
       return;
     }
-    const target = voiceForLanguage(lang);
-    if (!target) {
-      finish();
+    session.voice = voiceForLanguage(lang);
+    if (!session.voice) {
+      activeSpeechPlayback = null;
+      updateSpeechPauseControls();
       const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
       showToast(`${label} speech is unavailable on this device.`);
       return;
     }
-    const profile = speechProfile(text,lang);
-    const utterance = new SpeechSynthesisUtterance(profile.text);
-    utterance.voice = target;
-    utterance.lang = target.lang;
-    utterance.rate = profile.rate;
-    utterance.pitch = profile.pitch;
-    utterance.volume = profile.volume;
-    utterance.onend = finish;
-    const syncPause = () => {
-      if (requestId !== speechRequestId || !activeSpeechPlayback) return;
-      activeSpeechPlayback.paused = speechSynthesis.paused;
-      updateSpeechPauseControls();
-    };
-    utterance.onpause = syncPause;
-    utterance.onresume = syncPause;
-    utterance.onerror = event => {
-      if (requestId !== speechRequestId) return;
-      finish();
-      if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
-    };
-    document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(target.lang);
-    setTimeout(() => {
-      if (requestId === speechRequestId) speechSynthesis.speak(utterance);
-    }, 160);
+    session.profile = speechProfile(text,lang);
+    session.chunks = splitSpeechPlaybackText(session.profile.text);
+    setTimeout(() => startSpeechSegment(session),160);
   };
   setTimeout(() => speakWithFreshVoice(),160);
 }
@@ -812,10 +859,18 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated,text) : translated;
     return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
   }
-  if (text.length > 8000) throw new Error("research text exceeds free prototype limit");
+  if (text.length > 8000) {
+    const error = new Error("research text exceeds free prototype limit");
+    error.code = "research_limit";
+    throw error;
+  }
   const protectedDocument = protectResearchTokens(text);
   const chunks = splitLongTranslationText(protectedDocument.text);
-  if (chunks.filter(chunk => !chunk.separator).length > 20) throw new Error("research text requires too many translation segments");
+  if (chunks.filter(chunk => !chunk.separator).length > 20) {
+    const error = new Error("research text requires too many translation segments");
+    error.code = "research_limit";
+    throw error;
+  }
   const translated = [];
   for (const chunk of chunks) {
     translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way, purpose));
@@ -1053,15 +1108,18 @@ async function renderTranslation() {
         $("#literal-result").textContent = `Recognized Ecuadorian slang: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
         $("#usage-note").innerHTML = `<strong>Ecuadorian slang recognized · ${escapeHtml(embeddedEntry.register)}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
       }
-    } catch {
+    } catch (error) {
       if (requestId !== translationRequest) return;
       activeTranslationEdit = null;
       $("#natural-result").removeAttribute("contenteditable");
       updateTranslationEditUi();
       result.hidden = true;
       missing.hidden = false;
-      $("#no-result p").textContent = "Translation is temporarily unavailable.";
-      $("#no-result small").textContent = "Check your connection and try again. Verified local phrases still work offline.";
+      $("#no-result p").textContent = error?.code === "research_limit"
+        ? "This research section is too long." : "Translation is temporarily unavailable.";
+      $("#no-result small").textContent = error?.code === "research_limit"
+        ? "Paste a shorter section: at most 8,000 characters and 20 translation segments. Your source text is preserved."
+        : "Check your connection and try again. The free service may have reached its quota. Verified local phrases still work offline.";
     }
     return;
   }
@@ -1097,6 +1155,16 @@ async function renderTranslation() {
   $("#usage-note").innerHTML = `<strong>${isCultural ? "Ecuadorian slang · " : ""}${phrase.register}</strong><span>${preservedNote}${phrase.note}${warning}</span>`;
 }
 
+function updateEcuadorResearchPaperLink() {
+  const selected = $("#ecuador-research-source")?.value;
+  const reference = ECUADOR_RESEARCH_REFERENCES.find(item => item.id === selected) || ECUADOR_RESEARCH_REFERENCE;
+  const link = $("#read-ecuador-paper");
+  if (link) {
+    link.href = reference.url;
+    link.setAttribute("aria-label", `Read full paper: ${reference.title}`);
+  }
+}
+
 function setTranslationPurpose(purpose, rerender=true) {
   translationPurpose = purpose === "academic" ? "academic" : "everyday";
   localStorage.setItem(TRANSLATION_PURPOSE_STORAGE_KEY, translationPurpose);
@@ -1113,6 +1181,7 @@ function setTranslationPurpose(purpose, rerender=true) {
   }
   const referenceTools = $("#research-reference-tools");
   if (referenceTools) referenceTools.hidden = translationPurpose !== "academic";
+  if (translationPurpose === "academic") updateEcuadorResearchPaperLink();
   const input = $("#translator-input");
   if (input) {
     input.rows = translationPurpose === "academic" ? 8 : 4;
@@ -1781,6 +1850,7 @@ function init() {
     $("#translator-input").value = PRAGMATICS_REFERENCE.sourceEs + "\n\n" + PRAGMATICS_REFERENCE.sentences[4].es;
     renderTranslation();
   });
+  $("#ecuador-research-source")?.addEventListener("change", updateEcuadorResearchPaperLink);
   $("#load-ecuador-research-reference")?.addEventListener("click", () => {
     sourceLanguage = "es-EC";
     if (languageFamily(targetLanguage) !== "en") targetLanguage = "en-US";
@@ -1848,7 +1918,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=56").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=57").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
