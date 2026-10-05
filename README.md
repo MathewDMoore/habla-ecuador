@@ -48,6 +48,8 @@ The nine initial sunrise/sunset items came from MITAD material supplied by the p
 
 Research mode includes a local editorial reference for the paired Escalante (2017) abstract supplied by Mathew. It applies contextual pragmatics terminology to general Spanish-to-English research drafts and provides a “Try the reference abstract” button. This adds reference retrieval and translation rules; it does not fine-tune the free translation service. See [the reference and fidelity notes](docs/RESEARCH_ABSTRACT_REFERENCE.md).
 
-## Ecuadorian research reference (v0.22.2 · build 54)
+## Ecuadorian research references (v0.22.3 · build 55)
 
-Research mode also includes two attributed Spanish/English abstract passages from Sellers and Espinoza (2017), a Cuenca air-quality study published by USFQ PRESS. “Try Ecuadorian research” loads the selected excerpt; exact matches use local editorial English, keep buen vivir visible, and show the source and CC BY 3.0 credit. See `data/research-source-manifest.json` and the [research-source registry](docs/research-translation-sources.md) for licensing, modifications, and quarantined candidates. This is reference retrieval, not model fine-tuning or a held-out benchmark.
+Research mode offers three Ecuadorian papers: Cuenca air quality, fish diversity in Sangay National Park, and a bat specimen from Morona Santiago. Select a paper, then press “Try Ecuadorian research” to load two credited abstract sentences. Six Spanish/English pairs now use local editorial English for exact matches; source credit and the article-specific CC BY 3.0 link appear with each result. Dates, counts and names must match; altered text uses the existing general service. The existing edit and restore controls work on these drafts too.
+
+See `data/research-source-manifest.json` and the [research-source registry](docs/research-translation-sources.md) for licensing, modifications, and quarantined candidates. This is reference retrieval, not model fine-tuning or a held-out benchmark. No paid API or large corpus download was added.

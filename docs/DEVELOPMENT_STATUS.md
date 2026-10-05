@@ -7,7 +7,7 @@ Updated October 5, 2026 UTC (October 4 in Wyoming).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.2, build 54; continue from these root files.
+- Current source: v0.22.3, build 55; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -29,6 +29,12 @@ Ecuadorian-first phrases, evidence-backed vocabulary and Ecuador/Bolivia compari
 ## Build 54
 
 Added two Spanish/English abstract sentence pairs from the licensed Sellers and Espinoza (2017) Cuenca air-quality paper to the local research translation memory. Research mode now has a “Try Ecuadorian research” sample alongside the Mexican reference. Matched excerpts stay local; changed facts fall back to the existing engine. Source credit and the CC BY 3.0 license appear with the result. English adaptations are distinguished from published English and still require subject-expert review. The source manifest records attribution, excerpt hash, license evidence and the quarantined newer ACI paper with conflicting licenses. No model was fine-tuned and these integrated examples are not a held-out benchmark.
+
+## Build 55
+
+Expanded the Ecuadorian research memory from one paper/two pairs to three papers/six pairs. Added selected Spanish/English abstract sentences from Anaguano-Yancha (2017), DOI 10.18272/aci.v9i15.294 (Sangay fish diversity), and Fernández de Córdova, Nivelo-Villavicencio and Astudillo (2017), DOI 10.18272/aci.v9i15.770 (Morona Santiago bat specimen). Both original article copyright notices link CC BY 3.0; current journal footers state CC BY-NC 4.0. Preserve the item-specific grant and do not extrapolate it to newer papers. The intake manifest records this distinction.
+
+Both translator screens now have an accessible Ecuadorian sample selector. Result attribution follows the actual matched paper. Selected passages can match as one paragraph or separate paragraphs, while changed counts/dates and mixed-paper passages reject local retrieval. Editing, English variants and the Mexican reference retain their existing behavior. No paid service, dependency, archived project copy or model training was added.
 
 ## Verification
 

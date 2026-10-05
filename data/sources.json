@@ -82,5 +82,19 @@
     "kind": "Ecuadorian bilingual scientific reference",
     "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087",
     "use": "Two credited Spanish/English abstract sentence pairs power local research-reference retrieval. CC BY 3.0; English is editorially adapted, with subject-expert review pending. Source metadata and license evidence are in data/research-source-manifest.json."
+  },
+  {
+    "id": "anaguano-2017-sangay-fishes",
+    "name": "Sangay · fish diversity — 2017 research",
+    "kind": "Ecuadorian bilingual scientific reference",
+    "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/294/2468",
+    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance."
+  },
+  {
+    "id": "fernandez-2017-morona-bat",
+    "name": "Morona Santiago · bat specimen — 2017 research",
+    "kind": "Ecuadorian bilingual scientific reference",
+    "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/770/2471",
+    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance."
   }
 ]

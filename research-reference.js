@@ -133,22 +133,109 @@ const ECUADOR_RESEARCH_REFERENCE = {
   ]
 };
 
-function findEcuadorResearchReference(text) {
-  const parts = text.trim().split(/(\n\s*\n)/);
-  const translated = [];
-  for (let part of parts) {
-    if (/^\n\s*\n$/.test(part)) { translated.push(part); continue; }
-    let heading = "";
-    if (/^Resumen\s*(?:\n|:)/i.test(part)) {
-      heading = "Abstract\n";
-      part = part.replace(/^Resumen\s*(?:\n|:)\s*/i, "");
+const ECUADOR_RESEARCH_REFERENCES = [
+  ECUADOR_RESEARCH_REFERENCE,
+  {
+  "id": "anaguano-2017-sangay-fishes",
+  "authors": [
+    "Fernando Anaguano-Yancha"
+  ],
+  "title": "Peces de la Laguna Cormorán, Parque Nacional Sangay, Ecuador",
+  "doi": "10.18272/aci.v9i15.294",
+  "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/294/2468",
+  "licenseEvidenceUrl": "https://revistas.usfq.edu.ec/index.php/avances/en/article/view/294",
+  "region": "Sangay National Park, Ecuador",
+  "discipline": "Freshwater biodiversity",
+  "sampleLabel": "Sangay · fish diversity",
+  "sentences": [
+    {
+      "es": "Un total de 599 individuos de 16 especies y seis familias fueron capturados.",
+      "publishedEnglish": "A total of 599 individuals of 16 species and six families were captured.",
+      "en": "A total of 599 individuals belonging to 16 species and six families were captured."
+    },
+    {
+      "es": "La abundancia de especies disminuyó paulatinamente conforme llegaba la época de lluvias.",
+      "publishedEnglish": "Species abundance gradually decreased as the rainy season arrived.",
+      "en": "Species abundance decreased gradually with the arrival of the rainy season."
     }
-    const match = ECUADOR_RESEARCH_REFERENCE.sentences.find(item => researchReferenceKey(item.es) === researchReferenceKey(part));
-    // Never supply remembered claims for changed facts or an unmatched passage.
-    if (!match) return null;
-    translated.push(heading + match.en);
+  ],
+  "year": 2017,
+  "licenseCode": "CC-BY-3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "journal": "ACI Avances en Ciencias e Ingenierías · USFQ PRESS",
+  "sourceLanguage": "es-EC",
+  "reviewedAt": "2026-10-05",
+  "role": "translation-memory",
+  "changes": "Two selected abstract sentences; English editorially adapted for clarity. This is an excerpt, not the full abstract. Subject-expert review pending."
+},
+  {
+  "id": "fernandez-2017-morona-bat",
+  "authors": [
+    "Javier Fernández de Córdova",
+    "Carlos Nivelo-Villavicencio",
+    "Pedro X. Astudillo"
+  ],
+  "title": "Nuevo registro de Promops centralis (Chiroptera: Molossidae) en el suroriente del Ecuador",
+  "doi": "10.18272/aci.v9i15.770",
+  "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/770/2471",
+  "licenseEvidenceUrl": "https://revistas.usfq.edu.ec/index.php/avances/en/article/view/770",
+  "region": "Limón-Indanza, Morona Santiago, Ecuador",
+  "discipline": "Mammal biodiversity",
+  "sampleLabel": "Morona Santiago · bat specimen",
+  "sentences": [
+    {
+      "es": "En 1998, una hembra adulta fue colectada en la localidad de Limón-Indanza.",
+      "publishedEnglish": "In 1998, an adult female was collected at Limón-Indanza.",
+      "en": "In 1998, an adult female was collected in Limón-Indanza."
+    },
+    {
+      "es": "El espécimen fue donado a la colección de mastozoología del Museo de Zoología de la Universidad del Azuay (MZUA) en 2016.",
+      "publishedEnglish": "The specimen was donated to the mastozoology collection of the Museo de Zoología, Universidad del Azuay (MZUA) in 2016.",
+      "en": "In 2016, the specimen was donated to the mammalogy collection of the Museum of Zoology at the Universidad del Azuay (MZUA)."
+    }
+  ],
+  "year": 2017,
+  "licenseCode": "CC-BY-3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+  "journal": "ACI Avances en Ciencias e Ingenierías · USFQ PRESS",
+  "sourceLanguage": "es-EC",
+  "reviewedAt": "2026-10-05",
+  "role": "translation-memory",
+  "changes": "Two selected abstract sentences; English editorially adapted for clarity. This is an excerpt, not the full abstract. Subject-expert review pending."
+}
+];
+
+function findEcuadorResearchReference(text) {
+  // A passage must match one paper completely. Never combine remembered claims
+  // across papers or return a partial match for altered dates, numbers or names.
+  for (const reference of ECUADOR_RESEARCH_REFERENCES) {
+    const parts = text.trim().split(/(\n\s*\n)/);
+    const translated = [];
+    let complete = true;
+    for (let part of parts) {
+      if (/^\n\s*\n$/.test(part)) { translated.push(part); continue; }
+      let heading = "";
+      if (/^Resumen\s*(?:\n|:)/i.test(part)) {
+        heading = "Abstract\n";
+        part = part.replace(/^Resumen\s*(?:\n|:)\s*/i, "");
+      }
+      const key = researchReferenceKey(part);
+      let match = null;
+      for (let start=0; start<reference.sentences.length && match === null; start++) {
+        for (let end=start+1; end<=reference.sentences.length; end++) {
+          const span = reference.sentences.slice(start,end);
+          if (researchReferenceKey(span.map(item=>item.es).join(" ")) === key) {
+            match = span.map(item=>item.en).join(" ");
+            break;
+          }
+        }
+      }
+      if (match === null) { complete = false; break; }
+      translated.push(heading + match);
+    }
+    if (complete) return {text:translated.join(""),reference};
   }
-  return {text:translated.join(""),reference:ECUADOR_RESEARCH_REFERENCE};
+  return null;
 }
 
 function findAcademicReference(text) {

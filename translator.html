@@ -8,9 +8,9 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=49">
-  <script src="research-reference.js?v=54" defer></script>
-  <script src="app.js?v=54" defer></script>
+  <link rel="stylesheet" href="styles.css?v=55">
+  <script src="research-reference.js?v=55" defer></script>
+  <script src="app.js?v=55" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +19,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.2 · build 54</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.3 · build 55</span></div>
     </header>
 
     <main>
@@ -81,8 +81,14 @@
           <div id="research-reference-tools" class="research-mode-note" hidden>
             <button id="load-research-reference" type="button">Try the reference abstract</button>
             <span>Escalante (2017) · northern Mexico · editorial English</span>
+            <label class="research-source-label" for="ecuador-research-source">Ecuadorian research sample</label>
+            <select id="ecuador-research-source">
+              <option value="sellers-espinoza-2017-cuenca-air-quality">Cuenca · air quality</option>
+              <option value="anaguano-2017-sangay-fishes">Sangay · fish diversity</option>
+              <option value="fernandez-2017-morona-bat">Morona Santiago · bat specimen</option>
+            </select>
             <button id="load-ecuador-research-reference" type="button">Try Ecuadorian research</button>
-            <span>Cuenca air-quality research · selected excerpt · CC BY 3.0</span>
+            <span>3 Ecuadorian papers · selected excerpts · CC BY 3.0</span>
           </div>
 
           <label class="input-card">

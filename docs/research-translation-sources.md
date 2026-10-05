@@ -131,7 +131,7 @@ The source explicitly publishes the taxonomy in open semantic formats for reuse.
   - exclude **NoDerivatives (ND)** material from training or adaptation;
   - never imply WHO endorsement.
 
-### 10. Ecuadorian university research — per-item filtering; first sample integrated
+### 10. Ecuadorian university research — per-item filtering; three papers integrated
 
 USFQ's ACI Avances en Ciencias e Ingenierías publishes scientific material in Spanish and English. Check each article and version: its current journal policy does not establish the license of every older paper or HTML/PDF version.
 
@@ -215,3 +215,13 @@ It should **not** inject slang or conversational regionalisms into an academic p
 5. Compare the current free translation engine against the reference set.
 6. Add terminology constraints and structure preservation to Research mode.
 7. Only consider model fine-tuning after quality gains from translation memory and terminology have been measured.
+
+### Build 55: two more Ecuadorian references
+
+- **Sangay freshwater biodiversity:** Fernando Anaguano-Yancha (2017), DOI `10.18272/aci.v9i15.294`. Source: https://revistas.usfq.edu.ec/index.php/avances/en/article/download/294/2468 ; license evidence: https://revistas.usfq.edu.ec/index.php/avances/en/article/view/294 . Two selected abstract sentences retain the 599 individuals, 16 species, six families and the reported abundance trend.
+- **Morona Santiago mammal biodiversity:** Javier Fernández de Córdova, Carlos Nivelo-Villavicencio and Pedro X. Astudillo (2017), DOI `10.18272/aci.v9i15.770`. Source: https://revistas.usfq.edu.ec/index.php/avances/en/article/download/770/2471 ; license evidence: https://revistas.usfq.edu.ec/index.php/avances/en/article/view/770 . Two selected sentences retain the collection year (1998), Limón-Indanza locality, museum identity and donation year (2016).
+- Both item-specific copyright notices link **CC BY 3.0**. The current journal-wide footer links **CC BY-NC 4.0**; the recorded basis for these 2017 works is the item-specific grant. Creative Commons explains that an existing CC BY grant cannot be revoked while its terms are followed: https://creativecommons.org/licenses/by/3.0/ . Newer ACI items still need independent review.
+- Research mode now offers a paper selector. There are **three Ecuadorian papers and six sentence pairs**, with exact local retrieval, editable editorial English and source credit. Published English remains separately recorded. Changed claims and mixed-paper input fall back to the general engine.
+- Scope remains an attributed translation memory; it does not train MyMemory or establish broad research-translation accuracy. No corpus archive or raw article files are committed to GitHub.
+
+Additional discovery: the University of Cuenca's Maskana license policy records CC BY 4.0 for 2017–July 2023, with NC/SA terms in other periods (https://publicaciones.ucuenca.edu.ec/ojs/index.php/maskana/ethics). ESPOCH Perfiles item pages currently show CC BY-NC 4.0. These are research leads requiring per-item review, not automatic admissions to the memory.

@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.2 · build 54";
+const APP_VERSION = "0.22.3 · build 55";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -988,8 +988,8 @@ async function renderTranslation() {
         : `General draft · ${regionalReview}`;
       $("#usage-note").innerHTML = translationPurpose === "academic"
         ? referenceMatch
-          ? referenceMatch.reference.id === ECUADOR_RESEARCH_REFERENCE.id
-            ? `<strong>Ecuadorian research excerpt · expert review pending</strong><span>${escapeHtml(ECUADOR_RESEARCH_REFERENCE.authors.join(" & "))} (2017) · Cuenca · ${escapeHtml(ECUADOR_RESEARCH_REFERENCE.journal)}. Two selected abstract sentences stay local. English is an editorial adaptation; scientific meaning and buen vivir are retained. <a href="${ECUADOR_RESEARCH_REFERENCE.url}" target="_blank" rel="noopener">${escapeHtml(ECUADOR_RESEARCH_REFERENCE.title)} · DOI ${ECUADOR_RESEARCH_REFERENCE.doi}</a> · <a href="${ECUADOR_RESEARCH_REFERENCE.licenseUrl}" target="_blank" rel="noopener">CC BY 3.0</a>.</span>`
+          ? ECUADOR_RESEARCH_REFERENCES.includes(referenceMatch.reference)
+            ? `<strong>Ecuadorian research excerpt · expert review pending</strong><span>${escapeHtml(referenceMatch.reference.authors.join(" & "))} (${referenceMatch.reference.year}) · ${escapeHtml(referenceMatch.reference.region)} · ${escapeHtml(referenceMatch.reference.journal)}. Selected sentences stay local. ${escapeHtml(referenceMatch.reference.changes)} <a href="${referenceMatch.reference.url}" target="_blank" rel="noopener">${escapeHtml(referenceMatch.reference.title)} · DOI ${escapeHtml(referenceMatch.reference.doi)}</a> · <a href="${referenceMatch.reference.licenseUrl}" target="_blank" rel="noopener">${escapeHtml(referenceMatch.reference.licenseCode.replaceAll("-"," "))}</a>.</span>`
             : `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
@@ -1737,7 +1737,9 @@ function init() {
     preservedCulturalContext = null;
     syncLanguagePair();
     setTranslationPurpose("academic",false);
-    $("#translator-input").value = ECUADOR_RESEARCH_REFERENCE.sentences.map(item => item.es).join("\n\n");
+    const selected = $("#ecuador-research-source")?.value;
+    const reference = ECUADOR_RESEARCH_REFERENCES.find(item => item.id === selected) || ECUADOR_RESEARCH_REFERENCE;
+    $("#translator-input").value = reference.sentences.map(item => item.es).join("\n\n");
     renderTranslation();
   });
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent,targetSpeechLocale()));
@@ -1793,7 +1795,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=54").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=55").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

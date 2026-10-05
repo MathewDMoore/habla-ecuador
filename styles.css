@@ -98,6 +98,10 @@ textarea::placeholder { color: #9ca39f; }
 .translation-purpose small { color: var(--muted); font-size: 10px; font-weight: 650; }
 .purpose-switch { flex: 0 0 auto; }
 .research-mode-note { margin: 0 2px 12px; padding: 12px 13px; border: 1px solid #d7c9df; border-radius: 15px; background: #f4edf8; color: #5e5366; font-size: 11px; line-height: 1.5; }
+#research-reference-tools { display: grid; gap: 8px; }
+#research-reference-tools[hidden] { display: none; }
+.research-source-label { margin-top: 6px; font-weight: 800; }
+#ecuador-research-source { width: 100%; min-width: 0; padding: 10px; border: 1px solid #bca8ca; border-radius: 9px; background: white; color: #2f2440; font: inherit; font-size: 13px; }
 .research-mode .input-card { border-color: #bca8ca; box-shadow: 0 10px 30px rgba(73,52,100,.09); }
 .research-mode #translator-input { min-height: 190px; font-family: Georgia,"Times New Roman",serif; font-size: 17px; line-height: 1.55; }
 .research-mode .result-card { background: #2f2440; }
