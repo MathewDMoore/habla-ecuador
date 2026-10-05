@@ -1,0 +1,42 @@
+[
+  {
+    "source_id": "sellers-espinoza-2017-cuenca-air-quality",
+    "source_url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087",
+    "title": "Publicación de contaminantes atmosféricos de la estación de monitoreo de la ciudad de Cuenca, utilizando servicios estándares OGC",
+    "authors": [
+      "Chester Sellers",
+      "Claudia Espinoza"
+    ],
+    "year": 2017,
+    "domain": "Environmental monitoring",
+    "region": "Cuenca, Ecuador",
+    "source_language": "es",
+    "target_language": "en",
+    "license_code": "CC-BY-3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "license_evidence_url": "https://revistas.usfq.edu.ec/index.php/avances/article/view/300",
+    "attribution": "Chester Sellers & Claudia Espinoza (2017). Publicación de contaminantes atmosféricos de la estación de monitoreo de la ciudad de Cuenca, utilizando servicios estándares OGC. ACI Avances en Ciencias e Ingenierías · USFQ PRESS. DOI 10.18272/aci.v9i15.300. CC BY 3.0. English adapted by Habla Ecuador.",
+    "parallel_status": "aligned",
+    "alignment_score": null,
+    "alignment_review": "Two selected source sentences manually compared with the published English abstract; editorial output is separately labeled.",
+    "review_status": "approved",
+    "translation_review_status": "subject-expert review pending",
+    "role": "translation-memory",
+    "ingested": true,
+    "sentence_pairs": 2,
+    "source_sha256": "01a3f975108b31be0fb0491a02da902e886c6f72fc0def97f62b5308532c8207",
+    "changes": "Two nonconsecutive abstract sentences selected; English edited for clarity and source fidelity. This is an excerpt, not the full abstract. Subject-expert review pending.",
+    "reviewed_at": "2026-10-05",
+    "license_note": "The article copyright notice links CC BY 3.0; the older page footer links CC BY 4.0. Both are attribution licenses; retain the article-specific 3.0 notice."
+  },
+  {
+    "source_id": "aci-3736-ethylene",
+    "source_url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/view/3736",
+    "alternative_version_url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/3736/5036",
+    "review_status": "quarantined",
+    "ingested": false,
+    "role": "candidate",
+    "reviewed_at": "2026-10-05",
+    "reason": "The article landing page states CC BY-NC 4.0, while the HTML version states CC BY 4.0. No text admitted until the applicable item license is clarified."
+  }
+]

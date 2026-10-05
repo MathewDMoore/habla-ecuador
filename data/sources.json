@@ -75,5 +75,12 @@
     "kind": "Lexicographic methodology",
     "url": "https://www.academiaecuatorianadelalengua.org/elaboracion-de-un-diccionario-regional-descriptivo-contrastivo-por-dona-valeria-guzman/",
     "use": "Documents AEL's evidence workflow: CORPHA first, then additional Ecuadorian sources when corpus evidence is insufficient. Use as a model for Habla Ecuador verification."
+  },
+  {
+    "id": "sellers-espinoza-2017-cuenca-air-quality",
+    "name": "Cuenca air-quality research — Sellers & Espinoza (2017)",
+    "kind": "Ecuadorian bilingual scientific reference",
+    "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087",
+    "use": "Two credited Spanish/English abstract sentence pairs power local research-reference retrieval. CC BY 3.0; English is editorially adapted, with subject-expert review pending. Source metadata and license evidence are in data/research-source-manifest.json."
   }
 ]

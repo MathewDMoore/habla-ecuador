@@ -1,0 +1,59 @@
+const fs=require('node:fs');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+const path=require('node:path');
+const root=path.join(__dirname,'..');
+let calls=0;
+const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
+ localStorage:{getItem:()=>null,setItem(){}},
+ document:{addEventListener(){},createElement:()=>({set innerHTML(value){this.value=value;}})},
+ fetch:async()=>{calls++;return {ok:true,json:async()=>({responseStatus:200,responseData:{translatedText:'General draft.'}})};}
+});
+vm.runInContext(fs.readFileSync(path.join(root,'research-reference.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context);
+const run=code=>vm.runInContext(code,context);
+async function main(){
+ run('translationPurpose="academic";sourceLanguage="es-EC";targetLanguage="en-US";direction="ec-en";');
+ const source=run('ECUADOR_RESEARCH_REFERENCE.sentences.map(item=>item.es).join("\\n\\n")');
+ context.sample=source;
+ const translated=await run('requestGeneralTranslation(sample)');
+ assert.equal(calls,0,'approved sample stays local');
+ assert.equal(translated.split('\n\n').length,2);
+ assert.ok(translated.includes('Cuenca'));
+ assert.ok(translated.includes('buen vivir (well-being)'));
+ assert.ok(translated.includes('control and mitigate'));
+ assert.ok(!/cures|improves health|proves|Mexico|Bolivia|petitions/i.test(translated));
+ assert.equal(run('findAcademicReference(sample).reference.id'),'sellers-espinoza-2017-cuenca-air-quality');
+ for(const text of [source.replace('cuencanos','quiteños'),source.replace('gravemente','levemente'),source+' (Smith, 2024)',source+'\n\nTexto nuevo.']){
+  context.changed=text;
+  assert.equal(run('findAcademicReference(changed)'),null,'changed facts cannot use remembered output');
+ }
+ for(const item of run('ECUADOR_RESEARCH_REFERENCE.sentences')){
+  context.sentence=item.es.replace(/ /g,'\n');
+  assert.equal(run('findAcademicReference(sentence).text'),item.en,'PDF line wrapping preserves exact source');
+  assert.notEqual(item.en,item.publishedEnglish,'editorial English is distinguished from the publication');
+ }
+ context.heading='Resumen:\n'+run('ECUADOR_RESEARCH_REFERENCE.sentences[0].es');
+ assert.ok(run('findAcademicReference(heading).text').startsWith('Abstract\n'));
+ run('targetLanguage="en-GB";');
+ assert.equal(await run('requestGeneralTranslation(sample)'),translated,'this excerpt has no forced regional rewrite');
+ run('translationPurpose="everyday";');
+ await run('requestGeneralTranslation(sample)');
+ assert.equal(calls,1,'academic memory does not leak into everyday translation');
+ const manifest=JSON.parse(fs.readFileSync(path.join(root,'data/research-source-manifest.json'),'utf8'));
+ const approved=manifest.find(item=>item.source_id==='sellers-espinoza-2017-cuenca-air-quality');
+ assert.equal(approved.review_status,'approved');
+ assert.equal(approved.license_code,'CC-BY-3.0');
+ assert.equal(approved.role,'translation-memory');
+ assert.ok(approved.source_sha256.match(/^[0-9a-f]{64}$/));
+ const held=manifest.find(item=>item.source_id==='aci-3736-ethylene');
+ assert.equal(held.review_status,'quarantined');
+ assert.equal(held.ingested,false);
+ for(const name of ['index.html','translator.html']){
+  const html=fs.readFileSync(path.join(root,name),'utf8');
+  assert.equal((html.match(/id="load-ecuador-research-reference"/g)||[]).length,1);
+  assert.ok(html.includes('selected excerpt · CC BY 3.0'));
+ }
+ console.log('Ecuadorian research checks passed: source fidelity, local retrieval, context isolation, attribution, license filtering and changed-input rejection.');
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

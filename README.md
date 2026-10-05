@@ -47,3 +47,7 @@ The nine initial sunrise/sunset items came from MITAD material supplied by the p
 ## Research reference (v0.21.1 · build 48)
 
 Research mode includes a local editorial reference for the paired Escalante (2017) abstract supplied by Mathew. It applies contextual pragmatics terminology to general Spanish-to-English research drafts and provides a “Try the reference abstract” button. This adds reference retrieval and translation rules; it does not fine-tune the free translation service. See [the reference and fidelity notes](docs/RESEARCH_ABSTRACT_REFERENCE.md).
+
+## Ecuadorian research reference (v0.22.2 · build 54)
+
+Research mode also includes two attributed Spanish/English abstract passages from Sellers and Espinoza (2017), a Cuenca air-quality study published by USFQ PRESS. “Try Ecuadorian research” loads the selected excerpt; exact matches use local editorial English, keep buen vivir visible, and show the source and CC BY 3.0 credit. See `data/research-source-manifest.json` and the [research-source registry](docs/research-translation-sources.md) for licensing, modifications, and quarantined candidates. This is reference retrieval, not model fine-tuning or a held-out benchmark.

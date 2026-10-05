@@ -7,8 +7,8 @@ Updated October 5, 2026 UTC (October 4 in Wyoming).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.1, build 53; continue from these root files.
-- The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the build 53 source. It was inspected, not rewritten or synchronized during this update.
+- Current source: v0.22.2, build 54; continue from these root files.
+- The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
 
@@ -26,6 +26,10 @@ Ecuadorian-first phrases, evidence-backed vocabulary and Ecuador/Bolivia compari
 - Ecuadorian library rewrites are limited to the Ecuadorian conversation route; Mexican/Bolivian requests use the existing general engine.
 - Cache and script URLs identify build 53. No copied version archive, dependency, paid API, or new service was added.
 
+## Build 54
+
+Added two Spanish/English abstract sentence pairs from the licensed Sellers and Espinoza (2017) Cuenca air-quality paper to the local research translation memory. Research mode now has a “Try Ecuadorian research” sample alongside the Mexican reference. Matched excerpts stay local; changed facts fall back to the existing engine. Source credit and the CC BY 3.0 license appear with the result. English adaptations are distinguished from published English and still require subject-expert review. The source manifest records attribution, excerpt hash, license evidence and the quarantined newer ACI paper with conflicting licenses. No model was fine-tuned and these integrated examples are not a held-out benchmark.
+
 ## Verification
 
 Run:
@@ -34,15 +38,16 @@ Run:
 node --check app.js
 node tests/conversation.test.cjs
 node tests/research-reference.test.cjs
+node tests/ecuador-research.test.cjs
 git diff --check
 ```
 
-These passed before publication. Conversation tests simulate recognition events and delayed translation responses, including cross-language transcripts, locale changes, stale events, final playback, clearing, and saved-edit isolation. Research tests check fidelity, terminology, citations, source-context isolation, chunking, and both English variants. The old research test's build-48 URL assertions were replaced with current script-order/cache checks.
+These passed before publication. Conversation tests simulate recognition events and delayed translation responses, including cross-language transcripts, locale changes, stale events, final playback, clearing, and saved-edit isolation. Research tests check fidelity, terminology, citations, source-context isolation, chunking, both English variants, licensed Ecuadorian retrieval, and changed-input rejection. The old research test's build-48 URL assertions were replaced with current script-order/cache checks.
 
 Physical iPhone microphone and voice testing is still outstanding. No claim of live bilingual recognition, native Ecuadorian voices, or offline general translation follows from simulated tests. The browser still recognizes speech using one selected locale; language detection routes the transcript it returns, so recognition quality when the speaker changes language must be checked on-device.
 
 ## Next concrete step
 
-Run a short iPhone regression on the deployed standalone translator: final/interim dictation, quick speaker switching, Spanish spoken under the English speaker, selected Mexico/Bolivia and US/UK voices, clearing while a response is pending, and edited translations after reload/flip. Use observed failures for the next fix. Do not rebuild completed screens or treat the old ChatGPT Site as current source.
+Run a short iPhone regression on the deployed standalone translator: final/interim dictation, quick speaker switching, Spanish spoken under the English speaker, selected Mexico/Bolivia and US/UK voices, clearing while a response is pending, edited translations after reload/flip, and the Research mode Ecuadorian excerpt. Use observed failures for the next fix. Do not rebuild completed screens or treat the old ChatGPT Site as current source.
 
 Keep the public static GitHub Pages route and no-build architecture. Use a single commit for a release; avoid repeated full-directory archives and their redundant deployment runs. Git history already preserves source revisions.

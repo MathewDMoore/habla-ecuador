@@ -131,6 +131,20 @@ The source explicitly publishes the taxonomy in open semantic formats for reuse.
   - exclude **NoDerivatives (ND)** material from training or adaptation;
   - never imply WHO endorsement.
 
+### 10. Ecuadorian university research — per-item filtering; first sample integrated
+
+USFQ's ACI Avances en Ciencias e Ingenierías publishes scientific material in Spanish and English. Check each article and version: its current journal policy does not establish the license of every older paper or HTML/PDF version.
+
+- **Integrated:** Sellers and Espinoza (2017), Cuenca air-quality monitoring, DOI `10.18272/aci.v9i15.300`. The article's copyright notice links **CC BY 3.0**; its older footer links CC BY 4.0. Both permit attribution-based adaptation. Retain the article-specific CC BY 3.0 notice.
+- Published Spanish and English abstract text: https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087
+- License evidence: https://revistas.usfq.edu.ec/index.php/avances/article/view/300
+- Only two nonconsecutive abstract sentences are included, alongside their published English and separate editorial English. They are labeled as an excerpt, not the complete abstract. Regional context is Cuenca, Ecuador; scientific register is preserved. No slang is injected, and buen vivir remains visible rather than being reduced to a causal health claim.
+- The sample powers **local translation memory** in Research mode. It is not model fine-tuning and is not held out for unbiased evaluation. Changed facts or unmatched passages cannot retrieve its remembered output.
+- Source, authors, title, DOI, license, attribution, modifications, review status, and the source-excerpt SHA-256 are stored in `data/research-source-manifest.json`. Subject-expert review of the editorial English is pending.
+- **Quarantined:** ACI article 3736 (2026), ethylene production in Ecuador. Its landing page says CC BY-NC 4.0 while its HTML version says CC BY 4.0. No article text was ingested; the manifest records this disagreement. Other ACI articles need the same item-level check.
+
+This small sample adds no external service, paid translation API, downloaded corpus, or copied version archive. A later corpus intake must follow the gate below and keep large downloads outside GitHub.
+
 ## Proposed ingestion gate
 
 Every candidate record must have all of these fields before entering the usable corpus:

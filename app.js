@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.1 · build 53";
+const APP_VERSION = "0.22.2 · build 54";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -752,8 +752,8 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
 
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage}={}) {
   if (purpose === "academic" && way === "ec-en") {
-    const reference = findPragmaticsReference(text);
-    if (reference !== null) return convertEnglishVariety(reference,target);
+    const reference = findAcademicReference(text);
+    if (reference !== null) return convertEnglishVariety(reference.text,target);
   }
   if (purpose !== "academic" || text.length <= 430) {
     const translated = await requestTranslationChunk(text, way, purpose);
@@ -977,7 +977,7 @@ async function renderTranslation() {
       const translated = await requestGeneralTranslation(embeddedSlang.text);
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0});
-      const referenceMatch = translationPurpose === "academic" && direction === "ec-en" && findPragmaticsReference(sourceText) !== null;
+      const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
         : targetLanguage === "es-BO" || targetLanguage === "es-MX"
@@ -988,7 +988,9 @@ async function renderTranslation() {
         : `General draft · ${regionalReview}`;
       $("#usage-note").innerHTML = translationPurpose === "academic"
         ? referenceMatch
-          ? `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
+          ? referenceMatch.reference.id === ECUADOR_RESEARCH_REFERENCE.id
+            ? `<strong>Ecuadorian research excerpt · expert review pending</strong><span>${escapeHtml(ECUADOR_RESEARCH_REFERENCE.authors.join(" & "))} (2017) · Cuenca · ${escapeHtml(ECUADOR_RESEARCH_REFERENCE.journal)}. Two selected abstract sentences stay local. English is an editorial adaptation; scientific meaning and buen vivir are retained. <a href="${ECUADOR_RESEARCH_REFERENCE.url}" target="_blank" rel="noopener">${escapeHtml(ECUADOR_RESEARCH_REFERENCE.title)} · DOI ${ECUADOR_RESEARCH_REFERENCE.doi}</a> · <a href="${ECUADOR_RESEARCH_REFERENCE.licenseUrl}" target="_blank" rel="noopener">CC BY 3.0</a>.</span>`
+            : `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
       const embeddedEntry = embeddedSlang.entries[0];
@@ -1729,6 +1731,15 @@ function init() {
     $("#translator-input").value = PRAGMATICS_REFERENCE.sourceEs + "\n\n" + PRAGMATICS_REFERENCE.sentences[4].es;
     renderTranslation();
   });
+  $("#load-ecuador-research-reference")?.addEventListener("click", () => {
+    sourceLanguage = "es-EC";
+    if (languageFamily(targetLanguage) !== "en") targetLanguage = "en-US";
+    preservedCulturalContext = null;
+    syncLanguagePair();
+    setTranslationPurpose("academic",false);
+    $("#translator-input").value = ECUADOR_RESEARCH_REFERENCE.sentences.map(item => item.es).join("\n\n");
+    renderTranslation();
+  });
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent,targetSpeechLocale()));
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
@@ -1782,7 +1793,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=53").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=54").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

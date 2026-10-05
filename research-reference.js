@@ -95,3 +95,64 @@ function refinePragmaticsTerminology(text, source) {
       : replacement), text);
 }
 
+// Small, attributed translation memory. Published English is retained separately
+// from our editorial draft; these examples are not a held-out evaluation set.
+const ECUADOR_RESEARCH_REFERENCE = {
+  id:"sellers-espinoza-2017-cuenca-air-quality",
+  authors:["Chester Sellers", "Claudia Espinoza"],
+  title:"Publicación de contaminantes atmosféricos de la estación de monitoreo de la ciudad de Cuenca, utilizando servicios estándares OGC",
+  year:2017,
+  doi:"10.18272/aci.v9i15.300",
+  url:"https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087",
+  licenseEvidenceUrl:"https://revistas.usfq.edu.ec/index.php/avances/article/view/300",
+  licenseCode:"CC-BY-3.0",
+  licenseUrl:"https://creativecommons.org/licenses/by/3.0/",
+  journal:"ACI Avances en Ciencias e Ingenierías · USFQ PRESS",
+  sourceLanguage:"es-EC",
+  region:"Cuenca, Ecuador",
+  discipline:"Environmental monitoring",
+  reviewedAt:"2026-10-05",
+  role:"translation-memory",
+  changes:"Two nonconsecutive abstract sentences selected; English edited for clarity and source fidelity. This is an excerpt, not the full abstract. Subject-expert review pending.",
+  terminology:[
+    {es:"gestión ambiental",en:"environmental management"},
+    {es:"toma de decisiones",en:"decision-making"},
+    {es:"buen vivir",en:"buen vivir (well-being)",note:"Keep the source's Ecuadorian concept visible; do not turn it into a causal health claim."}
+  ],
+  sentences:[
+    {
+      es:"La contaminación del aire amenaza gravemente a la salud humana y el ambiente, requiriendo acciones para el control y mitigación de sus impactos.",
+      publishedEnglish:"Air pollution is a threat to human health and the environment. It requires taking action in control and mitigation of impacts.",
+      en:"Air pollution seriously threatens human health and the environment, requiring action to control and mitigate its impacts."
+    },
+    {
+      es:"Esta plataforma es una herramienta válida para la gestión ambiental y la toma de decisiones para el buen vivir de los cuencanos.",
+      publishedEnglish:"This platform is a valid tool for environmental management and decision making contributing to the \"buen vivir” (well-being) of Cuenca.",
+      en:"This platform is a useful tool for environmental management and decision-making in support of buen vivir (well-being) for the people of Cuenca."
+    }
+  ]
+};
+
+function findEcuadorResearchReference(text) {
+  const parts = text.trim().split(/(\n\s*\n)/);
+  const translated = [];
+  for (let part of parts) {
+    if (/^\n\s*\n$/.test(part)) { translated.push(part); continue; }
+    let heading = "";
+    if (/^Resumen\s*(?:\n|:)/i.test(part)) {
+      heading = "Abstract\n";
+      part = part.replace(/^Resumen\s*(?:\n|:)\s*/i, "");
+    }
+    const match = ECUADOR_RESEARCH_REFERENCE.sentences.find(item => researchReferenceKey(item.es) === researchReferenceKey(part));
+    // Never supply remembered claims for changed facts or an unmatched passage.
+    if (!match) return null;
+    translated.push(heading + match.en);
+  }
+  return {text:translated.join(""),reference:ECUADOR_RESEARCH_REFERENCE};
+}
+
+function findAcademicReference(text) {
+  const mexican = findPragmaticsReference(text);
+  if (mexican !== null) return {text:mexican,reference:PRAGMATICS_REFERENCE};
+  return findEcuadorResearchReference(text);
+}
