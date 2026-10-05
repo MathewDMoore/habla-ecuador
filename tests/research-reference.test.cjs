@@ -60,10 +60,13 @@ async function main() {
   for (const file of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,file),'utf8');
     assert.equal((html.match(/value="es-MX"/g)||[]).length,2,'Mexico appears on both sides');
-    assert.ok(html.indexOf('research-reference.js?v=48')<html.indexOf('app.js?v=48'));
+    const referenceIndex=html.search(/research-reference\.js\?v=[^"']+/);
+    const appIndex=html.search(/app\.js\?v=[^"']+/);
+    assert.ok(referenceIndex >= 0 && appIndex > referenceIndex, 'reference loads before the app');
     assert.equal((html.match(/id="load-research-reference"/g)||[]).length,1);
   }
-  assert.ok(fs.readFileSync(path.join(root,'sw.js'),'utf8').includes('research-reference.js?v=48'));
+  const referenceUrl=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/research-reference\.js\?v=[^"']+/)[0];
+  assert.ok(fs.readFileSync(path.join(root,'sw.js'),'utf8').includes(referenceUrl));
   console.log('Research reference checks passed: fidelity, variants, context isolation, fallback, citations, chunking, and input controls.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

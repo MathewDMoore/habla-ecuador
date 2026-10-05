@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.0 · build 52";
+const APP_VERSION = "0.22.1 · build 53";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -232,6 +232,7 @@ let lessonStep = 1;
 let selectedChoice = "";
 let turns = [];
 let liveConversationTurn = null;
+let conversationGeneration = 0;
 let recognition = null;
 let evidenceFilter = "all";
 let expressionFilter = "all";
@@ -547,17 +548,18 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText}={}) {
+function startListening({way=direction, lang, button, onText, onEnd}={}) {
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
 
   if (recognition) {
     if (activeRecognitionButton === button) return stopListening();
-    try { recognition.abort(); } catch {}
-    recognition = null;
-    setListeningButton(activeRecognitionButton, false);
-    activeRecognitionButton = null;
+    cancelListening(true);
   }
+
+  // Do not let an older playback enter this microphone recording.
+  speechRequestId += 1;
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
 
   const instance = new Recognition();
   recognition = instance;
@@ -566,23 +568,39 @@ function startListening({way=direction, lang, button, onText}={}) {
   instance.interimResults = true;
   instance.continuous = false;
   instance.maxAlternatives = 1;
+  let latestText = "";
+  let committed = false;
+  instance.commitTranscript = (provisional=false) => {
+    if (recognition !== instance || committed || !latestText) return;
+    committed = true;
+    onText?.(latestText, true, {provisional});
+    if (provisional) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
+  };
 
-  instance.onstart = () => setListeningButton(button, true);
-  instance.onspeechstart = () => setListeningButton(button, true);
+  instance.onstart = () => { if (recognition === instance) setListeningButton(button, true); };
+  instance.onspeechstart = instance.onstart;
   instance.onresult = event => {
-    const rawText = [...event.results].map(result => result[0].transcript).join(" ").trim();
-    const isFinal = event.results[event.results.length-1].isFinal;
+    if (recognition !== instance || committed || !event.results.length) return;
+    const results = Array.from(event.results);
+    const rawText = results.map(result => result[0].transcript).join(" ").trim();
+    const isFinal = results.every(result => result.isFinal);
     const correction = correctSpeechRecognitionTranscript(rawText, instance.lang);
+    latestText = correction.text;
     if (isFinal && correction.corrected) showToast(correction.reason);
-    if (correction.text) onText?.(correction.text, isFinal);
+    if (isFinal) instance.commitTranscript();
+    else if (latestText) onText?.(latestText, false);
   };
   instance.onerror = event => {
+    if (recognition !== instance) return;
     if (event.error !== "aborted") showToast(recognitionErrorMessage(event.error));
   };
   instance.onend = () => {
+    if (recognition !== instance) return;
+    instance.commitTranscript(true);
     setListeningButton(button, false);
-    if (recognition === instance) recognition = null;
-    if (activeRecognitionButton === button) activeRecognitionButton = null;
+    recognition = null;
+    activeRecognitionButton = null;
+    onEnd?.();
   };
 
   try {
@@ -594,6 +612,16 @@ function startListening({way=direction, lang, button, onText}={}) {
     activeRecognitionButton = null;
     showToast("The microphone could not start. Please tap it again.");
   }
+}
+
+function cancelListening(preserveTranscript=false) {
+  if (!recognition) return;
+  const instance = recognition;
+  if (preserveTranscript) instance.commitTranscript?.(true);
+  recognition = null;
+  setListeningButton(activeRecognitionButton, false);
+  activeRecognitionButton = null;
+  try { instance.abort(); } catch {}
 }
 
 function stopListening() {
@@ -706,9 +734,9 @@ function convertEnglishVariety(text, target=targetLanguage) {
   }),text);
 }
 
-async function requestTranslationChunk(text, way=direction) {
+async function requestTranslationChunk(text, way=direction, purpose=translationPurpose) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
-  const protectedText = translationPurpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
+  const protectedText = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12000);
   try {
@@ -722,15 +750,15 @@ async function requestTranslationChunk(text, way=direction) {
   }
 }
 
-async function requestGeneralTranslation(text, way=direction) {
-  if (translationPurpose === "academic" && way === "ec-en") {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage}={}) {
+  if (purpose === "academic" && way === "ec-en") {
     const reference = findPragmaticsReference(text);
-    if (reference !== null) return convertEnglishVariety(reference,targetLanguage);
+    if (reference !== null) return convertEnglishVariety(reference,target);
   }
-  if (translationPurpose !== "academic" || text.length <= 430) {
-    const translated = await requestTranslationChunk(text, way);
-    const refined = translationPurpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated,text) : translated;
-    return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
+  if (purpose !== "academic" || text.length <= 430) {
+    const translated = await requestTranslationChunk(text, way, purpose);
+    const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated,text) : translated;
+    return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
   }
   if (text.length > 8000) throw new Error("research text exceeds free prototype limit");
   const protectedDocument = protectResearchTokens(text);
@@ -738,12 +766,12 @@ async function requestGeneralTranslation(text, way=direction) {
   if (chunks.filter(chunk => !chunk.separator).length > 20) throw new Error("research text requires too many translation segments");
   const translated = [];
   for (const chunk of chunks) {
-    translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way));
+    translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way, purpose));
   }
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? ` ${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
   const refined = way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
-  return languageFamily(targetLanguage) === "en" ? convertEnglishVariety(refined,targetLanguage) : refined;
+  return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
 }
 
 
@@ -1101,42 +1129,87 @@ function startConversation(role, button) {
   startListening(conversationOptions(role, button));
 }
 
+function conversationLocales() {
+  const pair = [targetLanguage, sourceLanguage];
+  return {
+    spanish:pair.find(code => languageFamily(code) === "es") || "es-EC",
+    english:pair.find(code => languageFamily(code) === "en") || (englishVariant === "uk" ? "en-GB" : "en-US")
+  };
+}
+
 function conversationOptions(role, button) {
   const way = role === "spanish" ? "ec-en" : "en-ec";
   const name = speakerName(role);
   const expectedLanguage = role === "spanish" ? "Spanish" : "English";
+  const locales = conversationLocales();
+  const generation = conversationGeneration;
+  const firstTurnIndex = turns.length;
   $("#conversation-status").textContent = `Listening to ${name} · ${expectedLanguage} expected, either language accepted…`;
-  return {way, button, onText:(text, final) => handleConversationText(role, name, text, final)};
+  return {
+    way, lang:locales[role], button,
+    onText:(text, final, metadata) => handleConversationText(role, name, text, final, {...metadata,locales}),
+    onEnd:() => {
+      if (generation === conversationGeneration && turns.length > firstTurnIndex) finishConversationTurn(turns[turns.length-1]);
+    }
+  };
 }
 
-async function handleConversationText(expectedRole, speaker, text, final) {
+function finishConversationTurn(turn) {
+  if (!turn || turn.pending || recognition || liveConversationTurn || turns[turns.length-1] !== turn || turn.finished) return;
+  turn.finished = true;
+  if (!turn.provisional && !turn.failed) say(turn.translation, turn.target);
+  $("#conversation-status").textContent = turn.failed
+    ? "Translation is temporarily unavailable, but your dictated text is still shown above."
+    : `${turn.languageLabel}${turn.switched ? " · role language overridden correctly" : ""} · translation complete.`;
+}
+
+async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales()}={}) {
+  const generation = conversationGeneration;
   const detectedFamily = detectConversationLanguage(text, expectedRole);
   const actualRole = detectedFamily === "es" ? "spanish" : "english";
   const way = actualRole === "spanish" ? "ec-en" : "en-ec";
-  const languageLabel = detectedFamily === "es" ? "Spanish detected" : "English detected";
+  const languageLabel = `${detectedFamily === "es" ? "Spanish detected" : "English detected"}${provisional ? " · transcript needs checking" : ""}`;
   const switched = actualRole !== expectedRole;
   liveConversationTurn = {role:actualRole,speaker,source:text,translation:final ? "Translating…" : "Listening…",languageLabel,pending:true};
   renderTurns();
   $("#conversation-status").textContent = `${languageLabel}${switched ? " · translation direction switched automatically" : ""}: ${text}`;
   if (!final) return;
 
-  const turn = {role:actualRole,speaker,source:text,translation:"Translating…",languageLabel,pending:true};
+  const target = way === "en-ec" ? locales.spanish : locales.english;
+  const turn = {role:actualRole,speaker,source:text,translation:"Translating…",languageLabel,pending:true,target,provisional,switched};
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
-  const phrase = matchPhrase(text, way);
+  const phrase = locales.spanish === "es-EC" ? matchPhrase(text, way) : null;
   try {
-    turn.translation = phrase ? translatedText(phrase, way) : await requestGeneralTranslation(text, way);
+    turn.translation = phrase
+      ? way === "en-ec" ? phrase.natural : (locales.english === "en-GB" ? phrase.uk : phrase.us) || phrase.en
+      : await requestGeneralTranslation(text, way, {purpose:"everyday",target});
+    if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
     renderTurns();
-    say(turn.translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
-    $("#conversation-status").textContent = `${languageLabel}${switched ? " · role language overridden correctly" : ""} · translation complete.`;
+    // Earlier turns may finish out of order. Keep their text without interrupting
+    // a newer speaker or replacing the current turn's status.
+    finishConversationTurn(turn);
   } catch {
+    if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.translation = "Translation is temporarily unavailable. Your dictated text was preserved.";
     turn.pending = false;
+    turn.failed = true;
     renderTurns();
-    $("#conversation-status").textContent = "Translation is temporarily unavailable, but your dictated text is still shown above.";
+    finishConversationTurn(turn);
   }
+}
+
+function clearConversation() {
+  conversationGeneration += 1;
+  cancelListening();
+  speechRequestId += 1;
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  turns = [];
+  liveConversationTurn = null;
+  renderTurns();
+  $("#conversation-status").textContent = "Conversation cleared. Nothing was stored.";
 }
 
 async function loadEvidence() {
@@ -1679,7 +1752,7 @@ function init() {
     }
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
-  $("#clear-conversation").addEventListener("click", () => { turns = []; liveConversationTurn = null; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
+  $("#clear-conversation").addEventListener("click", clearConversation);
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
     expressionFilter = button.dataset.expressionFilter;
@@ -1709,7 +1782,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=49r1").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=53").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
