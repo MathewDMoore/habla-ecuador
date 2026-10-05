@@ -7,7 +7,7 @@ Updated October 5, 2026 UTC (October 4 in Wyoming).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.3, build 55; continue from these root files.
+- Current source: v0.22.4, build 56; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -36,6 +36,10 @@ Expanded the Ecuadorian research memory from one paper/two pairs to three papers
 
 Both translator screens now have an accessible Ecuadorian sample selector. Result attribution follows the actual matched paper. Selected passages can match as one paragraph or separate paragraphs, while changed counts/dates and mixed-paper passages reject local retrieval. Editing, English variants and the Mexican reference retain their existing behavior. No paid service, dependency, archived project copy or model training was added.
 
+## Build 56
+
+Added Pause/Resume beside Hear it and in Conversation mode for synthesized translation playback. The controls track a playback request, including the short voice-loading delay; end/error disables them. Replacement playback, microphone start, conversation clearing and rhythm drills reset the paused synthesizer. Late events from canceled utterances cannot change the current controls. Existing speech voice selection, rate and language behavior are preserved. The browser SpeechSynthesis pause/resume API is used without a paid service or dependency. Real iPhone pause/resume behavior still needs on-device checking.
+
 ## Verification
 
 Run:
@@ -43,6 +47,7 @@ Run:
 ```sh
 node --check app.js
 node tests/conversation.test.cjs
+node tests/speech-playback.test.cjs
 node tests/research-reference.test.cjs
 node tests/ecuador-research.test.cjs
 git diff --check

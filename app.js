@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.3 · build 55";
+const APP_VERSION = "0.22.4 · build 56";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -249,6 +249,7 @@ let translationEdits = readTranslationEdits();
 let preservedCulturalContext = null;
 let speechVoices = [];
 let speechRequestId = 0;
+let activeSpeechPlayback = null;
 const REVIEW_STORAGE_KEY = "habla-ecuador-review-v1";
 const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
 const SPEAKER_NAMES_STORAGE_KEY = "habla-ecuador-speaker-names-v1";
@@ -480,10 +481,51 @@ function speechProfile(text, lang="es-EC") {
   return profile;
 }
 
+function updateSpeechPauseControls() {
+  const supported = "speechSynthesis" in window
+    && typeof speechSynthesis.pause === "function" && typeof speechSynthesis.resume === "function";
+  for (const selector of ["#pause-result", "#pause-conversation"]) {
+    const button = $(selector);
+    if (!button) continue;
+    const paused = !!activeSpeechPlayback?.paused;
+    button.disabled = !supported || !activeSpeechPlayback;
+    button.textContent = paused ? "▶ Resume" : "⏸ Pause";
+    button.setAttribute("aria-label", paused ? "Resume spoken translation" : "Pause spoken translation");
+    button.setAttribute("aria-pressed", String(paused));
+  }
+}
+
+function stopSpeechPlayback() {
+  speechRequestId += 1;
+  activeSpeechPlayback = null;
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+    // cancel() leaves the global synthesizer paused; clear it for the next voice.
+    speechSynthesis.resume?.();
+  }
+  updateSpeechPauseControls();
+}
+
+function toggleSpeechPause() {
+  if (!activeSpeechPlayback || typeof speechSynthesis.pause !== "function"
+      || typeof speechSynthesis.resume !== "function") return;
+  activeSpeechPlayback.paused = !activeSpeechPlayback.paused;
+  if (activeSpeechPlayback.paused) speechSynthesis.pause();
+  else speechSynthesis.resume();
+  updateSpeechPauseControls();
+}
+
 function say(text, lang="es-EC") {
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
-  const requestId = ++speechRequestId;
-  speechSynthesis.cancel();
+  stopSpeechPlayback();
+  const requestId = speechRequestId;
+  activeSpeechPlayback = {requestId, paused:false};
+  updateSpeechPauseControls();
+  const finish = () => {
+    if (requestId !== speechRequestId) return;
+    activeSpeechPlayback = null;
+    updateSpeechPauseControls();
+  };
   const speakWithFreshVoice = (attempt=0) => {
     if (requestId !== speechRequestId) return;
     refreshSpeechVoices();
@@ -493,6 +535,7 @@ function say(text, lang="es-EC") {
     }
     const target = voiceForLanguage(lang);
     if (!target) {
+      finish();
       const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
       showToast(`${label} speech is unavailable on this device.`);
       return;
@@ -504,7 +547,17 @@ function say(text, lang="es-EC") {
     utterance.rate = profile.rate;
     utterance.pitch = profile.pitch;
     utterance.volume = profile.volume;
+    utterance.onend = finish;
+    const syncPause = () => {
+      if (requestId !== speechRequestId || !activeSpeechPlayback) return;
+      activeSpeechPlayback.paused = speechSynthesis.paused;
+      updateSpeechPauseControls();
+    };
+    utterance.onpause = syncPause;
+    utterance.onresume = syncPause;
     utterance.onerror = event => {
+      if (requestId !== speechRequestId) return;
+      finish();
       if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
     };
     document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(target.lang);
@@ -558,8 +611,7 @@ function startListening({way=direction, lang, button, onText, onEnd}={}) {
   }
 
   // Do not let an older playback enter this microphone recording.
-  speechRequestId += 1;
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  stopSpeechPlayback();
 
   const instance = new Recognition();
   recognition = instance;
@@ -1206,8 +1258,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
 function clearConversation() {
   conversationGeneration += 1;
   cancelListening();
-  speechRequestId += 1;
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  stopSpeechPlayback();
   turns = [];
   liveConversationTurn = null;
   renderTurns();
@@ -1402,9 +1453,8 @@ function renderLyricLines(lyrics, mode) {
 function playRhythmDrill(index, button) {
   const drill = rhythmDrills[index];
   if (!drill || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
-  speechRequestId += 1;
+  stopSpeechPlayback();
   const requestId = speechRequestId;
-  speechSynthesis.cancel();
   refreshSpeechVoices();
   const voice = voiceForLanguage("es-EC");
   if (!voice) return showToast("Spanish speech is unavailable on this device.");
@@ -1743,6 +1793,9 @@ function init() {
     renderTranslation();
   });
   $("#hear-result").addEventListener("click", () => say($("#natural-result").textContent,targetSpeechLocale()));
+  $("#pause-result")?.addEventListener("click", toggleSpeechPause);
+  $("#pause-conversation")?.addEventListener("click", toggleSpeechPause);
+  updateSpeechPauseControls();
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
   $("#natural-result").addEventListener("blur", saveActiveTranslationEdit);
@@ -1795,7 +1848,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=55").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=56").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

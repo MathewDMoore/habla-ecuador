@@ -8,9 +8,9 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=55">
-  <script src="research-reference.js?v=55" defer></script>
-  <script src="app.js?v=55" defer></script>
+  <link rel="stylesheet" href="styles.css?v=56">
+  <script src="research-reference.js?v=56" defer></script>
+  <script src="app.js?v=56" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +19,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.3 · build 55</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.4 · build 56</span></div>
     </header>
 
     <main>
@@ -113,6 +113,7 @@
           </div>
             <div class="result-actions">
               <button id="hear-result">🔊 Hear it</button>
+              <button id="pause-result" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
               <button id="copy-result">Copy</button>
               <button id="restore-translation" hidden>Restore generated</button>
             </div>
@@ -237,6 +238,7 @@
             <button class="speaker spanish-speaker push-to-talk" data-speaker-role="spanish" type="button" aria-label="Toca para grabar español; toca otra vez para terminar" data-idle-hint="Toca · habla español" data-active-hint="Escuchando… toca para terminar" data-finishing-hint="Terminando…"><span>🎙️</span><strong data-speaker-label="spanish">Maria</strong><small>Toca · habla español</small></button>
           </div>
           <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
+          <button id="pause-conversation" class="text-button speech-pause-button" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
           <div id="conversation-turns" class="turns"></div>
           <button id="clear-conversation" class="text-button">Clear this conversation</button>
         </div>

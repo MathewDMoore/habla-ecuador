@@ -409,3 +409,6 @@ button:disabled { cursor: default; }
   .speaker strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .speaker small { max-width: 100%; font-size: 10px; line-height: 1.3; text-align: center; }
 }
+
+.result-actions button:disabled, .speech-pause-button:disabled { opacity: .45; cursor: default; }
+.speech-pause-button { min-height: 44px; }
