@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.21.4 · build 51";
+const APP_VERSION = "0.22.0 · build 52";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -231,6 +231,7 @@ let voiceRate = readVoiceRate();
 let lessonStep = 1;
 let selectedChoice = "";
 let turns = [];
+let liveConversationTurn = null;
 let recognition = null;
 let evidenceFilter = "all";
 let expressionFilter = "all";
@@ -1073,9 +1074,27 @@ function showToast(message) {
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
+const SPANISH_CONVERSATION_HINTS = new Set(["a","al","algo","aqui","bien","como","con","cuando","de","del","despues","donde","el","ella","en","es","esta","estoy","gracias","hola","la","las","lo","los","me","mi","muy","no","para","pero","por","porque","que","quiero","se","si","soy","su","te","tengo","tu","un","una","vamos","voy","y","ya"]);
+const ENGLISH_CONVERSATION_HINTS = new Set(["a","after","am","and","are","around","because","but","can","do","going","good","hello","here","how","i","in","is","it","me","my","no","not","of","on","please","so","thank","that","the","there","this","to","want","we","what","when","where","with","yes","you","your"]);
+
+function detectConversationLanguage(text, expectedRole) {
+  const clean = normalize(text);
+  const words = clean.split(" ").filter(Boolean);
+  let spanishScore = words.filter(word => SPANISH_CONVERSATION_HINTS.has(word)).length;
+  let englishScore = words.filter(word => ENGLISH_CONVERSATION_HINTS.has(word)).length;
+  if (/[¿¡ñáéíóúü]/i.test(text)) spanishScore += 3;
+  if (words.some(word => /(?:ando|iendo|ción|ciones|mente)$/.test(word))) spanishScore += 2;
+  if (/\b(?:i'm|i've|don't|can't|won't|it's|you're|we're|they're)\b/i.test(text)) englishScore += 3;
+  if (spanishScore > englishScore) return "es";
+  if (englishScore > spanishScore) return "en";
+  return expectedRole === "spanish" ? "es" : "en";
+}
+
 function renderTurns() {
   const box = $("#conversation-turns");
-  box.innerHTML = turns.map(turn => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"}"><small>${escapeHtml(turn.speaker)}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation)}</p></article>`).join("");
+  const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
+  box.innerHTML = visibleTurns.map(turn => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small>${escapeHtml(turn.speaker)} · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p></article>`).join("");
+  box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
 
 function startConversation(role, button) {
@@ -1085,27 +1104,39 @@ function startConversation(role, button) {
 function conversationOptions(role, button) {
   const way = role === "spanish" ? "ec-en" : "en-ec";
   const name = speakerName(role);
-  $("#conversation-status").textContent = role === "spanish" ? `Escuchando a ${name} en español…` : `Listening to ${name} in English…`;
+  const expectedLanguage = role === "spanish" ? "Spanish" : "English";
+  $("#conversation-status").textContent = `Listening to ${name} · ${expectedLanguage} expected, either language accepted…`;
   return {way, button, onText:(text, final) => handleConversationText(role, name, text, final)};
 }
 
-async function handleConversationText(role, speaker, text, final) {
-  const way = role === "spanish" ? "ec-en" : "en-ec";
-  $("#conversation-status").textContent = `I heard: ${text}`;
-  if (!final) return;
-  const phrase = matchPhrase(text, way);
-  let translation;
-  if (phrase) {
-    translation = translatedText(phrase, way);
-  } else {
-    $("#conversation-status").textContent = "Translating…";
-    try { translation = await requestGeneralTranslation(text, way); }
-    catch { $("#conversation-status").textContent = "Translation is temporarily unavailable. Please check the connection and try again."; return; }
-  }
-  turns.push({role, speaker, source:text, translation});
+async function handleConversationText(expectedRole, speaker, text, final) {
+  const detectedFamily = detectConversationLanguage(text, expectedRole);
+  const actualRole = detectedFamily === "es" ? "spanish" : "english";
+  const way = actualRole === "spanish" ? "ec-en" : "en-ec";
+  const languageLabel = detectedFamily === "es" ? "Spanish detected" : "English detected";
+  const switched = actualRole !== expectedRole;
+  liveConversationTurn = {role:actualRole,speaker,source:text,translation:final ? "Translating…" : "Listening…",languageLabel,pending:true};
   renderTurns();
-  say(translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
-  $("#conversation-status").textContent = phrase ? "Ecuadorian-verified phrase translated and spoken." : "General translation spoken · Ecuadorian review pending.";
+  $("#conversation-status").textContent = `${languageLabel}${switched ? " · translation direction switched automatically" : ""}: ${text}`;
+  if (!final) return;
+
+  const turn = {role:actualRole,speaker,source:text,translation:"Translating…",languageLabel,pending:true};
+  liveConversationTurn = null;
+  turns.push(turn);
+  renderTurns();
+  const phrase = matchPhrase(text, way);
+  try {
+    turn.translation = phrase ? translatedText(phrase, way) : await requestGeneralTranslation(text, way);
+    turn.pending = false;
+    renderTurns();
+    say(turn.translation, way === "en-ec" ? "es-EC" : englishVariant === "uk" ? "en-GB" : "en-US");
+    $("#conversation-status").textContent = `${languageLabel}${switched ? " · role language overridden correctly" : ""} · translation complete.`;
+  } catch {
+    turn.translation = "Translation is temporarily unavailable. Your dictated text was preserved.";
+    turn.pending = false;
+    renderTurns();
+    $("#conversation-status").textContent = "Translation is temporarily unavailable, but your dictated text is still shown above.";
+  }
 }
 
 async function loadEvidence() {
@@ -1648,7 +1679,7 @@ function init() {
     }
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
-  $("#clear-conversation").addEventListener("click", () => { turns = []; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
+  $("#clear-conversation").addEventListener("click", () => { turns = []; liveConversationTurn = null; renderTurns(); $("#conversation-status").textContent = "Conversation cleared. Nothing was stored."; });
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
     expressionFilter = button.dataset.expressionFilter;
