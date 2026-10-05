@@ -1094,7 +1094,7 @@ function renderTurns() {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
   box.innerHTML = visibleTurns.map(turn => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small>${escapeHtml(turn.speaker)} · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p></article>`).join("");
-  box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"smooth"});
+  box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
 function startConversation(role, button) {
