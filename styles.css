@@ -415,3 +415,12 @@ button:disabled { cursor: default; }
 
 .speech-resume-note { margin: 7px 2px 0; color: #cfe4d8; font-size: 11px; line-height: 1.4; }
 #read-ecuador-paper { color: #463254; font-weight: 800; }
+
+.document-tools, .english-comparison { margin: 16px 0; padding: 16px; border: 1px solid #ddd5bd; border-radius: 16px; background: #fffaf0; }
+.document-tools p, .english-comparison p { font-size: .85rem; line-height: 1.5; }
+.document-tools button, .english-comparison button { padding: 10px 14px; margin: 4px 4px 4px 0; border: 1px solid #c8b983; border-radius: 12px; background: #fff; color: #214c3e; font-weight: 700; }
+.document-tools select { width: 100%; padding: 10px; margin: 8px 0; }
+.comparison-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.comparison-columns label { font-weight: 700; }
+.comparison-columns textarea { width: 100%; box-sizing: border-box; padding: 12px; margin-top: 8px; font: inherit; font-weight: normal; border: 1px solid #c8b983; border-radius: 12px; resize: vertical; }
+@media (max-width: 600px) { .comparison-columns { grid-template-columns: 1fr; } }

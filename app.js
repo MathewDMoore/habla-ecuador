@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.5 · build 57";
+const APP_VERSION = "0.22.6 · build 58";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -244,6 +244,11 @@ let reviewIndex = 0;
 let translationTimer = 0;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
+let documentImportActive = false;
+let documentLoading = false;
+let importedDocument = null;
+let documentImportRequest = 0;
+let comparisonContext = null;
 let activeTranslationEdit = null;
 let translationEdits = readTranslationEdits();
 let preservedCulturalContext = null;
@@ -1039,7 +1044,15 @@ function renderRegionalTranslation(sourceText,result,missing) {
   $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
 }
 
-async function renderTranslation() {
+async function renderTranslation({allowImported=false}={}) {
+  if (documentImportActive && !allowImported) {
+    translationRequest += 1;
+    $("#translation-result").hidden = true;
+    $("#no-result").hidden = true;
+    $("#english-comparison").hidden = true;
+    return;
+  }
+  $("#english-comparison") && ($("#english-comparison").hidden = true);
   const requestId = ++translationRequest;
   const sourceText = $("#translator-input").value.trim();
   const preservedEntry = direction === "en-ec"
@@ -1163,6 +1176,137 @@ function updateEcuadorResearchPaperLink() {
     link.href = reference.url;
     link.setAttribute("aria-label", `Read full paper: ${reference.title}`);
   }
+}
+
+function closeImportedDocument() {
+  documentImportRequest += 1;
+  documentImportActive = false;
+  documentLoading = false;
+  importedDocument = null;
+  const preview = $("#document-preview");
+  if (preview) preview.hidden = true;
+  if ($("#document-file")) $("#document-file").value = "";
+  if ($("#document-status")) $("#document-status").textContent = "";
+}
+
+function safeDocumentSections(text) {
+  return HablaDocument.sections(text).flatMap(section => {
+    if (section.length <= 430 || splitLongTranslationText(protectResearchTokens(section).text).filter(chunk => !chunk.separator).length <= 20) return [section];
+    return HablaDocument.sections(section, Math.ceil(section.length / 2)).flatMap(safeDocumentSections);
+  });
+}
+
+function selectDocumentSection(index) {
+  if (!importedDocument) return;
+  clearTimeout(translationTimer);
+  translationRequest += 1;
+  stopSpeechPlayback();
+  documentImportActive = true;
+  importedDocument.index = index;
+  $("#translator-input").value = importedDocument.sections[index];
+  $("#translation-result").hidden = true;
+  $("#no-result").hidden = true;
+  $("#english-comparison").hidden = true;
+  $("#document-status").textContent = `${importedDocument.name} · section ${index + 1} of ${importedDocument.sections.length} · ${importedDocument.total.toLocaleString()} characters imported. Preview only; click Translate this section when ready.`;
+  lastCompletedTranslation = null;
+  activeTranslationEdit = null;
+}
+
+function bindDocumentTools() {
+  if (!$("#choose-document")) return;
+  $("#choose-document").addEventListener("click", () => $("#document-file").click());
+  $("#document-file").addEventListener("change", async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const token = ++documentImportRequest;
+    clearTimeout(translationTimer);
+    translationRequest += 1;
+    stopSpeechPlayback();
+    documentImportActive = true;
+    documentLoading = true;
+    importedDocument = null;
+    $("#document-preview").hidden = false;
+    $("#document-section").replaceChildren();
+    $("#translate-document").disabled = true;
+    $("#translator-input").value = "";
+    $("#translation-result").hidden = true;
+    $("#english-comparison").hidden = true;
+    $("#document-status").textContent = `Reading ${file.name} on your device…`;
+    try {
+      const extracted = await HablaDocument.extract(file);
+      if (token !== documentImportRequest) return;
+      importedDocument = {name:file.name, sections:safeDocumentSections(extracted.text), index:0, total:extracted.text.length};
+      if (languageFamily(sourceLanguage) !== "es") sourceLanguage = "es-EC";
+      targetLanguage = "en-GB";
+      preservedCulturalContext = null;
+      syncLanguagePair();
+      setTranslationPurpose("academic", false);
+      const select = $("#document-section");
+      select.replaceChildren();
+      importedDocument.sections.forEach((text, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = `Section ${index + 1} of ${importedDocument.sections.length} · ${text.length.toLocaleString()} characters`;
+        select.append(option);
+      });
+      documentLoading = false;
+      $("#document-preview").hidden = false;
+      $("#translate-document").disabled = false;
+      selectDocumentSection(0);
+    } catch (error) {
+      if (token !== documentImportRequest) return;
+      documentLoading = false;
+      $("#document-status").textContent = error.message || "This document could not be read. Try saving a .docx copy in Word.";
+    } finally {
+      if (token === documentImportRequest) event.target.value = "";
+    }
+  });
+  $("#document-section").addEventListener("change", event => {
+    if (!importedDocument) return;
+    // Preserve source edits while moving between sections in this session.
+    importedDocument.sections[importedDocument.index] = $("#translator-input").value;
+    selectDocumentSection(Number(event.target.value));
+  });
+  $("#translate-document").addEventListener("click", async () => {
+    if (!importedDocument) return;
+    clearTimeout(translationTimer);
+    $("#document-status").textContent = `${importedDocument.name} · translating section ${importedDocument.index + 1} of ${importedDocument.sections.length}.`;
+    lastCompletedTranslation = null;
+    const document = importedDocument;
+    const index = document.index;
+    const text = $("#translator-input").value.trim();
+    await renderTranslation({allowImported:true});
+    if (importedDocument !== document || importedDocument.index !== index || $("#translator-input").value.trim() !== text) return;
+    $("#document-status").textContent = `${document.name} · section ${index + 1} of ${document.sections.length} · ${lastCompletedTranslation?.source === text ? "draft ready. Compare U.K. / U.S. English below, or choose the next section." : "translation did not finish. Review the message below and try again."}`;
+  });
+  $("#close-document").addEventListener("click", () => {
+    closeImportedDocument();
+    translationRequest += 1;
+    clearTimeout(translationTimer);
+    $("#translator-input").value = "";
+    renderTranslation();
+  });
+  $("#compare-english").addEventListener("click", () => {
+    const completed = lastCompletedTranslation;
+    if (!completed || completed.source !== $("#translator-input").value.trim() || completed.targetLanguage !== targetLanguage || completed.sourceLanguage !== sourceLanguage || languageFamily(completed.targetLanguage) !== "en") {
+      showToast("Translate a section into English first, then compare.");
+      return;
+    }
+    // Use the editable draft currently on screen; no second service request.
+    const draft = $("#natural-result").textContent;
+    comparisonContext = `comparison|${completed.sourceLanguage}|${completed.purpose}|${academicSourceFingerprint(completed.source)}`;
+    ["uk", "us"].forEach(variant => {
+      const generated = convertEnglishVariety(draft, variant === "uk" ? "en-GB" : "en-US");
+      const key = `${comparisonContext}|${variant}`;
+      $("#comparison-" + variant).value = translationEdits[key]?.text || generated;
+    });
+    $("#english-comparison").hidden = false;
+  });
+  ["uk", "us"].forEach(variant => $("#comparison-" + variant).addEventListener("input", event => {
+    if (!comparisonContext) return;
+    translationEdits[`${comparisonContext}|${variant}`] = {text:event.target.value, updatedAt:new Date().toISOString()};
+    persistTranslationEdits();
+  }));
 }
 
 function setTranslationPurpose(purpose, rerender=true) {
@@ -1800,6 +1944,7 @@ function init() {
     });
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
+  bindDocumentTools();
   syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
@@ -1823,6 +1968,17 @@ function init() {
     renderDictionary();
   });
   $("#translator-input").addEventListener("input", () => {
+    if (documentImportActive) {
+      translationRequest += 1;
+      lastCompletedTranslation = null;
+      $("#translation-result").hidden = true;
+      $("#english-comparison").hidden = true;
+    }
+    if (documentLoading) {
+      documentLoading = false;
+      documentImportRequest += 1;
+      $("#document-status").textContent = "Document reading cancelled because you changed the text. Choose the document again to import it.";
+    }
     if (preservedCulturalContext && normalize($("#translator-input").value) !== normalize(preservedCulturalContext.input)) preservedCulturalContext = null;
     clearTimeout(translationTimer);
     const local = translationPurpose === "academic" ? null : matchPhrase($("#translator-input").value);
@@ -1842,6 +1998,7 @@ function init() {
   }
   $$('[data-purpose]').forEach(button => button.addEventListener("click", () => setTranslationPurpose(button.dataset.purpose)));
   $("#load-research-reference")?.addEventListener("click", () => {
+    closeImportedDocument();
     sourceLanguage = "es-MX";
     if (languageFamily(targetLanguage) !== "en") targetLanguage = "en-US";
     preservedCulturalContext = null;
@@ -1852,6 +2009,7 @@ function init() {
   });
   $("#ecuador-research-source")?.addEventListener("change", updateEcuadorResearchPaperLink);
   $("#load-ecuador-research-reference")?.addEventListener("click", () => {
+    closeImportedDocument();
     sourceLanguage = "es-EC";
     if (languageFamily(targetLanguage) !== "en") targetLanguage = "en-US";
     preservedCulturalContext = null;
@@ -1872,7 +2030,7 @@ function init() {
   $("#restore-translation").addEventListener("click", restoreGeneratedTranslation);
   const suggestions = ["Maybe another time.","Can you say it more slowly?","I'm so fucking tired!","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
-  $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
+  $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { closeImportedDocument(); preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   syncSpeakerNames();
   document.querySelectorAll("[data-speaker-name]").forEach(input => input.addEventListener("input", event => {
     saveSpeakerName(event.target.dataset.speakerName, event.target.value);
@@ -1918,7 +2076,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=57").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=58").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

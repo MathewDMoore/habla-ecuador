@@ -7,7 +7,7 @@ Updated October 5, 2026 (Wyoming and UTC).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.5, build 57; continue from these root files.
+- Current source: v0.22.6, build 58; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -54,6 +54,8 @@ Run:
 
 ```sh
 node --check app.js
+node --check document-import.js
+node tests/document-import.test.cjs
 node tests/conversation.test.cjs
 node tests/speech-playback.test.cjs
 node tests/research-reference.test.cjs
@@ -70,3 +72,11 @@ Physical iPhone microphone and voice testing is still outstanding. No claim of l
 Run a short iPhone regression on the deployed standalone translator: final/interim dictation, quick speaker switching, Spanish spoken under the English speaker, selected Mexico/Bolivia and US/UK voices, clearing while a response is pending, edited translations after reload/flip, and the Research mode Ecuadorian excerpt. Use observed failures for the next fix. Do not rebuild completed screens or treat the old ChatGPT Site as current source.
 
 Keep the public static GitHub Pages route and no-build architecture. Use a single commit for a release; avoid repeated full-directory archives and their redundant deployment runs. Git history already preserves source revisions.
+
+## Build 58
+
+Added Choose document to both translators: Word .docx, selectable-text PDF and UTF-8 .txt, up to 10 MB and 200,000 extracted characters (PDF up to 100 pages). Extraction is local, text-only, with an explicit preview. Import defaults to UK English and Research while preserving a selected Spanish source variety; Ecuador is the default source if previously English. The document is split into sections that fit the free engine's character/segment limits, with every extracted character retained. Only an explicit Translate this section sends text to MyMemory; editing and selector changes during import remain a preview. Source edits are retained when changing sections during the session. No document bytes are sent, no account or paid API was added. Documents are retained only in memory until closing/reloading, and their layout/images are not imported. Legacy .doc needs a .docx copy; scanned PDFs need OCR outside this app.
+
+Added an editable UK/US spelling comparison of the current English draft. The existing limited variety converter is reused, so comparison does not consume another service request and is not presented as independent translation or comprehensive dialect rewriting. Comparison edits are saved locally by source context and variety.
+
+On-demand readers: Mammoth 1.11.0 (BSD-2-Clause, https://github.com/mwilliamson/mammoth.js) using extractRawText only; PDF.js 6.3.289 (Apache-2.0, https://github.com/mozilla/pdf.js), pinned jsDelivr npm distributions. No bundled dependency or archived app copy. First import requires internet to load its reader. Raw imported text is never interpreted as HTML.

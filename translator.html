@@ -8,9 +8,10 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=57">
-  <script src="research-reference.js?v=57" defer></script>
-  <script src="app.js?v=57" defer></script>
+  <link rel="stylesheet" href="styles.css?v=58">
+  <script src="research-reference.js?v=58" defer></script>
+  <script src="document-import.js?v=58" defer></script>
+  <script src="app.js?v=58" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +20,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.5 · build 57</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.6 · build 58</span></div>
     </header>
 
     <main>
@@ -94,6 +95,21 @@
             <span>To translate a longer paper, paste one section at a time (up to 8,000 characters). New text uses the free service and its quota.</span>
           </div>
 
+          <section class="document-tools" aria-label="Document translation">
+            <button id="choose-document" type="button">Choose document</button>
+            <input id="document-file" type="file" accept=".docx,.doc,.pdf,.txt" hidden>
+            <p>Word (.docx), PDF, or text · up to 10 MB. On iPhone, choose Browse to open Files.</p>
+            <p id="document-status" role="status" aria-live="polite"></p>
+            <div id="document-preview" hidden>
+              <label for="document-section">Document section</label>
+              <select id="document-section"></select>
+              <p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p>
+              <button id="translate-document" type="button">Translate this section</button>
+              <button id="close-document" type="button">Close document</button>
+            </div>
+            <p>Text extraction stays on your device. Translating sends the selected text to the free MyMemory service. Formatting and images are not imported.</p>
+          </section>
+
           <label class="input-card">
             <span class="sr-only">Text to translate</span>
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
@@ -123,6 +139,17 @@
             <p id="translation-edit-status" class="translation-edit-status">Tap the translation above to edit it. Changes stay on this device.</p>
             <p class="speech-resume-note">Resume may repeat the current sentence if your device does not report word positions.</p>
             <div id="usage-note" class="usage-note"></div>
+          </section>
+
+          <section class="english-comparison" aria-label="English comparison">
+            <button id="compare-english" type="button">Compare U.K. / U.S. English</button>
+            <div id="english-comparison" hidden>
+              <p>Two editable spelling adaptations of the same draft. This limited comparison does not provide two independent translations. Edits are saved on this device.</p>
+              <div class="comparison-columns">
+                <label>U.K. English<textarea id="comparison-uk" rows="8"></textarea></label>
+                <label>U.S. English<textarea id="comparison-us" rows="8"></textarea></label>
+              </div>
+            </div>
           </section>
 
           <section id="no-result" class="no-result" hidden>
