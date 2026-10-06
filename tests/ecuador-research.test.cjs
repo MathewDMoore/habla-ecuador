@@ -39,7 +39,7 @@ async function main(){
  assert.equal(await run('requestGeneralTranslation(sample)'),translated,'this excerpt has no forced regional rewrite');
  run('translationPurpose="everyday";');
  await run('requestGeneralTranslation(sample)');
- assert.equal(calls,1,'academic memory does not leak into everyday translation');
+ assert.ok(calls>0,'academic memory does not leak into everyday translation; all new text is chunked');
  run('translationPurpose="academic";targetLanguage="en-US";');
  const references=run('ECUADOR_RESEARCH_REFERENCES');
  assert.equal(references.length,3);

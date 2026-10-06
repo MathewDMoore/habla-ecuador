@@ -7,7 +7,7 @@ Updated October 5, 2026 (Wyoming and UTC).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.7, build 59; continue from these root files.
+- Current source: v0.22.8, build 60; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -56,6 +56,7 @@ Run:
 node --check app.js
 node --check document-import.js
 node tests/document-import.test.cjs
+node tests/translation-service.test.cjs
 node tests/conversation.test.cjs
 node tests/speech-playback.test.cjs
 node tests/research-reference.test.cjs
@@ -84,3 +85,13 @@ On-demand readers: Mammoth 1.11.0 (BSD-2-Clause, https://github.com/mwilliamson/
 ## Build 59
 
 Live Word import, explicit preview, UK default, local reference translation and editable UK/US comparison were verified in the cloud browser. A real PDF test exposed PDF.js 6's removed PDFDocumentProxy.destroy method. Cleanup now destroys the loading task; successful and failed parse cleanup have regression checks. Word import was already functional in build 58. iPhone Files picker interaction still requires on-device checking.
+
+## Build 60
+
+User's screenshot showed a failed new-passage translation. The prior successful Word demonstration retrieved a local reference; it was insufficient evidence for online whole-document translation. A new unmatched Spanish passage was successfully translated via the live app and MyMemory API during investigation. This does not reproduce or identify the user's device-specific failure; its old generic message cannot distinguish quota, timeout, network or service rejection.
+
+Added classified errors based on actual HTTP/payload/fetch evidence and a user-initiated Retry translation action. Provider quota/warning text never becomes an editable translation. Successful segments and concurrent identical requests are reused in memory (bounded to 200 entries); failed segments are not cached. Timeout is 20 seconds. Superseded input stops sending subsequent segments. Comparison is disabled until an English draft succeeds. Imported-document retries retain the document status flow.
+
+All new passages now use bounded splitting, including Everyday mode: the old 500-character slice silently cut off longer input. Segments use a conservative 430 UTF-8-byte budget, keep paragraph separators and avoid decimal/surrogate corruption. The service accepted a 489-character/531-byte test, so byte counting was not established as the cause of the screenshot. No automatic service change or quota bypass was added. The service worker now handles same-origin app assets only and never substitutes cached HTML for cross-origin API failures or missing JS assets.
+
+Regression checks cover full long-input delivery, Unicode budgets, decimals, cached partial retries, quota/warning payloads, HTTP rate limits, offline/network/timeout/invalid response errors and stopping superseded batches. Whole-document export and any guarantee of full-paper availability or academic fidelity remain unimplemented; free-provider restrictions still apply.

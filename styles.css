@@ -424,3 +424,6 @@ button:disabled { cursor: default; }
 .comparison-columns label { font-weight: 700; }
 .comparison-columns textarea { width: 100%; box-sizing: border-box; padding: 12px; margin-top: 8px; font: inherit; font-weight: normal; border: 1px solid #c8b983; border-radius: 12px; resize: vertical; }
 @media (max-width: 600px) { .comparison-columns { grid-template-columns: 1fr; } }
+
+#retry-translation { margin-top: 12px; padding: 10px 14px; border: 1px solid #c8b983; border-radius: 12px; background: #fff; color: #214c3e; font-weight: 700; }
+#compare-english:disabled { opacity: .5; cursor: default; }

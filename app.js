@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.7 · build 59";
+const APP_VERSION = "0.22.8 · build 60";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -769,40 +769,39 @@ function protectResearchTokens(text) {
   };
 }
 
+function utf8Length(text) {
+  let bytes = 0;
+  for (const character of text) {
+    const code = character.codePointAt(0);
+    bytes += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
+  }
+  return bytes;
+}
+
 function splitLongTranslationText(text, limit=430) {
-  const parts = text.split(/(\n\s*\n)/);
   const chunks = [];
-  parts.forEach(part => {
+  text.split(/(\n\s*\n)/).forEach(part => {
     if (!part) return;
-    if (/^\n\s*\n$/.test(part)) {
-      chunks.push({text:part, separator:true});
-      return;
+    if (/^\n\s*\n$/.test(part)) { chunks.push({text:part,separator:true}); return; }
+    let remaining = part.trim();
+    let joiner = " ";
+    while (remaining) {
+      if (utf8Length(remaining) <= limit) { chunks.push({text:remaining,separator:false,joiner}); break; }
+      let length = 0, bytes = 0;
+      for (const character of remaining) {
+        const size = utf8Length(character);
+        if (bytes + size > limit) break;
+        bytes += size; length += character.length;
+      }
+      const prefix = remaining.slice(0,length);
+      const boundary = prefix.match(/\s+\S*$/);
+      if (boundary && boundary.index > 0) length = boundary.index;
+      chunks.push({text:remaining.slice(0,length),separator:false,joiner});
+      remaining = remaining.slice(length);
+      const whitespace = remaining.match(/^\s+/)?.[0] || "";
+      if (whitespace) { chunks.push({text:whitespace,separator:true}); remaining = remaining.slice(whitespace.length); }
+      joiner = "";
     }
-    const sentences = part.match(/[^.!?]+(?:[.!?]+|$)/g) || [part];
-    let current = "";
-    const flush = () => {
-      if (current.trim()) chunks.push({text:current.trim(), separator:false});
-      current = "";
-    };
-    sentences.forEach(sentence => {
-      const candidate = current ? `${current} ${sentence.trim()}` : sentence.trim();
-      if (candidate.length <= limit) {
-        current = candidate;
-        return;
-      }
-      flush();
-      if (sentence.length <= limit) {
-        current = sentence.trim();
-        return;
-      }
-      const words = sentence.trim().split(/\s+/);
-      words.forEach(word => {
-        const wordCandidate = current ? `${current} ${word}` : word;
-        if (wordCandidate.length > limit) flush();
-        current = current ? `${current} ${word}` : word;
-      });
-    });
-    flush();
   });
   return chunks;
 }
@@ -838,51 +837,90 @@ function convertEnglishVariety(text, target=targetLanguage) {
   }),text);
 }
 
+function translationFailure(code, detail="", status=0) {
+  const error = new Error(detail || code);
+  error.code = code;
+  error.status = status;
+  return error;
+}
+
+function translationErrorMessage(error) {
+  const messages = {
+    research_limit:["This section is too long.", "Use at most 8,000 characters and 20 translation segments. Your source text is preserved."],
+    quota:["The free translation allowance has been used.", "MyMemory reported that the free allowance is exhausted. Retry after the service resets it. Successful segments stay in memory while this page is open."],
+    rate_limit:["The service is limiting requests.", "Wait a little, then tap Retry translation. This is a service limit, not a problem with your document."],
+    timeout:["The translation service took too long.", "Tap Retry translation. Completed segments will be reused while this page is open."],
+    offline:["You appear to be offline.", "Reconnect, then tap Retry translation. Your source text is preserved."],
+    network:["The translation service could not be reached.", "The browser did not receive a response. This may be a connection or access problem; a daily quota has not been confirmed. Tap Retry translation when connected."],
+    invalid_response:["The service returned an unreadable response.", "Tap Retry translation. Your source text is preserved."],
+    request_limit:["The service rejected a translation segment.", "Use a shorter section and retry. Your source text is preserved."],
+    service:["The service rejected this translation.", "Retry later. Your source text is preserved."]
+  };
+  const [title, help] = messages[error?.code] || messages.service;
+  const detail = ["quota","rate_limit","service","request_limit"].includes(error?.code)
+    ? String(error.message || "").replace(/https?:\/\/\S+/g,"[service link]").slice(0,240) : "";
+  return {title,help:help + (detail ? ` Service response${error.status ? ` (${error.status})` : ""}: ${detail}` : "")};
+}
+
+const translationChunkCache = new Map();
 async function requestTranslationChunk(text, way=direction, purpose=translationPurpose) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
   const protectedText = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  // Never truncate text to fit a request. The caller splits the whole passage.
+  if (utf8Length(protectedText.text) > 500) throw translationFailure("request_limit", "Segment exceeds 500 UTF-8 bytes.");
+  const key = JSON.stringify([pair,purpose,text]);
+  if (translationChunkCache.has(key)) return translationChunkCache.get(key);
+  const request = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      let response;
+      try { response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(protectedText.text)}&langpair=${encodeURIComponent(pair)}`, {signal:controller.signal,cache:"no-store"}); }
+      catch (error) {
+        if (controller.signal.aborted || error.name === "AbortError") throw translationFailure("timeout");
+        throw translationFailure(typeof navigator !== "undefined" && navigator.onLine === false ? "offline" : "network");
+      }
+      let payload;
+      try { payload = await response.json(); }
+      catch { throw translationFailure(response.ok ? "invalid_response" : response.status === 429 ? "rate_limit" : "service", "Unreadable service response",response.status); }
+      const status = Number(payload.responseStatus || response.status || 200);
+      const output = payload.responseData?.translatedText;
+      const detail = String(payload.responseDetails || output || "Translation unavailable");
+      const quotaText = /used all available free translations|daily (?:translation )?(?:quota|limit)|quota (?:exceeded|reached)|next available in/i.test(detail);
+      if (payload.quotaFinished === true || quotaText) throw translationFailure("quota",detail,status);
+      if (status === 429 || response.status === 429) throw translationFailure("rate_limit",detail,status);
+      if (/query length limit|500 (?:bytes|characters)/i.test(detail) && status >= 400) throw translationFailure("request_limit",detail,status);
+      if (!response.ok || status >= 400 || typeof output !== "string" || !output.trim()) throw translationFailure("service",detail,status);
+      // Provider warnings must never become editable 'translations'.
+      if (/^MYMEMORY WARNING/i.test(output.trim())) throw translationFailure("service",detail,status);
+      return protectedText.restore(decodeTranslation(output));
+    } finally { clearTimeout(timeout); }
+  })();
+  translationChunkCache.set(key,request);
   try {
-    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(protectedText.text.slice(0,500))}&langpair=${encodeURIComponent(pair)}`, {signal:controller.signal});
-    if (!response.ok) throw new Error(`translation service ${response.status}`);
-    const payload = await response.json();
-    if (Number(payload.responseStatus || 200) >= 400 || !payload.responseData?.translatedText) throw new Error(payload.responseDetails || "translation unavailable");
-    return protectedText.restore(decodeTranslation(payload.responseData.translatedText));
-  } finally {
-    clearTimeout(timeout);
-  }
+    const translated = await request;
+    if (translationChunkCache.size > 200) translationChunkCache.delete(translationChunkCache.keys().next().value);
+    return translated;
+  } catch (error) { translationChunkCache.delete(key); throw error; }
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target);
   }
-  if (purpose !== "academic" || text.length <= 430) {
-    const translated = await requestTranslationChunk(text, way, purpose);
-    const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(translated,text) : translated;
-    return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
-  }
-  if (text.length > 8000) {
-    const error = new Error("research text exceeds free prototype limit");
-    error.code = "research_limit";
-    throw error;
-  }
-  const protectedDocument = protectResearchTokens(text);
+  if (text.length > 8000) throw translationFailure("research_limit");
+  const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   const chunks = splitLongTranslationText(protectedDocument.text);
-  if (chunks.filter(chunk => !chunk.separator).length > 20) {
-    const error = new Error("research text requires too many translation segments");
-    error.code = "research_limit";
-    throw error;
-  }
+  if (chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
   const translated = [];
   for (const chunk of chunks) {
-    translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text, way, purpose));
+    if (!isCurrent()) throw translationFailure("superseded");
+    translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text,way,purpose));
   }
-  const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? ` ${value}` : value).join("");
+  const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
-  const refined = way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
+  const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
   return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
 }
 
@@ -939,6 +977,7 @@ function setEditableTranslation(source, generated, metadata={}) {
   const key = translationEditKey(source);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
   const target = savedText || generated;
+  if ($("#compare-english")) $("#compare-english").disabled = languageFamily(targetLanguage) !== "en";
   result.textContent = target;
   result.setAttribute("contenteditable", "true");
   activeTranslationEdit = {key, source, way:direction, sourceLanguage, targetLanguage, variant:englishVariant, purpose:translationPurpose, generated, metadata};
@@ -1045,6 +1084,7 @@ function renderRegionalTranslation(sourceText,result,missing) {
 }
 
 async function renderTranslation({allowImported=false}={}) {
+  if ($("#compare-english")) $("#compare-english").disabled = true;
   if (documentImportActive && !allowImported) {
     translationRequest += 1;
     $("#translation-result").hidden = true;
@@ -1054,6 +1094,7 @@ async function renderTranslation({allowImported=false}={}) {
   }
   $("#english-comparison") && ($("#english-comparison").hidden = true);
   const requestId = ++translationRequest;
+  if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
   const preservedEntry = direction === "en-ec"
     && preservedCulturalContext
@@ -1094,7 +1135,7 @@ async function renderTranslation({allowImported=false}={}) {
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
       : `<strong>General translation</strong><span>Checking the free translation service. Regional naturalness has not yet been verified.</span>`;
     try {
-      const translated = await requestGeneralTranslation(embeddedSlang.text);
+      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest});
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
@@ -1128,11 +1169,13 @@ async function renderTranslation({allowImported=false}={}) {
       updateTranslationEditUi();
       result.hidden = true;
       missing.hidden = false;
-      $("#no-result p").textContent = error?.code === "research_limit"
-        ? "This research section is too long." : "Translation is temporarily unavailable.";
-      $("#no-result small").textContent = error?.code === "research_limit"
-        ? "Paste a shorter section: at most 8,000 characters and 20 translation segments. Your source text is preserved."
-        : "Check your connection and try again. The free service may have reached its quota. Verified local phrases still work offline.";
+      lastCompletedTranslation = null;
+      const message = translationErrorMessage(error);
+      $("#no-result p").textContent = message.title;
+      $("#no-result small").textContent = message.help;
+      $("#no-result").dataset.translationError = error.code || "service";
+      if ($("#retry-translation")) $("#retry-translation").hidden = false;
+
     }
     return;
   }
@@ -1191,7 +1234,7 @@ function closeImportedDocument() {
 
 function safeDocumentSections(text) {
   return HablaDocument.sections(text).flatMap(section => {
-    if (section.length <= 430 || splitLongTranslationText(protectResearchTokens(section).text).filter(chunk => !chunk.separator).length <= 20) return [section];
+    if (splitLongTranslationText(protectResearchTokens(section).text).filter(chunk => !chunk.separator).length <= 20) return [section];
     return HablaDocument.sections(section, Math.ceil(section.length / 2)).flatMap(safeDocumentSections);
   });
 }
@@ -1203,6 +1246,7 @@ function selectDocumentSection(index) {
   stopSpeechPlayback();
   documentImportActive = true;
   importedDocument.index = index;
+  $("#compare-english").disabled = true;
   $("#translator-input").value = importedDocument.sections[index];
   $("#translation-result").hidden = true;
   $("#no-result").hidden = true;
@@ -1214,6 +1258,7 @@ function selectDocumentSection(index) {
 
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
+  $("#compare-english").disabled = true;
   $("#choose-document").addEventListener("click", () => $("#document-file").click());
   $("#document-file").addEventListener("change", async event => {
     const file = event.target.files[0];
@@ -1945,6 +1990,10 @@ function init() {
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   bindDocumentTools();
+  $("#retry-translation")?.addEventListener("click", () => {
+    if (documentImportActive && importedDocument) $("#translate-document").click();
+    else renderTranslation();
+  });
   syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
@@ -1968,6 +2017,7 @@ function init() {
     renderDictionary();
   });
   $("#translator-input").addEventListener("input", () => {
+    if ($("#compare-english")) $("#compare-english").disabled = true;
     if (documentImportActive) {
       translationRequest += 1;
       lastCompletedTranslation = null;
@@ -2076,7 +2126,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=59").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=60").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
