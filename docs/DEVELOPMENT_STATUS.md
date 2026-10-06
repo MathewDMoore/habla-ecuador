@@ -7,7 +7,7 @@ Updated October 5, 2026 (Wyoming and UTC).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.6, build 58; continue from these root files.
+- Current source: v0.22.7, build 59; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -80,3 +80,7 @@ Added Choose document to both translators: Word .docx, selectable-text PDF and U
 Added an editable UK/US spelling comparison of the current English draft. The existing limited variety converter is reused, so comparison does not consume another service request and is not presented as independent translation or comprehensive dialect rewriting. Comparison edits are saved locally by source context and variety.
 
 On-demand readers: Mammoth 1.11.0 (BSD-2-Clause, https://github.com/mwilliamson/mammoth.js) using extractRawText only; PDF.js 6.3.289 (Apache-2.0, https://github.com/mozilla/pdf.js), pinned jsDelivr npm distributions. No bundled dependency or archived app copy. First import requires internet to load its reader. Raw imported text is never interpreted as HTML.
+
+## Build 59
+
+Live Word import, explicit preview, UK default, local reference translation and editable UK/US comparison were verified in the cloud browser. A real PDF test exposed PDF.js 6's removed PDFDocumentProxy.destroy method. Cleanup now destroys the loading task; successful and failed parse cleanup have regression checks. Word import was already functional in build 58. iPhone Files picker interaction still requires on-device checking.

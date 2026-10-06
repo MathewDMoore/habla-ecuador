@@ -32,6 +32,17 @@ async function main() {
       assert.ok(part.length<=430 || run('splitLongTranslationText(protectResearchTokens(part).text).filter(c=>!c.separator).length')<=20);
     }
   }
+  let destroyed = 0;
+  const pdfReader = {GlobalWorkerOptions:{}, getDocument:() => ({
+    promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items:[{str:'Texto PDF',hasEOL:true}]}),cleanup(){}})}),
+    destroy:async()=>{destroyed++;}
+  })};
+  const pdfText=await helper.extract({name:'test.pdf',size:20,arrayBuffer:async()=>new ArrayBuffer(0)}, {pdfReader});
+  assert.equal(pdfText.text,'Texto PDF');
+  assert.equal(destroyed,1,'destroy loading task, not PDFDocumentProxy (PDF.js 6)');
+  pdfReader.getDocument=()=>({promise:Promise.reject(new Error('bad PDF')),destroy:async()=>{destroyed++;}});
+  await assert.rejects(helper.extract({name:'bad.pdf',size:20,arrayBuffer:async()=>new ArrayBuffer(0)}, {pdfReader}),/could not be read/);
+  assert.equal(destroyed,2,'failed PDF releases its loading task');
   const loaded=await helper.extract({name:'prueba.txt',size:20,text:async()=> 'Hola\r\n\r\nEcuador.'});
   assert.equal(loaded.text,'Hola\n\nEcuador.');
   await assert.rejects(helper.extract({name:'old.doc',size:2}),/older .doc/);
@@ -72,7 +83,7 @@ async function main() {
   assert.equal(get('#translator-input').value,'User text after cancellation');
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
-    assert.ok(html.indexOf('document-import.js?v=58')<html.indexOf('app.js?v=58'));
+    assert.ok(html.search(/document-import\.js\?v=\d+/)<html.search(/app\.js\?v=\d+/));
     assert.equal((html.match(/id="choose-document"/g)||[]).length,1);
   }
   console.log('Document import checks passed: lossless sections, engine limits, preview privacy, raw text, errors, stale imports, UK/US comparisons and saved edits.');

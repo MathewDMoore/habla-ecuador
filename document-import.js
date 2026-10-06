@@ -29,7 +29,7 @@
     });
     return mammothLoading;
   }
-  async function extract(file) {
+  async function extract(file, {pdfReader}={}) {
     if (file.size > MAX_BYTES) throw new Error("Choose a document smaller than 10 MB.");
     const extension = file.name.split(".").pop().toLowerCase();
     if (extension === "doc") throw new Error("This is an older .doc file. In Word, save a copy as .docx, then choose that copy.");
@@ -41,8 +41,8 @@
       try { text = (await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()})).value; }
       catch { throw new Error("This Word file could not be read. Save an unencrypted .docx copy in Word and try again."); }
     } else {
-      let pdfjs;
-      try { pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.mjs"); }
+      let pdfjs = pdfReader;
+      try { if (!pdfjs) pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.mjs"); }
       catch { throw new Error("PDF reader could not load. Connect to the internet or use a Word .docx copy."); }
       pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.mjs";
       const task = pdfjs.getDocument({data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false});
@@ -63,7 +63,7 @@
       } catch (error) {
         if (/100 pages|too much text/.test(error.message)) throw error;
         throw new Error("This PDF could not be read. Use an unencrypted PDF or a Word .docx copy.");
-      } finally { await (pdf ? pdf.destroy() : task.destroy()); }
+      } finally { await task.destroy(); }
     }
     text = text.replace(/\r\n?/g, "\n").replace(/\u0000/g, "").trim();
     if (!text) throw new Error(extension === "pdf" ? "No readable text was found. Scanned PDFs need OCR first; try a Word copy." : "No readable text was found in this document.");
