@@ -1,13 +1,13 @@
 # Habla Ecuador development handoff
 
-Updated October 5, 2026 (Wyoming and UTC).
+Updated October 6, 2026 (America/Denver).
 
 ## Current app
 
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.8, build 60; continue from these root files.
+- Current source: v0.22.9, build 61; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -55,6 +55,8 @@ Run:
 ```sh
 node --check app.js
 node --check document-import.js
+node --check saved-paper.js
+node tests/saved-paper.test.cjs
 node tests/document-import.test.cjs
 node tests/translation-service.test.cjs
 node tests/conversation.test.cjs
@@ -95,3 +97,12 @@ Added classified errors based on actual HTTP/payload/fetch evidence and a user-i
 All new passages now use bounded splitting, including Everyday mode: the old 500-character slice silently cut off longer input. Segments use a conservative 430 UTF-8-byte budget, keep paragraph separators and avoid decimal/surrogate corruption. The service accepted a 489-character/531-byte test, so byte counting was not established as the cause of the screenshot. No automatic service change or quota bypass was added. The service worker now handles same-origin app assets only and never substitutes cached HTML for cross-origin API failures or missing JS assets.
 
 Regression checks cover full long-input delivery, Unicode budgets, decimals, cached partial retries, quota/warning payloads, HTTP rate limits, offline/network/timeout/invalid response errors and stopping superseded batches. Whole-document export and any guarantee of full-paper availability or academic fidelity remain unimplemented; free-provider restrictions still apply.
+
+
+## Build 61
+
+Research now starts with a private complete-paper reader. A user imports a Habla saved-paper JSON containing the whole Spanish source and both completed English drafts. It persists in localStorage on that browser/device, restores after reload, and supports independent UK/US edits, comparison, whole-paper playback with the existing Pause/Resume engine, Print / Save as PDF, English text download, backup export, and removal of the device copy. Storage failures are reported; users can download a backup before clearing browser data. Import validates required text fields and size limits, strips unsupported data, and displays source/translation as text. No fetch or translation-service call occurs for any saved-paper operation.
+
+The three licensed Ecuadorian samples and Mexican reference are preserved behind Optional research reference excerpts, below the personal-paper reader. Existing section-by-section import remains available for new, untranslated documents; it does not automatically become a complete translation. Existing regional, conversation, playback, editable translation and translation-service regression checks pass alongside private-paper tests.
+
+Only generic code and synthetic tests are published. User-supplied papers, source text, author details, completed translations and personal saved-paper packages must never enter this public repository or its version archives. A completed private paper is delivered separately to the user for one-time Files import; the public website cannot automatically load a private ChatGPT attachment on their iPhone. No model training, paid API, build system, dependency or version archive was added.

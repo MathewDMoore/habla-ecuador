@@ -427,3 +427,25 @@ button:disabled { cursor: default; }
 
 #retry-translation { margin-top: 12px; padding: 10px 14px; border: 1px solid #c8b983; border-radius: 12px; background: #fff; color: #214c3e; font-weight: 700; }
 #compare-english:disabled { opacity: .5; cursor: default; }
+#saved-paper-reader[hidden], #saved-paper-uk-panel[hidden], #saved-paper-us-panel[hidden] { display: none; }
+.saved-paper-tools h3 { margin: 0 0 12px; color: #173f35; }
+.saved-paper-tools p { line-height: 1.55; }
+.saved-paper-tools label { display: block; margin: 12px 0 6px; font-weight: 700; }
+.saved-paper-tools input, .saved-paper-tools select, .saved-paper-tools textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #bca8ca; border-radius: 10px; background: white; color: #202824; font: inherit; }
+.saved-paper-tools textarea { font-family: Georgia, serif; font-size: 17px; line-height: 1.65; resize: vertical; min-height: 360px; }
+#saved-paper-editors { display: grid; gap: 14px; }
+.paper-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.saved-paper-tools details, .reference-excerpts { margin-top: 16px; }
+.saved-paper-tools summary, .reference-excerpts summary { cursor: pointer; font-weight: 700; }
+#saved-paper-source { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+.reference-excerpts > :not(summary) { display: block; margin-top: 10px; }
+#saved-paper-print { display: none; }
+@media (min-width: 780px) { #saved-paper-editors.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media print {
+  body.printing-saved-paper > * { display: none !important; }
+  body.printing-saved-paper > #saved-paper-print { display: block !important; margin: 0; color: black; background: white; font: 12pt/1.5 Georgia, serif; }
+  body.printing-saved-paper { background: white; }
+  #saved-paper-print h1 { font: bold 18pt/1.25 Georgia, serif; break-after: avoid; }
+  .paper-print-text { white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
+  @page { margin: 20mm; }
+}

@@ -8,10 +8,11 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=60">
-  <script src="research-reference.js?v=60" defer></script>
-  <script src="document-import.js?v=60" defer></script>
-  <script src="app.js?v=60" defer></script>
+  <link rel="stylesheet" href="styles.css?v=61">
+  <script src="research-reference.js?v=61" defer></script>
+  <script src="document-import.js?v=61" defer></script>
+  <script src="saved-paper.js?v=61" defer></script>
+  <script src="app.js?v=61" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -20,7 +21,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.8 · build 60</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.9 · build 61</span></div>
     </header>
 
     <main>
@@ -129,6 +130,37 @@
           <p id="research-mode-note" class="research-mode-note" hidden>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p>
 
           <div id="research-reference-tools" class="research-mode-note" hidden>
+            <section class="saved-paper-tools" aria-labelledby="saved-paper-heading">
+              <h3 id="saved-paper-heading">Your complete research paper</h3>
+              <button id="choose-saved-paper" type="button">Choose saved paper</button>
+              <input id="saved-paper-file" type="file" accept=".json,application/json" hidden>
+              <p>Choose the Habla saved-paper download from Files once. The full source and both English drafts stay on this device; opening, editing and printing them use no translation service.</p>
+              <p id="saved-paper-status" role="status" aria-live="polite"></p>
+              <div id="saved-paper-reader" hidden>
+                <label for="saved-paper-title">Paper title</label>
+                <input id="saved-paper-title" type="text" maxlength="240">
+                <p id="saved-paper-count"></p>
+                <label for="saved-paper-variety">English version for reading and printing</label>
+                <select id="saved-paper-variety"><option value="en-GB">U.K. English</option><option value="en-US">U.S. English</option></select>
+                <button id="compare-saved-paper" type="button" aria-pressed="false">Compare U.K. / U.S. English</button>
+                <div id="saved-paper-editors">
+                  <div id="saved-paper-uk-panel"><label for="saved-paper-uk">Complete editable U.K. English paper</label><textarea id="saved-paper-uk" rows="20" maxlength="200000" lang="en-GB" spellcheck="true"></textarea></div>
+                  <div id="saved-paper-us-panel" hidden><label for="saved-paper-us">Complete editable U.S. English paper</label><textarea id="saved-paper-us" rows="20" maxlength="200000" lang="en-US" spellcheck="true"></textarea></div>
+                </div>
+                <div class="paper-actions">
+                  <button id="hear-saved-paper" type="button">Hear whole paper</button>
+                  <button id="pause-paper" type="button" disabled>⏸ Pause</button>
+                  <button id="stop-saved-paper" type="button">Stop reading</button>
+                  <button id="print-saved-paper" type="button">Print / Save as PDF</button>
+                  <button id="download-saved-paper" type="button">Download English text</button>
+                  <button id="backup-saved-paper" type="button">Download paper backup</button>
+                </div>
+                <p>Edits save on this device. Download a backup to keep them if browser data is cleared. Hear whole paper uses your selected English voice and playback speed.</p>
+                <details><summary>Complete Spanish source</summary><div id="saved-paper-source" lang="es"></div></details>
+                <details><summary>Remove this device copy</summary><p>Download your backup first if you want to keep edits.</p><button id="remove-saved-paper" type="button">Remove paper from this device</button></details>
+              </div>
+            </section>
+            <details class="reference-excerpts"><summary>Optional research reference excerpts</summary>
             <button id="load-research-reference" type="button">Try the reference abstract</button>
             <span>Escalante (2017) · northern Mexico · editorial English</span>
             <label class="research-source-label" for="ecuador-research-source">Ecuadorian research sample</label>
@@ -141,7 +173,8 @@
             <span>3 Ecuadorian papers · selected excerpts · CC BY 3.0</span>
             <span>Each sample contains two abstract sentences, not a full article.</span>
             <a id="read-ecuador-paper" href="https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087" target="_blank" rel="noopener">Read full paper ↗</a>
-            <span>To translate a longer paper, paste one section at a time (up to 8,000 characters). New text uses the free service and its quota.</span>
+            <span>These are reference excerpts. Open your completed paper above to read it in full.</span>
+            </details>
           </div>
 
           <section class="document-tools" aria-label="Document translation">
@@ -428,6 +461,7 @@
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <article id="saved-paper-print" aria-label="Printable saved paper"></article>
 </body>
 </html>
 
