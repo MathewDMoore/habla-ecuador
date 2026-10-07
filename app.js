@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.11 · build 63";
+const APP_VERSION = "0.22.12 · build 64";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -859,9 +859,9 @@ function translationErrorMessage(error) {
     service:["The service rejected this translation.", "Retry later. Your source text is preserved."]
   };
   const [title, help] = messages[error?.code] || messages.service;
-  const detail = ["quota","rate_limit","service","request_limit"].includes(error?.code)
+  const detail = ["quota","rate_limit","service","request_limit","offline_engine"].includes(error?.code)
     ? String(error.message || "").replace(/https?:\/\/\S+/g,"[service link]").slice(0,240) : "";
-  return {title,help:help + (detail ? ` Service response${error.status ? ` (${error.status})` : ""}: ${detail}` : "")};
+  return {title,help:help + (detail ? ` ${error?.code === "offline_engine" ? "Device error" : "Service response"}${error.status ? ` (${error.status})` : ""}: ${detail}` : "")};
 }
 
 const translationChunkCache = new Map();
@@ -2135,7 +2135,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=63").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=64").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

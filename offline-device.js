@@ -22,7 +22,7 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=63");
+      worker = new Worker("offline-worker.js?v=64");
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
@@ -45,6 +45,11 @@ const HablaOffline = (() => {
     const button = document.querySelector("#offline-download");
     button.disabled = true;
     try {
+      ready = await checkPack();
+      if (ready) {
+        status("Offline pack ready. Select Use on-device translation to keep new text here.");
+        return;
+      }
       if (!navigator.onLine) throw new Error("Connect to download the pack first.");
       if (!navigator.serviceWorker) throw new Error("This browser does not support the offline pack.");
       await navigator.serviceWorker.ready;

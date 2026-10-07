@@ -12,11 +12,23 @@ async function load(way, installing = false) {
     runtime.env.allowLocalModels = false;
     runtime.env.useBrowserCache = false;
     runtime.env.useCustomCache = true;
-    runtime.env.customCache = await caches.open("habla-ecuador-offline-models-v1");
+    const modelCache = await caches.open("habla-ecuador-offline-models-v1");
+    runtime.env.customCache = {
+      match: async url => {
+        const hit = await modelCache.match(url);
+        if (hit) return hit;
+        // Missing optional files return a local 404, without probing /models over HTTP.
+        if (!runtime.env.allowRemoteModels && String(url).startsWith("https://huggingface.co/")) return new Response(null, {status:404});
+        return undefined;
+      },
+      put: (url, response) => modelCache.put(url, response)
+    };
     runtime.env.backends.onnx.wasm.numThreads = 1;
     runtime.env.backends.onnx.wasm.proxy = false;
     runtime.env.backends.onnx.wasm.wasmPaths = BASE;
   }
+  // v2 requires allowLocalModels with local_files_only, even for browser cache.
+  runtime.env.allowLocalModels = !installing;
   runtime.env.allowRemoteModels = installing;
   if (activeWay === way) return active;
   if (active) { await active.dispose(); active = null; activeWay = null; }
