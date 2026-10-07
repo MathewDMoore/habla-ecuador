@@ -430,6 +430,8 @@ button:disabled { cursor: default; }
 #saved-paper-reader[hidden], #saved-paper-uk-panel[hidden], #saved-paper-us-panel[hidden] { display: none; }
 .saved-paper-tools h3 { margin: 0 0 12px; color: #173f35; }
 .saved-paper-tools p { line-height: 1.55; }
+.saved-paper-tools button { min-height: 44px; padding: 10px 14px; border: 1px solid #bca8ca; border-radius: 12px; background: white; color: #173f35; font: inherit; font-weight: 700; cursor: pointer; }
+.saved-paper-tools button:disabled { opacity: .5; cursor: default; }
 .saved-paper-tools label { display: block; margin: 12px 0 6px; font-weight: 700; }
 .saved-paper-tools input, .saved-paper-tools select, .saved-paper-tools textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #bca8ca; border-radius: 10px; background: white; color: #202824; font: inherit; }
 .saved-paper-tools textarea { font-family: Georgia, serif; font-size: 17px; line-height: 1.65; resize: vertical; min-height: 360px; }
