@@ -7,7 +7,7 @@ Updated October 6, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.9, build 61; continue from these root files.
+- Current source: v0.22.10, build 62; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
@@ -106,3 +106,8 @@ Research now starts with a private complete-paper reader. A user imports a Habla
 The three licensed Ecuadorian samples and Mexican reference are preserved behind Optional research reference excerpts, below the personal-paper reader. Existing section-by-section import remains available for new, untranslated documents; it does not automatically become a complete translation. Existing regional, conversation, playback, editable translation and translation-service regression checks pass alongside private-paper tests.
 
 Only generic code and synthetic tests are published. User-supplied papers, source text, author details, completed translations and personal saved-paper packages must never enter this public repository or its version archives. A completed private paper is delivered separately to the user for one-time Files import; the public website cannot automatically load a private ChatGPT attachment on their iPhone. No model training, paid API, build system, dependency or version archive was added.
+
+
+## Build 62
+
+Saved-paper actions have a minimum 44 px tap height and match the existing app button style. Updated script, style and service-worker cache URLs so devices receive the phone control sizing after the initial build 61 release. Complete-paper behavior and privacy are unchanged.
