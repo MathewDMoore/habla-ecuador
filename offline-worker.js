@@ -4,25 +4,26 @@ const MODELS = {
   "ec-en": {id:"Xenova/opus-mt-es-en", revision:"eadfd7c658a9d8929ac3b8e996b68a68e2c7d480"}
 };
 const BASE = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/";
-let runtime, active, activeWay, queue = Promise.resolve();
+let runtime, active, activeWay, queue = Promise.resolve(), downloadsAllowed = false;
+const networkFetch = self.fetch.bind(self);
+// Even optional configuration and WASM requests must be cache-only during translation.
+self.fetch = async (request, options) => {
+  if (downloadsAllowed) return networkFetch(request, options);
+  for (const name of ["habla-ecuador-offline-models-v1", "habla-ecuador-offline-runtime-v1"]) {
+    const hit = await (await caches.open(name)).match(request);
+    if (hit) return hit;
+  }
+  return new Response(null, {status:404});
+};
 async function load(way, installing = false) {
+  downloadsAllowed = installing;
   if (!MODELS[way]) throw new Error("Unsupported translation direction.");
   if (!runtime) {
     runtime = await import(BASE + "transformers.min.js");
     runtime.env.allowLocalModels = false;
     runtime.env.useBrowserCache = false;
     runtime.env.useCustomCache = true;
-    const modelCache = await caches.open("habla-ecuador-offline-models-v1");
-    runtime.env.customCache = {
-      match: async url => {
-        const hit = await modelCache.match(url);
-        if (hit) return hit;
-        // Missing optional files return a local 404, without probing /models over HTTP.
-        if (!runtime.env.allowRemoteModels && String(url).startsWith("https://huggingface.co/")) return new Response(null, {status:404});
-        return undefined;
-      },
-      put: (url, response) => modelCache.put(url, response)
-    };
+    runtime.env.customCache = await caches.open("habla-ecuador-offline-models-v1");
     runtime.env.backends.onnx.wasm.numThreads = 1;
     runtime.env.backends.onnx.wasm.proxy = false;
     runtime.env.backends.onnx.wasm.wasmPaths = BASE;
@@ -44,9 +45,13 @@ async function load(way, installing = false) {
 }
 async function handle(message) {
   if (message.type === "install") {
-    for (const way of Object.keys(MODELS)) await load(way, true);
-    runtime.env.allowRemoteModels = false;
-    return true;
+    try {
+      for (const way of Object.keys(MODELS)) await load(way, true);
+      return true;
+    } finally {
+      downloadsAllowed = false;
+      if (runtime) { runtime.env.allowRemoteModels = false; runtime.env.allowLocalModels = true; }
+    }
   }
   if (message.type !== "translate") throw new Error("Unknown offline request.");
   const engine = await load(message.way);

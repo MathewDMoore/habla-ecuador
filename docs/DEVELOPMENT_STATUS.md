@@ -1,10 +1,10 @@
-## Build 64 — new text on device
+## Build 65 — new text on device
 
 Added an opt-in downloadable Spanish ↔ English pack using pinned quantized OPUS-MT models and Transformers.js 2.17.2 in a dedicated worker. Runtime/model files are browser-cached outside GitHub; private documents and generated drafts are never added to model downloads. Download both directions once (about 250 MB), then select Use on-device translation. Translation always uses local-files-only model loading; local errors never trigger a silent online fallback. Existing verified phrases and research matches remain first. All text is chunked without truncating input, retaining protected research tokens and paragraphs; editable drafts, UK/US spelling choices and regional review labels remain.
 
 Service-worker upgrades now delete only old app-shell caches, preserving model/runtime caches and other applications. A single WASM thread works without cross-origin isolation on GitHub Pages. One direction is loaded in memory at a time. Browser storage clearing can remove the pack; mobile speed/memory and device dictation/voices vary. Whole-paper import/printing remains separate and private. No new research paper is treated as training data.
 
-Validation: all existing regression suites plus offline cache/routing tests pass. Live Chrome validation: both pinned model directions installed and unseen Spanish translated to English. Reload testing caught the Transformers.js v2 local-files-only/allowLocalModels configuration requirement; fixed it, with missing optional files returning local 404 responses instead of probing HTTP paths. Final reload and reverse-direction checks follow this fix. Models load with remote model access disabled during translation. Physical network-disconnection and iPhone performance were not tested.
+Validation: all existing regression suites plus offline cache/routing tests pass. Live Chrome validation: both pinned model directions installed and unseen Spanish translated to English. Reload testing caught the Transformers.js v2 local-files-only/allowLocalModels configuration requirement; fixed it and added a worker fetch guard that serves runtime/models from their caches and returns 404 for any missing file while translating. Optional configurations therefore never probe HTTP. Live reload/reverse-direction checks passed after the configuration fix: fresh English became Spanish with both paragraph breaks retained. Models load with remote model access disabled during translation. Physical network-disconnection and iPhone performance were not tested.
 
 # Habla Ecuador development handoff
 
@@ -15,7 +15,7 @@ Updated October 7, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.12, build 64; continue from these root files.
+- Current source: v0.22.13, build 65; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
