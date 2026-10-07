@@ -451,3 +451,10 @@ button:disabled { cursor: default; }
   .paper-print-text { white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
   @page { margin: 20mm; }
 }
+
+.offline-tools { margin: 1rem 0; padding: 1rem; border: 1px solid var(--line, #dedac7); border-radius: 20px; }
+.offline-tools p { margin: .7rem 0; }
+.offline-choice { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin-top: .6rem; }
+.offline-choice input { width: 22px; height: 22px; flex: none; }
+.offline-tools details { margin-top: .8rem; }
+.offline-tools small { display: block; }

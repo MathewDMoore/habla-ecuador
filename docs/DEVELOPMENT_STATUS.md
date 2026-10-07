@@ -1,3 +1,11 @@
+## Build 63 — new text on device
+
+Added an opt-in downloadable Spanish ↔ English pack using pinned quantized OPUS-MT models and Transformers.js 2.17.2 in a dedicated worker. Runtime/model files are browser-cached outside GitHub; private documents and generated drafts are never added to model downloads. Download both directions once (about 250 MB), then select Use on-device translation. Translation always uses local-files-only model loading; local errors never trigger a silent online fallback. Existing verified phrases and research matches remain first. All text is chunked without truncating input, retaining protected research tokens and paragraphs; editable drafts, UK/US spelling choices and regional review labels remain.
+
+Service-worker upgrades now delete only old app-shell caches, preserving model/runtime caches and other applications. A single WASM thread works without cross-origin isolation on GitHub Pages. One direction is loaded in memory at a time. Browser storage clearing can remove the pack; mobile speed/memory and device dictation/voices vary. Whole-paper import/printing remains separate and private. No new research paper is treated as training data.
+
+Validation: all existing regression suites plus offline cache/routing tests pass. Live model/output checks recorded after deployment below.
+
 # Habla Ecuador development handoff
 
 Updated October 6, 2026 (America/Denver).

@@ -8,11 +8,12 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=62">
-  <script src="research-reference.js?v=62" defer></script>
-  <script src="document-import.js?v=62" defer></script>
-  <script src="saved-paper.js?v=62" defer></script>
-  <script src="app.js?v=62" defer></script>
+  <link rel="stylesheet" href="styles.css?v=63">
+  <script src="research-reference.js?v=63" defer></script>
+  <script src="document-import.js?v=63" defer></script>
+  <script src="saved-paper.js?v=63" defer></script>
+  <script src="offline-device.js?v=63" defer></script>
+  <script src="app.js?v=63" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -21,7 +22,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.10 · build 62</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.11 · build 63</span></div>
     </header>
 
     <main>
@@ -120,6 +121,15 @@
           </div>
           <p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p>
 
+          <section class="offline-tools panel" aria-labelledby="offline-title">
+            <h3 id="offline-title">Translate new text offline</h3>
+            <p>Download a free Spanish ↔ English pack (about 250 MB) once while connected. After that, new typed text can stay on your device. Keep this page open during the download; Wi-Fi is recommended.</p>
+            <button id="offline-download" type="button" class="secondary-button">Download offline pack</button>
+            <label class="offline-choice"><input id="offline-use" type="checkbox"> Use on-device translation</label>
+            <p id="offline-status" role="status" aria-live="polite">Pack not downloaded. Local phrases and saved papers still work offline.</p>
+            <small>Machine drafts remain editable. U.K./U.S. spelling choices apply; Ecuadorian, Bolivian and Mexican wording needs review. Dictation and voices depend on your device.</small>
+            <details><summary>About the offline pack</summary><p>OPUS-MT models by Helsinki-NLP, converted by Xenova, run with Transformers.js (Apache 2.0). Model files are downloaded to this browser, outside the GitHub repository. Clearing browser data can remove them. No account or paid API is needed.</p><a href="https://huggingface.co/Helsinki-NLP/opus-mt-es-en" target="_blank" rel="noopener">Spanish → English model and licence</a> · <a href="https://huggingface.co/Helsinki-NLP/opus-mt-en-es" target="_blank" rel="noopener">English → Spanish model and licence</a></details>
+          </section>
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
             <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
             <div class="segmented purpose-switch" role="group" aria-label="Translation purpose">

@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.10 · build 62";
+const APP_VERSION = "0.22.11 · build 63";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -850,7 +850,9 @@ function translationErrorMessage(error) {
     quota:["The free translation allowance has been used.", "MyMemory reported that the free allowance is exhausted. Retry after the service resets it. Successful segments stay in memory while this page is open."],
     rate_limit:["The service is limiting requests.", "Wait a little, then tap Retry translation. This is a service limit, not a problem with your document."],
     timeout:["The translation service took too long.", "Tap Retry translation. Completed segments will be reused while this page is open."],
-    offline:["You appear to be offline.", "Reconnect, then tap Retry translation. Your source text is preserved."],
+    offline:["You appear to be offline.", "New text can be translated offline after downloading the pack. Your source text is preserved."],
+    offline_pack:["Download the offline pack first.", "Connect, tap Download offline pack, and keep the page open until it is ready. On-device mode never sends your text to the online service."],
+    offline_engine:["On-device translation could not finish.", "Your source text is preserved. Retry with a shorter section; reload if the device ran out of memory. No online service was used."],
     network:["The translation service could not be reached.", "The browser did not receive a response. This may be a connection or access problem; a daily quota has not been confirmed. Tap Retry translation when connected."],
     invalid_response:["The service returned an unreadable response.", "Tap Retry translation. Your source text is preserved."],
     request_limit:["The service rejected a translation segment.", "Use a shorter section and retry. Your source text is preserved."],
@@ -904,7 +906,7 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
   } catch (error) { translationChunkCache.delete(key); throw error; }
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target);
@@ -912,11 +914,11 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   if (text.length > 8000) throw translationFailure("research_limit");
   const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   const chunks = splitLongTranslationText(protectedDocument.text);
-  if (chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
+  if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
   const translated = [];
   for (const chunk of chunks) {
     if (!isCurrent()) throw translationFailure("superseded");
-    translated.push(chunk.separator ? chunk.text : await requestTranslationChunk(chunk.text,way,purpose));
+    translated.push(chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose)));
   }
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
@@ -1121,6 +1123,7 @@ async function renderTranslation({allowImported=false}={}) {
   const phrase = translationPurpose === "academic" || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
     const embeddedSlang = prepareEmbeddedEcuadorianSlang(sourceText,direction);
+    const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
     result.hidden = false;
     missing.hidden = true;
     $(".result-label").textContent = translationPurpose === "academic"
@@ -1133,11 +1136,11 @@ async function renderTranslation({allowImported=false}={}) {
     $("#literal-result").textContent = "";
     $("#usage-note").innerHTML = translationPurpose === "academic"
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
-      : `<strong>General translation</strong><span>Checking the free translation service. Regional naturalness has not yet been verified.</span>`;
+      : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest});
+      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest,onDevice});
       if (requestId !== translationRequest) return;
-      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0});
+      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
@@ -1161,6 +1164,10 @@ async function renderTranslation({allowImported=false}={}) {
         $(".result-label").textContent = `${languageLabel(targetLanguage)} · Ecuadorian slang-aware translation`;
         $("#literal-result").textContent = `Recognized Ecuadorian slang: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
         $("#usage-note").innerHTML = `<strong>Ecuadorian slang recognized · ${escapeHtml(embeddedEntry.register)}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
+      }
+      if (onDevice && !referenceMatch) {
+        $("#literal-result").textContent += " · On-device machine draft";
+        $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
     } catch (error) {
       if (requestId !== translationRequest) return;
@@ -1974,6 +1981,7 @@ function escapeHtml(value) {
 }
 
 function init() {
+  HablaOffline.bind();
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || new URLSearchParams(location.search).get("standalone") === "translator";
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   if ("speechSynthesis" in window) {
@@ -2127,7 +2135,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=62").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=63").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
