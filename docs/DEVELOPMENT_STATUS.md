@@ -1,10 +1,14 @@
+## Primary product objective
+
+A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Next product step after build 66: straightforward Add to phone guidance and Share app controls. This phone-polish work is pending; finish and verify the current comparison update first as instructed.
+
 ## Build 66 — meaningful U.K./U.S. comparison
 
 Added a local, source-scoped editorial layer for five everyday pairs: flat/apartment, lift/elevator, holiday/vacation, pavement/sidewalk and petrol/gasoline. Sentence alignment must match before vocabulary adaptation; ambiguous floor/surface/tyre, lifting, public-holiday and road-surface meanings remain unchanged. Articles follow apartment/flat and elevator/lift substitutions. These remain regional adaptations of a single draft, not independent translations or a general semantic model. Existing Ecuadorian meaning preparation and independent Spanish region selectors are preserved. No extra network request, model download or paid service.
 
 Comparison now highlights actual differences in separate read-only previews, explains supported vocabulary choices and says Same wording in both when identical. Highlights update with each edit; each variety retains its own saved text, including intentionally empty edits. Original paragraph breaks/text are retained in the diff, with bounded memory for long edits. Research mode does not apply these everyday vocabulary rules. Quotations, citations, DOI/URLs, inline code and detected capitalised names are protected during adaptation; computer program is kept as program when context identifies software. This does not guarantee every specialist term or proper name is detected.
 
-Validation: all nine regression suites pass, including ambiguous/context-isolation examples, articles, scholarly references, lossless diffs, independently saved edits and escaped user markup. Live verification follows deployment. No archived media was changed for this release.
+Validation: all nine regression suites pass, including ambiguous/context-isolation examples, articles, scholarly references, lossless diffs, independently saved edits and escaped user markup. Live build 66 Chrome verification passed with the on-device pack: El apartamento tiene un ascensor became The flat has a lift versus The apartment has an elevator; highlighted vocabulary/article differences and both explanations were visible. Editing U.K. to match U.S. showed Same wording in both; reopening the comparison kept the saved U.K. edit. The original demonstration was restored. No archived media was changed for this release.
 
 Vocabulary references (sense/region labels only; no dictionary examples or definitions copied):
 - https://dictionary.cambridge.org/dictionary/english/apartment
