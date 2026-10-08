@@ -22,11 +22,22 @@ const HablaScreenshot = (() => {
     });
     return loading;
   }
-  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader}={}) {
+  function interruptible(promise,signal) {
+    if(!signal)return promise;
+    return new Promise((resolve,reject)=>{
+      const abort=()=>reject(new Error('Screenshot reading cancelled.'));
+      promise.then(value=>{signal.removeEventListener('abort',abort);resolve(value);},error=>{signal.removeEventListener('abort',abort);reject(error);});
+      if(signal.aborted){abort();return;}
+      signal.addEventListener('abort',abort,{once:true});
+    });
+  }
+  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal}={}) {
     validate(file);
-    const api=reader || await load();
+    const api=reader || await interruptible(load(),signal);
     if (!isCurrent()) return null;
-    const worker=await api.createWorker(language,1,{workerPath:BASE+'worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0',logger,errorHandler:()=>{}});
+    const creation=api.createWorker(language,1,{workerPath:BASE+'worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0',logger,errorHandler:()=>{}});
+    creation.then(worker=>{if(signal?.aborted)worker.terminate().catch(()=>{});},()=>{});
+    const worker=await interruptible(creation,signal);
     activeWorker=worker;
     try {
       if (!isCurrent()) return null;
@@ -36,7 +47,7 @@ const HablaScreenshot = (() => {
         const pixels=bitmap.width*bitmap.height;bitmap.close();
         if (pixels>16000000) throw new Error("This image is too large to read on a phone. Crop it to the text and try again.");
       }
-      const result=await worker.recognize(file);
+      const result=await interruptible(worker.recognize(file),signal);
       if (!isCurrent()) return null;
       const text=String(result.data?.text||'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim();
       if (!text) throw new Error("No readable text found. Try a clearer screenshot or crop to the text.");
@@ -49,15 +60,17 @@ const HablaScreenshot = (() => {
     const choose=document.querySelector('#choose-screenshot'),paste=document.querySelector('#paste-screenshot'),cancel=document.querySelector('#cancel-screenshot'),status=document.querySelector('#screenshot-status');
     if(!input||!fileInput||!choose||!paste) return;
     const report=text=>{status.textContent=text;};
+    let controller;
     function read(file) {
       try{validate(file);}catch(error){report(error.message);return;}
-      const id=++sequence,guard=begin();
+      controller?.abort();controller=new AbortController();
+      const signal=controller.signal,id=++sequence,guard=begin();
       const language=document.querySelector('#source-language-select').value.startsWith('en')?'eng':'spa';
       cancel.hidden=false;report('Reading screenshot on this device… First use downloads the reader.');
       queue=queue.then(async()=>{
         if(id!==sequence)return;
         try{
-          const result=await extract(file,{language,isCurrent:()=>id===sequence,logger:progress=>{
+          const result=await extract(file,{language,signal,isCurrent:()=>id===sequence,logger:progress=>{
             if(id===sequence&&progress.status==='recognizing text')report(`Reading screenshot… ${Math.round((progress.progress||0)*100)}%`);
           }});
           if(id!==sequence||!result)return;
@@ -78,7 +91,7 @@ const HablaScreenshot = (() => {
         report('No image on the clipboard. Copy a screenshot first, or choose one from Photos.');
       }catch{report('Clipboard access was not available. Use Paste in the text box, or choose the screenshot from Photos.');}
     });
-    cancel.addEventListener('click',()=>{sequence++;cancel.hidden=true;report('Screenshot reading cancelled. Your text has been kept.');if(activeWorker)activeWorker.terminate().catch(()=>{});});
+    cancel.addEventListener('click',()=>{sequence++;controller?.abort();cancel.hidden=true;report('Screenshot reading cancelled. Your text has been kept.');if(activeWorker)activeWorker.terminate().catch(()=>{});});
   }
   return {bind,extract,validate,imageFromClipboard};
 })();

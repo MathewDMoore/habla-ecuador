@@ -19,6 +19,19 @@ async function main(){
  await assert.rejects(helper.extract(file,{reader}),/No readable/);assert.equal(terminated,3);
  worker.recognize=async()=>{throw new Error('bad image');};
  await assert.rejects(helper.extract(file,{reader}),/bad image/);assert.equal(terminated,4);
- console.log('Screenshot checks passed: file/clipboard validation, local-worker routing, paragraph fidelity, stale results and worker release on failures.');
+ const controller=new AbortController();let started;
+ const recognitionStarted=new Promise(resolve=>{started=resolve;});
+ worker.recognize=()=>{started();return new Promise(()=>{});};
+ const cancelled=helper.extract(file,{reader,signal:controller.signal});
+ await recognitionStarted;controller.abort();
+ await assert.rejects(cancelled,/cancelled/);assert.equal(terminated,5,'cancel must settle even if worker never responds');
+ worker.recognize=async()=>({data:{text:'Nuevo texto.'}});
+ assert.equal((await helper.extract(file,{reader})).text,'Nuevo texto.','a new import works after cancellation');
+ let finishStartup;reader.createWorker=()=>new Promise(resolve=>{finishStartup=resolve;});
+ const startupController=new AbortController();
+ const startupCancelled=helper.extract(file,{reader,signal:startupController.signal});
+ startupController.abort();await assert.rejects(startupCancelled,/cancelled/);
+ finishStartup(worker);await Promise.resolve();assert.equal(terminated,7,'late startup after cancellation releases worker');
+ console.log('Screenshot checks passed: file/clipboard validation, local-worker routing, paragraph fidelity, stale results, cancellation settlement and worker release.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
