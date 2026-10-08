@@ -8,12 +8,13 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=65">
-  <script src="research-reference.js?v=65" defer></script>
-  <script src="document-import.js?v=65" defer></script>
-  <script src="saved-paper.js?v=65" defer></script>
-  <script src="offline-device.js?v=65" defer></script>
-  <script src="app.js?v=65" defer></script>
+  <link rel="stylesheet" href="styles.css?v=66">
+  <script src="research-reference.js?v=66" defer></script>
+  <script src="document-import.js?v=66" defer></script>
+  <script src="saved-paper.js?v=66" defer></script>
+  <script src="offline-device.js?v=66" defer></script>
+  <script src="english-varieties.js?v=66" defer></script>
+  <script src="app.js?v=66" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -22,7 +23,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.13 · build 65</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.14 · build 66</span></div>
     </header>
 
     <main>
@@ -236,11 +237,13 @@
           <section class="english-comparison" aria-label="English comparison">
             <button id="compare-english" type="button">Compare U.K. / U.S. English</button>
             <div id="english-comparison" hidden>
-              <p>Two editable spelling adaptations of the same draft. This limited comparison does not provide two independent translations. Edits are saved on this device.</p>
+              <p>Two editable regional adaptations of the same draft. Everyday vocabulary changes only where the source context supports it; these are not independent translations. Edits are saved separately on this device.</p>
+              <p id="comparison-summary" role="status" aria-live="polite"></p>
               <div class="comparison-columns">
-                <label>U.K. English<textarea id="comparison-uk" rows="8"></textarea></label>
-                <label>U.S. English<textarea id="comparison-us" rows="8"></textarea></label>
+                <div><label>U.K. English<textarea id="comparison-uk" rows="8"></textarea></label><p class="comparison-highlight" id="comparison-highlight-uk" aria-label="U.K. differences highlighted"></p></div>
+                <div><label>U.S. English<textarea id="comparison-us" rows="8"></textarea></label><p class="comparison-highlight" id="comparison-highlight-us" aria-label="U.S. differences highlighted"></p></div>
               </div>
+              <div id="comparison-notes" class="comparison-notes"></div>
             </div>
           </section>
 

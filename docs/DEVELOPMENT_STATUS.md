@@ -1,3 +1,18 @@
+## Build 66 — meaningful U.K./U.S. comparison
+
+Added a local, source-scoped editorial layer for five everyday pairs: flat/apartment, lift/elevator, holiday/vacation, pavement/sidewalk and petrol/gasoline. Sentence alignment must match before vocabulary adaptation; ambiguous floor/surface/tyre, lifting, public-holiday and road-surface meanings remain unchanged. Articles follow apartment/flat and elevator/lift substitutions. These remain regional adaptations of a single draft, not independent translations or a general semantic model. Existing Ecuadorian meaning preparation and independent Spanish region selectors are preserved. No extra network request, model download or paid service.
+
+Comparison now highlights actual differences in separate read-only previews, explains supported vocabulary choices and says Same wording in both when identical. Highlights update with each edit; each variety retains its own saved text, including intentionally empty edits. Original paragraph breaks/text are retained in the diff, with bounded memory for long edits. Research mode does not apply these everyday vocabulary rules. Quotations, citations, DOI/URLs, inline code and detected capitalised names are protected during adaptation; computer program is kept as program when context identifies software. This does not guarantee every specialist term or proper name is detected.
+
+Validation: all nine regression suites pass, including ambiguous/context-isolation examples, articles, scholarly references, lossless diffs, independently saved edits and escaped user markup. Live verification follows deployment. No archived media was changed for this release.
+
+Vocabulary references (sense/region labels only; no dictionary examples or definitions copied):
+- https://dictionary.cambridge.org/dictionary/english/apartment
+- https://dictionary.cambridge.org/dictionary/english/lift
+- https://dictionary.cambridge.org/dictionary/english/holiday?q=holiday_1
+- https://dictionary.cambridge.org/us/dictionary/english/sidewalk
+- https://dictionary.cambridge.org/dictionary/english/gasoline
+
 ## Build 65 — new text on device
 
 Added an opt-in downloadable Spanish ↔ English pack using pinned quantized OPUS-MT models and Transformers.js 2.17.2 in a dedicated worker. Runtime/model files are browser-cached outside GitHub; private documents and generated drafts are never added to model downloads. Download both directions once (about 250 MB), then select Use on-device translation. Translation always uses local-files-only model loading; local errors never trigger a silent online fallback. Existing verified phrases and research matches remain first. All text is chunked without truncating input, retaining protected research tokens and paragraphs; editable drafts, UK/US spelling choices and regional review labels remain.
@@ -8,14 +23,14 @@ Validation: all existing regression suites plus offline cache/routing tests pass
 
 # Habla Ecuador development handoff
 
-Updated October 7, 2026 (America/Denver).
+Updated October 8, 2026 (America/Denver).
 
 ## Current app
 
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.13, build 65; continue from these root files.
+- Current source: v0.22.14, build 66; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

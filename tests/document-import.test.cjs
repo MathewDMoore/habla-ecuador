@@ -15,8 +15,9 @@ const elements = {};
 const get = key => elements[key] ||= element();
 const context = vm.createContext({console, setTimeout, clearTimeout, AbortController, HablaDocument:helper,
   localStorage:{getItem:()=>null,setItem:()=>{}},
-  document:{addEventListener(){},querySelector:get,querySelectorAll:()=>[],body:{classList:{toggle(){}}},createElement:element},
+  document:{addEventListener(){},querySelector:get,querySelectorAll:()=>[],body:{classList:{toggle(){}}},createElement:()=>({...element(),get innerHTML(){return String(this.textContent).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}})},
   window:{}, fetch:async()=>{network++;throw new Error('unexpected service request');}});
+vm.runInContext(fs.readFileSync(path.join(root,'english-varieties.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(root,'research-reference.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context);
 const run = code => vm.runInContext(code,context);
@@ -69,9 +70,32 @@ async function main() {
   assert.equal(get('#comparison-uk').value,'The organisation analysed colour and behaviour.');
   assert.equal(get('#comparison-us').value,'The organization analyzed color and behavior.');
   assert.equal(network,0,'comparison does not request a second translation');
+  assert.match(get('#comparison-summary').textContent,/Highlighted/);
+  assert.match(get('#comparison-highlight-uk').innerHTML,/<mark>organisation/);
+  get('#comparison-uk').handlers.input({target:{value:'My UK edit'}});
+  get('#comparison-uk').value='My UK edit';
+  get('#comparison-us').value='My UK edit';
+  get('#comparison-us').handlers.input({target:{value:'My UK edit'}});
+  assert.equal(get('#comparison-summary').textContent,'Same wording in both.');
+  get('#comparison-uk').value='<script>alert(1)</script>';
+  get('#comparison-uk').handlers.input({target:{value:get('#comparison-uk').value}});
+  assert.ok(!get('#comparison-highlight-uk').innerHTML.includes('<script>'),'highlight text cannot execute markup');
+  assert.match(get('#comparison-highlight-uk').innerHTML,/&lt;script&gt;/);
+  get('#comparison-uk').value='';get('#comparison-uk').handlers.input({target:{value:''}});
+  get('#compare-english').handlers.click();
+  assert.equal(get('#comparison-uk').value,'','intentionally empty edits are retained');
+
   get('#comparison-uk').handlers.input({target:{value:'My UK edit'}});
   get('#compare-english').handlers.click();
   assert.equal(get('#comparison-uk').value,'My UK edit','comparison edits persist separately');
+  get('#translator-input').value='Vivo en un apartamento.';
+  get('#natural-result').textContent='I live in an apartment.';
+  run('lastCompletedTranslation={source:"Vivo en un apartamento.",targetLanguage:"en-GB",sourceLanguage:"es-MX",purpose:"everyday"};');
+  get('#compare-english').handlers.click();
+  assert.equal(get('#comparison-uk').value,'I live in a flat.');
+  assert.equal(get('#comparison-us').value,'I live in an apartment.');
+  assert.match(get('#comparison-notes').innerHTML,/Housing: flat \/ apartment/);
+  assert.equal(network,0,'context-aware comparison remains local');
   // A closed import cannot overwrite the next user's text when it finishes.
   let finish;
   context.HablaDocument={...helper,extract:()=>new Promise(resolve=>finish=resolve)};

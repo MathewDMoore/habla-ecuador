@@ -458,3 +458,8 @@ button:disabled { cursor: default; }
 .offline-choice input { width: 22px; height: 22px; flex: none; }
 .offline-tools details { margin-top: .8rem; }
 .offline-tools small { display: block; }
+
+.comparison-highlight { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: .75rem; padding: .75rem; background: #fffdf7; border: 1px solid #dedac7; border-radius: 12px; color: #173f35; }
+.comparison-highlight mark { background: #ffe39a; color: #173f35; border-radius: 3px; text-decoration: underline; text-decoration-thickness: 2px; }
+.comparison-notes { font-size: .9rem; line-height: 1.5; }
+.comparison-columns > div { min-width: 0; }

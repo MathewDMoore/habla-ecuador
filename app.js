@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.13 · build 65";
+const APP_VERSION = "0.22.14 · build 66";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -249,6 +249,8 @@ let documentLoading = false;
 let importedDocument = null;
 let documentImportRequest = 0;
 let comparisonContext = null;
+let comparisonChanges = [];
+let comparisonPurpose = "everyday";
 let activeTranslationEdit = null;
 let translationEdits = readTranslationEdits();
 let preservedCulturalContext = null;
@@ -820,7 +822,8 @@ function refineAcademicEnglish(text, source="") {
   return protectedDraft.restore(refinePragmaticsTerminology(protectedDraft.text, source));
 }
 
-function convertEnglishVariety(text, target=targetLanguage) {
+function convertEnglishVariety(text, target=targetLanguage, options={}) {
+  if (typeof HablaEnglish !== "undefined") return HablaEnglish.adapt(text,target,options).text;
   const ukPairs = [
     ["color","colour"],["colors","colours"],["center","centre"],["centers","centres"],
     ["analyze","analyse"],["analyzed","analysed"],["analyzing","analysing"],
@@ -909,7 +912,7 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
-    if (reference !== null) return convertEnglishVariety(reference.text,target);
+    if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
   }
   if (text.length > 8000) throw translationFailure("research_limit");
   const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
@@ -923,7 +926,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
   const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
-  return languageFamily(target) === "en" ? convertEnglishVariety(refined,target) : refined;
+  return languageFamily(target) === "en" ? convertEnglishVariety(refined,target,{source:text,purpose}) : refined;
 }
 
 
@@ -1065,7 +1068,7 @@ function regionalSpanishBridge(sourceText) {
 }
 
 function regionalEnglishBridge(sourceText) {
-  const converted = convertEnglishVariety(sourceText,targetLanguage);
+  const converted = convertEnglishVariety(sourceText,targetLanguage,{source:sourceText,purpose:translationPurpose});
   return {
     text:converted,
     label:`${languageLabel(targetLanguage)} regional adaptation`,
@@ -1347,18 +1350,46 @@ function bindDocumentTools() {
     // Use the editable draft currently on screen; no second service request.
     const draft = $("#natural-result").textContent;
     comparisonContext = `comparison|${completed.sourceLanguage}|${completed.purpose}|${academicSourceFingerprint(completed.source)}`;
+    comparisonChanges = [];
+    comparisonPurpose = completed.purpose;
     ["uk", "us"].forEach(variant => {
-      const generated = convertEnglishVariety(draft, variant === "uk" ? "en-GB" : "en-US");
+      const target = variant === "uk" ? "en-GB" : "en-US";
+      const adaptation = typeof HablaEnglish !== "undefined" ? HablaEnglish.adapt(draft,target,{source:completed.source,purpose:completed.purpose}) : {text:convertEnglishVariety(draft,target),changes:[]};
+      const generated = adaptation.text;
+      comparisonChanges.push(...adaptation.changes);
       const key = `${comparisonContext}|${variant}`;
-      $("#comparison-" + variant).value = translationEdits[key]?.text || generated;
+      $("#comparison-" + variant).value = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text : generated;
     });
     $("#english-comparison").hidden = false;
+    updateEnglishComparisonDifferences();
   });
   ["uk", "us"].forEach(variant => $("#comparison-" + variant).addEventListener("input", event => {
     if (!comparisonContext) return;
     translationEdits[`${comparisonContext}|${variant}`] = {text:event.target.value, updatedAt:new Date().toISOString()};
     persistTranslationEdits();
+    updateEnglishComparisonDifferences();
   }));
+}
+
+function updateEnglishComparisonDifferences() {
+  if (typeof HablaEnglish === "undefined" || !$("#comparison-summary")) return;
+  const uk = $("#comparison-uk").value, us = $("#comparison-us").value;
+  const diff = HablaEnglish.differences(uk,us);
+  $("#comparison-summary").textContent = diff.same ? "Same wording in both." : "Highlighted words differ between the two drafts. Your edits are included.";
+  ["uk","us"].forEach(variant => {
+    $("#comparison-highlight-" + variant).innerHTML = diff[variant].map(run => run.changed ? `<mark>${escapeHtml(run.text)}</mark>` : escapeHtml(run.text)).join("");
+  });
+  const notes = [], seen = new Set();
+  if (comparisonPurpose === "academic") notes.push("Research mode keeps specialist vocabulary unchanged; quotations and reference strings are preserved during adaptation.");
+  if (!diff.same) for (const change of comparisonChanges) {
+    if (change.type !== "vocabulary" || seen.has(change.label)) continue;
+    const terms = change.label.split(":").at(-1).trim().split(" / ");
+    if (!terms.every(term => new RegExp(`\\b${term}s?\\b`,"i").test(uk + " " + us))) continue;
+    seen.add(change.label);
+    notes.push(`${change.label}: ${change.reason}`);
+  }
+  if (!diff.same && comparisonChanges.some(change=>change.type === "spelling")) notes.push("Spelling adaptations use common regional conventions. Both varieties can share the same wording.");
+  $("#comparison-notes").innerHTML = notes.map(note=>`<p>${escapeHtml(note)}</p>`).join("");
 }
 
 function setTranslationPurpose(purpose, rerender=true) {
@@ -2135,7 +2166,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=65").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=66").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

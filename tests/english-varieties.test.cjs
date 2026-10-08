@@ -1,0 +1,34 @@
+const assert=require('node:assert/strict');
+const {adapt,differences}=require('../english-varieties.js');
+const uk=(draft,source,purpose='everyday')=>adapt(draft,'en-GB',{source,purpose});
+const us=(draft,source,purpose='everyday')=>adapt(draft,'en-US',{source,purpose});
+assert.equal(uk('I live in an apartment.','Vivo en un apartamento.').text,'I live in a flat.');
+assert.equal(us('I live in a flat.','Vivo en un apartamento.').text,'I live in an apartment.');
+assert.equal(uk('The apartments have an elevator.','Los apartamentos tienen un ascensor.').text,'The flats have a lift.');
+assert.equal(us('Take the lift.','Toma el ascensor.').text,'Take the elevator.');
+assert.equal(us('Lift the box.','Levanta la caja.').text,'Lift the box.');
+assert.equal(us('The tyre is flat.','La llanta está desinflada.').text,'The tyre is flat.');
+assert.equal(us('The flat surface is clean.','La superficie plana está limpia.').text,'The flat surface is clean.');
+assert.equal(uk('I am on vacation.','Estoy de vacaciones.').text,'I am on holiday.');
+assert.equal(us('It is a public holiday.','Es un feriado.').text,'It is a public holiday.');
+assert.equal(us('Walk on the pavement.','Camina por la vereda.').text,'Walk on the sidewalk.');
+assert.equal(us('The pavement is cracked.','El pavimento está agrietado.').text,'The pavement is cracked.');
+assert.equal(uk('We need gasoline.','Necesitamos gasolina.').text,'We need petrol.');
+assert.equal(uk('We need gas.','Necesitamos gas.').text,'We need gas.');
+assert.equal(uk('I rent an apartment. The tyre is flat.','Alquilo un apartamento. La llanta está desinflada.').text,'I rent a flat. The tyre is flat.');
+assert.equal(uk('The apartment is small. It is clean.','El apartamento es pequeño y limpio.').text,'The apartment is small. It is clean.','unaligned sentences do not borrow context');
+assert.equal(uk('The department is busy.','El departamento de biología está ocupado.').text,'The department is busy.');
+assert.equal(uk('The program analyzes color.','El programa de computadora analiza el color.').text,'The program analyses colour.');
+assert.equal(uk('The program is educational.','El programa es educativo.').text,'The programme is educational.');
+assert.equal(uk('The apartment study analyzes color.','El estudio del apartamento analiza el color.','academic').text,'The apartment study analyses colour.','research vocabulary is unchanged');
+const protectedDraft='The World Health Organization analyzes color (Color Center, 2024). "Color Center" https://example.org/color/center doi:10.1234/color [12] 1.5 mg.';
+const protectedResult=uk(protectedDraft,'','academic').text;
+for(const literal of ['World Health Organization','(Color Center, 2024)','"Color Center"','https://example.org/color/center','doi:10.1234/color','[12]','1.5 mg'])assert.ok(protectedResult.includes(literal),literal);
+for(const [a,b] of [['Same wording.','Same wording.'],['The flat has colour.','The apartment has color.'],['','Your edit'],['<script>','<b>'],['a '.repeat(2500)+'UK','a '.repeat(2500)+'US']]){
+ const diff=differences(a,b);assert.equal(diff.uk.map(r=>r.text).join(''),a);assert.equal(diff.us.map(r=>r.text).join(''),b);assert.equal(diff.same,a===b);
+}
+const highlighted=differences('The flat has colour.','The apartment has color.');
+assert.ok(highlighted.uk.some(r=>r.changed&&r.text.includes('flat')));
+assert.ok(highlighted.uk.some(r=>!r.changed&&r.text.includes('has')));
+assert.ok(uk('I rent an apartment.','Alquilo un apartamento.').changes.some(c=>c.type==='vocabulary'));
+console.log('English variety checks passed: source-scoped vocabulary, ambiguous meanings, sentence alignment, software programs, research protection and lossless highlighted differences.');
