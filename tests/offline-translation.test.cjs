@@ -28,10 +28,10 @@ async function main(){
   await assert.rejects(vm.runInContext('requestGeneralTranslation("texto nuevo","ec-en")',app),e=>e.code==='offline_engine');
   // Activation preserves model/runtime and unrelated caches across app upgrades.
   const events={},deleted=[],puts=[];let onlineRequests=0;
-  const sw=vm.createContext({URL,Response,self:{location:{origin:'https://example.test'},clients:{claim(){}},skipWaiting(){},addEventListener:(type,fn)=>events[type]=fn},caches:{keys:async()=>['habla-ecuador-v65','habla-ecuador-v66','habla-ecuador-offline-models-v1','habla-ecuador-offline-runtime-v1','other-app'],delete:async key=>deleted.push(key),open:async()=>({match:async()=>({ok:true,body:'cached'}),put:async(...args)=>puts.push(args)})},fetch:async()=>{onlineRequests++;throw new Error('offline');}});
+  const sw=vm.createContext({URL,Response,self:{location:{origin:'https://example.test'},clients:{claim(){}},skipWaiting(){},addEventListener:(type,fn)=>events[type]=fn},caches:{keys:async()=>['habla-ecuador-v66','habla-ecuador-v67','habla-ecuador-offline-models-v1','habla-ecuador-offline-runtime-v1','other-app'],delete:async key=>deleted.push(key),open:async()=>({match:async()=>({ok:true,body:'cached'}),put:async(...args)=>puts.push(args)})},fetch:async()=>{onlineRequests++;throw new Error('offline');}});
   vm.runInContext(fs.readFileSync('sw.js','utf8'),sw);
   let task;events.activate({waitUntil:value=>task=value});await task;
-  assert.deepEqual(deleted,['habla-ecuador-v65']);
+  assert.deepEqual(deleted,['habla-ecuador-v66']);
   let response;events.fetch({request:{method:'GET',url:urls[0]},respondWith:value=>response=value});assert.equal((await response).body,'cached');assert.equal(onlineRequests,0);
   response=null;events.fetch({request:{method:'GET',url:'https://api.mymemory.translated.net/get?q=private'},respondWith:value=>response=value});assert.equal(response,null,'third-party translation requests are not cached');
   // Worker cold-load configuration and strict cache-only optional-file handling.

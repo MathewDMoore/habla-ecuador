@@ -1,6 +1,16 @@
 ## Primary product objective
 
-A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Next product step after build 66: straightforward Add to phone guidance and Share app controls. This phone-polish work is pending; finish and verify the current comparison update first as instructed.
+A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 67 implements the requested compact interface and screenshot import first.
+
+## Build 67 — compact help and screenshot translation
+
+Both translator screens now put language, import, research, comparison, privacy, playback and offline explanations behind closed native disclosure controls. Essential actions, warnings, language selectors, editable drafts, actual comparison differences and an online/on-device mode badge remain visible. Home voice settings are collapsed. Existing document and saved-paper controls remain available.
+
+Added Screenshot and Paste image controls plus image paste into the input. PNG/JPEG/WebP/BMP images up to 10 MB are read locally with lazily loaded, pinned Tesseract.js 6.0.1 and core 6.0.0; the selected source language chooses Spanish or English recognition. Reader/language downloads may need a connection. Image bytes are never uploaded for OCR. Extracted text is editable in the existing section preview and requires Translate this section before translation; online translation still sends that reviewed text to MyMemory, while selected on-device translation stays local. No private paper, model weights, OCR vendor files or media archive is committed. No paid service is added.
+
+Cancel keeps existing input. Pending OCR cannot overwrite later typed text or a newer import; workers are serialized and terminated on completion, failure or cancellation. Unsupported clipboard access falls back to normal Paste in the input or Screenshot from Photos/Files. OCR errors and unreadable images keep existing text. The 16-million-pixel guard limits large camera images; recognition accuracy and physical iPhone performance still need checking.
+
+Validation: all ten regression suites pass, including screenshot extraction/cleanup, clipboard selection, stale-result protection and preview-before-translation. JavaScript syntax, HTML nesting/unique IDs and whitespace checks pass. Live OCR/paste verification follows deployment.
 
 ## Build 66 — meaningful U.K./U.S. comparison
 
@@ -34,7 +44,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.14, build 66; continue from these root files.
+- Current source: v0.22.15, build 67; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

@@ -8,13 +8,14 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=66">
-  <script src="research-reference.js?v=66" defer></script>
-  <script src="document-import.js?v=66" defer></script>
-  <script src="saved-paper.js?v=66" defer></script>
-  <script src="offline-device.js?v=66" defer></script>
-  <script src="english-varieties.js?v=66" defer></script>
-  <script src="app.js?v=66" defer></script>
+  <link rel="stylesheet" href="styles.css?v=67">
+  <script src="research-reference.js?v=67" defer></script>
+  <script src="document-import.js?v=67" defer></script>
+  <script src="saved-paper.js?v=67" defer></script>
+  <script src="offline-device.js?v=67" defer></script>
+  <script src="english-varieties.js?v=67" defer></script>
+  <script src="screenshot-import.js?v=67" defer></script>
+  <script src="app.js?v=67" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -23,7 +24,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.14 · build 66</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.15 · build 67</span></div>
     </header>
 
     <main>
@@ -120,27 +121,18 @@
             <button id="swap-button" aria-label="Swap languages">⇄</button>
             <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
           </div>
-          <p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p>
+          <details class="compact-info"><summary>Language &amp; variety help</summary><p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p></details>
 
-          <section class="offline-tools panel" aria-labelledby="offline-title">
-            <h3 id="offline-title">Translate new text offline</h3>
-            <p>Download a free Spanish ↔ English pack (about 250 MB) once while connected. After that, new typed text can stay on your device. Keep this page open during the download; Wi-Fi is recommended.</p>
-            <button id="offline-download" type="button" class="secondary-button">Download offline pack</button>
-            <label class="offline-choice"><input id="offline-use" type="checkbox"> Use on-device translation</label>
-            <p id="offline-status" role="status" aria-live="polite">Pack not downloaded. Local phrases and saved papers still work offline.</p>
-            <small>Machine drafts remain editable. U.K./U.S. spelling choices apply; Ecuadorian, Bolivian and Mexican wording needs review. Dictation and voices depend on your device.</small>
-            <details><summary>About the offline pack</summary><p>OPUS-MT models by Helsinki-NLP, converted by Xenova, run with Transformers.js (Apache 2.0). Model files are downloaded to this browser, outside the GitHub repository. Clearing browser data can remove them. No account or paid API is needed.</p><a href="https://huggingface.co/Helsinki-NLP/opus-mt-es-en" target="_blank" rel="noopener">Spanish → English model and licence</a> · <a href="https://huggingface.co/Helsinki-NLP/opus-mt-en-es" target="_blank" rel="noopener">English → Spanish model and licence</a></details>
-          </section>
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
-            <div><span id="translation-purpose-title">Translation purpose</span><small>Choose the kind of writing.</small></div>
+            <div><span id="translation-purpose-title">Purpose</span><small id="translation-engine-badge">Online service</small></div>
             <div class="segmented purpose-switch" role="group" aria-label="Translation purpose">
               <button class="active" data-purpose="everyday" aria-pressed="true">Everyday</button>
               <button data-purpose="academic" aria-pressed="false">Research</button>
             </div>
           </section>
-          <p id="research-mode-note" class="research-mode-note" hidden>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p>
+          <details id="research-mode-note" class="compact-info" hidden><summary>Research translation info</summary><p>Research mode handles longer passages, preserves paragraph breaks and protected citations/DOIs, and prepares formal editable U.S. or U.K. English. The free engine produces a careful draft—not a substitute for subject-expert review before publication.</p></details>
 
-          <div id="research-reference-tools" class="research-mode-note" hidden>
+          <details id="research-reference-tools" class="research-mode-note compact-info" hidden><summary>Saved papers &amp; research references</summary>
             <section class="saved-paper-tools" aria-labelledby="saved-paper-heading">
               <h3 id="saved-paper-heading">Your complete research paper</h3>
               <button id="choose-saved-paper" type="button">Choose saved paper</button>
@@ -186,21 +178,28 @@
             <a id="read-ecuador-paper" href="https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087" target="_blank" rel="noopener">Read full paper ↗</a>
             <span>These are reference excerpts. Open your completed paper above to read it in full.</span>
             </details>
-          </div>
+          </details>
 
           <section class="document-tools" aria-label="Document translation">
-            <button id="choose-document" type="button">Choose document</button>
+            <div class="import-actions">
+              <button id="choose-document" type="button">Document</button>
+              <button id="choose-screenshot" type="button">Screenshot</button>
+              <button id="paste-screenshot" type="button">Paste image</button>
+            </div>
+            <input id="screenshot-file" type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
+            <p id="screenshot-status" class="import-status" role="status" aria-live="polite"></p>
+            <button id="cancel-screenshot" type="button" hidden>Cancel reading</button>
             <input id="document-file" type="file" accept=".docx,.doc,.pdf,.txt" hidden>
-            <p>Word (.docx), PDF, or text · up to 10 MB. On iPhone, choose Browse to open Files.</p>
+            <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Copy a screenshot and tap Paste image, or paste into the text box. Images are read locally. The reader may need an internet connection to download its files; check extracted text before translating.</p></details>
             <p id="document-status" role="status" aria-live="polite"></p>
             <div id="document-preview" hidden>
               <label for="document-section">Document section</label>
               <select id="document-section"></select>
-              <p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p>
+              <details class="compact-info"><summary>About document sections</summary><p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p></details>
               <button id="translate-document" type="button">Translate this section</button>
               <button id="close-document" type="button">Close document</button>
             </div>
-            <p>Text extraction stays on your device. With Use on-device translation selected, translation stays here too. Online mode sends the selected text to the free MyMemory service. Formatting and images are not imported.</p>
+            <details class="compact-info"><summary>How imported text is handled</summary><p>Files and screenshot reading stay on your device. Online translation sends selected text to MyMemory; on-device translation keeps it here. Word/PDF formatting and images are not retained.</p></details>
           </section>
 
           <label class="input-card">
@@ -211,7 +210,7 @@
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
-            <p id="literal-result" class="literal-text"></p>
+
           <div class="speed-control result-speed-control">
             <div class="speed-control-heading">
               <label for="voice-rate-slider">Playback speed</label>
@@ -229,21 +228,24 @@
               <button id="copy-result">Copy</button>
               <button id="restore-translation" hidden>Restore generated</button>
             </div>
-            <p id="translation-edit-status" class="translation-edit-status">Tap the translation above to edit it. Changes stay on this device.</p>
+            <p id="translation-edit-status" class="translation-edit-status">Tap the draft to edit. Edits stay on this device.</p>
+            <details class="result-notes compact-info"><summary>Translation &amp; playback notes</summary>
+            <p id="literal-result" class="literal-text"></p>
             <p class="speech-resume-note">Resume may repeat the current sentence if your device does not report word positions.</p>
             <div id="usage-note" class="usage-note"></div>
+            </details>
           </section>
 
           <section class="english-comparison" aria-label="English comparison">
             <button id="compare-english" type="button">Compare U.K. / U.S. English</button>
             <div id="english-comparison" hidden>
-              <p>Two editable regional adaptations of the same draft. Everyday vocabulary changes only where the source context supports it; these are not independent translations. Edits are saved separately on this device.</p>
+              <details class="compact-info"><summary>About this comparison</summary><p>Two editable regional adaptations of the same draft. Everyday vocabulary changes only where the source context supports it; these are not independent translations. Edits are saved separately on this device.</p></details>
               <p id="comparison-summary" role="status" aria-live="polite"></p>
               <div class="comparison-columns">
                 <div><label>U.K. English<textarea id="comparison-uk" rows="8"></textarea></label><p class="comparison-highlight" id="comparison-highlight-uk" aria-label="U.K. differences highlighted"></p></div>
                 <div><label>U.S. English<textarea id="comparison-us" rows="8"></textarea></label><p class="comparison-highlight" id="comparison-highlight-us" aria-label="U.S. differences highlighted"></p></div>
               </div>
-              <div id="comparison-notes" class="comparison-notes"></div>
+              <details class="compact-info"><summary>Why the wording differs</summary><div id="comparison-notes" class="comparison-notes"></div></details>
             </div>
           </section>
 
@@ -253,9 +255,18 @@
             <button id="retry-translation" type="button" hidden>Retry translation</button>
           </section>
 
-          <p class="translation-privacy">Verified Habla Ecuador phrases and matched research references stay local. With the downloaded pack and Use on-device translation selected, new text also stays on this device. Online mode sends other text—including new research passages—to the free MyMemory service for an editable draft. Research mode protects structure and reference strings where possible. Use on-device mode for material you do not want sent to that service.</p>
+          <details class="compact-info privacy-info"><summary>Privacy &amp; translation limits</summary><p class="translation-privacy">Verified Habla Ecuador phrases and matched research references stay local. With the downloaded pack and Use on-device translation selected, new text also stays on this device. Online mode sends other text—including new research passages—to the free MyMemory service for an editable draft. Research mode protects structure and reference strings where possible. Use on-device mode for material you do not want sent to that service.</p></details>
+          <details class="offline-tools compact-info"><summary id="offline-title">Offline translation</summary>
+            <p>Download a free Spanish ↔ English pack (about 250 MB) once while connected. After that, new typed text can stay on your device. Keep this page open during the download; Wi-Fi is recommended.</p>
+            <button id="offline-download" type="button" class="secondary-button">Download offline pack</button>
+            <label class="offline-choice"><input id="offline-use" type="checkbox"> Use on-device translation</label>
+            <p id="offline-status" role="status" aria-live="polite">Pack not downloaded. Local phrases and saved papers still work offline.</p>
+            <small>Machine drafts remain editable. U.K./U.S. spelling choices apply; Ecuadorian, Bolivian and Mexican wording needs review. Dictation and voices depend on your device.</small>
+            <details><summary>About the offline pack</summary><p>OPUS-MT models by Helsinki-NLP, converted by Xenova, run with Transformers.js (Apache 2.0). Model files are downloaded to this browser, outside the GitHub repository. Clearing browser data can remove them. No account or paid API is needed.</p><a href="https://huggingface.co/Helsinki-NLP/opus-mt-es-en" target="_blank" rel="noopener">Spanish → English model and licence</a> · <a href="https://huggingface.co/Helsinki-NLP/opus-mt-en-es" target="_blank" rel="noopener">English → Spanish model and licence</a></details>
+          </details>
 
-          <section class="voice-settings" aria-labelledby="voice-settings-title">
+
+          <details class="voice-settings compact-info"><summary>Voice settings</summary>
             <div class="voice-settings-heading">
               <div>
                 <p class="voice-settings-kicker">Free device voices</p>
@@ -275,8 +286,8 @@
                 <option value="auto">Automatic · match U.S. or U.K. setting</option>
               </select>
             </label>
-            <p id="voice-settings-note">Only free voices already available through this device are listed. If Apple names a system voice “Premium,” Habla Ecuador shows it as “Apple high quality · free.” Apple currently offers no Ecuador- or Bolivia-labelled system voice, so other Latin American voices are identified as approximations—not authentic Ecuadorian or Bolivian voices.</p>
-          </section>
+            <details class="compact-info"><summary>About device voices</summary><p id="voice-settings-note">Only free voices already available through this device are listed. If Apple names a system voice “Premium,” Habla Ecuador shows it as “Apple high quality · free.” Apple currently offers no Ecuador- or Bolivia-labelled system voice, so other Latin American voices are identified as approximations—not authentic Ecuadorian or Bolivian voices.</p></details>
+          </details>
 
           <div class="suggestions">
             <p>Try a phrase</p>

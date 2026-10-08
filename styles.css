@@ -463,3 +463,17 @@ button:disabled { cursor: default; }
 .comparison-highlight mark { background: #ffe39a; color: #173f35; border-radius: 3px; text-decoration: underline; text-decoration-thickness: 2px; }
 .comparison-notes { font-size: .9rem; line-height: 1.5; }
 .comparison-columns > div { min-width: 0; }
+
+.compact-info { margin: .45rem 0; border: 1px solid #dedac7; border-radius: 12px; padding: 0 .75rem; font-size: .85rem; }
+.compact-info > summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 600; padding: .55rem 0; }
+.compact-info[open] { padding-bottom: .65rem; }
+.compact-info > p { margin: .4rem 0; line-height: 1.5; }
+.offline-tools.compact-info { padding: 0 .75rem; margin: .45rem 0; }
+.import-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.import-actions button { min-height: 44px; padding: .5rem .75rem; flex: 1 1 auto; }
+.document-tools { padding: .65rem; margin: .5rem 0; }
+.import-status:empty { display: none; }
+.import-status { font-size: .85rem; margin: .4rem 0; }
+.result-notes { color: inherit; border-color: #718f84; }
+.result-notes > summary { color: inherit; }
+.translation-purpose { margin-bottom: .5rem; }

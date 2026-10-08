@@ -96,6 +96,16 @@ async function main() {
   assert.equal(get('#comparison-us').value,'I live in an apartment.');
   assert.match(get('#comparison-notes').innerHTML,/Housing: flat \/ apartment/);
   assert.equal(network,0,'context-aware comparison remains local');
+  get('#translator-input').value='Existing input';
+  const screenshotGuard=run('beginScreenshotImport()');context.screenshotGuard=screenshotGuard;
+  context.screenshotText={text:'El agua está limpia.\n\nSegunda oración.'};
+  assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),true);
+  assert.equal(get('#translator-input').value,context.screenshotText.text);
+  assert.equal(run('documentImportActive'),true,'OCR preview blocks automatic translation');
+  assert.equal(network,0,'screenshot OCR preview never sends text to translation service');
+  context.screenshotGuard=run('beginScreenshotImport()');get('#translator-input').value='New user input';
+  assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),false);
+  assert.equal(get('#translator-input').value,'New user input','slow OCR cannot overwrite typing');
   // A closed import cannot overwrite the next user's text when it finishes.
   let finish;
   context.HablaDocument={...helper,extract:()=>new Promise(resolve=>finish=resolve)};

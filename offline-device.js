@@ -12,7 +12,11 @@ const HablaOffline = (() => {
   let ready = false, enabled = false, worker, serial = 0, installing = false;
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
-  const status = text => { const node = document.querySelector("#offline-status"); if (node) node.textContent = text; };
+  function updateModeBadge() {
+    const badge = document.querySelector("#translation-engine-badge");
+    if (badge) badge.textContent = shouldUse() ? (ready ? "On device" : "On-device pack needed") : navigator.onLine === false ? "Offline" : "Online service";
+  }
+  const status = text => { const node = document.querySelector("#offline-status"); if (node) node.textContent = text; updateModeBadge(); };
   async function checkPack() {
     if (!globalThis.caches) return false;
     const runtime = await caches.open(RUNTIME_CACHE), models = await caches.open(MODEL_CACHE);
@@ -22,7 +26,7 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=65");
+      worker = new Worker("offline-worker.js?v=67");
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
@@ -85,6 +89,9 @@ const HablaOffline = (() => {
     button.addEventListener("click", install);
     try { enabled = localStorage.getItem("habla-ecuador-offline-enabled-v1") === "yes"; } catch {}
     checkbox.checked = enabled;
+    updateModeBadge();
+    globalThis.addEventListener?.("online",updateModeBadge);
+    globalThis.addEventListener?.("offline",updateModeBadge);
     checkbox.addEventListener("change", () => {
       enabled = checkbox.checked;
       try { localStorage.setItem("habla-ecuador-offline-enabled-v1", enabled ? "yes" : "no"); } catch {}
