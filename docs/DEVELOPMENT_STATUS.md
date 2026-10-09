@@ -8,7 +8,7 @@ For everyday images, join screen-wrapped lines within each OCR paragraph before 
 
 Image-to-English drafts apply three bounded source-scoped editorial corrections: numbered counting constructions can change account of to count of; a single track/runway can become dance floor when source dance cues and passage music cues agree, excluding airport/athletics/audio/recording contexts; a standalone volume imperative in a music passage can change lift/raise it up to turn it up. These rules work after either online or local generation. Ambiguous expressions are deliberately retained for editing; this is not a general lyrics model. No song, author, lyric passage or screenshot is embedded into public source or memory.
 
-All ten regression suites pass, including untouched research line breaks, paragraph retention, account/payment ambiguity, airport and audio-track isolation, salary/box meanings and ambiguous relationship wording. The reader's live exact-image test passed in build 69; final build 70 English-draft verification follows deployment.
+All ten regression suites pass, including untouched research line breaks, paragraph retention, account/payment ambiguity, airport and audio-track isolation, salary/box meanings and ambiguous relationship wording. Live build 70 verification passed from the supplied image bytes: Paste image, select 14%–74%, Read selected area and Translate image text. All visible lyric text was retained, including faded lettering; the editable draft used count of three, dance floor and turn it up. The ambiguous relationship/switching expression remains for review. Pages deployment succeeded. These results do not certify general lyrics accuracy or physical iPhone performance.
 
 ## Build 69 — text from coloured phone screenshots
 
