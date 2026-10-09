@@ -2,6 +2,14 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 78 — music from another device
+
+Adds Listen to music in both translators. Browser microphone recognition collects a short passage using the selected From locale. Stop listening or a 30-second limit ends capture; the browser may end sooner. The user reviews/edits the words before explicitly translating them through the existing online/on-device route, editable draft, regional context and U.K./U.S. comparison. Recognition does not identify songs or retrieve full lyrics. Singing and backing instruments can reduce accuracy. Browser recognition may send audio online; Habla does not persist an audio recording. No paid service, new dependency, bundled lyrics or audio archive is introduced.
+
+The regular one-phrase microphone remains unchanged. Continuous capture retains all returned results, bypasses dictation-specific transcript corrections, rejects stale events and keeps interim text after an early end. Capture pauses app audio and speech playback. Switching microphones, importing text, editing the source, changing From, leaving Translate or hiding the page releases capture. A stop watchdog clears a browser that fails to send end. Captured text waits for explicit translation; recognition/network/permission errors remain visible and preserve captured words.
+
+Validation: all twelve suites pass, including continuous final/interim accumulation, selected locale, stale handoffs, early ends, no-speech/network errors, 30-second timeout, missing-end recovery, edit protection, unsupported browsers and review-before-translation. JavaScript syntax and whitespace checks pass. Deployment and live UI verification are pending. Actual singing capture on a physical iPhone has not been tested; this is a speech-recognition-based first step, not a music transcription model.
+
 ## Build 77 — source-attested slang and vulgarity notes
 
 Adds 15 scoped recognition entries to the closed Context & regional expressions disclosure: huerco/huerca, güey/wey, no mames, chamo/chama, pana, coño de su madre, coño, pata, ni huevón, huevón/huevona, parce/parcero, gonorrea, chuta, pucha and ¡puta!. Country scope, literal alternatives, register and U.K./U.S. editorial English options are explicit. Source-attested does not mean every English gloss is independently validated or every speaker uses the word. Shared words never select a country or city automatically. Profanity is explained without silently sanitizing or increasing its strength; source and translation edits stay intact. Academic mode bypasses these conversational notes.
@@ -98,7 +106,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.25, build 77; continue from these root files.
+- Current source: v0.22.26, build 78; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

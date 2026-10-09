@@ -8,15 +8,15 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=77">
-  <script src="research-reference.js?v=77" defer></script>
-  <script src="document-import.js?v=77" defer></script>
-  <script src="saved-paper.js?v=77" defer></script>
-  <script src="offline-device.js?v=77" defer></script>
-  <script src="english-varieties.js?v=77" defer></script>
-  <script src="screenshot-import.js?v=77" defer></script>
-  <script src="spanish-context.js?v=77" defer></script>
-  <script src="app.js?v=77" defer></script>
+  <link rel="stylesheet" href="styles.css?v=78">
+  <script src="research-reference.js?v=78" defer></script>
+  <script src="document-import.js?v=78" defer></script>
+  <script src="saved-paper.js?v=78" defer></script>
+  <script src="offline-device.js?v=78" defer></script>
+  <script src="english-varieties.js?v=78" defer></script>
+  <script src="screenshot-import.js?v=78" defer></script>
+  <script src="spanish-context.js?v=78" defer></script>
+  <script src="app.js?v=78" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.21 · build 73</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.26 · build 78</span></div>
     </header>
 
     <main>
@@ -212,6 +212,18 @@
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
             <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
           </label>
+          <section class="music-capture document-tools" aria-label="Music from another device">
+            <div class="music-capture-actions">
+              <button id="music-listen" type="button" aria-pressed="false">Listen to music</button>
+              <button id="translate-music" type="button" disabled>Translate captured words</button>
+            </div>
+            <p id="music-listening-status" class="import-status" role="status" aria-live="polite"></p>
+            <details class="compact-info"><summary>Music listening help</summary>
+              <p>Play a short passage on another phone, speaker or computer. Choose the song’s language in From, tap Listen to music, then Stop listening. Capture ends after 30 seconds or when the browser stops listening. Check or edit the words above, then translate. Listen again starts a new passage.</p>
+              <p>This uses microphone speech recognition, not song identification. Singing, overlapping voices and instruments can cause missed or incorrect words. It does not retrieve the full lyrics. Try a lyrics screenshot if capture struggles.</p>
+              <p>Your browser’s recognition service may send audio online and need an internet connection. Habla Ecuador does not save an audio recording. Captured text follows your selected translation service; choose on-device translation to keep translation local.</p>
+            </details>
+          </section>
             <div id="document-preview" class="document-tools" hidden>
               <div id="document-section-controls">
               <label for="document-section">Document section</label>

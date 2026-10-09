@@ -488,3 +488,9 @@ button:disabled { cursor: default; }
 #screenshot-review label { display: block; font-size: .85rem; }
 #screenshot-review input[type="range"] { display: block; width: 100%; min-height: 44px; }
 #screenshot-review output { font-weight: 700; }
+
+.music-capture {margin-top:.6rem; margin-bottom:.6rem;}
+.music-capture-actions {display:flex; flex-wrap:wrap; gap:.5rem;}
+.music-capture-actions button {flex:1 1 12rem; min-height:44px;}
+.music-capture #music-listen.listening {background:#8e342a; color:#fff;}
+.music-capture .import-status:empty {display:none;}
