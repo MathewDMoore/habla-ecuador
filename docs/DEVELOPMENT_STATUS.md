@@ -2,13 +2,21 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 73 — untranslated size wording and review checks
+
+The user supplied a competitor/app comparison showing an ordinary size adjective left untranslated in Habla Ecuador. Adds source preparation for chiquito/chiquita forms only in physical-object size descriptions. The engine sees the neutral pequeño form; the original source and all saved edits remain unchanged. Academic text, quotations, names/brands and other senses are excluded. Cart/car/toy ambiguity is explained, not silently decided.
+
+A small local residual-Spanish check flags selected common words still present in an English draft. It updates when the user edits/restores a draft and does not certify accuracy. Musical loanwords, academic text and quoted terms are not treated as errors. Context reference links now have readable contrast on the result card. No extra online request, paid tier or bundled model. Broader accuracy needs systematic evaluation; there is no evidence that this prototype matches or exceeds Google Translate generally.
+
+All eleven regression suites and JavaScript syntax/whitespace checks pass. Live verification remains pending deployment.
+
 ## Build 72 — invitation meaning and more source varieties
 
 Live build 71 improved the supplied image's affectionate address and connected OCR blocks, but left a literal that in an invitation followed by a reason. Adds a bounded editorial because correction only when a source affectionate address and selected imperative/reason construction agree with the same English verb and clause. Relative clauses and quotes remain unchanged. The original source, edits, chosen regions and academic translation stay intact. RAE's que entry (causal sense) informs this local editorial rule; it is not a lyrics memory.
 
 Adds independently selectable Venezuelan, Peruvian and Colombian Spanish on both sides. Language help names Caracas, Lima and Bogotá as city contexts requiring local review, not trained city dialects. Speech requests the country locale and uses available device voices. Colombian employment contexts can use the attested camello work sense; other regional meanings remain review clues.
 
-All eleven suites and syntax/whitespace checks pass. Validation pending final live image and added-variety checks.
+All eleven suites and syntax/whitespace checks pass. Live build 72 recovered the posted image from bytes and used an affectionate address plus a causal connector in the English draft; the incomplete ending was flagged. Venezuela→Peru and Colombia→UK selections worked independently. Country/city guidance and meaning references appeared in closed disclosures. Pages deployment succeeded; this does not certify full lyrics accuracy or physical iPhone performance.
 
 ## Build 71 — meaning and regional usage clues
 
@@ -80,7 +88,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.20, build 72; continue from these root files.
+- Current source: v0.22.21, build 73; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

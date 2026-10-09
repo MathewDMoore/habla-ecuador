@@ -5,6 +5,26 @@ const HablaSpanishContext = (() => {
   const address = /\b(?:baila|ven|escucha|espera|mira|dime|hola)\s*,\s*coraz[oó]n\s*[,!?]/i;
   const touch = /\b(?:besos?|caricias?|abrazos?)\b|\bmanos?\b.{0,60}\bcuerpo\b/i;
   const otherRico = /\b(?:comida|comer|sopa|cafe|chocolate|sabor|postre|dinero|millonario|riqueza|sueldo|salario|no|nunca)\b/;
+  const nameContext = /\b(?:nombre|apellido|apodo|marca|restaurante|bar|llamado|llamada|llama)\b/i;
+  const smallObject = /\b(?:carritos?|carros?|mesas?|cajas?|libros?|casas?|vasos?|muebles?|objetos?|juguetes?)\b/i;
+  const sizeDescription = text => /\b(?:carritos?|carros?|mesas?|cajas?|libros?|casas?|vasos?|muebles?|objetos?|juguetes?)(?:\s+de\s+(?:madera|plastico|carton|metal|vidrio|papel))?\s+(?:(?:son|es)\s+)?(?:(?:muy|tan)\s+)?chiquit[oa]s?\b/.test(plain(text));
+  function prepare(text,{purpose='everyday'}={}) {
+    if(purpose==='academic')return text;
+    return text.replace(/\bchiquit[oa]s?\b/gi,(word,index,whole)=>{
+      const start=whole.slice(0,index).split(/[.!?\n]/).at(-1),end=whole.slice(index+word.length).split(/[.!?\n]/)[0];
+      const clause=start+word+end;
+      if(!sizeDescription(clause)||nameContext.test(clause)||unquoted(whole).slice(index,index+word.length).trim()==='')return word;
+      const replacement=word.toLowerCase().replace('chiquit','pequeñ');
+      return word===word.toUpperCase()?replacement.toUpperCase():/^[A-Z]/.test(word)?replacement[0].toUpperCase()+replacement.slice(1):replacement;
+    });
+  }
+  function residue(source,draft,{purpose='everyday',target='en-GB'}={}) {
+    if(purpose==='academic'||!target.startsWith('en')||nameContext.test(source))return [];
+    const sourceWords=new Set(plain(unquoted(source)).match(/[a-zñ]+/g)||[]);
+    const watch=/\b(?:chiquit[oa]s?|pequeñ[oa]s?|cansad[oa]s?|arrepentimientos|demasiado|despacio|madera|siempre|trasero)\b/gi;
+    const words=[...new Set((unquoted(draft).match(watch)||[]).filter(word=>sourceWords.has(plain(word))))];
+    return words.length?[{term:'Possible untranslated words',detail:`Still in Spanish: ${words.join(', ')}. Review the draft; names and borrowed words can be intentional. This limited check does not certify translation accuracy.`}]:[];
+  }
   function pleasure(text) {
     const source=unquoted(text);
     return (source.match(/\bqu[eé]\s+rico\b/gi)||[]).length===1 && touch.test(source) && !otherRico.test(plain(source));
@@ -31,6 +51,8 @@ const HablaSpanishContext = (() => {
     if(/(?:^|\s)ñañ[oa](?=$|[\s,.!?])/i.test(value))add('ñaño / ñaña','Sibling usages occur in Ecuador and Bolivia; friend usages also occur in Peru and parts of Bolivia. A single word cannot establish the speaker’s country.','https://www.asale.org/damer/ñaño');
     if(/\bguagua\b/i.test(value))add('guagua','Baby or child in Ecuador and Bolivia; bus in some Caribbean usages. Keep the source variety that you know and check the sentence.','https://www.asale.org/damer/guagua');
     if(/\bch[eé]vere\b/i.test(value))add('chévere','Can describe something great or pleasant, or a friendly person. These usages are shared by Venezuela, Peru, Colombia, Ecuador and other regions; the word alone does not identify a city or country.','https://www.asale.org/damer/chévere');
+    if(/\bchiquit[oa]s?\b/i.test(value)&&smallObject.test(value)&&!nameContext.test(value))add('chiquito / chiquita','In a size description, small or little is the likely meaning. The original source remains editable; check adjective agreement and any affectionate nuance.','https://dle.rae.es/chiquito');
+    if(/\bcarritos?\b/i.test(value))add('carrito','Can mean a small cart or a car-related object. Toy cars may fit a toy context; the word alone does not settle the object.','https://dle.rae.es/carro');
     if(image && /\b(?:entre|para|de|con|que|y)\s*[.!?]*$/i.test(value.trim()))add('Incomplete ending','The image may cut off the sentence. Check the original or add the next image; missing words are not invented.');
     return findings;
   }
@@ -63,6 +85,6 @@ const HablaSpanishContext = (() => {
     }
     return {text,changes};
   }
-  return {analyse,refine,workSense};
+  return {analyse,refine,workSense,prepare,residue};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;

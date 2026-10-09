@@ -1,5 +1,17 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue}=require('../spanish-context.js');
+assert.equal(prepare('Mis cajas de cartón chiquitas.'),'Mis cajas de cartón pequeñas.');
+assert.equal(prepare('Los vasos son chiquitos.'),'Los vasos son pequeños.');
+assert.equal(prepare('El restaurante Chiquito tiene mesas.'),'El restaurante Chiquito tiene mesas.');
+assert.equal(prepare('La casa de Chiquito.'),'La casa de Chiquito.');
+assert.equal(prepare('"Las cajas chiquitas."'),'"Las cajas chiquitas."');
+assert.equal(prepare('Las cajas chiquitas.',{purpose:'academic'}),'Las cajas chiquitas.');
+assert.equal(residue('Las cajas chiquitas.','Chiquitas boxes.').length,1);
+assert.equal(residue('Las cajas chiquitas.','Small boxes.').length,0);
+assert.equal(residue('La salsa es cumbia.','The salsa is cumbia.').length,0);
+assert.equal(residue('El restaurante Chiquito.','The Chiquito restaurant.').length,0);
+assert.equal(residue('Las cajas chiquitas.','"Chiquitas" boxes.').length,0);
+assert.equal(residue('Las cajas chiquitas.','Chiquitas boxes.',{purpose:'academic'}).length,0);
 assert.equal(refine('Come, heart, listen.','Ven, corazón, escucha.').text,'Come, sweetheart, listen.');
 assert.equal(refine('The heart is an organ.','El corazón es un órgano.').text,'The heart is an organ.');
 assert.equal(refine('Come, heart, listen.','Ven, corazón, escucha.',{purpose:'academic'}).text,'Come, heart, listen.');

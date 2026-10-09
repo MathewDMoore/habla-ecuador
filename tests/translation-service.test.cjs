@@ -3,7 +3,7 @@ const elements=new Map();
 function element(selector){if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,dataset:{},classList:{toggle(){}},setAttribute(){},removeAttribute(){}});return elements.get(selector);}
 let handler,requests=[];
 const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
- document:{querySelector:element,addEventListener(){},createElement:()=>({set innerHTML(v){this.value=v;}})},
+ document:{querySelector:element,addEventListener(){},createElement:()=>({textContent:'',get innerHTML(){return this.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},set innerHTML(v){this.value=v;}})},
  localStorage:{getItem:()=>null,setItem(){}},navigator:{onLine:true},
  fetch:async(url,options)=>{const text=new URL(url).searchParams.get('q');requests.push(text);assert.ok(Buffer.byteLength(text)<=500);return handler(text,options);}
 });
@@ -35,6 +35,15 @@ async function main(){
  assert.equal(await run('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"everyday",target:"en-GB"})'),'Come, sweetheart, listen.');
  fresh();
  assert.equal(await run('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"academic",target:"en-GB"})'),'Come, heart, listen.');
+ fresh();
+ handler=async text=>ok(text==='Las cajas pequeñas.'?'Small boxes.':text);
+ assert.equal(await run('requestGeneralTranslation("Las cajas chiquitas.","ec-en",{purpose:"everyday",target:"en-GB"})'),'Small boxes.');
+ assert.equal(requests[0],'Las cajas pequeñas.');
+ element('#translator-input').value='Las cajas chiquitas.';
+ run('setEditableTranslation("Las cajas chiquitas.","Chiquitas boxes.")');
+ assert.match(element('#spanish-context-notes').innerHTML,/Possible untranslated words/);
+ element('#natural-result').textContent='Small boxes.';run('saveActiveTranslationEdit()');
+ assert.doesNotMatch(element('#spanish-context-notes').innerHTML,/Possible untranslated words/);
  fresh();
  assert.equal(run('refineImageEnglish("Wait until the account of five.","Espera hasta la cuenta de cinco.")'),'Wait until the count of five.');
  assert.equal(run('refineImageEnglish("The account of five pesos.","La cuenta de cinco pesos.")'),'The account of five pesos.');

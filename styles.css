@@ -476,6 +476,7 @@ button:disabled { cursor: default; }
 .import-status { font-size: .85rem; margin: .4rem 0; }
 .result-notes { color: inherit; border-color: #718f84; }
 .result-notes > summary { color: inherit; }
+#spanish-context a { color: #f6d899; text-decoration: underline; text-underline-offset: .15em; }
 .translation-purpose { margin-bottom: .5rem; }
 
 .screenshot-preview-wrap { position: relative; display: table; margin: .5rem auto; }
