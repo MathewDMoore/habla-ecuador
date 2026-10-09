@@ -479,7 +479,7 @@ button:disabled { cursor: default; }
 .translation-purpose { margin-bottom: .5rem; }
 
 .screenshot-preview-wrap { position: relative; display: table; margin: .5rem auto; }
-.screenshot-preview-wrap img { display: block; width: auto; max-width: 100%; max-height: 280px; }
+.screenshot-preview-wrap img { display: block; width: auto; max-width: 100%; max-height: 420px; }
 #screenshot-shade { position: absolute; inset: 0; pointer-events: none; }
 #screenshot-review label { display: block; font-size: .85rem; }
 #screenshot-review input[type="range"] { display: block; width: 100%; min-height: 44px; }

@@ -2,15 +2,23 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 70 — image sentence context
+
+For everyday images, join screen-wrapped lines within each OCR paragraph before calling the selected engine; keep paragraph breaks and the original editable source. Research images keep their line breaks and protected tokens. Existing typed text/document routes are unchanged.
+
+Image-to-English drafts apply three bounded source-scoped editorial corrections: numbered counting constructions can change account of to count of; a single track/runway can become dance floor when source dance cues and passage music cues agree, excluding airport/athletics/audio/recording contexts; a standalone volume imperative in a music passage can change lift/raise it up to turn it up. These rules work after either online or local generation. Ambiguous expressions are deliberately retained for editing; this is not a general lyrics model. No song, author, lyric passage or screenshot is embedded into public source or memory.
+
+All ten regression suites pass, including untouched research line breaks, paragraph retention, account/payment ambiguity, airport and audio-track isolation, salary/box meanings and ambiguous relationship wording. The reader's live exact-image test passed in build 69; final build 70 English-draft verification follows deployment.
+
 ## Build 69 — text from coloured phone screenshots
 
 The user's supplied coloured lyrics screenshot was tested through Paste image in live build 68. Most main text was read, but player/status controls were included and faded lettering was garbled. Added an Image area disclosure with a private image preview and start/stop sliders; Read selected area rereads only the vertical region chosen by the user. Full image reading remains the initial default. No music app, title, artist or lyric is hardcoded into recognition, tests or translation memory.
 
 Local contrast processing detects a dominant solid background (at least 60% of colour bins) and maps contrasting lettering, including faint light text, to black on white before OCR. Images with mixed backgrounds keep their colours. Image bitmap/canvas work stays on device, with an Image fallback where createImageBitmap is absent, and a 16-million-pixel cap. Preview object URLs are revoked on replacement/close; images are not stored or published.
 
-The action is now Translate image text, directly below the editable extracted text. Single images hide irrelevant document-section fields; multi-section documents/images keep their navigation. Changing to a document or closing the image cancels old recognition and clears its preview. Explicit translation approval in the app is still required before reviewed text is sent to the configured engine. No paid service, model archive or private paper is added to GitHub.
+The action is now Translate image text, directly below the editable extracted text. Single images hide irrelevant document-section fields; multi-section documents/images keep their navigation. Changing to a document or closing the image cancels old recognition and clears its preview. Translation starts only when the user taps Translate image text; reviewed text uses the selected online or on-device engine. No paid service, model archive or private paper is added to GitHub.
 
-Validation: crop geometry, solid/mixed-background handling, faded lettering, cancellation and screenshot preview tests pass. Live reread verification follows deployment; actual iPhone permissions/performance remain unverified.
+Validation: all ten regression suites, JavaScript syntax, HTML nesting/unique IDs and whitespace checks pass. Live build 69 read the supplied full coloured screenshot, including the formerly garbled faded line. Selecting 14%–74% via Image area recovered all visible lyrics without the clock, title, artist or player controls. Recognition was performed by the app from image bytes, not by manually supplying transcribed text. The draft exposed literal counting/dance/volume wording; build 70 handles those bounded contexts. Actual iPhone permissions/performance remain unverified.
 
 ## Build 68 — compact help and screenshot translation
 
@@ -54,7 +62,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.17, build 69; continue from these root files.
+- Current source: v0.22.18, build 70; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

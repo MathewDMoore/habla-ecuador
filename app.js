@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.17 · build 69";
+const APP_VERSION = "0.22.18 · build 70";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -909,19 +909,41 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
   } catch (error) { translationChunkCache.delete(key); throw error; }
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()}={}) {
+function imageParagraphText(text) {
+  return text.split(/(\n\s*\n)/).map(part=>/^\n\s*\n$/.test(part)?part:part.replace(/\n/g,' ')).join('');
+}
+
+function refineImageEnglish(draft,source,fullSource=source) {
+  let result=draft;
+  if(/\b(?:hasta|a)\s+la\s+cuenta\s+de\s+(?:uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|\d+)\b/i.test(source)) {
+    result=result.replace(/\baccount(?=\s+of\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b)/gi,word=>word[0]==='A'?'Count':'count');
+  }
+  const music=/\b(?:cumbia|salsa|bachata|reguet[oó]n|m[uú]sica|canci[oó]n|remix|DJ)\b/i.test(fullSource);
+  if(!music)return result;
+  const dance=/\b(?:bail(?:ar|amos|ando|a)|baile|trasero|discoteca)\b/i.test(source);
+  const otherTrack=/\b(?:aeropuerto|atletismo|carrera|audio|grabaci[oó]n)\b/i.test(source);
+  if(dance&&!otherTrack&&(source.match(/\bpista\b/gi)||[]).length===1&&(result.match(/\b(?:track|runway)\b/gi)||[]).length===1) {
+    result=result.replace(/\b(?:track|runway)\b/i,'dance floor');
+  }
+  if(/^[¡!\s]*(?:y\s+)?s[uú]bele[!.\s]*$/i.test(source))result=result.replace(/\b(?:lift|raise)\s+it\s+up\b/gi,word=>/^[A-Z]/.test(word)?'Turn it up':'turn it up');
+  return result;
+}
+
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
   }
   if (text.length > 8000) throw translationFailure("research_limit");
-  const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
+  const image=inputType==='image'&&purpose!=='academic';
+  const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text:image?imageParagraphText(text):text,restore:value=>value};
   const chunks = splitLongTranslationText(protectedDocument.text);
   if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
   const translated = [];
   for (const chunk of chunks) {
     if (!isCurrent()) throw translationFailure("superseded");
-    translated.push(chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose)));
+    const draft=chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
+    translated.push(image&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text):draft);
   }
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
@@ -1141,7 +1163,8 @@ async function renderTranslation({allowImported=false}={}) {
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest,onDevice});
+      const inputType=importedDocument?.kind==='image'?'image':undefined;
+      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest,onDevice,inputType});
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
@@ -1160,6 +1183,7 @@ async function renderTranslation({allowImported=false}={}) {
             : `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
+      if(inputType==='image'&&translationPurpose!=='academic')$("#usage-note").innerHTML+='<p>Image paragraphs are retained while screen line wraps are joined. Counting, dancing and volume wording can be clarified from context; figurative lyrics still need review.</p>';
       const embeddedEntry = embeddedSlang.entries[0];
       if (embeddedEntry && translationPurpose !== "academic") {
         const literalMeaning = englishVariant === "uk" ? embeddedEntry.literalUk : embeddedEntry.literalUs;
@@ -2200,7 +2224,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=69").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=70").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
