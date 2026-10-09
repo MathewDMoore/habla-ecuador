@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.21 · build 73";
+const APP_VERSION = "0.22.22 · build 74";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1129,10 +1129,10 @@ function renderRegionalTranslation(sourceText,result,missing) {
 function renderSpanishContext(sourceText,draft='') {
   const panel=$('#spanish-context'),body=$('#spanish-context-notes');
   if(!panel||!body)return;
-  const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
+  const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
   if(languageFamily(sourceLanguage)==='es'&&draft&&typeof HablaSpanishContext!=='undefined')findings.push(...HablaSpanishContext.residue(sourceText,draft,{purpose:translationPurpose,target:targetLanguage}));
   panel.hidden=!findings.length;
-  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}</p>`).join(''):'';
+  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>`).join(''):'';
 }
 
 async function renderTranslation({allowImported=false}={}) {

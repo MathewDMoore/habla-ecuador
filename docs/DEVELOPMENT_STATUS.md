@@ -2,6 +2,16 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 74 — source-attested slang and vulgarity notes
+
+Adds 15 scoped recognition entries to the closed Context & regional expressions disclosure: huerco/huerca, güey/wey, no mames, chamo/chama, pana, coño de su madre, coño, pata, ni huevón, huevón/huevona, parce/parcero, gonorrea, chuta, pucha and ¡puta!. Country scope, literal alternatives, register and U.K./U.S. editorial English options are explicit. Source-attested does not mean every English gloss is independently validated or every speaker uses the word. Shared words never select a country or city automatically. Profanity is explained without silently sanitizing or increasing its strength; source and translation edits stay intact. Academic mode bypasses these conversational notes.
+
+City evidence: Mexico's SEP explicitly documents huerco in Monterrey and other northern cities; UNAM's 2006 Mexico City study documents güey and no mames; Mahecha Ovalle (2018), Enunciación, documents Bogotá youth address including gonorrea and parcero and adult attitudes toward it. These sources do not establish exclusivity, universal acceptability or current city-wide frequency. Caracas and Lima guidance is country-attested, with city-specific review pending. Dictionary references: ASALE, RAE DLE, El Colegio de México DEM and Academia Peruana de la Lengua. Reference links accompany the meaning notes. Brief original editorial guidance is bundled; dictionaries, interview transcripts and the thesis are not copied into a training corpus.
+
+Recognition is local and adds no service calls or large downloads. The disclosure now sits outside the translation result so meaning notes survive a network/quota/pack error. Compound phrases take precedence over nested words; independent later occurrences still appear. Unicode boundaries preserve ñ so cono is never flagged as coño. Clear medical context retains gonorrhea/gonorrhoea and avoids assuming an insult.
+
+All eleven suites pass, including region scope, spelling, quote recognition without rewriting, mild versus vulgar register, compound precedence, clinical context, US/UK options, and local notes after a network failure. Syntax and whitespace checks pass. Live deployment verification pending.
+
 ## Build 73 — untranslated size wording and review checks
 
 The user supplied a competitor/app comparison showing an ordinary size adjective left untranslated in Habla Ecuador. Adds source preparation for chiquito/chiquita forms only in physical-object size descriptions. The engine sees the neutral pequeño form; the original source and all saved edits remain unchanged. Academic text, quotations, names/brands and other senses are excluded. Cart/car/toy ambiguity is explained, not silently decided.
@@ -88,7 +98,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.21, build 73; continue from these root files.
+- Current source: v0.22.22, build 74; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

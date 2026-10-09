@@ -86,6 +86,14 @@ async function main(){
  await run('renderTranslation()');
  assert.equal(element('#no-result').dataset.translationError,'quota');assert.equal(element('#retry-translation').hidden,false);
  assert.match(element('#no-result p').textContent,/allowance/);
+ fresh();handler=async()=>{throw new TypeError('Failed to fetch');};
+ element('#translator-input').value='¡No mames, güey!';run('sourceLanguage="es-MX";translationPurpose="everyday";');
+ await run('renderTranslation()');
+ assert.equal(element('#translation-result').hidden,true);
+ assert.equal(element('#spanish-context').hidden,false,'local guidance remains available after a service failure');
+ assert.match(element('#spanish-context-notes').innerHTML,/Vulgar/);
+ assert.match(element('#spanish-context-notes').innerHTML,/Mexico City study/);
+ assert.equal(element('#translator-input').value,'¡No mames, güey!');
  fresh();handler=async()=>{const e=new Error('abort');e.name='AbortError';throw e;};
  await assert.rejects(run('requestGeneralTranslation("texto","ec-en")'),e=>e.code==='timeout');
  fresh();context.navigator.onLine=false;handler=async()=>{throw new TypeError('offline');};
