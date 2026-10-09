@@ -1,6 +1,15 @@
 const assert=require('node:assert/strict');
 const {analyse,refine,workSense,prepare,residue,slang}=require('../spanish-context.js');
 const usage=(text,source='es-EC',target='en-GB')=>slang(text,{source,target});
+assert.equal(prepare('Ese huerco viene.',{source:'es-MX'}),'Ese niño viene.');
+assert.equal(prepare('Las huercas vienen.',{source:'es-MX'}),'Las niñas vienen.');
+for(const text of ['El restaurante Huerco.','El Huerco viene.','"Ese huerco viene."','El huerco es un demonio.'])assert.equal(prepare(text,{source:'es-MX'}),text);
+assert.equal(prepare('Ese huerco viene.',{source:'es-EC'}),'Ese huerco viene.');
+assert.equal(prepare('Ese huerco viene.',{source:'es-MX',purpose:'academic'}),'Ese huerco viene.');
+assert.equal(residue('¡No mames!','Do not suck!',{region:'es-MX'})[0].kind,'slang-literal');
+assert.equal(residue('¡No mames!','No fucking way!',{region:'es-MX'}).length,0);
+assert.equal(residue('No mames leche.','Do not suck milk.',{region:'es-MX'}).length,0);
+assert.equal(residue('No mames.','Do not suck.',{region:'es-EC'}).length,0);
 assert.match(usage('Ese huerco viene.','es-MX')[0].detail,/Monterrey/);
 assert.equal(usage('Huerco','es-VE').length,0,'country clues do not silently become universal');
 assert.equal(usage('huercote','es-MX').length,0,'whole words only');

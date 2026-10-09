@@ -2,7 +2,7 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
-## Build 74 — source-attested slang and vulgarity notes
+## Build 75 — source-attested slang and vulgarity notes
 
 Adds 15 scoped recognition entries to the closed Context & regional expressions disclosure: huerco/huerca, güey/wey, no mames, chamo/chama, pana, coño de su madre, coño, pata, ni huevón, huevón/huevona, parce/parcero, gonorrea, chuta, pucha and ¡puta!. Country scope, literal alternatives, register and U.K./U.S. editorial English options are explicit. Source-attested does not mean every English gloss is independently validated or every speaker uses the word. Shared words never select a country or city automatically. Profanity is explained without silently sanitizing or increasing its strength; source and translation edits stay intact. Academic mode bypasses these conversational notes.
 
@@ -10,7 +10,7 @@ City evidence: Mexico's SEP explicitly documents huerco in Monterrey and other n
 
 Recognition is local and adds no service calls or large downloads. The disclosure now sits outside the translation result so meaning notes survive a network/quota/pack error. Compound phrases take precedence over nested words; independent later occurrences still appear. Unicode boundaries preserve ñ so cono is never flagged as coño. Clear medical context retains gonorrhea/gonorrhoea and avoids assuming an insult.
 
-All eleven suites pass, including region scope, spelling, quote recognition without rewriting, mild versus vulgar register, compound precedence, clinical context, US/UK options, and local notes after a network failure. Syntax and whitespace checks pass. Live deployment verification pending.
+All eleven suites pass, including region scope, spelling, quote recognition without rewriting, mild versus vulgar register, compound precedence, clinical context, US/UK options, and local notes after a network failure. Syntax and whitespace checks pass. Build 74 live verification confirmed notes but exposed the free engine reading huerco as orchard and no mames literally. Build 75 prepares unquoted, lower-case physical-person huerco descriptions as niño/niña only for a Mexican source; names, quotations, demonic contexts and academic text are preserved. Literal suck/breastfeed drafts for idiomatic no mames get a review prompt offering surprise/rebuke alternatives without automatically choosing one. Edits clear that prompt when corrected. Live build 75 verification pending.
 
 ## Build 73 — untranslated size wording and review checks
 
@@ -98,7 +98,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.22, build 74; continue from these root files.
+- Current source: v0.22.23, build 75; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

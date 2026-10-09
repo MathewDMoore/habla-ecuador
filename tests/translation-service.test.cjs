@@ -39,6 +39,15 @@ async function main(){
  handler=async text=>ok(text==='Las cajas pequeñas.'?'Small boxes.':text);
  assert.equal(await run('requestGeneralTranslation("Las cajas chiquitas.","ec-en",{purpose:"everyday",target:"en-GB"})'),'Small boxes.');
  assert.equal(requests[0],'Las cajas pequeñas.');
+ fresh();handler=async text=>ok(text==='Ese niño viene.'?'That child is coming.':text);
+ run('sourceLanguage="es-MX"');
+ assert.equal(await run('requestGeneralTranslation("Ese huerco viene.","ec-en")'),'That child is coming.');
+ assert.equal(requests[0],'Ese niño viene.');
+ run('setEditableTranslation("¡No mames!","Do not suck!")');
+ assert.match(element('#translation-edit-status').textContent,/Review the slang meaning/);
+ element('#natural-result').textContent='Stop bullshitting!';run('saveActiveTranslationEdit()');
+ assert.doesNotMatch(element('#translation-edit-status').textContent,/Review the slang meaning/);
+ run('sourceLanguage="es-EC"');
  element('#translator-input').value='Las cajas chiquitas.';
  run('setEditableTranslation("Las cajas chiquitas.","Chiquitas boxes.")');
  assert.match(element('#spanish-context-notes').innerHTML,/Possible untranslated words/);

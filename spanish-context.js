@@ -48,22 +48,32 @@ const HablaSpanishContext = (() => {
     }
     return findings;
   }
-  function prepare(text,{purpose='everyday'}={}) {
+  function prepare(text,{purpose='everyday',source='es-EC'}={}) {
     if(purpose==='academic')return text;
-    return text.replace(/\bchiquit[oa]s?\b/gi,(word,index,whole)=>{
+    const sizes=text.replace(/\bchiquit[oa]s?\b/gi,(word,index,whole)=>{
       const start=whole.slice(0,index).split(/[.!?\n]/).at(-1),end=whole.slice(index+word.length).split(/[.!?\n]/)[0];
       const clause=start+word+end;
       if(!sizeDescription(clause)||nameContext.test(clause)||unquoted(whole).slice(index,index+word.length).trim()==='')return word;
       const replacement=word.toLowerCase().replace('chiquit','pequeñ');
       return word===word.toUpperCase()?replacement.toUpperCase():/^[A-Z]/.test(word)?replacement[0].toUpperCase()+replacement.slice(1):replacement;
     });
+    if(source!=='es-MX')return sizes;
+    return sizes.replace(/\bhuerc[oa]s?\b/gi,(word,index,whole)=>{
+      const clause=whole.slice(0,index).split(/[.!?\n]/).at(-1)+word+whole.slice(index+word.length).split(/[.!?\n]/)[0];
+      const child=/\b(?:ese|esa|esos|esas|el|la|los|las|mi|mis|un|una|unos|unas)\s+huerc[oa]s?\b/i.test(clause);
+      if(!child||nameContext.test(clause)||(/^[A-Z]/.test(word)&&word!==word.toUpperCase())||/\b(?:infierno|demonio|diablo|orco)\b/i.test(clause)||!unquoted(whole).slice(index,index+word.length).trim())return word;
+      const replacement=word.toLowerCase().replace('huerc','niñ');
+      return word===word.toUpperCase()?replacement.toUpperCase():/^[A-Z]/.test(word)?replacement[0].toUpperCase()+replacement.slice(1):replacement;
+    });
   }
-  function residue(source,draft,{purpose='everyday',target='en-GB'}={}) {
+  function residue(source,draft,{purpose='everyday',target='en-GB',region='es-EC'}={}) {
     if(purpose==='academic'||!target.startsWith('en')||nameContext.test(source))return [];
     const sourceWords=new Set(plain(unquoted(source)).match(/[a-zñ]+/g)||[]);
     const watch=/\b(?:chiquit[oa]s?|pequeñ[oa]s?|cansad[oa]s?|arrepentimientos|demasiado|despacio|madera|siempre|trasero)\b/gi;
     const words=[...new Set((unquoted(draft).match(watch)||[]).filter(word=>sourceWords.has(plain(word))))];
-    return words.length?[{term:'Possible untranslated words',detail:`Still in Spanish: ${words.join(', ')}. Review the draft; names and borrowed words can be intentional. This limited check does not certify translation accuracy.`}]:[];
+    const findings=words.length?[{term:'Possible untranslated words',detail:`Still in Spanish: ${words.join(', ')}. Review the draft; names and borrowed words can be intentional. This limited check does not certify translation accuracy.`}]:[];
+    if(region==='es-MX'&&/\bno\s+mames\b/i.test(source)&&!/\b(?:bebe|leche|lactancia|pecho|pene|verga)\b/.test(plain(source))&&/\b(?:don['’]t|do not)\s+(?:suck|breastfeed)\b/i.test(unquoted(draft)))findings.push({term:'Review literal slang wording',kind:'slang-literal',detail:'The draft may have read no mames literally. For surprise, no fucking way may fit; for a rebuke, stop bullshitting may fit. Choose the intended tone and edit the draft. Neither option is automatically selected.',url:'https://dem.colmex.mx/Ver/mamar'});
+    return findings;
   }
   function pleasure(text) {
     const source=unquoted(text);
