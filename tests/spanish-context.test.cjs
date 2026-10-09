@@ -1,5 +1,11 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense,prepare,residue,slang}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning}=require('../spanish-context.js');
+assert.equal(chooseSlangMeaning("Don't suck, dude! That child is coming.",'surprise'),'No fucking way, dude! That child is coming.');
+assert.equal(chooseSlangMeaning('Do not suck!','rebuke'),'Stop bullshitting!');
+assert.equal(chooseSlangMeaning('Don’t suck!','rebuke'),'Stop bullshitting!');
+for(const text of ['"Do not suck!"','Do not suck! Do not suck!','Something else.'])assert.equal(chooseSlangMeaning(text,'surprise'),text);
+assert.equal(chooseSlangMeaning('Do not suck!','unknown'),'Do not suck!');
+assert.deepEqual(residue('No mames. No mames.','Do not suck.',{region:'es-MX'})[0].choices,[]);
 const usage=(text,source='es-EC',target='en-GB')=>slang(text,{source,target});
 assert.equal(prepare('Ese huerco viene.',{source:'es-MX'}),'Ese niño viene.');
 assert.equal(prepare('Las huercas vienen.',{source:'es-MX'}),'Las niñas vienen.');

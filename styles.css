@@ -479,6 +479,7 @@ button:disabled { cursor: default; }
 #spanish-context a { color: #f6d899; text-decoration: underline; text-underline-offset: .15em; }
 #spanish-context { margin: .6rem 0; padding: 0 1rem; }
 #spanish-context[open] { padding-bottom: .8rem; }
+.context-choice-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; }
 .translation-purpose { margin-bottom: .5rem; }
 
 .screenshot-preview-wrap { position: relative; display: table; margin: .5rem auto; }

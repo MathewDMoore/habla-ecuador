@@ -72,8 +72,17 @@ const HablaSpanishContext = (() => {
     const watch=/\b(?:chiquit[oa]s?|pequeñ[oa]s?|cansad[oa]s?|arrepentimientos|demasiado|despacio|madera|siempre|trasero)\b/gi;
     const words=[...new Set((unquoted(draft).match(watch)||[]).filter(word=>sourceWords.has(plain(word))))];
     const findings=words.length?[{term:'Possible untranslated words',detail:`Still in Spanish: ${words.join(', ')}. Review the draft; names and borrowed words can be intentional. This limited check does not certify translation accuracy.`}]:[];
-    if(region==='es-MX'&&/\bno\s+mames\b/i.test(source)&&!/\b(?:bebe|leche|lactancia|pecho|pene|verga)\b/.test(plain(source))&&/\b(?:don['’]t|do not)\s+(?:suck|breastfeed)\b/i.test(unquoted(draft)))findings.push({term:'Review literal slang wording',kind:'slang-literal',detail:'The draft may have read no mames literally. For surprise, no fucking way may fit; for a rebuke, stop bullshitting may fit. Choose the intended tone and edit the draft. Neither option is automatically selected.',url:'https://dem.colmex.mx/Ver/mamar'});
+    if(region==='es-MX'&&/\bno\s+mames\b/i.test(source)&&!/\b(?:bebe|leche|lactancia|pecho|pene|verga)\b/.test(plain(source))&&/\b(?:don['’]t|do not)\s+(?:suck|breastfeed)\b/i.test(unquoted(draft))) {
+      const choices=(source.match(/\bno\s+mames\b/gi)||[]).length===1&&(unquoted(draft).match(/\b(?:don['’]t|do not)\s+(?:suck|breastfeed)\b/gi)||[]).length===1?['surprise','rebuke']:[];
+      findings.push({term:'Review literal slang wording',kind:'slang-literal',choices,detail:'The draft may have read no mames literally. For surprise, no fucking way may fit; for a rebuke, stop bullshitting may fit. Choose the intended tone; neither option is automatically selected. The rest of the draft still needs review.',url:'https://dem.colmex.mx/Ver/mamar'});
+    }
     return findings;
+  }
+  function chooseSlangMeaning(draft,choice) {
+    const replacement={surprise:'No fucking way',rebuke:'Stop bullshitting'}[choice];
+    const pattern=/\b(?:don['’]t|do not)\s+(?:suck|breastfeed)\b/gi;
+    if(typeof replacement!=='string'||(unquoted(draft).match(pattern)||[]).length!==1)return draft;
+    return draft.replace(pattern,(whole,index)=>unquoted(draft).slice(index,index+whole.length).trim()?replacement:whole);
   }
   function pleasure(text) {
     const source=unquoted(text);
@@ -135,6 +144,6 @@ const HablaSpanishContext = (() => {
     }
     return {text,changes};
   }
-  return {analyse,refine,workSense,prepare,residue,slang};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;

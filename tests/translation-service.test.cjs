@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const elements=new Map();
-function element(selector){if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,dataset:{},classList:{toggle(){}},setAttribute(){},removeAttribute(){}});return elements.get(selector);}
+function element(selector){if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,dataset:{},classList:{toggle(){},add(){},remove(){}},setAttribute(){},removeAttribute(){}});return elements.get(selector);}
 let handler,requests=[];
 const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
  document:{querySelector:element,addEventListener(){},createElement:()=>({textContent:'',get innerHTML(){return this.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},set innerHTML(v){this.value=v;}})},
@@ -45,8 +45,14 @@ async function main(){
  assert.equal(requests[0],'Ese niño viene.');
  run('setEditableTranslation("¡No mames!","Do not suck!")');
  assert.match(element('#translation-edit-status').textContent,/Review the slang meaning/);
- element('#natural-result').textContent='Stop bullshitting!';run('saveActiveTranslationEdit()');
+ element('#translator-input').value='¡No mames!';
+ run('applySlangMeaning("rebuke")');
+ assert.equal(element('#natural-result').textContent,'Stop bullshitting!');
  assert.doesNotMatch(element('#translation-edit-status').textContent,/Review the slang meaning/);
+ run('restoreGeneratedTranslation()');
+ assert.equal(element('#natural-result').textContent,'Do not suck!');
+ element('#translator-input').value='Another source.';run('applySlangMeaning("surprise")');
+ assert.equal(element('#natural-result').textContent,'Do not suck!','stale source blocks meaning choice');
  run('sourceLanguage="es-EC"');
  element('#translator-input').value='Las cajas chiquitas.';
  run('setEditableTranslation("Las cajas chiquitas.","Chiquitas boxes.")');
