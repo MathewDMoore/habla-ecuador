@@ -8,7 +8,7 @@ The user supplied a competitor/app comparison showing an ordinary size adjective
 
 A small local residual-Spanish check flags selected common words still present in an English draft. It updates when the user edits/restores a draft and does not certify accuracy. Musical loanwords, academic text and quoted terms are not treated as errors. Context reference links now have readable contrast on the result card. No extra online request, paid tier or bundled model. Broader accuracy needs systematic evaluation; there is no evidence that this prototype matches or exceeds Google Translate generally.
 
-All eleven regression suites and JavaScript syntax/whitespace checks pass. Live verification remains pending deployment.
+All eleven regression suites and JavaScript syntax/whitespace checks pass. Pages deployment succeeded. Live build 73 read the user's comparison screenshot locally using the 10–21% image area, recovered the original Spanish without manually retyping it, and translated the size phrase as Small Wooden Carts. Source wording remained unchanged, context notes stayed collapsed until opened, and reference links were readable. This is a verified example improvement, not a general quality benchmark or physical iPhone test.
 
 ## Build 72 — invitation meaning and more source varieties
 
