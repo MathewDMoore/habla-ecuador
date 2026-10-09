@@ -494,3 +494,6 @@ button:disabled { cursor: default; }
 .music-capture-actions button {flex:1 1 12rem; min-height:44px;}
 .music-capture #music-listen.listening {background:#8e342a; color:#fff;}
 .music-capture .import-status:empty {display:none;}
+
+.music-capture-length {display:block; margin-bottom:.7rem;}
+.music-capture-length select {display:block; width:100%; margin-top:.35rem; min-height:44px;}

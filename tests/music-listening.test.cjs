@@ -8,6 +8,7 @@ const storage = new Map();
 const recordings = [];
 const spoken = [];
 const timers = new Map();
+const timerDelays = new Map();
 let nextTimer = 0;
 const button = () => ({dataset:{}, classList:{toggle(){}}, setAttribute(){}, querySelector(){return null;}});
 const element = selector => {
@@ -31,7 +32,7 @@ class Recognition {
 }
 const context = vm.createContext({
   console, AbortController,
-  setTimeout(fn) { const id=++nextTimer; timers.set(id,fn); return id; },
+  setTimeout(fn,delay) { const id=++nextTimer; timers.set(id,fn); timerDelays.set(id,delay); return id; },
   clearTimeout(id) { timers.delete(id); },
   localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
   window:{SpeechRecognition:Recognition, speechSynthesis:{}},
@@ -49,6 +50,7 @@ context.audioPaused=0;
 const musicButton=element('#music-listen');
 musicButton.dataset={};
 async function main() {
+  element("#music-capture-length").value="clip";
   run('sourceLanguage="es-MX"; startMusicListening()');
   const first=recordings.at(-1);
   assert.equal(first.continuous,true);
@@ -68,14 +70,14 @@ async function main() {
   assert.equal(musicButton.disabled,true);
   first.onend();
   assert.equal(musicButton.disabled,false);
-  assert.equal(musicButton.textContent,'Listen to music');
+  assert.equal(musicButton.textContent,'Continue listening');
   assert.equal(element('#translate-music').disabled,false);
   assert.match(element('#music-listening-status').textContent,/Check the words/);
   await run('renderTranslation()'); // No fetch until the explicit translate action.
   first.emit('stale words',true);
   assert.equal(element('#translator-input').value,'Caminando aterrorizando la cuadra otra frase');
 
-  // Starting another passage and then a regular microphone rejects old events.
+  // Continuing a passage and then a regular microphone rejects old events.
   run('startMusicListening()');
   const old=recordings.at(-1);
   old.emit('New captured passage');
@@ -97,6 +99,8 @@ async function main() {
   assert.equal(element('#translate-music').disabled,false);
 
   // Failed capture doesn't destroy the previous text or enable an old clip.
+  run('newMusicSong()');
+  element('#translator-input').value='unconfirmed words';
   run('startMusicListening()');
   const noSpeech=recordings.at(-1);
   noSpeech.onerror({error:'no-speech'}); noSpeech.onend();
@@ -116,16 +120,18 @@ async function main() {
   run('startMusicListening()');
   const timeout=recordings.at(-1);
   timeout.emit('timed capture');
-  const limit=run('musicListening.timer'); timers.get(limit)();
+  const limit=run('musicListening.timer');
+  assert.equal(timerDelays.get(limit),30000);
+  timers.get(limit)();
   assert.equal(timeout.stopped,true);
   const fallback=run('musicListening.finishTimer'); timers.get(fallback)();
   assert.equal(timeout.aborted,true);
   assert.equal(run('recognition'),null);
   assert.equal(run('musicListening'),null);
   assert.equal(musicButton.disabled,false);
-  assert.equal(element('#translator-input').value,'timed capture');
+  assert.equal(element('#translator-input').value,'words before a network failure\ntimed capture');
   timeout.onend(); timeout.emit('late timeout result',true);
-  assert.equal(element('#translator-input').value,'timed capture');
+  assert.equal(element('#translator-input').value,'words before a network failure\ntimed capture');
 
   run('startMusicListening()');
   const cancelled=recordings.at(-1); cancelled.emit('before edit');
@@ -133,6 +139,70 @@ async function main() {
   run('cancelListening(false)');
   cancelled.emit('overwrite attempt',true);
   assert.equal(element('#translator-input').value,'user edited words');
+
+  // Whole song keeps each session's words, even repeated choruses, once.
+  run('newMusicSong()');
+  element('#music-capture-length').value='song';
+  run('startMusicListening()');
+  const whole=recordings.at(-1);
+  assert.equal(timerDelays.get(run('musicListening.timer')),600000);
+  whole.emit('First verse',true); whole.onend();
+  assert.ok(run('musicListening'),'a normal end keeps the whole-song session active');
+  assert.equal(element('#translate-music').disabled,true);
+  const restart=run('musicListening.restartTimer'); timers.get(restart)();
+  const next=recordings.at(-1);
+  assert.notEqual(next,whole);
+  whole.emit('late first verse',true);
+  next.emit('The chorus'); next.emit('The chorus repeated',true);
+  assert.equal(element('#translator-input').value,'First verse\nThe chorus repeated','interim is replaced rather than duplicated');
+  next.onend();
+  const restart2=run('musicListening.restartTimer'); timers.get(restart2)();
+  const third=recordings.at(-1);
+  third.emit('The chorus repeated',true);
+  assert.equal(element('#translator-input').value,'First verse\nThe chorus repeated\nThe chorus repeated','repeated song lines are not deduplicated');
+  run('stopMusicListening()'); third.onend();
+  assert.equal(run('musicListening'),null);
+  assert.equal(element('#translate-music').disabled,false);
+  await run('renderTranslation()'); // Still requires an explicit translation action.
+
+  // A pause can append to the reviewed transcript without erasing user edits.
+  element('#translator-input').value='Edited first verse';
+  run('musicCapturedText="Edited first verse"; startMusicListening()');
+  const continued=recordings.at(-1); continued.emit('Last verse');
+  run('stopMusicListening()'); continued.onend();
+  assert.equal(element('#translator-input').value,'Edited first verse\nLast verse');
+  run('musicTranscriptReview=false; startMusicListening()'); // Continue after translating, too.
+  const afterTranslation=recordings.at(-1); afterTranslation.emit('Outro');
+  run('stopMusicListening()'); afterTranslation.onend();
+  assert.equal(element('#translator-input').value,'Edited first verse\nLast verse\nOutro');
+
+  // Cancel during the restart gap prevents a new microphone starting later.
+  run('startMusicListening()');
+  const gap=recordings.at(-1); gap.emit('Gap verse',true); gap.onend();
+  const queued=timers.get(run('musicListening.restartTimer'));
+  const before=recordings.length;
+  run('cancelMusicListening()'); queued();
+  assert.equal(recordings.length,before);
+  assert.equal(run('musicListening'),null);
+  assert.equal(musicButton.disabled,false);
+
+  // Errors do not start an endless retry loop; existing lyrics remain usable.
+  run('startMusicListening()');
+  const interrupted=recordings.at(-1); interrupted.onerror({error:'network'}); interrupted.onend();
+  assert.equal(run('musicListening'),null);
+  assert.equal(element('#translate-music').disabled,false);
+  assert.match(element('#music-listening-status').textContent,/kept above/);
+
+  // A new song clears capture; a different source locale cannot append old words.
+  run('sourceLanguage="es-CO"; startMusicListening()');
+  const changed=recordings.at(-1); changed.emit('Different song language',true);
+  run('stopMusicListening()'); changed.onend();
+  assert.equal(element('#translator-input').value,'Different song language');
+  run('newMusicSong()');
+  assert.equal(element('#translator-input').value,'');
+  assert.equal(element('#translate-music').disabled,true);
+  assert.equal(musicButton.textContent,'Listen to music');
+  element('#translator-input').value='user edited words';
 
   // Unsupported browsers do not clear text or imported document state.
   context.window.SpeechRecognition=null;

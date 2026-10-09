@@ -2,6 +2,12 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 79 — personal whole-song listening
+
+Whole song is now the default listening length, with a 10-minute limit and an optional 30-second passage. It collects a single editable source transcript across recognition sessions. A normal browser end after returned words attempts a restart, appending the next session exactly once. Restarts can lose audio between sessions; silence, permission and service errors stop rather than loop. Continue listening appends after a manual pause or translation; New song explicitly clears the current source for a fresh capture. Changed source language, imported text and ordinary dictation cannot append an old song accidentally. Source edits remain usable for continuation. Music controls never publish a song or save an audio recording; browser recognition and selected translation services retain the existing privacy behavior.
+
+All twelve suites pass, with whole-song restart accumulation, interim replacement, preservation of repeated choruses, pause/continue, continuation after translation, cancellation during a restart gap, locale changes, errors preserving earlier words, new-song reset, and duration boundaries. Existing document, offline, regional, conversation and playback suites remain green. Syntax and whitespace checks pass. Live deployment verification is pending. Actual singing recognition on a physical phone remains untested; the feature collects the words the browser recognizes, not guaranteed complete or accurate lyrics.
+
 ## Build 78 — music from another device
 
 Adds Listen to music in both translators. Browser microphone recognition collects a short passage using the selected From locale. Stop listening or a 30-second limit ends capture; the browser may end sooner. The user reviews/edits the words before explicitly translating them through the existing online/on-device route, editable draft, regional context and U.K./U.S. comparison. Recognition does not identify songs or retrieve full lyrics. Singing and backing instruments can reduce accuracy. Browser recognition may send audio online; Habla does not persist an audio recording. No paid service, new dependency, bundled lyrics or audio archive is introduced.
@@ -106,7 +112,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.26, build 78; continue from these root files.
+- Current source: v0.22.27, build 79; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
