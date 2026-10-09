@@ -21,9 +21,11 @@ async function main(){
   // App integration: entire passage/paragraphs preserved and zero online requests.
   const elements=new Map();const element=k=>{if(!elements.has(k))elements.set(k,{value:'',textContent:'',hidden:false,dataset:{},classList:{toggle(){}},setAttribute(){},removeAttribute(){}});return elements.get(k);};
   const app=vm.createContext({console,setTimeout,clearTimeout,AbortController,document:{querySelector:element,addEventListener(){},createElement:()=>({set innerHTML(v){this.value=v;}})},localStorage:{getItem:()=>null,setItem(){}},navigator:{onLine:false},HablaOffline:{shouldUse:()=>true,translate:async text=>text},fetch:async()=>{throw new Error('Must not fetch user text');}});
-  for(const file of ['research-reference.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),app);
+  for(const file of ['research-reference.js','spanish-context.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),app);
   app.source='Texto nuevo sobre la investigación y el agua. '.repeat(50).trim()+'\n\nÚltima oración completa.';
   assert.equal(await vm.runInContext('requestGeneralTranslation(source,"ec-en",{purpose:"everyday",target:"en-GB"})',app),app.source);
+  app.HablaOffline.translate=async()=> 'Come, heart, listen.';
+  assert.equal(await vm.runInContext('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"everyday",target:"en-GB"})',app),'Come, sweetheart, listen.');
   app.HablaOffline.translate=async()=>{throw Object.assign(new Error('Local failure'),{code:'offline_engine'});};
   await assert.rejects(vm.runInContext('requestGeneralTranslation("texto nuevo","ec-en")',app),e=>e.code==='offline_engine');
   // Activation preserves model/runtime and unrelated caches across app upgrades.
@@ -31,7 +33,7 @@ async function main(){
   const sw=vm.createContext({URL,Response,self:{location:{origin:'https://example.test'},clients:{claim(){}},skipWaiting(){},addEventListener:(type,fn)=>events[type]=fn},caches:{keys:async()=>['habla-ecuador-v66','habla-ecuador-v70','habla-ecuador-offline-models-v1','habla-ecuador-offline-runtime-v1','other-app'],delete:async key=>deleted.push(key),open:async()=>({match:async()=>({ok:true,body:'cached'}),put:async(...args)=>puts.push(args)})},fetch:async()=>{onlineRequests++;throw new Error('offline');}});
   vm.runInContext(fs.readFileSync('sw.js','utf8'),sw);
   let task;events.activate({waitUntil:value=>task=value});await task;
-  assert.deepEqual(deleted,['habla-ecuador-v66']);
+  assert.deepEqual(deleted,['habla-ecuador-v66','habla-ecuador-v70']);
   let response;events.fetch({request:{method:'GET',url:urls[0]},respondWith:value=>response=value});assert.equal((await response).body,'cached');assert.equal(onlineRequests,0);
   response=null;events.fetch({request:{method:'GET',url:'https://api.mymemory.translated.net/get?q=private'},respondWith:value=>response=value});assert.equal(response,null,'third-party translation requests are not cached');
   // Worker cold-load configuration and strict cache-only optional-file handling.

@@ -2,6 +2,16 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 71 — meaning and regional usage clues
+
+Adds a closed Context & regional expressions disclosure. Local, source-linked clues cover affectionate address, pleasure, wanting/loving, camello, ñaño/ñaña and guagua. These are usage clues rather than automatic country detection: shared expressions never change the user's selected source variety. Missing endings in images are flagged rather than completed. Dictionary references are consulted and paraphrased for editorial guidance; they are not downloaded into a training corpus.
+
+Everyday Spanish-to-English drafts can clarify a single explicit affectionate address from heart to sweetheart and a parenthetical literal rich/tasty rendering in a clear touch/affection context. Academic translation bypasses these changes. Quotations, medical senses, food/wealth, negation and ambiguous wanting/loving are protected or left for review. Both online and on-device generation use the same local rules. Image block joins now reconnect selected dangling conjunctions/estar constructions, preserving the original editable OCR source.
+
+Embedded camello preparation now requires local sentence employment cues and an Ecuadorian or Mexican source selection. Animal and Bolivian shoemaking contexts remain unchanged. Fixed the existing regex escape helper. No extra provider, model download or paid service; no screenshot or lyric passage is embedded in public source or tests.
+
+Validation: all eleven regression suites, JavaScript syntax and whitespace checks pass. Checks include online/local refinement, medical/food/wealth/negation/quote isolation, ambiguous wanting/loving, regional source preservation, separate-sentence employment cues and original research image line breaks. Live deployment/image verification pending.
+
 ## Build 70 — image sentence context
 
 For everyday images, join screen-wrapped lines within each OCR paragraph before calling the selected engine; keep paragraph breaks and the original editable source. Research images keep their line breaks and protected tokens. Existing typed text/document routes are unchanged.
@@ -62,7 +72,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.18, build 70; continue from these root files.
+- Current source: v0.22.19, build 71; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work

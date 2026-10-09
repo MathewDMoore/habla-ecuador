@@ -7,12 +7,26 @@ const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
  localStorage:{getItem:()=>null,setItem(){}},navigator:{onLine:true},
  fetch:async(url,options)=>{const text=new URL(url).searchParams.get('q');requests.push(text);assert.ok(Buffer.byteLength(text)<=500);return handler(text,options);}
 });
-for(const file of ['research-reference.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['research-reference.js','spanish-context.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
  assert.equal(run('imageParagraphText("Una frase\\ncon pantalla estrecha.\\n\\nOtro párrafo.")'),'Una frase con pantalla estrecha.\n\nOtro párrafo.');
+ assert.equal(run('imageParagraphText("Espero que\\n\\nllegues pronto.\\n\\nOtro párrafo.")'),'Espero que llegues pronto.\n\nOtro párrafo.');
+ run('sourceLanguage="es-MX";direction="ec-en";translationPurpose="everyday"');
+ assert.equal(run('prepareEmbeddedEcuadorianSlang("Ya voy al camello.").text'),'Ya voy al trabajo.');
+ assert.equal(run('prepareEmbeddedEcuadorianSlang("Tengo trabajo. El camello vive en el desierto.").text'),'Tengo trabajo. El camello vive en el desierto.');
+ assert.equal(run('prepareEmbeddedEcuadorianSlang("El camello es grande.").text'),'El camello es grande.');
+ run('sourceLanguage="es-BO"');
+ assert.equal(run('prepareEmbeddedEcuadorianSlang("Ya voy al camello.").text'),'Ya voy al camello.');
+ run('sourceLanguage="es-EC"');
+ assert.equal(run('escapeRegExp("a.b+")'),'a\\.b\\+');
+ handler=async()=>ok('Come, heart, listen.');
+ assert.equal(await run('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"everyday",target:"en-GB"})'),'Come, sweetheart, listen.');
+ fresh();
+ assert.equal(await run('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"academic",target:"en-GB"})'),'Come, heart, listen.');
+ fresh();
  assert.equal(run('refineImageEnglish("Wait until the account of five.","Espera hasta la cuenta de cinco.")'),'Wait until the count of five.');
  assert.equal(run('refineImageEnglish("The account of five pesos.","La cuenta de cinco pesos.")'),'The account of five pesos.');
  assert.equal(run('refineImageEnglish("We dance on the track.","Bailamos en la pista.","La fiesta tiene salsa.")'),'We dance on the dance floor.');

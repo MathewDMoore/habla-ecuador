@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.18 · build 70";
+const APP_VERSION = "0.22.19 · build 71";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -360,19 +360,25 @@ function matchPhrase(value, way=direction) {
 }
 
 function escapeRegExp(value) {
-  return value.replace(/[.*+?^{}$()|[\]\\]/g, "\\function openView(id) {");
+  return value.replace(/[.*+?^{}$()|[\]\\]/g, "\\$&");
 }
 
 function prepareEmbeddedEcuadorianSlang(text, way=direction) {
-  if (way !== "ec-en" || translationPurpose === "academic" || sourceLanguage !== "es-EC") return {text, entries:[]};
+  if (way !== "ec-en" || translationPurpose === "academic" || !['es-EC','es-MX'].includes(sourceLanguage)) return {text, entries:[]};
   let rewritten = text;
   const matchedEntries = [];
   culturalExpressions.forEach(entry => {
     Object.entries(entry.embeddedReplacements || {}).forEach(([term,replacement]) => {
       const pattern = new RegExp(`\\b${escapeRegExp(term)}\\b`, "gi");
       if (!pattern.test(rewritten)) return;
-      rewritten = rewritten.replace(pattern,replacement);
-      matchedEntries.push(entry);
+      let changed=false;
+      rewritten = rewritten.replace(pattern,(word,index,whole)=>{
+        const before=whole.slice(0,index).split(/[.!?\n]/).at(-1),after=whole.slice(index+word.length).split(/[.!?\n]/)[0];
+        const context=before+word+after;
+        if(term==='camello' && (typeof HablaSpanishContext==='undefined' || !HablaSpanishContext.workSense(context) || /"[^"\n]*camello[^"\n]*"|“[^”]*camello[^”]*”/i.test(context)))return word;
+        changed=true;return replacement;
+      });
+      if(changed)matchedEntries.push(entry);
     });
   });
   return {text:rewritten, entries:[...new Set(matchedEntries)]};
@@ -910,7 +916,9 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
 }
 
 function imageParagraphText(text) {
-  return text.split(/(\n\s*\n)/).map(part=>/^\n\s*\n$/.test(part)?part:part.replace(/\n/g,' ')).join('');
+  // OCR can split a connected clause into separate blocks. Join only clear dangling clauses.
+  const connected=text.replace(/\b(que|para|porque|aunque|estemos|estamos|estar)\s*\n\s*\n(?=[a-záéíóúüñ])/g,'$1 ');
+  return connected.split(/(\n\s*\n)/).map(part=>/^\n\s*\n$/.test(part)?part:part.replace(/\n/g,' ')).join('');
 }
 
 function refineImageEnglish(draft,source,fullSource=source) {
@@ -943,7 +951,9 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   for (const chunk of chunks) {
     if (!isCurrent()) throw translationFailure("superseded");
     const draft=chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
-    translated.push(image&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text):draft);
+    let contextualDraft=image&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text):draft;
+    if(way==='ec-en'&&!chunk.separator&&purpose!=='academic'&&typeof HablaSpanishContext!=='undefined')contextualDraft=HablaSpanishContext.refine(contextualDraft,chunk.text,{purpose}).text;
+    translated.push(contextualDraft);
   }
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
@@ -1110,6 +1120,14 @@ function renderRegionalTranslation(sourceText,result,missing) {
   $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
 }
 
+function renderSpanishContext(sourceText) {
+  const panel=$('#spanish-context'),body=$('#spanish-context-notes');
+  if(!panel||!body)return;
+  const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
+  panel.hidden=!findings.length;
+  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}</p>`).join(''):'';
+}
+
 async function renderTranslation({allowImported=false}={}) {
   if ($("#compare-english")) $("#compare-english").disabled = true;
   if (documentImportActive && !allowImported) {
@@ -1123,6 +1141,7 @@ async function renderTranslation({allowImported=false}={}) {
   const requestId = ++translationRequest;
   if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
+  renderSpanishContext(sourceText);
   const preservedEntry = direction === "en-ec"
     && preservedCulturalContext
     && normalize(sourceText) === normalize(preservedCulturalContext.input)
@@ -1188,9 +1207,9 @@ async function renderTranslation({allowImported=false}={}) {
       if (embeddedEntry && translationPurpose !== "academic") {
         const literalMeaning = englishVariant === "uk" ? embeddedEntry.literalUk : embeddedEntry.literalUs;
         const regionalMeaning = englishVariant === "uk" ? embeddedEntry.uk : embeddedEntry.us;
-        $(".result-label").textContent = `${languageLabel(targetLanguage)} · Ecuadorian slang-aware translation`;
-        $("#literal-result").textContent = `Recognized Ecuadorian slang: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
-        $("#usage-note").innerHTML = `<strong>Ecuadorian slang recognized · ${escapeHtml(embeddedEntry.register)}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
+        $(".result-label").textContent = `${languageLabel(targetLanguage)} · context-aware work expression`;
+        $("#literal-result").textContent = `Recognized ${languageLabel(sourceLanguage)} work expression: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
+        $("#usage-note").innerHTML = `<strong>Work expression recognized · ${escapeHtml(languageLabel(sourceLanguage))}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
       }
       if (onDevice && !referenceMatch) {
         $("#literal-result").textContent += " · On-device machine draft";
@@ -2224,7 +2243,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=70").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=71").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
