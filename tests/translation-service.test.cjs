@@ -21,6 +21,15 @@ async function main(){
  run('sourceLanguage="es-BO"');
  assert.equal(run('prepareEmbeddedEcuadorianSlang("Ya voy al camello.").text'),'Ya voy al camello.');
  run('sourceLanguage="es-EC"');
+ for(const region of ['es-VE','es-PE','es-CO']) {
+  run(`sourceLanguage="${region}";targetLanguage="en-GB";syncLanguagePair({persist:false})`);
+  assert.equal(run('translatorRoute()'),'ec-en');assert.equal(run('sourceSpeechLocale()'),region);
+  run(`sourceLanguage="en-US";targetLanguage="${region}";syncLanguagePair({persist:false})`);
+  assert.equal(run('translatorRoute()'),'en-ec');assert.equal(run('targetSpeechLocale()'),region);
+ }
+ run('sourceLanguage="es-CO";targetLanguage="en-GB";syncLanguagePair({persist:false})');
+ assert.equal(run('prepareEmbeddedEcuadorianSlang("Ya voy al camello.").text'),'Ya voy al trabajo.');
+ run('sourceLanguage="es-EC"');
  assert.equal(run('escapeRegExp("a.b+")'),'a\\.b\\+');
  handler=async()=>ok('Come, heart, listen.');
  assert.equal(await run('requestGeneralTranslation("Ven, corazón, escucha.","ec-en",{purpose:"everyday",target:"en-GB"})'),'Come, sweetheart, listen.');

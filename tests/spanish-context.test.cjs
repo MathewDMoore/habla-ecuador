@@ -11,10 +11,15 @@ assert.equal(refine('No hugs (how rich).','No hay abrazos (qué rico).').text,'N
 assert.equal(refine('A kiss (how nice).','Un beso (qué rico).').text,'A kiss (how nice).','acceptable pleasure wording is retained');
 assert.equal(refine('"A kiss (how rich)."','Un beso (qué rico).').text,'"A kiss (how rich)."');
 assert.equal(refine('I want you.','Te quiero.').text,'I want you.','ambiguous wanting versus affection stays editable');
-for(const source of ['es-EC','es-BO','es-MX']) {
+assert.equal(refine('Wait, heart, wait that it is late.','Espera, corazón, espera que ya es tarde.').text,'Wait, sweetheart, wait because it is late.');
+assert.equal(refine('The dance that I love.','El baile que me encanta.').text,'The dance that I love.','relative clauses stay unchanged');
+assert.equal(refine('"Wait, heart, wait that it is late."','Espera, corazón, espera que ya es tarde.').text,'"Wait, heart, wait that it is late."');
+assert.equal(refine('Wait, heart, "wait that it is late."','Espera, corazón, espera que ya es tarde.').text,'Wait, sweetheart, "wait that it is late."','earlier edits do not shift quote protection');
+for(const source of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
  const notes=analyse('Ven, corazón, escucha. Te quiero.',{source});
  assert.equal(notes.length,2);assert.match(notes[0].detail,/does not identify a country/);
  assert.equal(analyse('guagua',{source})[0].term,'guagua');
+ assert.match(analyse('Qué chévere.',{source})[0].detail,/does not identify a city or country/);
 }
 assert.equal(analyse('ñaño',{source:'es-BO'})[0].term,'ñaño / ñaña');
 assert.equal(analyse('Ven, corazón, escucha.',{purpose:'academic'}).length,0);

@@ -34,14 +34,17 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.19 · build 71";
+const APP_VERSION = "0.22.20 · build 72";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
   "en-GB": {label:"U.K. English", family:"en", voice:"en-GB"},
   "es-EC": {label:"Ecuadorian Spanish", family:"es", voice:"es-EC"},
   "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"},
-  "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"}
+  "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"},
+  "es-VE": {label:"Venezuelan Spanish", family:"es", voice:"es-VE"},
+  "es-PE": {label:"Peruvian Spanish", family:"es", voice:"es-PE"},
+  "es-CO": {label:"Colombian Spanish", family:"es", voice:"es-CO"}
 };
 
 const culturalExpressions = [
@@ -364,7 +367,7 @@ function escapeRegExp(value) {
 }
 
 function prepareEmbeddedEcuadorianSlang(text, way=direction) {
-  if (way !== "ec-en" || translationPurpose === "academic" || !['es-EC','es-MX'].includes(sourceLanguage)) return {text, entries:[]};
+  if (way !== "ec-en" || translationPurpose === "academic" || !['es-EC','es-MX','es-CO'].includes(sourceLanguage)) return {text, entries:[]};
   let rewritten = text;
   const matchedEntries = [];
   culturalExpressions.forEach(entry => {
@@ -1096,7 +1099,7 @@ function regionalSpanishBridge(sourceText) {
         : "The source is preserved rather than inventing Ecuadorian wording. Ecuadorian review is still required."
     };
   }
-  return {text:sourceText,label:"Regional Spanish bridge",detail:"The wording is preserved pending regional review."};
+  return {text:sourceText,label:`${languageLabel(targetLanguage)} adaptation pending`,detail:`The wording is preserved. Country and city-specific adaptation to ${languageLabel(targetLanguage)} needs local review.`};
 }
 
 function regionalEnglishBridge(sourceText) {
@@ -1189,7 +1192,7 @@ async function renderTranslation({allowImported=false}={}) {
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
-        : targetLanguage === "es-BO" || targetLanguage === "es-MX"
+        : languageFamily(targetLanguage) === "es"
           ? `${languageLabel(targetLanguage)} review pending`
           : `${languageLabel(targetLanguage)} refinement pending`;
       $("#literal-result").textContent = translationPurpose === "academic"
@@ -2243,7 +2246,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=71").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=72").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
