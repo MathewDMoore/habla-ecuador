@@ -2,6 +2,15 @@ const assert=require('node:assert/strict');
 const helper=require('../screenshot-import.js');
 const file={type:'image/png',size:300,name:'test.png'};
 async function main(){
+ assert.deepEqual(helper.cropBounds(946,2048,{top:14,bottom:74}),{x:0,y:286,width:946,height:1230});
+ assert.deepEqual(helper.cropBounds(100,100,{top:-10,bottom:150}),{x:0,y:0,width:100,height:100});
+ assert.ok(helper.cropBounds(100,100,{top:70,bottom:20}).height>=1,'crop cannot collapse');
+ const solid=new Uint8ClampedArray([180,80,70,255,180,80,70,255,180,80,70,255,255,255,255,255,210,135,128,255]);
+ assert.equal(helper.improveContrast(solid),true);
+ assert.deepEqual(Array.from(solid.slice(0,4)),[255,255,255,255]);
+ assert.deepEqual(Array.from(solid.slice(16,20)),[0,0,0,255],'faded light text on colour remains foreground');
+ const varied=new Uint8ClampedArray([0,0,0,255,50,100,200,255,255,255,255,255]);const original=Array.from(varied);
+ assert.equal(helper.improveContrast(varied),false);assert.deepEqual(Array.from(varied),original,'mixed backgrounds are not thresholded');
  assert.equal(helper.validate(file),file);
  assert.throws(()=>helper.validate({type:'image/heic',size:1}),/HEIC/);
  assert.throws(()=>helper.validate({type:'image/png',size:11*1024*1024}),/10 MB/);

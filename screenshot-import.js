@@ -1,7 +1,42 @@
 /* Local OCR: image bytes are passed to a browser worker, never uploaded. */
 const HablaScreenshot = (() => {
   const BASE="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/";
-  let loading, sequence=0, activeWorker, queue=Promise.resolve();
+  let loading, sequence=0, activeWorker, queue=Promise.resolve(), clearUi=()=>{};
+  function cropBounds(width,height,{top=0,bottom=100}={}) {
+    top=Math.max(0,Math.min(99,Number(top)||0));
+    bottom=Math.max(top+1,Math.min(100,Number(bottom)||100));
+    const y=Math.floor(height*top/100),end=Math.ceil(height*bottom/100);
+    return {x:0,y,width,height:Math.max(1,end-y)};
+  }
+  // Solid-colour screens: make both bright and faded lettering dark on white.
+  // Keep photographs/gradients unchanged; there is no inferred text deletion.
+  function improveContrast(data) {
+    const counts=new Uint32Array(32768),pixels=data.length/4;
+    let peak=0;
+    for(let i=0;i<data.length;i+=4){const key=((data[i]>>3)<<10)|((data[i+1]>>3)<<5)|(data[i+2]>>3);if(++counts[key]>counts[peak])peak=key;}
+    if(!pixels||counts[peak]/pixels<0.6)return false;
+    const bg=[((peak>>10)&31)*8+4,((peak>>5)&31)*8+4,(peak&31)*8+4];
+    for(let i=0;i<data.length;i+=4){const distance=(Math.abs(data[i]-bg[0])+Math.abs(data[i+1]-bg[1])+Math.abs(data[i+2]-bg[2]))/3;const value=distance>18?0:255;data[i]=data[i+1]=data[i+2]=value;data[i+3]=255;}
+    return true;
+  }
+  async function prepareImage(file,crop) {
+    if(typeof createImageBitmap!=='function'&&typeof Image==='undefined')return file;
+    let bitmap,url;
+    if(typeof createImageBitmap==='function')bitmap=await createImageBitmap(file);
+    else {bitmap=new Image();url=URL.createObjectURL(file);await new Promise((resolve,reject)=>{bitmap.onload=resolve;bitmap.onerror=()=>reject(new Error('This image could not be opened. Try saving a PNG or JPEG copy.'));bitmap.src=url;}).catch(error=>{URL.revokeObjectURL(url);throw error;});}
+    try {
+      const width=bitmap.naturalWidth||bitmap.width,height=bitmap.naturalHeight||bitmap.height;
+      if(width*height>16000000)throw new Error('This image is too large to read on a phone. Crop it to the text and try again.');
+      const bounds=cropBounds(width,height,crop);
+      const canvas=document.createElement('canvas');canvas.width=bounds.width;canvas.height=bounds.height;
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(bitmap,bounds.x,bounds.y,bounds.width,bounds.height,0,0,canvas.width,canvas.height);
+      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
+      if(improveContrast(pixels.data))ctx.putImageData(pixels,0,0);
+      return canvas;
+    } finally {bitmap.close?.();if(url)URL.revokeObjectURL(url);}
+  }
   function validate(file) {
     if (!file || !/^image\/(?:png|jpeg|webp|bmp)$/.test(file.type)) throw new Error("Choose a PNG, JPEG or WebP screenshot. For HEIC, save or copy it as a screenshot first.");
     if (file.size>10*1024*1024) throw new Error("Choose an image smaller than 10 MB.");
@@ -31,8 +66,9 @@ const HablaScreenshot = (() => {
       signal.addEventListener('abort',abort,{once:true});
     });
   }
-  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal}={}) {
+  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal,crop}={}) {
     validate(file);
+    const image=await prepareImage(file,crop);
     const api=reader || await interruptible(load(),signal);
     if (!isCurrent()) return null;
     const creation=api.createWorker(language,1,{workerPath:BASE+'worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0',logger,errorHandler:()=>{}});
@@ -41,13 +77,7 @@ const HablaScreenshot = (() => {
     activeWorker=worker;
     try {
       if (!isCurrent()) return null;
-      // Limit decoded pixels to prevent very large camera images exhausting a phone.
-      if (typeof createImageBitmap==='function') {
-        const bitmap=await createImageBitmap(file);
-        const pixels=bitmap.width*bitmap.height;bitmap.close();
-        if (pixels>16000000) throw new Error("This image is too large to read on a phone. Crop it to the text and try again.");
-      }
-      const result=await interruptible(worker.recognize(file),signal);
+      const result=await interruptible(worker.recognize(image),signal);
       if (!isCurrent()) return null;
       const text=String(result.data?.text||'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim();
       if (!text) throw new Error("No readable text found. Try a clearer screenshot or crop to the text.");
@@ -60,22 +90,35 @@ const HablaScreenshot = (() => {
     const choose=document.querySelector('#choose-screenshot'),paste=document.querySelector('#paste-screenshot'),cancel=document.querySelector('#cancel-screenshot'),status=document.querySelector('#screenshot-status');
     if(!input||!fileInput||!choose||!paste) return;
     const report=text=>{status.textContent=text;};
-    let controller;
-    function read(file) {
+    const review=document.querySelector('#screenshot-review'),preview=document.querySelector('#screenshot-preview');
+    const top=document.querySelector('#screenshot-top'),bottom=document.querySelector('#screenshot-bottom'),shade=document.querySelector('#screenshot-shade');
+    let controller,currentFile,imageUrl;
+    const range=()=>{
+      document.querySelector('#screenshot-top-value').textContent=top.value+'%';
+      document.querySelector('#screenshot-bottom-value').textContent=bottom.value+'%';
+      shade.style.background=`linear-gradient(to bottom,rgba(0,0,0,.65) 0% ${top.value}%,transparent ${top.value}% ${bottom.value}%,rgba(0,0,0,.65) ${bottom.value}% 100%)`;
+    };
+    function read(file,{reread=false}={}) {
       try{validate(file);}catch(error){report(error.message);return;}
+      if(!reread&&review){
+        if(imageUrl)URL.revokeObjectURL(imageUrl);
+        currentFile=file;imageUrl=URL.createObjectURL(file);preview.src=imageUrl;
+        top.value='0';bottom.value='100';range();review.hidden=false;review.open=false;
+      }
       controller?.abort();controller=new AbortController();
       const signal=controller.signal,id=++sequence,guard=begin();
       const language=document.querySelector('#source-language-select').value.startsWith('en')?'eng':'spa';
+      const crop=review?{top:top.value,bottom:bottom.value}:undefined;
       cancel.hidden=false;report('Reading screenshot on this device… First use downloads the reader.');
       queue=queue.then(async()=>{
         if(id!==sequence)return;
         try{
-          const result=await extract(file,{language,signal,isCurrent:()=>id===sequence,logger:progress=>{
+          const result=await extract(file,{language,signal,crop,isCurrent:()=>id===sequence,logger:progress=>{
             if(id===sequence&&progress.status==='recognizing text')report(`Reading screenshot… ${Math.round((progress.progress||0)*100)}%`);
           }});
           if(id!==sequence||!result)return;
           if(!commit(result,guard)){report('Your input changed while the screenshot was read. It has been kept; choose the screenshot again when ready.');return;}
-          report('Screenshot text ready. Review it below, then tap Translate this section.');
+          report('Image text ready. Review it below, then tap Translate image text. Use Image area to leave out screen controls.');
         }catch(error){if(id===sequence)report(error.message||'Screenshot could not be read. Try a clearer image.');}
         finally{if(id===sequence)cancel.hidden=true;}
       });
@@ -92,7 +135,13 @@ const HablaScreenshot = (() => {
       }catch{report('Clipboard access was not available. Use Paste in the text box, or choose the screenshot from Photos.');}
     });
     cancel.addEventListener('click',()=>{sequence++;controller?.abort();cancel.hidden=true;report('Screenshot reading cancelled. Your text has been kept.');if(activeWorker)activeWorker.terminate().catch(()=>{});});
+    if(review){
+      top.addEventListener('input',()=>{if(+top.value>=+bottom.value)bottom.value=String(+top.value+1);range();});
+      bottom.addEventListener('input',()=>{if(+bottom.value<=+top.value)top.value=String(+bottom.value-1);range();});
+      document.querySelector('#read-screenshot-area').addEventListener('click',()=>{if(currentFile)read(currentFile,{reread:true});});
+    }
+    clearUi=()=>{sequence++;controller?.abort();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
-  return {bind,extract,validate,imageFromClipboard};
+  return {bind,extract,validate,imageFromClipboard,cropBounds,improveContrast,clear:()=>clearUi()};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=HablaScreenshot;

@@ -8,14 +8,14 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=68">
-  <script src="research-reference.js?v=68" defer></script>
-  <script src="document-import.js?v=68" defer></script>
-  <script src="saved-paper.js?v=68" defer></script>
-  <script src="offline-device.js?v=68" defer></script>
-  <script src="english-varieties.js?v=68" defer></script>
-  <script src="screenshot-import.js?v=68" defer></script>
-  <script src="app.js?v=68" defer></script>
+  <link rel="stylesheet" href="styles.css?v=69">
+  <script src="research-reference.js?v=69" defer></script>
+  <script src="document-import.js?v=69" defer></script>
+  <script src="saved-paper.js?v=69" defer></script>
+  <script src="offline-device.js?v=69" defer></script>
+  <script src="english-varieties.js?v=69" defer></script>
+  <script src="screenshot-import.js?v=69" defer></script>
+  <script src="app.js?v=69" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -24,7 +24,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.16 · build 68</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.17 · build 69</span></div>
     </header>
 
     <main>
@@ -137,19 +137,23 @@
               <button id="choose-screenshot" type="button">Screenshot</button>
               <button id="paste-screenshot" type="button">Paste image</button>
             </div>
+            <details id="screenshot-review" class="compact-info" hidden>
+              <summary>Image area</summary>
+              <div class="screenshot-preview-wrap"><img id="screenshot-preview" alt="Your image; shaded areas are excluded from reading"><div id="screenshot-shade" aria-hidden="true"></div></div>
+              <label for="screenshot-top">Start reading at <output id="screenshot-top-value">0%</output></label>
+              <input id="screenshot-top" type="range" min="0" max="99" value="0" step="1">
+              <label for="screenshot-bottom">Stop reading at <output id="screenshot-bottom-value">100%</output></label>
+              <input id="screenshot-bottom" type="range" min="1" max="100" value="100" step="1">
+              <button id="read-screenshot-area" type="button">Read selected area</button>
+              <p>Keep the text between the shaded areas, then reread. This can leave out the time, song title and player controls. Text stays editable; check faded lettering.</p>
+            </details>
             <input id="screenshot-file" type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
             <p id="screenshot-status" class="import-status" role="status" aria-live="polite"></p>
             <button id="cancel-screenshot" type="button" hidden>Cancel reading</button>
             <input id="document-file" type="file" accept=".docx,.doc,.pdf,.txt" hidden>
-            <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Copy a screenshot and tap Paste image, or paste into the text box. Images are read locally. The reader may need an internet connection to download its files; check extracted text before translating.</p></details>
+            <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Copy a screenshot and tap Paste image, or paste into the text box. Images are read locally. The reader may need an internet connection to download its files; choose the From language and check extracted text before translating. Open Image area to exclude screen controls.</p></details>
             <p id="document-status" role="status" aria-live="polite"></p>
-            <div id="document-preview" hidden>
-              <label for="document-section">Document section</label>
-              <select id="document-section"></select>
-              <details class="compact-info"><summary>About document sections</summary><p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p></details>
-              <button id="translate-document" type="button">Translate this section</button>
-              <button id="close-document" type="button">Close document</button>
-            </div>
+
             <details class="compact-info"><summary>How imported text is handled</summary><p>Files and screenshot reading stay on your device. Online translation sends selected text to MyMemory; on-device translation keeps it here. Word/PDF formatting and images are not retained.</p></details>
           </section>
 
@@ -158,6 +162,15 @@
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
             <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
           </label>
+            <div id="document-preview" class="document-tools" hidden>
+              <div id="document-section-controls">
+              <label for="document-section">Document section</label>
+              <select id="document-section"></select>
+              <details class="compact-info"><summary>About document sections</summary><p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p></details>
+              </div>
+              <button id="translate-document" type="button">Translate this section</button>
+              <button id="close-document" type="button">Close document</button>
+            </div>
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>

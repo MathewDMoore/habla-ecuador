@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.16 · build 68";
+const APP_VERSION = "0.22.17 · build 69";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1232,6 +1232,7 @@ function updateEcuadorResearchPaperLink() {
 }
 
 function closeImportedDocument() {
+  if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
   documentImportRequest += 1;
   documentImportActive = false;
   documentLoading = false;
@@ -1256,6 +1257,10 @@ function selectDocumentSection(index) {
   stopSpeechPlayback();
   documentImportActive = true;
   importedDocument.index = index;
+  const image=importedDocument.kind==='image';
+  $("#document-section-controls").hidden=image&&importedDocument.sections.length===1;
+  $("#translate-document").textContent=image?'Translate image text':'Translate this section';
+  $("#close-document").textContent=image?'Close image':'Close document';
   $("#compare-english").disabled = true;
   $("#translator-input").value = importedDocument.sections[index];
   $("#translation-result").hidden = true;
@@ -1277,7 +1282,7 @@ function previewScreenshotText(extracted,guard) {
   stopSpeechPlayback();
   documentLoading = false;
   documentImportActive = true;
-  importedDocument = {name:"Screenshot",sections:safeDocumentSections(extracted.text),index:0,total:extracted.text.length};
+  importedDocument = {name:"Image",kind:"image",sections:safeDocumentSections(extracted.text),index:0,total:extracted.text.length};
   const select = $("#document-section");
   select.replaceChildren();
   importedDocument.sections.forEach((text,index) => {
@@ -1289,7 +1294,7 @@ function previewScreenshotText(extracted,guard) {
   $("#document-preview").hidden = false;
   $("#translate-document").disabled = false;
   selectDocumentSection(0);
-  $("#document-status").textContent = `Screenshot · ${extracted.text.length.toLocaleString()} characters read on this device. Check the text, then translate when ready.`;
+  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters read. Edit the text below to remove anything you do not want translated.`;
   return true;
 }
 
@@ -1300,6 +1305,7 @@ function bindDocumentTools() {
   $("#document-file").addEventListener("change", async event => {
     const file = event.target.files[0];
     if (!file) return;
+    if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
     const token = ++documentImportRequest;
     clearTimeout(translationTimer);
     translationRequest += 1;
@@ -2194,7 +2200,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=68").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=69").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -102,6 +102,8 @@ async function main() {
   assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),true);
   assert.equal(get('#translator-input').value,context.screenshotText.text);
   assert.equal(run('documentImportActive'),true,'OCR preview blocks automatic translation');
+  assert.equal(get('#translate-document').textContent,'Translate image text');
+  assert.equal(get('#document-section-controls').hidden,true,'single images do not show document-section controls');
   assert.equal(network,0,'screenshot OCR preview never sends text to translation service');
   context.screenshotGuard=run('beginScreenshotImport()');get('#translator-input').value='New user input';
   assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),false);
