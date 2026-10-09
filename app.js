@@ -1408,6 +1408,7 @@ function selectDocumentSection(index) {
   if (!importedDocument) return;
   cancelMusicListening();
   musicTranscriptReview = false;
+  $("#translate-music").disabled = true;
   clearTimeout(translationTimer);
   translationRequest += 1;
   stopSpeechPlayback();
@@ -1430,6 +1431,7 @@ function selectDocumentSection(index) {
 function beginScreenshotImport() {
   cancelMusicListening();
   musicTranscriptReview = false;
+  $("#translate-music").disabled = true;
   return {token:++documentImportRequest,text:$("#translator-input").value};
 }
 
@@ -1465,6 +1467,7 @@ function bindDocumentTools() {
     if (!file) return;
     cancelMusicListening();
     musicTranscriptReview = false;
+    $("#translate-music").disabled = true;
     if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
     const token = ++documentImportRequest;
     clearTimeout(translationTimer);
@@ -2283,7 +2286,7 @@ function init() {
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
   });
-  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicTranscriptReview = false; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
+  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicTranscriptReview = false; $("#translate-music").disabled = true; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#translate-music")?.addEventListener("click", () => {
     if (musicListening || !musicTranscriptReview || !$("#translator-input").value.trim()) return;
