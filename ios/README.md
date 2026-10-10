@@ -8,7 +8,17 @@ phone microphone. Build 80's browser selector did not fix the reported interrupt
 The companion loads the current hosted translator in WKWebView. A bundled bridge
 replaces Web Speech microphone capture with AVAudioEngine and native Apple speech only
 inside this app. Existing transcript editing, song continuation, language selection
-and translation behavior are reused. The browser website remains build 80.
+and translation behavior are reused. The hosted website is v0.22.30, build 82.
+
+## Hosted build 82: live music draft
+
+This website update needs no native rebuild. Close and reopen Habla, then confirm
+build 82. With Live translation draft enabled, listening translates the latest
+captured passage about every eight seconds online or three seconds on device,
+plus processing time. The preview is editable after Stop; Translate captured words
+prepares the full collected text. Online preview has a bounded free-service budget;
+on-device translation requires the downloaded pack. Singing recognition can miss
+words, and this update does not establish complete-song capture or accuracy.
 
 ## Audio configuration
 

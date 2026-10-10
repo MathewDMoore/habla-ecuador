@@ -45,7 +45,14 @@ Syntax/whitespace checks pass. Native source stays 0.1.2 (3); hosted UI becomes
 v0.22.30/build 82. Build 81 deployed successfully (source 96f9efa), followed by
 status recovery/on-device interval changes (2fe89d4). Live browser checking exposed
 cached build-81 script reuse; build 82 advances all asset/SW cache URLs so clients
-fetch the corrected logic. Final deployment and browser checks are pending here.
+fetch the corrected logic. Build 82 deployment succeeded in GitHub Pages run
+38033587166 (source 00e2b89441fb721d66c9b8b2c98db81171b4f0b6).
+Live browser verification shows v0.22.30/build 82, working live toggle, source/target
+selection, Bluetooth setup disclosure and New song reset. Denied cloud microphone
+access recovers the controls and clears the waiting-for-draft status. No app runtime
+error was observed; cloud microphone denial prevents a real audio/translation test.
+Complete song capture, translation latency/accuracy and uninterrupted same-phone
+Bluetooth playback still require physical-device verification.
 
 ## Build 80 — same-phone Bluetooth listening attempt
 
