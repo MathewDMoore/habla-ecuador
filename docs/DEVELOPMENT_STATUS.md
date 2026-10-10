@@ -2,7 +2,7 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
-## Build 81 — live music passage drafts
+## Build 82 — live music passage drafts
 
 User phone follow-up: Kumbia Kings music is audible through an Alexa speaker and
 some words are captured, but the user reports missing lyrics, delayed translation
@@ -42,7 +42,10 @@ and target, interim changes, unchanged-text deduplication, Stop edits/stale comp
 live toggle and target/service ownership, quota independence and offline budget
 bypass. Music-context translation and unchanged ordinary/research text are covered.
 Syntax/whitespace checks pass. Native source stays 0.1.2 (3); hosted UI becomes
-v0.22.29/build 81. Deployment and live UI verification are pending in this entry.
+v0.22.30/build 82. Build 81 deployed successfully (source 96f9efa), followed by
+status recovery/on-device interval changes (2fe89d4). Live browser checking exposed
+cached build-81 script reuse; build 82 advances all asset/SW cache URLs so clients
+fetch the corrected logic. Final deployment and browser checks are pending here.
 
 ## Build 80 — same-phone Bluetooth listening attempt
 
