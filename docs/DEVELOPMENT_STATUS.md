@@ -25,7 +25,15 @@ unchanged. Native code remains 0.1.2 (3); no Xcode rebuild for this hosted updat
 All 13 JavaScript suites pass, including paired-source/target preservation, earlier
 passage retention, edit/retranslate, source independence, late responses after edits,
 capture and New song, failure preservation, input limits and 20-passage eviction.
-JavaScript syntax/whitespace checks pass. Deployment and live UI checks pending.
+JavaScript syntax/whitespace and both HTML unique-ID checks pass. GitHub Pages
+deployment 38039240647 succeeded for source d919f66f3334858cd480fbd0924bc09dd05b6d67.
+Live browser shows v0.22.31/build 83 with app.js?v=83, Mexican Spanish/U.K. English
+selection, live toggle and updated review guidance. Denied cloud microphone access
+recovers controls; New song clears waiting/error text and restores readiness.
+Review remains hidden without translated passages; its empty fields and disabled
+retry controls are present. No app runtime exception was observed in returned logs;
+browser-extension metadata errors are unrelated. Paired history creation/editing
+is verified in regression tests, not through physical or cloud sung input.
 Actual song recognition and translation quality still need an iPhone test; no
 improvement to Apple's singing model is claimed.
 

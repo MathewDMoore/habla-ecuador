@@ -8,7 +8,18 @@ phone microphone. Build 80's browser selector did not fix the reported interrupt
 The companion loads the current hosted translator in WKWebView. A bundled bridge
 replaces Web Speech microphone capture with AVAudioEngine and native Apple speech only
 inside this app. Existing transcript editing, song continuation, language selection
-and translation behavior are reused. The hosted website is v0.22.30, build 82.
+and translation behavior are reused. The hosted website is v0.22.31, build 83.
+
+## Hosted build 83: passage correction
+
+Live drafts retain the latest 20 paired captured passages and translations in a
+closed Review captured passages panel. Stop unlocks both fields. Correct Spanish
+and explicitly Translate corrected passage using its original language pair and
+the selected online/on-device route. Edits apply only to that reviewed passage;
+review the main source separately before translating the full captured text.
+History may overlap and clears on New song/reload. It does not improve Apple's
+singing recognition or save recordings. Reopen the native app to load build 83;
+native code stays 0.1.2 (3), so no Xcode rebuild is needed.
 
 ## Hosted build 82: live music draft
 
