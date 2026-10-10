@@ -63,8 +63,8 @@ Finalizing a phrase does not end a song. Stop drains results for up to two secon
 then preserves the latest text and releases capture. Existing editing, continuation,
 translation and whole-song duration limits remain in the hosted app.
 
-The [build-3 unsigned simulator compile](https://github.com/MathewDMoore/habla-ecuador/actions/runs/38030181492)
-passed for source `8875dac` on Xcode 26.6 / SDK 26.5, both arm64 and x86_64.
+The [build-3 unsigned simulator compile](https://github.com/MathewDMoore/habla-ecuador/actions/runs/38030340504)
+passed for source `6819d1f` on Xcode 26.6 / SDK 26.5, both arm64 and x86_64.
 Native transcript-state tests passed on that macOS runner, covering volatile revision,
 duplicate final delivery, repeated choruses, overlap merging, invalid times, cleared
 ranges and a fresh session. Bridge tests pass for dictation mode forwarding, model

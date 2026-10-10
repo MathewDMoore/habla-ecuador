@@ -22,7 +22,7 @@ accumulation retains volatile revisions and repeated choruses without ending cap
 at every final phrase. Stop/background/cancel invalidate pending preparation/capture.
 Source refresh remains three files, preserving configured signing. Hosted website
 still v0.22.28/build 80. Build-3 unsigned simulator compile and actual Swift transcript
-state tests passed (run 38030181492, source 8875dac; Xcode 26.6/SDK 26.5, arm64/x86_64).
+state tests passed (run 38030340504, source 6819d1f; Xcode 26.6/SDK 26.5, arm64/x86_64).
 Updated JavaScript bridge tests pass. Native phone transcription and simultaneous
 Bluetooth playback remain unverified; no successful speech/Bluetooth claim.
 
