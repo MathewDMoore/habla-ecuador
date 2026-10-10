@@ -247,6 +247,109 @@ async function main() {
   assert.equal(run('documentImportActive'),true);
   assert.equal(element('#translator-input').value,'user edited words');
   assert.match(element('#music-listening-status').textContent,/unavailable/);
-  console.log('Music listening tests passed');
+  // Live drafts run independently of the mic and are bounded to a recent passage.
+  context.window.SpeechRecognition=Recognition;
+  element('#music-live-translation').checked=true;
+  const drafts=[];
+  let settle;
+  context.liveTranslate=(text,way,options)=>{
+    drafts.push({text,way,options});
+    return new Promise(resolve=>{settle=resolve;});
+  };
+  run('requestGeneralTranslation=liveTranslate; sourceLanguage="es-MX"; targetLanguage="en-GB"; syncLanguagePair(); newMusicSong(); startMusicListening()');
+  const liveRecognition=recordings.at(-1);
+  liveRecognition.emit('Hola amiga estamos bailando');
+  const firstTimer=run('musicListening.live.timer');
+  assert.equal(timerDelays.get(firstTimer),8000);
+  liveRecognition.emit('Hola amiga estamos bailando juntos');
+  assert.equal(run('musicListening.live.timer'),firstTimer,'interim bursts share one scheduled request');
+  timers.get(firstTimer)();
+  assert.equal(drafts.length,1);
+  assert.equal(drafts[0].options.target,'en-GB');
+  assert.equal(drafts[0].options.inputType,'music');
+  liveRecognition.emit('Hola amiga estamos bailando juntos esta noche');
+  assert.equal(run('musicListening.live.timer'),null,'only one translation is in flight');
+  settle('Hello friend, we are dancing together.'); await flush();
+  assert.equal(element('#music-live-draft').value,'Hello friend, we are dancing together.');
+  assert.equal(element('#music-live-source').textContent,'Hola amiga estamos bailando juntos');
+  assert.match(element('#music-live-label').textContent,/U.K. English/);
+  assert.equal(element('#music-live-draft').readOnly,true);
+  const secondTimer=run('musicListening.live.timer');
+  assert.ok(secondTimer,'new words schedule the next draft after the first completes');
+  timers.get(secondTimer)();
+  assert.equal(drafts.length,2);
+  run('stopMusicListening()');liveRecognition.onend();
+  element('#music-live-draft').value='My corrected draft';
+  settle('Late stale translation');await flush();
+  assert.equal(element('#music-live-draft').value,'My corrected draft','late responses after Stop cannot overwrite edits');
+  assert.equal(element('#music-live-draft').readOnly,false);
+  run('newMusicSong()');
+  assert.equal(element('#music-live-draft').value,'');
+  assert.equal(element('#music-live-preview').hidden,true);
+
+  // Toggling off/on during a request invalidates it and schedules a fresh draft.
+  run('startMusicListening()');const toggled=recordings.at(-1);
+  toggled.emit('Ahora escuchamos una nueva canción');
+  timers.get(run('musicListening.live.timer'))();
+  const beforeToggle=element('#music-live-draft').value;
+  run('setMusicLiveEnabled(false); setMusicLiveEnabled(true)');
+  settle('Ignored while mode changed');await flush();
+  assert.equal(element('#music-live-draft').value,beforeToggle);
+  assert.ok(run('musicListening.live.timer'));
+  // A target change cannot display the previous target's delayed draft.
+  timers.get(run('musicListening.live.timer'))();
+  run('targetLanguage="en-US"; syncLanguagePair(); refreshMusicLiveRoute()');
+  settle('Old UK draft');await flush();
+  assert.equal(element('#music-live-preview').hidden,true);
+  timers.get(run('musicListening.live.timer'))();
+  assert.equal(drafts.at(-1).options.target,'en-US');
+  settle('New US draft');await flush();
+  assert.equal(element('#music-live-draft').value,'New US draft');
+  const requestsBefore=drafts.length;
+  toggled.emit('Ahora escuchamos una nueva canción');
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(drafts.length,requestsBefore,'unchanged passage makes no repeated request');
+  run('cancelMusicListening(); newMusicSong()');
+
+  // A service failure pauses only the preview; text and microphone stay usable.
+  context.liveTranslate=async()=>{const e=new Error('quota');e.code='quota';throw e;};
+  run('requestGeneralTranslation=liveTranslate; startMusicListening()');
+  const quotaRecognition=recordings.at(-1);
+  quotaRecognition.emit('Guardamos las palabras de esta canción');
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.ok(run('musicListening'));
+  assert.equal(quotaRecognition.aborted,undefined);
+  assert.match(element('#music-live-status').textContent,/Live draft paused/);
+  assert.equal(element('#translator-input').value,'Guardamos las palabras de esta canción');
+  assert.equal(run('musicListening.live.failed'),true);
+  run('cancelMusicListening(); newMusicSong()');
+
+  // Online preview budget does not limit on-device translation or stop capture.
+  context.liveTranslate=async(text,way,options)=>{drafts.push({text,way,options});return 'Offline draft';};
+  run('requestGeneralTranslation=liveTranslate; startMusicListening(); musicListening.live.requests=30');
+  const budgetRecognition=recordings.at(-1);
+  budgetRecognition.emit('Seguimos escuchando con nuestro teléfono');
+  const beforeBudget=drafts.length;
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(drafts.length,beforeBudget);
+  assert.match(element('#music-live-status').textContent,/protect the free allowance/);
+  assert.ok(run('musicListening'));
+  context.HablaOffline={shouldUse:()=>true};
+  run('refreshMusicLiveRoute()');
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(drafts.at(-1).options.onDevice,true);
+  assert.equal(element('#music-live-draft').value,'Offline draft');
+  run('cancelMusicListening(); newMusicSong()');
+  context.longPassage='ámbito ecuatoriano y boliviano '.repeat(60);
+  const bounded=run('recentMusicPassage(longPassage)');
+  assert.ok(Buffer.byteLength(bounded,'utf8')<=450);
+  assert.ok(bounded.endsWith('boliviano'));
+  context.earlier='Las palabras de la primera estrofa quedan guardadas sin repetirse demasiado pronto';
+  context.extended=context.earlier+' y ahora llegan palabras nuevas';
+  const incremental=run('nextMusicLivePassage(extended,earlier)');
+  assert.ok(incremental.endsWith('y ahora llegan palabras nuevas'));
+  assert.ok(!incremental.startsWith('Las palabras'),'stable earlier verses are not repeatedly translated');
+  assert.equal(element('#translator-input').value,'');
+  console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

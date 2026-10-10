@@ -69,6 +69,13 @@ async function main(){
  assert.equal(run('refineImageEnglish("Lift it up.","Súbele.","Levanta la caja.")'),'Lift it up.');
  assert.equal(run('refineImageEnglish("Raise the salary.","Súbele el sueldo.","Escuchamos música.")'),'Raise the salary.');
  assert.equal(run('refineImageEnglish("Do not change me.","No me cambies.","Hay música.")'),'Do not change me.','ambiguous lyrics are not guessed');
+ handler=async text=>ok(text==='¡Súbele!'?'Lift it up!':text);
+ assert.equal(await run('requestGeneralTranslation("¡Súbele!","ec-en",{inputType:"music",purpose:"everyday"})'),'Turn it up!','explicit music capture supplies the missing volume context');
+ fresh();
+ assert.equal(await run('requestGeneralTranslation("¡Súbele!","ec-en",{purpose:"everyday"})'),'Lift it up!','ordinary text retains its ambiguity');
+ fresh();
+ assert.equal(await run('requestGeneralTranslation("¡Súbele!","ec-en",{inputType:"music",purpose:"academic"})'),'Lift it up!','academic mode is not rewritten as lyrics');
+ fresh();
  handler=async text=>ok(text);
  const imageSource='Primera línea\ncontinuada.\n\nSegunda estrofa.';context.imageSource=imageSource;
  assert.equal(await run('requestGeneralTranslation(imageSource,"ec-en",{inputType:"image",purpose:"everyday"})'),'Primera línea continuada.\n\nSegunda estrofa.');

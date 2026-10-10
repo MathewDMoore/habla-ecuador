@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.28 · build 80";
+const APP_VERSION = "0.22.29 · build 81";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -751,6 +751,120 @@ let musicTranscriptReview = false;
 let musicCapturedText = "";
 let musicCapturedLanguage = "";
 
+// Live music drafts use one recent passage, rather than re-translating a growing
+// song on every interim result. Capture remains independent of translation errors.
+function recentMusicPassage(text) {
+  const words = text.trim().split(/\s+/);
+  const selected = [];
+  for (let index = words.length - 1; index >= 0; index--) {
+    const candidate = [words[index], ...selected].join(" ");
+    if (utf8Length(candidate) > 450) break;
+    selected.unshift(words[index]);
+  }
+  return selected.join(" ");
+}
+
+function nextMusicLivePassage(text, previous) {
+  if (!previous) return recentMusicPassage(text);
+  const words = text.trim().split(/\s+/), old = previous.trim().split(/\s+/);
+  const key = word => word.toLowerCase().replace(/[¿¡.,!?;:]/g, "");
+  let shared = 0;
+  while (shared < Math.min(words.length,old.length) && key(words[shared]) === key(old[shared])) shared += 1;
+  // Keep a short leading context around new/revised words. Stable earlier verses
+  // are not repeatedly charged to the free service on every live update.
+  return recentMusicPassage(words.slice(shared >= 3 ? Math.max(0,shared - 5) : 0).join(" "));
+}
+
+function resetMusicLivePreview() {
+  if ($("#music-live-preview")) $("#music-live-preview").hidden = true;
+  if ($("#music-live-draft")) { $("#music-live-draft").value = ""; $("#music-live-draft").readOnly = true; }
+  if ($("#music-live-source")) $("#music-live-source").textContent = "";
+  if ($("#music-live-status")) $("#music-live-status").textContent = "";
+}
+
+function queueMusicLiveDraft(session) {
+  const live = session.live;
+  if (!live?.enabled || live.failed || live.busy || live.timer || session.stopping || musicListening !== session) return;
+  live.timer = setTimeout(() => { live.timer = null; translateMusicLivePassage(session); }, 8000);
+}
+
+function setMusicLiveEnabled(enabled) {
+  const session = musicListening;
+  if (!session) return;
+  const live = session.live;
+  live.enabled = enabled;
+  live.revision += 1;
+  clearTimeout(live.timer); live.timer = null;
+  if (!enabled) {
+    $("#music-live-status").textContent = "Live draft paused. Capturing words continues.";
+  } else {
+    live.failed = false;
+    live.lastSource = "";
+    $("#music-live-status").textContent = "Live draft on. Waiting for the next passage…";
+    queueMusicLiveDraft(session);
+  }
+}
+
+function refreshMusicLiveRoute() {
+  const session = musicListening;
+  if (!session) return;
+  const live = session.live;
+  live.target = targetLanguage; live.purpose = translationPurpose; live.way = direction;
+  live.lastPassage = "";
+  if ($("#music-live-preview")) $("#music-live-preview").hidden = true;
+  setMusicLiveEnabled(live.enabled);
+}
+
+async function translateMusicLivePassage(session) {
+  const live = session.live;
+  const source = $("#translator-input").value.trim();
+  if (musicListening !== session || session.stopping || !live.enabled || live.failed || live.busy
+      || source === live.lastSource || sourceLanguage !== session.lang || targetLanguage !== live.target
+      || translationPurpose !== live.purpose) return;
+  if (languageFamily(session.lang) === languageFamily(live.target)) {
+    live.failed = true;
+    $("#music-live-status").textContent = "Live drafts need Spanish ↔ English. Regional comparisons remain available after capture.";
+    return;
+  }
+  const passage = nextMusicLivePassage(source,live.lastSource);
+  if (passage.split(/\s+/).length < 3 || passage === live.lastPassage) return;
+  const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+  if (!onDevice && (live.requests >= 30 || live.characters + passage.length > 2500)) {
+    live.failed = true;
+    $("#music-live-status").textContent = "Online live draft paused to protect the free allowance. Capturing continues. Use the downloaded on-device translation pack for longer live drafts, or translate the collected words after Stop.";
+    return;
+  }
+  const revision = live.revision;
+  const current = () => musicListening === session && !session.stopping && live.enabled
+    && live.revision === revision && sourceLanguage === session.lang && targetLanguage === live.target
+    && translationPurpose === live.purpose
+    && onDevice === (typeof HablaOffline !== "undefined" && HablaOffline.shouldUse());
+  live.busy = true;
+  if (!onDevice) { live.requests += 1; live.characters += passage.length; }
+  $("#music-live-status").textContent = "Translating the latest captured passage…";
+  try {
+    const draft = await requestGeneralTranslation(passage,live.way,
+      {purpose:live.purpose,target:live.target,onDevice,isCurrent:current,inputType:"music"});
+    if (!current()) return;
+    live.lastSource = source;
+    live.lastPassage = passage;
+    $("#music-live-preview").hidden = false;
+    $("#music-live-label").textContent = `${languageLabel(live.target)} · latest passage draft`;
+    $("#music-live-source").textContent = passage;
+    $("#music-live-draft").value = draft;
+    $("#music-live-draft").readOnly = true;
+    $("#music-live-status").textContent = "Live draft updates about every 8 seconds, plus translation time. It translates captured words; missed lyrics need review.";
+  } catch (error) {
+    if (!current()) return;
+    live.failed = true;
+    const message = translationErrorMessage(error);
+    $("#music-live-status").textContent = `Live draft paused. ${message.title} ${message.help} Capturing words continues.`;
+  } finally {
+    live.busy = false;
+    if (musicListening === session && !session.stopping && (source !== $("#translator-input").value.trim() || revision !== live.revision)) queueMusicLiveDraft(session);
+  }
+}
+
 function musicContinuationAvailable() {
   return Boolean(musicCapturedText && musicCapturedLanguage === sourceLanguage
     && musicCapturedText === $("#translator-input").value.trim());
@@ -792,6 +906,7 @@ function newMusicSong() {
   musicCapturedText = "";
   musicCapturedLanguage = "";
   musicTranscriptReview = false;
+  resetMusicLivePreview();
   closeImportedDocument();
   clearTimeout(translationTimer);
   $("#translator-input").value = "";
@@ -833,7 +948,12 @@ function startMusicListening() {
   const phoneBluetooth = $("#music-playback-source")?.value === "phone-bluetooth";
   prepareMusicCaptureAudio(phoneBluetooth);
   const session = {baseText, heard:false, error:"", stopping:false, lang:sourceLanguage,
-    phoneBluetooth, song:$("#music-capture-length").value === "song"};
+    phoneBluetooth, song:$("#music-capture-length").value === "song",
+    live:{enabled:Boolean($("#music-live-translation")?.checked),target:targetLanguage,
+      purpose:translationPurpose,way:direction,revision:0,busy:false,timer:null,failed:false,
+      lastSource:baseText,lastPassage:"",requests:0,characters:0}};
+  resetMusicLivePreview();
+  if (session.live.enabled && $("#music-live-status")) $("#music-live-status").textContent = "Live draft on. Waiting for captured words…";
   musicListening = session;
   musicTranscriptReview = true;
   button.textContent = "Stop listening";
@@ -847,6 +967,10 @@ function startMusicListening() {
     clearTimeout(session.timer);
     clearTimeout(session.finishTimer);
     clearTimeout(session.restartTimer);
+    clearTimeout(session.live.timer);
+    session.live.revision += 1;
+    if ($("#music-live-draft")) $("#music-live-draft").readOnly = false;
+    if ($("#music-live-draft")?.value) $("#music-live-status").textContent = "Latest passage draft paused; you can edit it here. Translate captured words below prepares the full collected text.";
     musicListening = null;
     button.disabled = false;
     button.setAttribute("aria-pressed", "false");
@@ -894,6 +1018,7 @@ function startMusicSegment(session) {
       $("#english-comparison").hidden = true;
       $("#spanish-context").hidden = true;
       $("#compare-english").disabled = true;
+      queueMusicLiveDraft(session);
     },
     onError:error => {
       if (error === "aborted") return;
@@ -1103,12 +1228,12 @@ function imageParagraphText(text) {
   return connected.split(/(\n\s*\n)/).map(part=>/^\n\s*\n$/.test(part)?part:part.replace(/\n/g,' ')).join('');
 }
 
-function refineImageEnglish(draft,source,fullSource=source) {
+function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}={}) {
   let result=draft;
   if(/\b(?:hasta|a)\s+la\s+cuenta\s+de\s+(?:uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|\d+)\b/i.test(source)) {
     result=result.replace(/\baccount(?=\s+of\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b)/gi,word=>word[0]==='A'?'Count':'count');
   }
-  const music=/\b(?:cumbia|salsa|bachata|reguet[oó]n|m[uú]sica|canci[oó]n|remix|DJ)\b/i.test(fullSource);
+  const music=musicContext||/\b(?:cumbia|salsa|bachata|reguet[oó]n|m[uú]sica|canci[oó]n|remix|DJ)\b/i.test(fullSource);
   if(!music)return result;
   const dance=/\b(?:bail(?:ar|amos|ando|a)|baile|trasero|discoteca)\b/i.test(source);
   const otherTrack=/\b(?:aeropuerto|atletismo|carrera|audio|grabaci[oó]n)\b/i.test(source);
@@ -1126,6 +1251,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   }
   if (text.length > 8000) throw translationFailure("research_limit");
   const image=inputType==='image'&&purpose!=='academic';
+  const music=inputType==='music'&&purpose!=='academic';
   const sourceDraft=image?imageParagraphText(text):text;
   const prepared=way==='ec-en'&&typeof HablaSpanishContext!=='undefined'?HablaSpanishContext.prepare(sourceDraft,{purpose,source:sourceLanguage}):sourceDraft;
   const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text:prepared,restore:value=>value};
@@ -1135,7 +1261,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   for (const chunk of chunks) {
     if (!isCurrent()) throw translationFailure("superseded");
     const draft=chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
-    let contextualDraft=image&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text):draft;
+    let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;
     if(way==='ec-en'&&!chunk.separator&&purpose!=='academic'&&typeof HablaSpanishContext!=='undefined')contextualDraft=HablaSpanishContext.refine(contextualDraft,chunk.text,{purpose}).text;
     translated.push(contextualDraft);
   }
@@ -1382,7 +1508,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
-      const inputType=importedDocument?.kind==='image'?'image':undefined;
+      const inputType=importedDocument?.kind==='image'?'image':allowMusic?'music':undefined;
       const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest,onDevice,inputType});
       if (requestId !== translationRequest) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice});
@@ -1707,6 +1833,7 @@ function setTranslationPurpose(purpose, rerender=true) {
       ? `Paste ${languageLabel(sourceLanguage)} research text, an abstract, or several paragraphs…`
       : "Type or tap the microphone to speak…";
   }
+  if (musicListening && musicListening.live.purpose !== translationPurpose) refreshMusicLiveRoute();
   if (rerender && input?.value.trim()) renderTranslation();
 }
 
@@ -2345,6 +2472,7 @@ function init() {
     preservedCulturalContext = null;
     translationRequest += 1;
     syncLanguagePair();
+    refreshMusicLiveRoute();
     renderTranslation();
     renderDictionary();
   });
@@ -2387,6 +2515,8 @@ function init() {
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
+  $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
+  $("#offline-use")?.addEventListener("change", refreshMusicLiveRoute);
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", () => {
     if (musicListening || !musicTranscriptReview || !$("#translator-input").value.trim()) return;
@@ -2485,7 +2615,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=73").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=81").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

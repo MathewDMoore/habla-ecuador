@@ -2,6 +2,47 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 81 — live music passage drafts
+
+User phone follow-up: Kumbia Kings music is audible through an Alexa speaker and
+some words are captured, but the user reports missing lyrics, delayed translation
+and poor translation accuracy. This is partial song capture, not a complete/accurate
+song transcription result. The playback origin (phone Bluetooth vs Alexa streaming)
+and uninterrupted same-phone routing are not independently established.
+
+Adds enabled Live translation draft in both translators. Listening schedules one
+recent captured passage about every 8 seconds plus translation time, with one
+request in flight. New/revised words retain short leading context; earlier verses
+are not retranslated wholesale. The panel explicitly labels the latest target-language
+passage draft, offers captured source in a closed disclosure and becomes editable
+after Stop. Translate captured words continues to prepare the full collected text;
+the live panel is not a complete-song translation. Turning Live off captures without
+translation requests. Failed/quota/unsupported-route preview does not stop the mic.
+Delayed responses cannot overwrite a stopped/edited draft or a changed target,
+purpose, service route, live toggle or new song. Target/service changes refresh the
+preview without interrupting capture. Lyrics are never invented for missing audio.
+
+Live requests use the selected online/on-device translation route. Online preview
+is capped per capture at 30 attempts/2,500 source characters and stops earlier on
+provider failure/quota, protecting the existing free service. This is an app preview
+budget, not a guarantee of the provider's remaining daily allowance. On-device preview
+has no such online budget and requires the existing downloaded pack. Passages are
+bounded to 450 UTF-8 bytes to avoid large live batches. No new paid backend, model
+files, copied song lyrics, recordings or archived build assets are added.
+
+Music input now passes explicit music context into existing bounded volume/counting/
+dance-floor refinements for live and full captured-text translation. Ordinary ambiguous
+text, non-dance track/runway references and research mode retain their behavior.
+This does not establish broad musical slang accuracy or improve the speech model's
+singing recognition. Actual live song translation latency/quality need a phone test.
+
+All 13 JavaScript suites pass, including new live throttle/concurrency, paired source
+and target, interim changes, unchanged-text deduplication, Stop edits/stale completion,
+live toggle and target/service ownership, quota independence and offline budget
+bypass. Music-context translation and unchanged ordinary/research text are covered.
+Syntax/whitespace checks pass. Native source stays 0.1.2 (3); hosted UI becomes
+v0.22.29/build 81. Deployment and live UI verification are pending in this entry.
+
 ## Build 80 — same-phone Bluetooth listening attempt
 
 Native follow-up 0.1.2 (3): the user confirmed build-2 bridge installation/launch,

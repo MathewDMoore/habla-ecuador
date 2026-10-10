@@ -8,15 +8,15 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=80">
-  <script src="research-reference.js?v=80" defer></script>
-  <script src="document-import.js?v=80" defer></script>
-  <script src="saved-paper.js?v=80" defer></script>
-  <script src="offline-device.js?v=80" defer></script>
-  <script src="english-varieties.js?v=80" defer></script>
-  <script src="screenshot-import.js?v=80" defer></script>
-  <script src="spanish-context.js?v=80" defer></script>
-  <script src="app.js?v=80" defer></script>
+  <link rel="stylesheet" href="styles.css?v=81">
+  <script src="research-reference.js?v=81" defer></script>
+  <script src="document-import.js?v=81" defer></script>
+  <script src="saved-paper.js?v=81" defer></script>
+  <script src="offline-device.js?v=81" defer></script>
+  <script src="english-varieties.js?v=81" defer></script>
+  <script src="screenshot-import.js?v=81" defer></script>
+  <script src="spanish-context.js?v=81" defer></script>
+  <script src="app.js?v=81" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.28 · build 80</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.29 · build 81</span></div>
     </header>
 
     <main>
@@ -174,6 +174,14 @@
             <label class="music-capture-length" for="music-capture-length">Listening length
               <select id="music-capture-length"><option value="song" selected>Whole song · up to 10 minutes</option><option value="clip">Short passage · 30 seconds</option></select>
             </label>
+            <label class="music-live-toggle"><input id="music-live-translation" type="checkbox" checked> Live translation draft</label>
+            <p id="music-live-status" class="import-status" role="status" aria-live="polite"></p>
+            <section id="music-live-preview" class="music-live-preview" aria-label="Latest translated music passage" hidden>
+              <p id="music-live-label" class="result-label">Latest passage draft</p>
+              <details class="compact-info"><summary>Captured passage</summary><p id="music-live-source"></p></details>
+              <label class="sr-only" for="music-live-draft">Latest translated passage; editable after stopping capture</label>
+              <textarea id="music-live-draft" rows="3" readonly></textarea>
+            </section>
             <div class="music-capture-actions">
               <button id="music-listen" type="button" aria-pressed="false">Listen to music</button>
               <button id="translate-music" type="button" disabled>Translate captured words</button>
@@ -181,8 +189,9 @@
             </div>
             <p id="music-listening-status" class="import-status" role="status" aria-live="polite"></p>
             <details class="compact-info"><summary>Music listening help</summary>
-              <p>Choose where music is playing above. For this phone and a Bluetooth speaker, open the Bluetooth setup help. Choose the song’s language in From, select Whole song, then tap Listen to music. Keep this screen open; tap Stop listening at the end. Check or edit the collected words, then translate them together. Continue listening adds more words; New song clears the current source text. Nothing is published.</p>
+              <p>Choose where music is playing above. For this phone and a Bluetooth speaker, open the Bluetooth setup help. Choose the song’s language in From, select Whole song, then tap Listen to music. Keep this screen open; tap Stop listening at the end. Live translation shows the latest captured passage while listening. Stop to edit that draft or translate the collected words together. Continue listening adds more words; New song clears the current source text. Nothing is published.</p>
               <p>The app can collect up to 10 minutes per listening session. When the browser ends a passage normally, Whole song tries to restart capture and keeps earlier words. Restarts can leave gaps. If silence, an error or your browser stops it, pause the song and tap Continue listening to collect the next passage. Singing and instruments can cause missing or incorrect words; this does not identify songs or fetch lyrics. A lyrics screenshot is another option.</p>
+              <p>Live drafts update about every 8 seconds plus translation time, using your selected translation route. The latest passage is shown; it is not the full song translation. Online preview pauses at a small allowance to protect the free service. A downloaded on-device translation pack avoids that preview allowance. Switch Live translation off to capture without translation requests.</p>
               <p>Your browser’s recognition service may send audio online and need an internet connection. Habla Ecuador does not save an audio recording. Captured text follows your selected translation service; choose on-device translation to keep translation local.</p>
             </details>
           </section>
