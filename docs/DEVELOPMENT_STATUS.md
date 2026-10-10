@@ -4,6 +4,23 @@ A polished, easy-to-learn translation app for Maria on iPhone or another smartph
 
 ## Build 80 — same-phone Bluetooth listening attempt
 
+User correction: the reported bug is music from another app on the same phone
+stopping when Habla starts its microphone. Retaining Habla's own music did not fix
+that. The Safari website is still build 80; the interruption remains unresolved there.
+
+`ios/` now contains a native companion prototype (0.1.0, build 1) that reuses the
+hosted translator and substitutes AVAudioEngine/SFSpeechRecognizer for Web Speech.
+It requests playAndRecord/default with mixWithOthers and allowBluetoothA2DP, prefers
+the built-in microphone and does not force the output route, duck other audio or
+select a Bluetooth hands-free input. Existing translation services/data are reused.
+No new paid service, bundled model or manuscript/song content is added.
+
+The bridge behavior tests pass; Xcode project/scheme/plist/resource references are
+validated. A macOS GitHub compile workflow is included for this public repository.
+Native compilation and the physical Bluetooth/music/microphone acceptance test
+are pending. This is a candidate implementation, not a verified fix or installable
+binary. See `ios/README.md` for Mac/iPhone setup and the acceptance procedure.
+
 Adds a Music playback selector: external source or This phone → Bluetooth speaker. Bluetooth mode retains Habla music playback while microphone recognition runs; a new app track retains single-track playback without cancelling Bluetooth-mode capture. Other-source mode retains the existing pause/cancel behavior that prevents app-audio interference. The Bluetooth disclosure gives system pairing/output steps, acoustic capture guidance, foreground requirements and recovery for paused/rerouted music. Source choices lock during capture and recover on stops/errors. No digital interception of another app, browser audio-route workaround, new audio dependency or native audio mixing API is claimed.
 
 Same-phone Bluetooth coexistence is not verified on physical hardware. WebKit has open reports about microphone/Bluetooth routing and iOS speech recognition after playback. A native iOS audio session with appropriate mixing/A2DP options is the next route to evaluate if Safari interrupts playback consistently. The UI deliberately does not claim universal Bluetooth compatibility or detect a connected speaker. Sources: https://bugs.webkit.org/show_bug.cgi?id=285164 ; https://bugs.webkit.org/show_bug.cgi?id=321436 ; Apple AVAudioSession playAndRecord, mixWithOthers and allowBluetoothA2DP documentation.

@@ -1,0 +1,33 @@
+name: Native iPhone microphone prototype
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-microphone-prototype.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-microphone-prototype.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-microphone-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile without signing or installing
+        run: >-
+          xcodebuild -project ios/HablaEcuador.xcodeproj
+          -scheme HablaEcuador -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -configuration Debug -derivedDataPath /tmp/habla-ios-build
+          CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO build
