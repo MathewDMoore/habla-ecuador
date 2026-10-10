@@ -14,6 +14,7 @@ const button = () => ({dataset:{}, classList:{toggle(){}}, setAttribute(){}, que
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {
     textContent:'', value:'', hidden:false, innerHTML:'',
+    children:[], replaceChildren(){this.children=[];}, append(child){this.children.push(child);},
     classList:{add(){},remove(){},toggle(){}}, setAttribute(){},removeAttribute(){},
     lastElementChild:{scrollIntoView(){}}, querySelector(){return null;}
   });
@@ -274,6 +275,10 @@ async function main() {
   assert.equal(element('#music-live-source').textContent,'Hola amiga estamos bailando juntos');
   assert.match(element('#music-live-label').textContent,/U.K. English/);
   assert.equal(element('#music-live-draft').readOnly,true);
+  assert.equal(run('musicPassages.length'),1,'live drafts retain their paired source and translation');
+  assert.equal(element('#music-review-source').value,'Hola amiga estamos bailando juntos');
+  assert.equal(element('#music-review-draft').value,'Hello friend, we are dancing together.');
+  assert.equal(element('#music-review-source').readOnly,true);
   const secondTimer=run('musicListening.live.timer');
   assert.ok(secondTimer,'new words schedule the next draft after the first completes');
   timers.get(secondTimer)();
@@ -283,9 +288,13 @@ async function main() {
   settle('Late stale translation');await flush();
   assert.equal(element('#music-live-draft').value,'My corrected draft','late responses after Stop cannot overwrite edits');
   assert.equal(element('#music-live-draft').readOnly,false);
+  assert.equal(element('#music-review-source').readOnly,false);
+  assert.equal(element('#music-review-translate').disabled,false);
   run('newMusicSong()');
   assert.equal(element('#music-live-draft').value,'');
   assert.equal(element('#music-live-preview').hidden,true);
+  assert.equal(element('#music-review').hidden,true);
+  assert.equal(run('musicPassages.length'),0);
 
   // Toggling off/on during a request invalidates it and schedules a fresh draft.
   run('startMusicListening()');const toggled=recordings.at(-1);
@@ -359,6 +368,80 @@ async function main() {
   assert.ok(incremental.endsWith('y ahora llegan palabras nuevas'));
   assert.ok(!incremental.startsWith('Las palabras'),'stable earlier verses are not repeatedly translated');
   assert.equal(element('#translator-input').value,'');
+
+  // Review retains paired passages; corrected Spanish can be translated through
+  // its original route without silently editing the full captured transcript.
+  context.HablaOffline={shouldUse:()=>true};
+  context.liveTranslate=(text,way,options)=>{
+    drafts.push({text,way,options});
+    return new Promise(resolve=>{settle=resolve;});
+  };
+  run('requestGeneralTranslation=liveTranslate; sourceLanguage="es-MX"; targetLanguage="en-GB"; syncLanguagePair(); startMusicListening()');
+  const reviewRecognition=recordings.at(-1);
+  reviewRecognition.emit('Vamos a la pista para bailar');
+  timers.get(run('musicListening.live.timer'))();
+  settle('We are going to the runway to dance');await flush();
+  reviewRecognition.emit('Vamos a la pista para bailar todos juntos esta noche');
+  timers.get(run('musicListening.live.timer'))();
+  settle('We are dancing together tonight');await flush();
+  assert.equal(run('musicPassages.length'),2);
+  assert.equal(element('#music-review-draft').value,'We are going to the runway to dance','earlier draft remains reviewable after a new live draft');
+  run('stopMusicListening()');reviewRecognition.onend();
+  const fullCapture=element('#translator-input').value;
+  element('#music-review-source').value='Vamos a la pista de baile';
+  element('#music-review-draft').value='My previous English edit';
+  run('editMusicPassage(); targetLanguage="en-US"; syncLanguagePair(); translateReviewedMusicPassage()');
+  assert.equal(drafts.at(-1).text,'Vamos a la pista de baile');
+  assert.equal(drafts.at(-1).options.target,'en-GB','paired passage keeps its recorded target when the main selector changes');
+  assert.equal(drafts.at(-1).options.source,'es-MX','paired passage keeps its recorded regional source');
+  assert.equal(drafts.at(-1).options.onDevice,true);
+  assert.equal(drafts.at(-1).options.inputType,'music');
+  settle('Let’s go to the dance floor');await flush();
+  assert.equal(element('#music-review-draft').value,'Let’s go to the dance floor');
+  assert.equal(element('#translator-input').value,fullCapture,'passage correction does not silently replace the full capture');
+  run('selectedMusicPassage=musicPassages[0].id; musicReviewRequest+=1; syncMusicReview()');
+  assert.equal(element('#music-review-draft').value,'We are dancing together tonight');
+  run('selectedMusicPassage=musicPassages[1].id; musicReviewRequest+=1; syncMusicReview()');
+  assert.equal(element('#music-review-source').value,'Vamos a la pista de baile');
+  assert.equal(element('#music-review-draft').value,'Let’s go to the dance floor','edits survive changing the reviewed passage');
+
+  // An English edit, new capture or new song owns its content over delayed replies.
+  run('translateReviewedMusicPassage()');
+  element('#music-review-draft').value='Keep my newest wording';
+  run('editMusicPassage()');
+  settle('Stale server wording');await flush();
+  assert.equal(element('#music-review-draft').value,'Keep my newest wording');
+  assert.equal(element('#music-review-translate').disabled,false);
+  run('translateReviewedMusicPassage(); startMusicListening()');
+  settle('Late wording after capture starts');await flush();
+  assert.equal(element('#music-review-draft').value,'Keep my newest wording');
+  assert.equal(element('#music-review-translate').disabled,true);
+  run('cancelMusicListening(); translateReviewedMusicPassage(); newMusicSong()');
+  settle('Late wording after New song');await flush();
+  assert.equal(run('musicPassages.length'),0);
+  assert.equal(element('#music-review').hidden,true);
+  assert.equal(element('#music-review-draft').value,'');
+
+  // Free-route failure keeps both corrected source and prior draft. Oversized
+  // source edits and empty passages never send a request.
+  run('keepMusicPassage("Palabras del tema musical","Kept draft",{lang:"es-MX",live:{target:"en-GB",way:"ec-en",purpose:"general"}})');
+  context.liveTranslate=async()=>{const e=new Error('quota');e.code='quota';throw e;};
+  run('requestGeneralTranslation=liveTranslate; translateReviewedMusicPassage()');await flush();
+  assert.equal(element('#music-review-draft').value,'Kept draft');
+  assert.match(element('#music-review-status').textContent,/previous draft are kept/);
+  const beforeLongReview=drafts.length;
+  element('#music-review-source').value='á'.repeat(300);
+  run('editMusicPassage(); translateReviewedMusicPassage()');await flush();
+  assert.match(element('#music-review-status').textContent,/450 UTF-8/);
+  assert.equal(drafts.length,beforeLongReview);
+  element('#music-review-source').value='';run('editMusicPassage()');
+  assert.equal(element('#music-review-translate').disabled,true);
+  run('newMusicSong()');
+  for(let i=0;i<25;i++)run(`keepMusicPassage("Passage ${i} source words","Draft ${i}",{lang:"es-MX",live:{target:"en-GB",way:"ec-en",purpose:"general"}})`);
+  assert.equal(run('musicPassages.length'),20,'session history remains bounded');
+  assert.equal(element('#music-review-passage').children.length,20);
+  assert.equal(run('musicPassages.at(-1).id'),6,'older entries are evicted without reconstructing lyrics');
+  run('newMusicSong()');
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

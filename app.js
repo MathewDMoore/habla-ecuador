@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.30 · build 82";
+const APP_VERSION = "0.22.31 · build 83";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -750,6 +750,100 @@ let musicListening = null;
 let musicTranscriptReview = false;
 let musicCapturedText = "";
 let musicCapturedLanguage = "";
+let musicPassages = [];
+let musicPassageID = 0;
+let selectedMusicPassage = null;
+let musicReviewRequest = 0;
+let musicReviewBusy = false;
+
+function currentMusicPassage() {
+  return musicPassages.find(passage => passage.id === selectedMusicPassage);
+}
+
+function syncMusicReview() {
+  const panel = $("#music-review");
+  if (!panel) return;
+  panel.hidden = !musicPassages.length;
+  $("#music-review-heading").textContent = `Review captured passages (${musicPassages.length})`;
+  const select = $("#music-review-passage");
+  select.replaceChildren();
+  musicPassages.forEach(passage => {
+    const option = document.createElement("option");
+    option.value = String(passage.id);
+    option.textContent = `Passage ${passage.id} · ${languageLabel(passage.target)}`;
+    select.append(option);
+  });
+  if (!currentMusicPassage()) selectedMusicPassage = musicPassages[0]?.id ?? null;
+  select.value = String(selectedMusicPassage ?? "");
+  const passage = currentMusicPassage();
+  $("#music-review-source").value = passage?.source || "";
+  $("#music-review-draft").value = passage?.draft || "";
+  $("#music-review-source").setAttribute("lang",passage?.language || "es");
+  $("#music-review-draft").setAttribute("lang",passage?.target || "en");
+  $("#music-review-pair").textContent = passage ? `${languageLabel(passage.language)} → ${languageLabel(passage.target)}` : "";
+  $("#music-review-source").readOnly = Boolean(musicListening);
+  $("#music-review-draft").readOnly = Boolean(musicListening);
+  $("#music-review-translate").disabled = Boolean(musicListening || musicReviewBusy || !passage?.source.trim());
+  $("#music-review-status").textContent = musicListening
+    ? "Paired drafts stay available while listening. Stop to correct the captured words or English."
+    : passage?.status || "Check the captured words against what you heard. Correct them here, then translate this passage again.";
+}
+
+function keepMusicPassage(source, draft, session) {
+  musicPassages.unshift({id:++musicPassageID,source,draft,language:session.lang,
+    target:session.live.target,way:session.live.way,purpose:session.live.purpose,status:""});
+  musicPassages = musicPassages.slice(0,20);
+  syncMusicReview();
+}
+
+function editMusicPassage() {
+  if (musicListening) return;
+  const passage = currentMusicPassage();
+  if (!passage) return;
+  musicReviewRequest += 1;
+  passage.source = $("#music-review-source").value;
+  passage.draft = $("#music-review-draft").value;
+  passage.status = "Passage edits kept for this session. Translate again after correcting captured words.";
+  $("#music-review-status").textContent = passage.status;
+  $("#music-review-translate").disabled = musicReviewBusy || !passage.source.trim();
+}
+
+async function translateReviewedMusicPassage() {
+  const passage = currentMusicPassage();
+  if (musicListening || musicReviewBusy || !passage?.source.trim()) return;
+  const source = passage.source.trim(), previousDraft = passage.draft;
+  if (utf8Length(source) > 450) {
+    passage.status = "Keep this passage within 450 UTF-8 bytes. Use the main text box for longer text.";
+    syncMusicReview();
+    return;
+  }
+  const token = ++musicReviewRequest;
+  const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+  const current = () => !musicListening && token === musicReviewRequest
+    && currentMusicPassage() === passage && passage.source.trim() === source
+    && passage.draft === previousDraft
+    && $("#music-review-source").value.trim() === source
+    && $("#music-review-draft").value === previousDraft
+    && onDevice === (typeof HablaOffline !== "undefined" && HablaOffline.shouldUse());
+  musicReviewBusy = true;
+  passage.status = "Translating this corrected passage…";
+  syncMusicReview();
+  try {
+    const draft = await requestGeneralTranslation(source,passage.way,
+      {purpose:passage.purpose,source:passage.language,target:passage.target,onDevice,isCurrent:current,inputType:"music"});
+    if (!current()) return;
+    passage.draft = draft;
+    passage.status = "Updated draft. Review its meaning against the captured words; either field is editable.";
+  } catch (error) {
+    if (!current()) return;
+    const message = translationErrorMessage(error);
+    passage.status = `${message.title} ${message.help} Your passage and previous draft are kept.`;
+  } finally {
+    musicReviewBusy = false;
+    if (passage.status === "Translating this corrected passage…") passage.status = "The passage or translation route changed. Check your edits, then translate again.";
+    syncMusicReview();
+  }
+}
 
 // Live music drafts use one recent passage, rather than re-translating a growing
 // song on every interim result. Capture remains independent of translation errors.
@@ -857,6 +951,7 @@ async function translateMusicLivePassage(session) {
     $("#music-live-source").textContent = passage;
     $("#music-live-draft").value = draft;
     $("#music-live-draft").readOnly = true;
+    keepMusicPassage(passage,draft,session);
     $("#music-live-status").textContent = `Live draft updates about every ${onDevice ? 3 : 8} seconds, plus translation time. It translates captured words; missed lyrics need review.`;
   } catch (error) {
     if (!current()) return;
@@ -912,6 +1007,9 @@ function newMusicSong() {
   musicCapturedLanguage = "";
   musicTranscriptReview = false;
   resetMusicLivePreview();
+  musicReviewRequest += 1;
+  musicPassages = []; selectedMusicPassage = null; musicPassageID = 0;
+  syncMusicReview();
   closeImportedDocument();
   clearTimeout(translationTimer);
   $("#translator-input").value = "";
@@ -944,6 +1042,7 @@ function startMusicListening() {
     return;
   }
   cancelListening(true);
+  musicReviewRequest += 1;
   saveActiveTranslationEdit();
   const baseText = musicContinuationAvailable() ? $("#translator-input").value.trim() : "";
   closeImportedDocument();
@@ -960,6 +1059,7 @@ function startMusicListening() {
   resetMusicLivePreview();
   if (session.live.enabled && $("#music-live-status")) $("#music-live-status").textContent = "Live draft on. Waiting for captured words…";
   musicListening = session;
+  syncMusicReview();
   musicTranscriptReview = true;
   button.textContent = "Stop listening";
   button.setAttribute("aria-pressed", "true");
@@ -981,6 +1081,7 @@ function startMusicListening() {
       else if (session.live.enabled) $("#music-live-status").textContent = "Capture stopped before a live draft was ready. Captured words, if any, remain above.";
     }
     musicListening = null;
+    syncMusicReview();
     button.disabled = false;
     button.setAttribute("aria-pressed", "false");
     $("#music-capture-length").disabled = false;
@@ -1253,7 +1354,7 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
@@ -1262,7 +1363,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const image=inputType==='image'&&purpose!=='academic';
   const music=inputType==='music'&&purpose!=='academic';
   const sourceDraft=image?imageParagraphText(text):text;
-  const prepared=way==='ec-en'&&typeof HablaSpanishContext!=='undefined'?HablaSpanishContext.prepare(sourceDraft,{purpose,source:sourceLanguage}):sourceDraft;
+  const prepared=way==='ec-en'&&typeof HablaSpanishContext!=='undefined'?HablaSpanishContext.prepare(sourceDraft,{purpose,source}):sourceDraft;
   const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text:prepared,restore:value=>value};
   const chunks = splitLongTranslationText(protectedDocument.text);
   if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
@@ -2525,6 +2626,14 @@ function init() {
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
+  $("#music-review-passage")?.addEventListener("change", event => {
+    musicReviewRequest += 1;
+    selectedMusicPassage = Number(event.target.value);
+    syncMusicReview();
+  });
+  $("#music-review-source")?.addEventListener("input", editMusicPassage);
+  $("#music-review-draft")?.addEventListener("input", editMusicPassage);
+  $("#music-review-translate")?.addEventListener("click", translateReviewedMusicPassage);
   $("#offline-use")?.addEventListener("change", refreshMusicLiveRoute);
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", () => {
@@ -2624,7 +2733,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=82").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=83").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

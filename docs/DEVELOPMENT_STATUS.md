@@ -2,6 +2,33 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 83 — paired music passage review
+
+Keeps the latest 20 successfully translated music passages paired with their
+captured source, original regional language, target and purpose. A closed Review
+captured passages disclosure lets users inspect earlier drafts during listening.
+Stop unlocks source and English edits; Translate corrected passage makes one
+explicit request through the selected online/on-device service using the passage's
+recorded language pair. Main language changes do not silently relabel prior drafts.
+Request preparation now accepts an explicit regional source so a reviewed Mexican
+passage is not prepared under a subsequently selected Ecuadorian source.
+
+Passage edits survive selection changes within this session. Capture start, new
+song, edits, selection and service-route changes protect them from late responses.
+Failure retains corrected source and the prior English draft. Edited sources over
+450 UTF-8 bytes are rejected before a request. Bounded history may include overlapping
+passages and is not a full-song transcript/translation. It stays in memory until
+New song or reload; it does not modify the main captured text or save audio, lyrics
+or private papers to the repository. Existing complete-paper files and reader stay
+unchanged. Native code remains 0.1.2 (3); no Xcode rebuild for this hosted update.
+
+All 13 JavaScript suites pass, including paired-source/target preservation, earlier
+passage retention, edit/retranslate, source independence, late responses after edits,
+capture and New song, failure preservation, input limits and 20-passage eviction.
+JavaScript syntax/whitespace checks pass. Deployment and live UI checks pending.
+Actual song recognition and translation quality still need an iPhone test; no
+improvement to Apple's singing model is claimed.
+
 ## Build 82 — live music passage drafts
 
 User phone follow-up: Kumbia Kings music is audible through an Alexa speaker and

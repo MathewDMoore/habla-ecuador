@@ -505,4 +505,9 @@ button:disabled { cursor: default; }
 .music-live-preview .result-label {margin:0 0 .5rem;}
 .music-live-preview textarea {font-size:1.15rem;min-height:110px;padding:.5rem 0;}
 .music-live-preview textarea:focus {outline:2px solid var(--line);outline-offset:3px;}
+.music-review label {display:block;font-weight:700;margin:.8rem 0 .3rem;}
+.music-review select, .music-review textarea {width:100%;max-width:100%;box-sizing:border-box;}
+.music-review textarea {display:block;min-height:100px;padding:.7rem;font-size:1rem;border:1px solid var(--line);border-radius:12px;background:var(--white);resize:vertical;}
+.music-review textarea:focus {outline:2px solid var(--line);outline-offset:2px;}
+.music-review button {margin-top:.8rem;}
 #music-live-source {white-space:pre-wrap;overflow-wrap:anywhere;}
