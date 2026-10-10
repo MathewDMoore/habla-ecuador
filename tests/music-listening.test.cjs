@@ -204,6 +204,43 @@ async function main() {
   assert.equal(musicButton.textContent,'Listen to music');
   element('#translator-input').value='user edited words';
 
+  // Same-phone Bluetooth attempts must keep Habla's song audible, while
+  // retaining single-track playback and every transcript/session safeguard.
+  element('#music-playback-source').value='phone-bluetooth';
+  run('updateMusicSourceHelp()');
+  assert.equal(element('#bluetooth-music-help').hidden,false);
+  const pausesBefore=context.audioPaused;
+  run('startMusicListening()');
+  assert.equal(context.audioPaused,pausesBefore,'Bluetooth mode does not pause the source song');
+  assert.equal(run('musicListening.phoneBluetooth'),true);
+  assert.equal(element('#music-playback-source').disabled,true);
+  const bluetooth=recordings.at(-1);
+  assert.match(element('#music-listening-status').textContent,/Bluetooth speaker is still playing/);
+  context.activePlayer={paused:false,pause(){throw new Error('The active track should keep playing');}};
+  let otherPauses=0;
+  context.otherPlayer={paused:false,pause(){otherPauses++;}};
+  run('handleMusicPlayerPlay(activePlayer,[activePlayer,otherPlayer])');
+  assert.equal(otherPauses,1,'only one track remains audible');
+  assert.equal(bluetooth.aborted,undefined,'starting a track does not cancel Bluetooth capture');
+  bluetooth.emit('Words from the speaker');
+  bluetooth.onerror({error:'no-speech'}); bluetooth.onend();
+  assert.equal(element('#music-playback-source').disabled,false);
+  assert.equal(element('#translate-music').disabled,false);
+  assert.match(element('#music-listening-status').textContent,/iOS may pause/);
+  assert.match(element('#music-listening-status').textContent,/kept above/);
+  assert.equal(element('#translator-input').value,'Words from the speaker');
+
+  element('#music-playback-source').value='external';
+  run('updateMusicSourceHelp(); startMusicListening()');
+  assert.equal(element('#bluetooth-music-help').hidden,true);
+  assert.equal(context.audioPaused,pausesBefore+1,'external-source mode still prevents feedback from app music');
+  const external=recordings.at(-1);
+  run('handleMusicPlayerPlay(activePlayer,[activePlayer])');
+  assert.equal(external.aborted,true,'ordinary playback still interrupts external capture');
+  assert.equal(run('musicListening'),null);
+  run('newMusicSong()');
+  element('#translator-input').value='user edited words';
+
   // Unsupported browsers do not clear text or imported document state.
   context.window.SpeechRecognition=null;
   run('documentImportActive=true; startMusicListening()');

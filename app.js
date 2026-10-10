@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.22.27 · build 79";
+const APP_VERSION = "0.22.28 · build 80";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -760,6 +760,24 @@ function updateMusicListenLabel() {
   if (!musicListening && $("#music-listen")) $("#music-listen").textContent = musicContinuationAvailable() ? "Continue listening" : "Listen to music";
 }
 
+function updateMusicSourceHelp() {
+  const bluetooth = $("#music-playback-source")?.value === "phone-bluetooth";
+  if ($("#bluetooth-music-help")) $("#bluetooth-music-help").hidden = !bluetooth;
+}
+
+function prepareMusicCaptureAudio(phoneBluetooth) {
+  // The user's song must stay audible for acoustic Bluetooth capture. This
+  // controls only Habla's players; other apps and routing belong to the OS.
+  if (!phoneBluetooth) $$("audio").forEach(player => player.pause());
+}
+
+function handleMusicPlayerPlay(player, players) {
+  if (!musicListening?.phoneBluetooth) cancelMusicListening();
+  players.forEach(otherPlayer => {
+    if (otherPlayer !== player && !otherPlayer.paused) otherPlayer.pause();
+  });
+}
+
 function cancelMusicListening(preserveTranscript=true) {
   const session = musicListening;
   if (!session) return;
@@ -812,14 +830,16 @@ function startMusicListening() {
   clearTimeout(translationTimer);
   translationRequest += 1;
   stopSpeechPlayback();
-  $$("audio").forEach(player => player.pause());
+  const phoneBluetooth = $("#music-playback-source")?.value === "phone-bluetooth";
+  prepareMusicCaptureAudio(phoneBluetooth);
   const session = {baseText, heard:false, error:"", stopping:false, lang:sourceLanguage,
-    song:$("#music-capture-length").value === "song"};
+    phoneBluetooth, song:$("#music-capture-length").value === "song"};
   musicListening = session;
   musicTranscriptReview = true;
   button.textContent = "Stop listening";
   button.setAttribute("aria-pressed", "true");
   $("#music-capture-length").disabled = true;
+  if ($("#music-playback-source")) $("#music-playback-source").disabled = true;
   $("#translate-music").disabled = true;
   status.textContent = "Starting microphone… allow access if asked.";
   session.finish = () => {
@@ -831,6 +851,7 @@ function startMusicListening() {
     button.disabled = false;
     button.setAttribute("aria-pressed", "false");
     $("#music-capture-length").disabled = false;
+    if ($("#music-playback-source")) $("#music-playback-source").disabled = false;
     const ready = Boolean((session.heard || session.baseText) && $("#translator-input").value.trim());
     $("#translate-music").disabled = !ready;
     musicTranscriptReview = ready;
@@ -841,7 +862,9 @@ function startMusicListening() {
     updateMusicListenLabel();
     status.textContent = session.error || (ready
       ? "Capture paused. Check the words above, then Translate captured words. Continue listening adds the next passage; New song starts fresh."
-      : "No words captured. Move closer to the other device or try clearer vocals. Your previous text is unchanged.");
+      : session.phoneBluetooth
+        ? "No words captured. Check that music is still audible on the Bluetooth speaker. iOS may have paused it or changed the audio route. Your previous text is unchanged."
+        : "No words captured. Move closer to the other device or try clearer vocals. Your previous text is unchanged.");
   };
   session.timer = setTimeout(() => { if (musicListening === session) stopMusicListening(); }, session.song ? 600000 : 30000);
   startMusicSegment(session);
@@ -852,9 +875,13 @@ function startMusicSegment(session) {
   const status = $("#music-listening-status");
   let segmentHeard = false;
   startListening({lang:session.lang, button:$("#music-listen"), continuous:true, correctTranscript:false,
-    onStart:() => { if (!session.stopping) status.textContent = session.song
-      ? "Listening to the song… tap Stop listening when finished. Maximum 10 minutes; keep this screen open."
-      : "Listening… up to 30 seconds. Tap Stop listening when ready."; },
+    onStart:() => {
+      if (session.stopping) return;
+      const duration = session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
+      status.textContent = session.phoneBluetooth
+        ? `Listening through the microphone… check the Bluetooth speaker is still playing. ${duration}; keep Habla open, then Stop listening.`
+        : `Listening to the song… ${duration}; keep this screen open. Tap Stop listening when finished.`;
+    },
     onText:text => {
       if (!text || musicListening !== session) return;
       session.heard = segmentHeard = true;
@@ -871,7 +898,9 @@ function startMusicSegment(session) {
     onError:error => {
       if (error === "aborted") return;
       session.error = error === "no-speech"
-        ? "No words detected in this passage. Try clearer vocals or a lyrics screenshot."
+        ? session.phoneBluetooth
+          ? "No words detected. Check music is still playing on the Bluetooth speaker; iOS may pause playback or change the route when the microphone starts."
+          : "No words detected in this passage. Try clearer vocals or a lyrics screenshot."
         : recognitionErrorMessage(error);
       if (session.heard || session.baseText) session.error += " Captured words are kept above; continue when ready or translate them.";
       stopMusicListening();
@@ -1966,12 +1995,7 @@ function renderMusic() {
   recordings.innerHTML = renderTrackCards(contemporaryMusicTracks);
   heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks);
   const players = $$("#music-view audio");
-  players.forEach(player => player.addEventListener("play", () => {
-    cancelMusicListening();
-    players.forEach(otherPlayer => {
-      if (otherPlayer !== player && !otherPlayer.paused) otherPlayer.pause();
-    });
-  }));
+  players.forEach(player => player.addEventListener("play", () => handleMusicPlayerPlay(player,players)));
   $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
     const trackIndex = Number(button.dataset.trackIndex);
     const mode = button.dataset.lyricMode;
@@ -2362,6 +2386,8 @@ function init() {
   bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicTranscriptReview = false; musicCapturedText = ""; updateMusicListenLabel(); $("#translate-music").disabled = true; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
+  updateMusicSourceHelp();
+  $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", () => {
     if (musicListening || !musicTranscriptReview || !$("#translator-input").value.trim()) return;
     $("#music-listening-status").textContent = "Translating captured words. Check the draft below.";

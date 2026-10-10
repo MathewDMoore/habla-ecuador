@@ -496,4 +496,5 @@ button:disabled { cursor: default; }
 .music-capture .import-status:empty {display:none;}
 
 .music-capture-length {display:block; margin-bottom:.7rem;}
-.music-capture-length select {display:block; width:100%; margin-top:.35rem; min-height:44px;}
+.music-capture-length select {display:block; width:100%; margin-top:.35rem; min-height:44px; padding:.6rem .75rem; border:1px solid var(--line); border-radius:12px; background:var(--white); color:var(--ink); font:inherit;}
+#bluetooth-music-help {margin-bottom:.7rem;}

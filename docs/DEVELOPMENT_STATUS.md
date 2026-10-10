@@ -2,6 +2,14 @@
 
 A polished, easy-to-learn translation app for Maria on iPhone or another smartphone, shareable with other users. Prioritize a clear phone experience, reliable translation/voice controls, editable drafts, private document handling, offline capability and free-tier hosting. Phone installation guidance and Share app controls remain pending. Build 69 extends screenshot import with local area selection and contrast handling.
 
+## Build 80 — same-phone Bluetooth listening attempt
+
+Adds a Music playback selector: external source or This phone → Bluetooth speaker. Bluetooth mode retains Habla music playback while microphone recognition runs; a new app track retains single-track playback without cancelling Bluetooth-mode capture. Other-source mode retains the existing pause/cancel behavior that prevents app-audio interference. The Bluetooth disclosure gives system pairing/output steps, acoustic capture guidance, foreground requirements and recovery for paused/rerouted music. Source choices lock during capture and recover on stops/errors. No digital interception of another app, browser audio-route workaround, new audio dependency or native audio mixing API is claimed.
+
+Same-phone Bluetooth coexistence is not verified on physical hardware. WebKit has open reports about microphone/Bluetooth routing and iOS speech recognition after playback. A native iOS audio session with appropriate mixing/A2DP options is the next route to evaluate if Safari interrupts playback consistently. The UI deliberately does not claim universal Bluetooth compatibility or detect a connected speaker. Sources: https://bugs.webkit.org/show_bug.cgi?id=285164 ; https://bugs.webkit.org/show_bug.cgi?id=321436 ; Apple AVAudioSession playAndRecord, mixWithOthers and allowBluetoothA2DP documentation.
+
+Validation: music tests cover Bluetooth-mode source playback preservation, single-track behavior, capture continuing when a track starts, error text and transcript preservation, selector recovery, and unchanged external-source behavior. All twelve suites and syntax/whitespace checks pass. Live deployment checks are pending. Actual Bluetooth routing and simultaneous music/recognition need a physical iPhone test.
+
 ## Build 79 — personal whole-song listening
 
 Whole song is now the default listening length, with a 10-minute limit and an optional 30-second passage. It collects a single editable source transcript across recognition sessions. A normal browser end after returned words attempts a restart, appending the next session exactly once. Restarts can lose audio between sessions; silence, permission and service errors stop rather than loop. Continue listening appends after a manual pause or translation; New song explicitly clears the current source for a fresh capture. Changed source language, imported text and ordinary dictation cannot append an old song accidentally. Source edits remain usable for continuation. Music controls never publish a song or save an audio recording; browser recognition and selected translation services retain the existing privacy behavior.
@@ -112,7 +120,7 @@ Updated October 8, 2026 (America/Denver).
 - Canonical active source: `MathewDMoore/habla-ecuador`, `main`.
 - Active hosting: https://mathewdmoore.github.io/habla-ecuador/
 - Standalone translator: https://mathewdmoore.github.io/habla-ecuador/translator.html
-- Current source: v0.22.27, build 79; continue from these root files.
+- Current source: v0.22.28, build 80; continue from these root files.
 - The separate ChatGPT Site `appgprj_6a9537dcc2d48191b05edbb227f05bd4` is still hosted version 9, last updated September 25. Its source is an older implementation, not the current root source. It was inspected, not rewritten or synchronized during this update.
 
 ## Preserved work
