@@ -109,7 +109,16 @@ publication are added. Loading the hosted translator needs internet. WKWebView's
 offline caching, clipboard, voice playback, document chooser and all feature parity
 must be checked on-device; this is not a fully packaged offline native app.
 
-## Physical acceptance test — still pending
+## Phone dictation reported successful; Bluetooth acceptance still pending
+
+On October 10, after the three-file build-3 refresh and Xcode run instructions,
+the user reports successful dictation. Two screenshots show the requested Spanish
+sentence in the source field, with Ecuadorian Spanish and Mexican Spanish selections.
+These screenshots do not independently show two separate captures, the native build
+label/backend, a completed English translation or simultaneous music playback.
+Record this as user-reported spoken dictation success after the build-3 update;
+regional recognition accuracy and Bluetooth music capture remain separate tests.
+No user screenshots or audio are committed to this public repository.
 
 Use a real iPhone, not the Simulator. Start music in Apple Music or another player,
 route it to the Bluetooth speaker, return to this native Habla app, and tap Listen
@@ -137,9 +146,11 @@ warning is expected because this prototype has no App Intents dependency.
 
 The local Linux environment has no Xcode, signing access or connected iPhone.
 The user has confirmed native installation/launch. Build 2 returned no words with
-Apple service error 203. **Build-3 physical transcription, model download, permission
-behavior and Bluetooth coexistence remain unverified.** Simulator compilation
-establishes that the project builds, not that the reported failure is fixed.
+Apple service error 203. Following the build-3 refresh, the user reports successful
+spoken dictation with source text visible in screenshots. **Model download, permission
+edge cases, song recognition and simultaneous Bluetooth coexistence remain unverified.**
+The screenshots do not display the native build/backend or establish separate captures
+for each source-region selection. Simulator compilation establishes buildability.
 
 To compile on the Mac without installing or signing:
 

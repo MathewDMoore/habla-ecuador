@@ -23,8 +23,13 @@ at every final phrase. Stop/background/cancel invalidate pending preparation/cap
 Source refresh remains three files, preserving configured signing. Hosted website
 still v0.22.28/build 80. Build-3 unsigned simulator compile and actual Swift transcript
 state tests passed (run 38030340504, source 6819d1f; Xcode 26.6/SDK 26.5, arm64/x86_64).
-Updated JavaScript bridge tests pass. Native phone transcription and simultaneous
-Bluetooth playback remain unverified; no successful speech/Bluetooth claim.
+Updated JavaScript bridge tests pass. October 10 phone follow-up after the build-3
+refresh: the user reports successful spoken dictation. Two screenshots show the
+requested Spanish sentence in the source field under Ecuadorian/Mexican selections.
+They do not establish separate captures, native version/backend, English translation,
+regional accuracy or simultaneous Bluetooth music. Record user-reported dictation
+success; Bluetooth/music acceptance remains pending. No private screenshots/audio
+are added to this public repository.
 
 User correction: the reported bug is music from another app on the same phone
 stopping when Habla starts its microphone. Retaining Habla's own music did not fix
