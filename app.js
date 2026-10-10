@@ -785,7 +785,8 @@ function resetMusicLivePreview() {
 function queueMusicLiveDraft(session) {
   const live = session.live;
   if (!live?.enabled || live.failed || live.busy || live.timer || session.stopping || musicListening !== session) return;
-  live.timer = setTimeout(() => { live.timer = null; translateMusicLivePassage(session); }, 8000);
+  const delay = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse() ? 3000 : 8000;
+  live.timer = setTimeout(() => { live.timer = null; translateMusicLivePassage(session); }, delay);
 }
 
 function setMusicLiveEnabled(enabled) {
@@ -799,6 +800,7 @@ function setMusicLiveEnabled(enabled) {
     $("#music-live-status").textContent = "Live draft paused. Capturing words continues.";
   } else {
     live.failed = false;
+    live.errorMessage = "";
     live.lastSource = "";
     $("#music-live-status").textContent = "Live draft on. Waiting for the next passage…";
     queueMusicLiveDraft(session);
@@ -823,7 +825,8 @@ async function translateMusicLivePassage(session) {
       || translationPurpose !== live.purpose) return;
   if (languageFamily(session.lang) === languageFamily(live.target)) {
     live.failed = true;
-    $("#music-live-status").textContent = "Live drafts need Spanish ↔ English. Regional comparisons remain available after capture.";
+    live.errorMessage = "Live drafts need Spanish ↔ English. Regional comparisons remain available after capture.";
+    $("#music-live-status").textContent = live.errorMessage;
     return;
   }
   const passage = nextMusicLivePassage(source,live.lastSource);
@@ -831,7 +834,8 @@ async function translateMusicLivePassage(session) {
   const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
   if (!onDevice && (live.requests >= 30 || live.characters + passage.length > 2500)) {
     live.failed = true;
-    $("#music-live-status").textContent = "Online live draft paused to protect the free allowance. Capturing continues. Use the downloaded on-device translation pack for longer live drafts, or translate the collected words after Stop.";
+    live.errorMessage = "Online live draft paused to protect the free allowance. Use the downloaded on-device translation pack for longer live drafts, or translate the collected words after Stop.";
+    $("#music-live-status").textContent = live.errorMessage + " Capturing continues.";
     return;
   }
   const revision = live.revision;
@@ -853,12 +857,13 @@ async function translateMusicLivePassage(session) {
     $("#music-live-source").textContent = passage;
     $("#music-live-draft").value = draft;
     $("#music-live-draft").readOnly = true;
-    $("#music-live-status").textContent = "Live draft updates about every 8 seconds, plus translation time. It translates captured words; missed lyrics need review.";
+    $("#music-live-status").textContent = `Live draft updates about every ${onDevice ? 3 : 8} seconds, plus translation time. It translates captured words; missed lyrics need review.`;
   } catch (error) {
     if (!current()) return;
     live.failed = true;
     const message = translationErrorMessage(error);
-    $("#music-live-status").textContent = `Live draft paused. ${message.title} ${message.help} Capturing words continues.`;
+    live.errorMessage = `${message.title} ${message.help}`;
+    $("#music-live-status").textContent = `Live draft paused. ${live.errorMessage} Capturing words continues.`;
   } finally {
     live.busy = false;
     if (musicListening === session && !session.stopping && (source !== $("#translator-input").value.trim() || revision !== live.revision)) queueMusicLiveDraft(session);
@@ -951,7 +956,7 @@ function startMusicListening() {
     phoneBluetooth, song:$("#music-capture-length").value === "song",
     live:{enabled:Boolean($("#music-live-translation")?.checked),target:targetLanguage,
       purpose:translationPurpose,way:direction,revision:0,busy:false,timer:null,failed:false,
-      lastSource:baseText,lastPassage:"",requests:0,characters:0}};
+      lastSource:baseText,lastPassage:"",requests:0,characters:0,errorMessage:""}};
   resetMusicLivePreview();
   if (session.live.enabled && $("#music-live-status")) $("#music-live-status").textContent = "Live draft on. Waiting for captured words…";
   musicListening = session;
@@ -970,7 +975,11 @@ function startMusicListening() {
     clearTimeout(session.live.timer);
     session.live.revision += 1;
     if ($("#music-live-draft")) $("#music-live-draft").readOnly = false;
-    if ($("#music-live-draft")?.value) $("#music-live-status").textContent = "Latest passage draft paused; you can edit it here. Translate captured words below prepares the full collected text.";
+    if ($("#music-live-status")) {
+      if (session.live.failed) $("#music-live-status").textContent = "Capture stopped. Live draft paused. " + session.live.errorMessage;
+      else if ($("#music-live-draft")?.value) $("#music-live-status").textContent = "Latest passage draft paused; you can edit it here. Translate captured words below prepares the full collected text.";
+      else if (session.live.enabled) $("#music-live-status").textContent = "Capture stopped before a live draft was ready. Captured words, if any, remain above.";
+    }
     musicListening = null;
     button.disabled = false;
     button.setAttribute("aria-pressed", "false");

@@ -322,7 +322,10 @@ async function main() {
   assert.match(element('#music-live-status').textContent,/Live draft paused/);
   assert.equal(element('#translator-input').value,'Guardamos las palabras de esta canción');
   assert.equal(run('musicListening.live.failed'),true);
-  run('cancelMusicListening(); newMusicSong()');
+  run('cancelMusicListening()');
+  assert.match(element('#music-live-status').textContent,/Capture stopped/);
+  assert.doesNotMatch(element('#music-live-status').textContent,/Capturing words continues/);
+  run('newMusicSong()');
 
   // Online preview budget does not limit on-device translation or stop capture.
   context.liveTranslate=async(text,way,options)=>{drafts.push({text,way,options});return 'Offline draft';};
@@ -336,10 +339,16 @@ async function main() {
   assert.ok(run('musicListening'));
   context.HablaOffline={shouldUse:()=>true};
   run('refreshMusicLiveRoute()');
+  assert.equal(timerDelays.get(run('musicListening.live.timer')),3000);
   timers.get(run('musicListening.live.timer'))();await flush();
   assert.equal(drafts.at(-1).options.onDevice,true);
   assert.equal(element('#music-live-draft').value,'Offline draft');
-  run('cancelMusicListening(); newMusicSong()');
+  run('cancelMusicListening(); newMusicSong(); startMusicListening()');
+  const deniedLive=recordings.at(-1);
+  deniedLive.onerror({error:'not-allowed'});deniedLive.onend();
+  assert.match(element('#music-live-status').textContent,/Capture stopped before a live draft was ready/);
+  assert.equal(element('#music-capture-length').disabled,false);
+  run('newMusicSong()');
   context.longPassage='ámbito ecuatoriano y boliviano '.repeat(60);
   const bounded=run('recentMusicPassage(longPassage)');
   assert.ok(Buffer.byteLength(bounded,'utf8')<=450);

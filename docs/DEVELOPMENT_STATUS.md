@@ -11,7 +11,8 @@ song transcription result. The playback origin (phone Bluetooth vs Alexa streami
 and uninterrupted same-phone routing are not independently established.
 
 Adds enabled Live translation draft in both translators. Listening schedules one
-recent captured passage about every 8 seconds plus translation time, with one
+recent captured passage about every 8 seconds online or 3 seconds on device,
+plus translation time, with one
 request in flight. New/revised words retain short leading context; earlier verses
 are not retranslated wholesale. The panel explicitly labels the latest target-language
 passage draft, offers captured source in a closed disclosure and becomes editable
