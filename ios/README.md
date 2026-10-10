@@ -54,6 +54,29 @@ works, repeat with phone music through Bluetooth. If it fails, read the lasting
 dropdown diagnostic. Build 2 compilation/physical results are recorded below when
 available; this change has not established the cause of the reported task failure.
 
+Build 2's [unsigned simulator compile](https://github.com/MathewDMoore/habla-ecuador/actions/runs/38029152354)
+passed for source commit `edd410f`. The updated bridge tests also pass, including
+mode forwarding, persistent native diagnostics, error-message adaptation and stale
+error rejection. No build-2 phone recognition/Bluetooth result is available yet.
+
+For the existing Mac checkout whose signing was configured in Xcode, update only
+the three native source/resource files rather than merging changed project settings:
+
+```sh
+git -C "$HOME/HablaEcuador-iPhone.GRu3fe" fetch origin main &&
+git -C "$HOME/HablaEcuador-iPhone.GRu3fe" restore --source=FETCH_HEAD --worktree -- \
+  ios/HablaEcuador/HablaEcuadorApp.swift \
+  ios/HablaEcuador/NativeSpeechCapture.swift \
+  ios/HablaEcuador/NativeSpeech.js
+```
+
+Then Stop the current run and Run again in Xcode. This source-only refresh does not
+advance the checkout's branch or change its bundle version settings; the injected
+speech disclosure identifies the native code revision as 0.1.1 (2). A fresh checkout
+uses the updated target version/build settings automatically. Do not use this
+source-only refresh if these three files contain personal code edits: retain those
+edits before updating.
+
 ## Install and run on Mathew's iPhone
 
 1. On the MacBook Air, open `ios/HablaEcuador.xcodeproj` from the repository.

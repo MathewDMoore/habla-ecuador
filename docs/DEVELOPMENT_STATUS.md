@@ -13,7 +13,12 @@ choices, and persists native domain/code, mode, locales and input/output port ty
 in a native-only speech disclosure. It adapts error messages within the wrapper;
 the hosted website source/version remains build 80. No automatic online fallback
 after an on-device failure, no diagnostic transcript/audio upload, and no assertion
-that Bluetooth coexistence or recognition works yet. Build 2 compile check pending.
+that Bluetooth coexistence or recognition works yet. Build 2 unsigned simulator
+compile passed (run 38029152354, source edd410f); updated bridge tests pass. Physical
+build-2 recognition and Bluetooth results remain pending. The user has a Mac clone
+at ~/HablaEcuador-iPhone.GRu3fe with locally configured signing; the source-only
+refresh in ios/README.md avoids a project-settings merge and identifies new native
+code through the disclosure even when the local bundle metadata remains build 1.
 
 User correction: the reported bug is music from another app on the same phone
 stopping when Habla starts its microphone. Retaining Habla's own music did not fix
