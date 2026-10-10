@@ -85,12 +85,14 @@ assert.doesNotThrow(() => failed.start());
 receive({id:messages.at(-1).id, type:"end"});
 // Native failures retain the real cause and route status, not a blanket browser network label.
 const diagnostic = new window.SpeechRecognition();
-modeSelect.value = "on-device";
+modeSelect.value = "dictation";
 diagnostic.lang = "es-EC";
 diagnostic.start();
 const diagnosticID = messages.at(-1).id;
-assert.equal(messages.at(-1).mode, "on-device");
+assert.equal(messages.at(-1).mode, "dictation");
 assert.equal(messages.at(-1).lang, "es-EC");
+receive({id:diagnosticID, type:"status", text:"Downloading model…", reveal:true});
+assert.equal(panel.open, true);
 receive({id:diagnosticID, type:"status", text:"Microphone started; output BluetoothA2DP; recognition es-MX"});
 assert.match(detail.textContent, /BluetoothA2DP/);
 receive({id:diagnosticID, type:"error", error:"native-recognition", message:"Apple local recognition failed", detail:"TestDomain / 123"});

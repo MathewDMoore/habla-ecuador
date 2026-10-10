@@ -292,13 +292,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>2</string>
+				<string>3</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.1</string>
+				<string>0.1.2</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -342,13 +342,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>2</string>
+				<string>3</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.1</string>
+				<string>0.1.2</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>

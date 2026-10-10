@@ -20,12 +20,12 @@
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.1 (2)";
+    summary.textContent = "iPhone speech · native 0.1.2 (3)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
     modeSelect.setAttribute("aria-label", "iPhone speech recognition mode");
-    for (const [value, text] of [["auto", "Prefer on-device if supported"], ["on-device", "On-device only"], ["apple-service", "Apple service (may use internet)"]]) {
+    for (const [value, text] of [["auto", "On-device speech (iOS 26+)"], ["dictation", "On-device dictation (alternative)"], ["legacy-on-device", "Legacy on-device speech"], ["apple-service", "Apple service (may use internet)"]]) {
       const option = document.createElement("option");
       option.value = value;
       option.textContent = text;
@@ -108,6 +108,7 @@
       instance._emit("error", {error:message.error});
     } else if (message.type === "status") {
       setDetail(message.text);
+      if (message.reveal && panel) panel.open = true;
     } else if (message.type === "start") instance._emit("start");
   }});
   window.SpeechRecognition = NativeSpeechRecognition;

@@ -5,10 +5,14 @@ on:
   push:
     paths:
       - 'ios/**'
+      - 'tests/native-transcript-state.swift'
+      - 'tests/run-native-transcript-state.py'
       - '.github/workflows/ios-microphone-prototype.yml'
   pull_request:
     paths:
       - 'ios/**'
+      - 'tests/native-transcript-state.swift'
+      - 'tests/run-native-transcript-state.py'
       - '.github/workflows/ios-microphone-prototype.yml'
 
 permissions:
@@ -24,6 +28,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Verify native phrase accumulation
+        run: python3 tests/run-native-transcript-state.py
       - name: Compile without signing or installing
         run: >-
           xcodebuild -project ios/HablaEcuador.xcodeproj
