@@ -4,6 +4,17 @@ A polished, easy-to-learn translation app for Maria on iPhone or another smartph
 
 ## Build 80 — same-phone Bluetooth listening attempt
 
+Native follow-up 0.1.1 (2): the user installed/opened build 1 on his iPhone, but got
+no transcript and a generic browser-network message. Build 1 had mapped all native
+recognition errors to network; the underlying Apple cause is still unknown. Build 2
+uses explicitly supported same-language locales without changing translation locale,
+prefers on-device capture where supported, offers explicit on-device/Apple-service
+choices, and persists native domain/code, mode, locales and input/output port types
+in a native-only speech disclosure. It adapts error messages within the wrapper;
+the hosted website source/version remains build 80. No automatic online fallback
+after an on-device failure, no diagnostic transcript/audio upload, and no assertion
+that Bluetooth coexistence or recognition works yet. Build 2 compile check pending.
+
 User correction: the reported bug is music from another app on the same phone
 stopping when Habla starts its microphone. Retaining Habla's own music did not fix
 that. The Safari website is still build 80; the interruption remains unresolved there.

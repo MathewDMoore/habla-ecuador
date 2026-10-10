@@ -4,13 +4,24 @@ const vm = require("node:vm");
 const source = fs.readFileSync("ios/HablaEcuador/NativeSpeech.js", "utf8");
 function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html") {
   const messages = [];
-  const window = {webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
-  vm.runInNewContext(source, {window, location:{origin, pathname:path}, EventTarget, Event, DOMException});
-  return {window, messages};
+  const nodes = [];
+  const document = {readyState:"complete", querySelector:() => ({parentElement:{after:() => {}}}),
+    createElement:tag => {
+      const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); }};
+      nodes.push(node);
+      return node;
+    }};
+  const window = {recognitionErrorMessage:error => "browser " + error,
+    webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
+  vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException});
+  return {window, messages, nodes};
 }
 assert.equal(harness("https://example.com").window.SpeechRecognition, undefined);
 assert.equal(harness(undefined, "/unrelated/").window.SpeechRecognition, undefined);
-const {window, messages} = harness();
+const {window, messages, nodes} = harness();
+const panel = nodes.find(node => node.tag === "details");
+const modeSelect = nodes.find(node => node.tag === "select");
+const detail = nodes.find(node => node.tag === "p");
 const receive = window.__hablaNativeSpeech;
 const recognition = new window.SpeechRecognition();
 const events = [];
@@ -22,7 +33,8 @@ recognition.onresult = event => events.push([event.results[0][0].transcript, eve
 recognition.onerror = event => events.push(event.error);
 recognition.onend = () => events.push("end");
 recognition.start();
-assert.deepEqual(messages[0], {action:"start", id:"1", lang:"es-EC", interimResults:true, continuous:true});
+assert.deepEqual(messages[0], {action:"start", id:"1", lang:"es-EC", mode:"auto", interimResults:true, continuous:true});
+assert.equal(modeSelect.disabled, true);
 assert.throws(() => recognition.start(), {name:"InvalidStateError"});
 receive({id:"1", type:"start"});
 receive({id:"1", type:"result", text:"hola", final:false});
@@ -30,6 +42,7 @@ receive({id:"1", type:"result", text:"hola de nuevo", final:true});
 recognition.stop();
 assert.deepEqual(messages.at(-1), {action:"stop", id:"1"});
 receive({id:"1", type:"end"});
+assert.equal(modeSelect.disabled, false);
 receive({id:"1", type:"result", text:"stale", final:true});
 receive({id:"1", type:"end"});
 assert.deepEqual(events, ["start", ["hola", false], ["hola de nuevo", true], "end"]);
@@ -59,6 +72,8 @@ receive({id:"4", type:"end"});
 assert.equal(messages.at(-1).id, "5");
 receive({id:"4", type:"end"});
 assert.equal(messages.at(-1).id, "5");
+restart.onend = null;
+receive({id:"5", type:"end"});
 // A failed transport must release the instance so a later retry can start.
 const failed = new window.SpeechRecognition();
 const transport = window.webkit.messageHandlers.hablaSpeech;
@@ -67,4 +82,27 @@ transport.postMessage = () => { throw new Error("Unavailable"); };
 assert.throws(() => failed.start(), /Unavailable/);
 transport.postMessage = postMessage;
 assert.doesNotThrow(() => failed.start());
+receive({id:messages.at(-1).id, type:"end"});
+// Native failures retain the real cause and route status, not a blanket browser network label.
+const diagnostic = new window.SpeechRecognition();
+modeSelect.value = "on-device";
+diagnostic.lang = "es-EC";
+diagnostic.start();
+const diagnosticID = messages.at(-1).id;
+assert.equal(messages.at(-1).mode, "on-device");
+assert.equal(messages.at(-1).lang, "es-EC");
+receive({id:diagnosticID, type:"status", text:"Microphone started; output BluetoothA2DP; recognition es-MX"});
+assert.match(detail.textContent, /BluetoothA2DP/);
+receive({id:diagnosticID, type:"error", error:"native-recognition", message:"Apple local recognition failed", detail:"TestDomain / 123"});
+assert.equal(panel.open, true);
+assert.match(detail.textContent, /TestDomain \/ 123/);
+assert.equal(window.recognitionErrorMessage("native-recognition"), "Apple local recognition failed");
+receive({id:diagnosticID, type:"end"});
+assert.match(detail.textContent, /TestDomain \/ 123/);
+assert.equal(modeSelect.disabled, false);
+receive({id:diagnosticID, type:"error", error:"network", message:"stale error"});
+assert.match(detail.textContent, /TestDomain \/ 123/);
+diagnostic.start();
+assert.equal(window.recognitionErrorMessage("native-recognition"), "browser native-recognition");
+assert.equal(diagnostic.lang, "es-EC");
 console.log("Native speech bridge: passed (JavaScript behavior; no physical iPhone audio test)");

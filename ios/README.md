@@ -1,4 +1,4 @@
-# Native iPhone microphone prototype — 0.1.0 (1)
+# Native iPhone microphone prototype — 0.1.1 (2)
 
 This is a native companion prototype for the existing Habla Ecuador
 translator. Its specific test is whether music from **another app on the same
@@ -23,6 +23,36 @@ and translation behavior are reused. The browser website remains build 80.
   callbacks. Backgrounding stops capture; permission alerts alone do not cancel it.
 - Speech bridge messages are accepted only from the main frame at the trusted
   hosted app origin/path. External navigation opens outside the app.
+
+## Build 2: reported launch works; recognition fails
+
+Mathew reports that the app installed/opened on his iPhone but returned no words.
+The screenshot shows a generic browser-service network message. Build 1 incorrectly
+mapped every Apple recognition task error to `network`; the screenshot therefore
+does not establish a network cause or demonstrate Bluetooth coexistence.
+
+Build 2 selects an explicitly supported recognition locale in the same language,
+preferring the exact locale, then Spanish Mexico/Spain or English US/UK before another
+supported same-language locale. It never accepts Apple's implicit fallback into a
+different keyboard language. Translation/source-country settings remain unchanged.
+
+The native-only **iPhone speech · native 0.1.1 (2)** dropdown appears beside listening
+controls. Default mode prefers on-device recognition when Apple reports support;
+On-device only and Apple service are separate manual choices. On-device failure does
+not silently send the audio to Apple's service. Hardware support does not guarantee
+that recognition assets are installed or functioning. Selecting Apple service permits
+Apple's normal processing choice; it does not force remote processing.
+
+The dropdown keeps the actual Apple error domain/code, recognition/source locale,
+mode, and capture-start input/output port types on this device. It opens on failure.
+No recognized words, audio buffers or personal speaker names are logged/uploaded as
+diagnostics. The native bridge adapts build 80's error formatter inside the wrapper
+so native failures use the specific message instead of the blanket browser text.
+
+First try one clearly spoken Spanish sentence with music paused. Once dictation
+works, repeat with phone music through Bluetooth. If it fails, read the lasting
+dropdown diagnostic. Build 2 compilation/physical results are recorded below when
+available; this change has not established the cause of the reported task failure.
 
 ## Install and run on Mathew's iPhone
 

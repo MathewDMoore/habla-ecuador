@@ -15,6 +15,9 @@ final class NativeSpeechCapture {
     private var tapped = false
     private var activated = false
     private var stopping = false
+    private var requestedLanguage = ""
+    private var recognitionLanguage = ""
+    private var recognitionMode = ""
     private var stopDeadline: DispatchWorkItem?
     private var interruptionObserver: NSObjectProtocol?
 
@@ -25,16 +28,19 @@ final class NativeSpeechCapture {
                 guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
                       raw == AVAudioSession.InterruptionType.began.rawValue,
                       let self, let id = self.activeID else { return }
-                self.finish(id: id, error: "audio-capture")
+                self.finish(id: id, error: "audio-capture", message: "iOS interrupted microphone capture. Tap again after the interruption ends.")
             }
     }
 
-    func start(id: String, language: String) {
+    func start(id: String, language: String, mode: String = "auto") {
         abortActive()
         activeID = id
         generation = UUID()
         let token = generation
         stopping = false
+        requestedLanguage = language
+        recognitionLanguage = ""
+        recognitionMode = mode
         guard UIApplication.shared.applicationState != .background else {
             finish(id: id, error: "audio-capture")
             return
@@ -43,11 +49,17 @@ final class NativeSpeechCapture {
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             DispatchQueue.main.async {
                 guard let self, self.generation == token, self.activeID == id, !self.stopping else { return }
-                guard status == .authorized else { self.finish(id: id, error: "not-allowed"); return }
+                guard status == .authorized else {
+                    self.finish(id: id, error: "not-allowed", message: "Apple speech recognition permission is unavailable. Check Settings → Privacy & Security → Speech Recognition → Habla Ecuador.")
+                    return
+                }
                 AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
                     DispatchQueue.main.async {
                         guard let self, self.generation == token, self.activeID == id, !self.stopping else { return }
-                        guard granted else { self.finish(id: id, error: "not-allowed"); return }
+                        guard granted else {
+                            self.finish(id: id, error: "not-allowed", message: "Microphone permission is unavailable. Check Settings → Privacy & Security → Microphone → Habla Ecuador.")
+                            return
+                        }
                         self.begin(id: id, language: language, token: token)
                     }
                 }
@@ -56,10 +68,27 @@ final class NativeSpeechCapture {
     }
 
     private func begin(id: String, language: String, token: UUID) {
-        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: language)), recognizer.isAvailable else {
-            finish(id: id, error: "service-not-allowed")
+        func tag(_ locale: Locale) -> String { locale.identifier.replacingOccurrences(of: "_", with: "-") }
+        let supported = SFSpeechRecognizer.supportedLocales().sorted { tag($0) < tag($1) }
+        let base = language.split(separator: "-").first.map(String.init) ?? language
+        let preferred = [language] + (base == "es" ? ["es-MX", "es-ES"] : base == "en" ? ["en-US", "en-GB"] : [])
+        let locale = preferred.compactMap { candidate in supported.first { tag($0).lowercased() == candidate.lowercased() } }.first
+            ?? supported.first { tag($0).split(separator: "-").first.map(String.init) == base }
+        guard let locale, let recognizer = SFSpeechRecognizer(locale: locale) else {
+            finish(id: id, error: "language-not-supported", message: "Apple has no supported recognition locale for \(language) on this device. The translation language has not changed.")
             return
         }
+        recognitionLanguage = tag(recognizer.locale)
+        let onDevice = recognitionMode == "on-device" || (recognitionMode == "auto" && recognizer.supportsOnDeviceRecognition)
+        guard !onDevice || recognizer.supportsOnDeviceRecognition else {
+            finish(id: id, error: "service-not-allowed", message: "On-device recognition is not supported for \(recognitionLanguage) here. Choose Apple service in iPhone speech details to try its service.")
+            return
+        }
+        guard onDevice || recognizer.isAvailable else {
+            finish(id: id, error: "service-not-allowed", message: "Apple recognition is currently unavailable for \(recognitionLanguage). Try again later or try On-device if supported.")
+            return
+        }
+        recognitionMode = onDevice ? "on-device" : "apple-service"
         self.recognizer = recognizer
         do {
             let session = AVAudioSession.sharedInstance()
@@ -76,7 +105,8 @@ final class NativeSpeechCapture {
             try session.setPreferredInput(microphone)
             let request = SFSpeechAudioBufferRecognitionRequest()
             request.shouldReportPartialResults = true
-            // No forced on-device claim: Apple may need its recognition service.
+            request.requiresOnDeviceRecognition = onDevice
+            request.taskHint = .dictation
             self.request = request
             let input = engine.inputNode
             let format = input.outputFormat(forBus: 0)
@@ -96,13 +126,26 @@ final class NativeSpeechCapture {
                                    "final": result.isFinal])
                         if result.isFinal { self.finish(id: id); return }
                     }
-                    if error != nil { self.finish(id: id, error: self.stopping ? nil : "network") }
+                    if let error {
+                        if self.stopping { self.finish(id: id); return }
+                        let native = error as NSError
+                        let network = native.domain == NSURLErrorDomain
+                        self.finish(id: id, error: network ? "network" : "native-recognition",
+                            message: "Apple \(self.recognitionMode) recognition stopped. \(native.localizedDescription)"
+                                + (onDevice ? " You can choose Apple service in iPhone speech details for a separate retry." : ""),
+                            detail: "\(native.domain) / \(native.code)")
+                    }
                 }
             }
             engine.prepare()
             try engine.start()
+            emit(["id": id, "type": "status", "text": "Microphone started. Translation: \(requestedLanguage); recognition: \(recognitionLanguage); mode: \(recognitionMode). Input: \(session.currentRoute.inputs.map { $0.portType.rawValue }.joined(separator: ", ")); output: \(session.currentRoute.outputs.map { $0.portType.rawValue }.joined(separator: ", "))."])
             emit(["id": id, "type": "start"])
-        } catch { finish(id: id, error: "audio-capture") }
+        } catch {
+            let native = error as NSError
+            finish(id: id, error: "audio-capture", message: "The native microphone could not start. \(native.localizedDescription)",
+                   detail: "\(native.domain) / \(native.code)")
+        }
     }
 
     func stop(id: String) {
@@ -130,7 +173,7 @@ final class NativeSpeechCapture {
         if tapped { engine.inputNode.removeTap(onBus: 0); tapped = false }
     }
 
-    private func finish(id: String, error: String? = nil) {
+    private func finish(id: String, error: String? = nil, message: String? = nil, detail: String = "") {
         guard activeID == id else { return }
         activeID = nil
         generation = UUID()
@@ -147,7 +190,10 @@ final class NativeSpeechCapture {
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             activated = false
         }
-        if let error { emit(["id": id, "type": "error", "error": error]) }
+        if let error {
+            emit(["id": id, "type": "error", "error": error, "message": message ?? "Apple microphone capture stopped.",
+                  "detail": "\(detail) · source \(requestedLanguage) · recognition \(recognitionLanguage) · mode \(recognitionMode)"])
+        }
         emit(["id": id, "type": "end"])
     }
 

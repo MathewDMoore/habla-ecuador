@@ -67,7 +67,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
         switch action {
-        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC")
+        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto")
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break
