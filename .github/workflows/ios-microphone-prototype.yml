@@ -7,12 +7,16 @@ on:
       - 'ios/**'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
+      - 'tests/native-audio-stats.swift'
+      - 'tests/run-native-audio-stats.py'
       - '.github/workflows/ios-microphone-prototype.yml'
   pull_request:
     paths:
       - 'ios/**'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
+      - 'tests/native-audio-stats.swift'
+      - 'tests/run-native-audio-stats.py'
       - '.github/workflows/ios-microphone-prototype.yml'
 
 permissions:
@@ -30,6 +34,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify native phrase accumulation
         run: python3 tests/run-native-transcript-state.py
+      - name: Verify converted audio and queue diagnostics
+        run: python3 tests/run-native-audio-stats.py
       - name: Compile without signing or installing
         run: >-
           xcodebuild -project ios/HablaEcuador.xcodeproj

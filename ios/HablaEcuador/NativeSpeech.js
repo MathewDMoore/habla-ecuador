@@ -20,7 +20,7 @@
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.2 (3)";
+    summary.textContent = "iPhone speech · native 0.1.3 (4)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");

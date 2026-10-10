@@ -272,6 +272,10 @@ private final class NativeInputStats {
     private let lock = NSLock()
     private var seconds: Double = 0
     private var peak: Float = 0
+    private var queuedSeconds: Double = 0
+    private var queuedBuffers: Int = 0
+    private var convertedPeak: Float = 0
+    private var rejectedBuffers: Int = 0
     func observe(_ buffer: AVAudioPCMBuffer) {
         var amplitude: Float = 0
         let interleaved = buffer.format.isInterleaved
@@ -296,10 +300,41 @@ private final class NativeInputStats {
         lock.unlock()
     }
     var summary: String {
-        lock.lock(); let duration = seconds; let level = peak; lock.unlock()
+        lock.lock()
+        let duration = seconds; let level = peak
+        let queued = queuedSeconds; let buffers = queuedBuffers
+        let convertedLevel = convertedPeak; let rejected = rejectedBuffers
+        lock.unlock()
         let decibels = level > 0 ? max(-120, 20 * log10(Double(level))) : -120
+        let convertedDecibels = convertedLevel > 0 ? max(-120, 20 * log10(Double(convertedLevel))) : -120
         return String(format: "Microphone audio: %.1f s · input peak %.0f dBFS", duration, decibels)
             + (duration == 0 ? " · waiting for audio buffers" : "")
+            + String(format: "\nAnalyzer queue: %.1f s · %d buffers · converted peak %.0f dBFS · rejected %d", queued, buffers, convertedDecibels, rejected)
+    }
+
+    // A microphone meter alone cannot establish that conversion and forwarding
+    // succeeded. Count only buffers the analyzer input stream actually enqueues.
+    func forwarded(_ buffer: AVAudioPCMBuffer, accepted: Bool) {
+        var amplitude: Float = 0
+        let interleaved = buffer.format.isInterleaved
+        let channels = interleaved ? 1 : Int(buffer.format.channelCount)
+        let samples = Int(buffer.frameLength) * (interleaved ? Int(buffer.format.channelCount) : 1)
+        if let data = buffer.floatChannelData {
+            for channel in 0..<channels {
+                for sample in 0..<samples { amplitude = max(amplitude, abs(data[channel][sample])) }
+            }
+        } else if let data = buffer.int16ChannelData {
+            for channel in 0..<channels {
+                for sample in 0..<samples { amplitude = max(amplitude, abs(Float(data[channel][sample])) / 32768) }
+            }
+        }
+        lock.lock()
+        if accepted {
+            queuedSeconds += Double(buffer.frameLength) / buffer.format.sampleRate
+            queuedBuffers += 1
+            convertedPeak = amplitude
+        } else { rejectedBuffers += 1 }
+        lock.unlock()
     }
 }
 
@@ -328,6 +363,11 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private var backend = "SpeechAnalyzer"
     private var routeDetail = ""
     private var transcript = NativeTranscript()
+    private var receivedResults = 0
+    private var nonemptyResults = 0
+    private var invalidResultRanges = 0
+    private var startedAt: Date?
+    private var revealedNoWords = false
 
     init(id: String, language: String, useDictation: Bool, emit: @escaping ([String: Any]) -> Void) {
         self.id = id; self.language = language; self.useDictation = useDictation; self.emit = emit
@@ -440,28 +480,45 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                     userInfo: [NSLocalizedDescriptionKey: "Microphone audio conversion failed."])
                 DispatchQueue.main.async { self?.fail(error, stage: "Audio conversion") }
             } else if converted.frameLength > 0 {
-                continuation.yield(AnalyzerInput(buffer: converted))
+                let delivery = continuation.yield(AnalyzerInput(buffer: converted))
+                if case .enqueued = delivery { stats.forwarded(converted, accepted: true) }
+                else { stats.forwarded(converted, accepted: false) }
             }
         }
         tapped = true
         engine.prepare()
         try engine.start()
+        startedAt = Date()
         routeDetail = "\(backend) · source \(language) · recognition \(localeTag)\nInput: \(session.currentRoute.inputs.map { $0.portType.rawValue }.joined(separator: ", ")); output: \(session.currentRoute.outputs.map { $0.portType.rawValue }.joined(separator: ", "))."
+            + "\nAudio format: \(Int(source.sampleRate)) Hz / \(source.channelCount) ch → \(Int(format.sampleRate)) Hz / \(format.channelCount) ch."
         status(routeDetail + "\nSpeak a clear sentence first. Input level shows audio, not whether speech is understood.")
         emit(["id": id, "type": "start"])
         meter = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self, !self.cancelled else { return }
-            self.status(self.routeDetail + "\n" + self.stats.summary
-                + (self.transcript.text.isEmpty ? "\nWaiting for words. First test with music paused and speak clearly." : ""))
+            let stalled = self.transcript.text.isEmpty && Date().timeIntervalSince(self.startedAt ?? Date()) >= 15
+            let reveal = stalled && !self.revealedNoWords
+            if reveal { self.revealedNoWords = true }
+            self.status(self.routeDetail + "\n" + self.stats.summary + "\n" + self.resultSummary
+                + (stalled ? "\nNo words after 15 seconds. Listening is still active. The microphone meter does not prove recognition is working. Stop to retry; keep the analyzer queue and result counts visible for diagnosis."
+                    : self.transcript.text.isEmpty ? "\nWaiting for words…" : ""), reveal: reveal)
         }
     }
 
     private func receive(text: String, range: CMTimeRange, final: Bool) {
         guard !cancelled else { return }
+        receivedResults += 1
+        if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { nonemptyResults += 1 }
+        if !range.start.seconds.isFinite || !range.end.seconds.isFinite || range.end.seconds < range.start.seconds {
+            invalidResultRanges += 1
+        }
         transcript.update(text: text, start: range.start.seconds, end: range.end.seconds, final: final)
         // A finalized phrase is not the end of a song/session. Always send the full
         // current text, with final=false until Stop has drained all analyzer results.
         emit(["id": id, "type": "result", "text": transcript.text, "final": false])
+    }
+
+    private var resultSummary: String {
+        "Recognition results: \(receivedResults) · with words: \(nonemptyResults) · invalid ranges: \(invalidResultRanges)"
     }
 
     func stop() {
@@ -470,7 +527,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         stopAudio()
         input?.finish()
         guard let analyzer, input != nil else { end(); return }
-        status(routeDetail + "\nFinishing captured words… " + stats.summary)
+        status(routeDetail + "\nFinishing captured words… " + stats.summary + "\n" + resultSummary)
         // Stay inside the hosted UI's existing finishing watchdog.
         let deadline = DispatchWorkItem { [weak self] in self?.end() }
         self.deadline = deadline

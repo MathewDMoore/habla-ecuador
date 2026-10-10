@@ -10,6 +10,34 @@ replaces Web Speech microphone capture with AVAudioEngine and native Apple speec
 inside this app. Existing transcript editing, song continuation, language selection
 and translation behavior are reused. The hosted website is v0.22.31, build 83.
 
+## Native 0.1.3 (4): diagnose capture without words
+
+The October 10 phone recordings show SpeechTranscriber and then DictationTranscriber
+remaining active with changing built-in microphone levels and no displayed words.
+The dictation recording shows source es-EC mapped to recognition es-MX and Bluetooth
+A2DP output. These recordings establish microphone buffers before conversion;
+they do not establish converted buffers reaching analysis, recognition callbacks,
+or successful clear-speech testing. Neither backend is confirmed to transcribe
+the playing music. The hosted release stays v0.22.31 / build 83.
+
+This native diagnostic update adds the source/converted audio formats, seconds
+and buffers enqueued to the analyzer, converted peak level, rejected yields, and
+recognition callback/nonempty/invalid-range counts. Queue counts mean enqueued,
+not a claim that Apple has consumed or understood that audio. After 15 seconds
+without displayed words, the disclosure opens once and reports the stalled state;
+capture continues until Stop. No recordings are retained or uploaded. This is
+diagnostic work, not a confirmed transcription fix or singing-quality improvement.
+
+The macOS workflow exercises the production converter with synthetic mono/stereo
+44.1/48 kHz PCM and verifies preserved duration, nonzero converted signal and queue
+counters before compiling the app. These checks do not substitute for an iPhone test.
+
+For an existing signed checkout, refresh only NativeSpeechCapture.swift and
+NativeSpeech.js from origin/main. Keep local signing, bundle identifier and Info.plist.
+Set the target's Version to 0.1.3 and Build to 4 in Xcode, then Run on the iPhone.
+The disclosure must show native 0.1.3 (4). A website refresh alone cannot install
+these native diagnostics.
+
 ## Hosted build 83: passage correction
 
 Live drafts retain the latest 20 paired captured passages and translations in a
