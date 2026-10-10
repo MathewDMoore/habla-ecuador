@@ -1,6 +1,6 @@
 # Native iPhone microphone prototype — 0.1.0 (1)
 
-This is an uncompiled, unverified native companion for the existing Habla Ecuador
+This is a native companion prototype for the existing Habla Ecuador
 translator. Its specific test is whether music from **another app on the same
 iPhone** can continue through a Bluetooth speaker while Habla listens through the
 phone microphone. Build 80's browser selector did not fix the reported interruption.
@@ -59,9 +59,16 @@ established by JavaScript tests or a source review.
 `node tests/native-speech-bridge.test.cjs` checks native-message/result dispatch,
 interim/final results, stop/abort, duplicate/stale callbacks, permission-error cleanup,
 restart ownership, origin scope and transport retry. Project/plist/resource/scheme
-references are inspected separately. This Linux environment has no Swift compiler,
-Xcode, iOS SDK, signing access or connected iPhone: **no native compilation, launch,
-permission prompt, Bluetooth coexistence or recognition accuracy has been verified.**
+references are inspected separately. All thirteen JavaScript suites pass.
+The [unsigned compile check](https://github.com/MathewDMoore/habla-ecuador/actions/runs/38022305010)
+succeeded for source commit `794532a` using Xcode 26.6 / iOS Simulator SDK 26.5,
+building both arm64 and x86_64. No compiler errors occurred. The App Intents metadata
+warning is expected because this prototype has no App Intents dependency.
+
+The local Linux environment has no Xcode, signing access or connected iPhone.
+**No native launch, permission prompt, Bluetooth coexistence, physical-device build
+or recognition accuracy has been verified.** Simulator compilation establishes
+that the native project builds, not that the reported audio interruption is fixed.
 
 To compile on the Mac without installing or signing:
 

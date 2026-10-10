@@ -16,10 +16,12 @@ select a Bluetooth hands-free input. Existing translation services/data are reus
 No new paid service, bundled model or manuscript/song content is added.
 
 The bridge behavior tests pass; Xcode project/scheme/plist/resource references are
-validated. A macOS GitHub compile workflow is included for this public repository.
-Native compilation and the physical Bluetooth/music/microphone acceptance test
-are pending. This is a candidate implementation, not a verified fix or installable
-binary. See `ios/README.md` for Mac/iPhone setup and the acceptance procedure.
+validated. All thirteen JavaScript suites pass. The public-repository macOS compile
+workflow succeeded: run 38022305010, source commit 794532a, Xcode 26.6 / iOS Simulator
+SDK 26.5, arm64 and x86_64, unsigned. Native launch, signing, a physical-device build
+and the Bluetooth/music/microphone acceptance test remain pending. This is a
+buildable candidate implementation, not a verified fix or installable iPhone binary.
+See `ios/README.md` for Mac/iPhone setup and the acceptance procedure.
 
 Adds a Music playback selector: external source or This phone → Bluetooth speaker. Bluetooth mode retains Habla music playback while microphone recognition runs; a new app track retains single-track playback without cancelling Bluetooth-mode capture. Other-source mode retains the existing pause/cancel behavior that prevents app-audio interference. The Bluetooth disclosure gives system pairing/output steps, acoustic capture guidance, foreground requirements and recovery for paused/rerouted music. Source choices lock during capture and recover on stops/errors. No digital interception of another app, browser audio-route workaround, new audio dependency or native audio mixing API is claimed.
 
