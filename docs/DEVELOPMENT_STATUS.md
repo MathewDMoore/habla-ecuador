@@ -4,21 +4,27 @@ A polished, easy-to-learn translation app for Maria on iPhone or another smartph
 
 ## Build 80 — same-phone Bluetooth listening attempt
 
-Native follow-up 0.1.1 (2): the user installed/opened build 1 on his iPhone, but got
-no transcript and a generic browser-network message. Build 1 had mapped all native
-recognition errors to network; the underlying Apple cause is still unknown. Build 2
-uses explicitly supported same-language locales without changing translation locale,
-prefers on-device capture where supported, offers explicit on-device/Apple-service
-choices, and persists native domain/code, mode, locales and input/output port types
-in a native-only speech disclosure. It adapts error messages within the wrapper;
-the hosted website source/version remains build 80. No automatic online fallback
-after an on-device failure, no diagnostic transcript/audio upload, and no assertion
-that Bluetooth coexistence or recognition works yet. Build 2 unsigned simulator
-compile passed (run 38029152354, source edd410f); updated bridge tests pass. Physical
-build-2 recognition and Bluetooth results remain pending. The user has a Mac clone
-at ~/HablaEcuador-iPhone.GRu3fe with locally configured signing; the source-only
-refresh in ios/README.md avoids a project-settings merge and identifies new native
-code through the disclosure even when the local bundle metadata remains build 1.
+Native follow-up 0.1.2 (3): the user confirmed build-2 bridge installation/launch,
+but no words. Diagnostic kAFAssistantErrorDomain / 203 (“Retry”), source/recognition
+es-MX, actual mode apple-service. Apple documents 203 as generic failure; no specific
+network, Siri/Dictation, asset or input cause has been established. Default modern
+iOS 26+ capture now uses on-device SpeechAnalyzer/SpeechTranscriber, falling back
+within on-device analysis to DictationTranscriber for unsupported hardware/languages.
+A manual On-device dictation option allows comparison. Apple-managed asset download
+is shown before capture; modern mode requires microphone access and bypasses the
+legacy service authorization path. No automatic service retry or paid service.
+Legacy on-device/Apple-service choices remain explicit; older iOS defaults to legacy
+on-device only. Source-region settings remain unchanged and actual recognition locale
+is shown. New numeric input duration/peak diagnostics distinguish audio arrival from
+successful recognition, with bounded NSError domain/code chains on errors. No audio,
+transcript or personal device name is uploaded as a diagnostic. Timeline-based phrase
+accumulation retains volatile revisions and repeated choruses without ending capture
+at every final phrase. Stop/background/cancel invalidate pending preparation/capture.
+Source refresh remains three files, preserving configured signing. Hosted website
+still v0.22.28/build 80. Build-3 unsigned simulator compile and actual Swift transcript
+state tests passed (run 38030181492, source 8875dac; Xcode 26.6/SDK 26.5, arm64/x86_64).
+Updated JavaScript bridge tests pass. Native phone transcription and simultaneous
+Bluetooth playback remain unverified; no successful speech/Bluetooth claim.
 
 User correction: the reported bug is music from another app on the same phone
 stopping when Habla starts its microphone. Retaining Habla's own music did not fix

@@ -274,16 +274,19 @@ private final class NativeInputStats {
     private var peak: Float = 0
     func observe(_ buffer: AVAudioPCMBuffer) {
         var amplitude: Float = 0
+        let interleaved = buffer.format.isInterleaved
+        let channelCount = interleaved ? 1 : Int(buffer.format.channelCount)
+        let samples = Int(buffer.frameLength) * (interleaved ? Int(buffer.format.channelCount) : 1)
         if let channels = buffer.floatChannelData {
-            for channel in 0..<Int(buffer.format.channelCount) {
-                for frame in 0..<Int(buffer.frameLength) {
-                    amplitude = max(amplitude, abs(channels[channel][frame * buffer.stride]))
+            for channel in 0..<channelCount {
+                for sample in 0..<samples {
+                    amplitude = max(amplitude, abs(channels[channel][sample]))
                 }
             }
         } else if let channels = buffer.int16ChannelData {
-            for channel in 0..<Int(buffer.format.channelCount) {
-                for frame in 0..<Int(buffer.frameLength) {
-                    amplitude = max(amplitude, abs(Float(channels[channel][frame * buffer.stride])) / 32768)
+            for channel in 0..<channelCount {
+                for sample in 0..<samples {
+                    amplitude = max(amplitude, abs(Float(channels[channel][sample])) / 32768)
                 }
             }
         }
