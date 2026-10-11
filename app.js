@@ -2171,7 +2171,7 @@ function renderRegionalSlang() {
   if (!root) return;
   const region = $("#regional-slang-region").value;
   const entries = HablaSpanishContext.dictionary({query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value});
-  $("#regional-slang-count").textContent = entries.length ? `${entries.length} entries · U.S. & U.K. English` : "No entries match. Try another region, tone, or search.";
+  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · U.S. & U.K. English` : "No entries match. Try another region, tone, or search.";
   root.innerHTML = entries.map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const voice = region.startsWith("es-") ? region : ({monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[region] || entry.regions[0]);
