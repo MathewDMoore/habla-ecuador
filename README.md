@@ -97,6 +97,8 @@ The nine initial sunrise/sunset items came from MITAD material supplied by the p
 
 ## Planned work
 
+- Build the requested Listening, Conversation, Text-only and Custom modes in the
+  order and acceptance checks recorded in [the conversation-mode roadmap](docs/CONVERSATION_MODES_ROADMAP.md).
 - Log CORPHA queries, regional metadata, and source dates for entries.
 - Add Ecuadorian-speaker review notes for naturalness, tone, and regional differences.
 - Expand the learner-ready batch beyond the first 10 entries.
