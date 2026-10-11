@@ -1,5 +1,22 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity}=require('../spanish-context.js');
+for (const source of ['en-US','en-GB']) for (const target of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
+ assert.equal(translateEnglishVulgarity('Fuck off!',{source,target}).text,'¡Vete a la mierda!');
+ assert.equal(translateEnglishVulgarity('Shit!',{source,target}).text,'¡Mierda!');
+ assert.match(translateEnglishVulgarity('Fuck off!',{source,target}).scope,/country-specific naturalness review pending/);
+}
+assert.equal(translateEnglishVulgarity('Fuck!').text,'¡Mierda!');
+assert.equal(translateEnglishVulgarity('Don’t fuck with me.').text,'No me jodas.');
+assert.equal(translateEnglishVulgarity('What the fuck is going on?').text,'¿Qué carajo está pasando?');
+assert.equal(translateEnglishVulgarity('Not a fucking chance!').text,'¡Y una mierda!');
+for(const text of ['fuck','shit','"Fuck off!"','“Fuck off!”','Tell me why people say fuck off.','Fuck off! Another sentence.'])assert.equal(translateEnglishVulgarity(text),null);
+assert.equal(translateEnglishVulgarity('Fuck off!',{purpose:'academic'}),null);
+assert.equal(translateEnglishVulgarity('Fuck off!',{source:'es-EC'}),null);
+assert.equal(translateEnglishVulgarity('Fuck off!',{target:'en-GB'}),null);
+assert.ok(dictionary({region:'en-US',target:'es-EC',query:'fuck',tone:'caution'}).some(entry=>entry.term==='¡Vete a la mierda!'));
+assert.equal(dictionary({region:'en-US',target:'es-EC',query:'fuck',tone:'mild'}).length,0);
+assert.ok(!dictionary({region:'en-GB',target:'es-EC',query:'no mames'}).length);
+assert.equal(dictionary({region:'en-GB',target:'es-MX',query:'no mames'}).length,1);
 for (const region of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
  const entries=dictionary({region});
  assert.ok(entries.length>0);

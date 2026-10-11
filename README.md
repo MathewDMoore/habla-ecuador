@@ -58,6 +58,20 @@ they do not claim a separate, validated corpus of British or American slang.
 Tone labels refer to the Spanish source. Country and city evidence stays in the
 Context & sources disclosure, and English view audio retains Spanish voice tags.
 
+### English vulgarity counterparts (v0.23.2 · build 87)
+
+Six shared-Spanish editorial pairs retain vulgarity for exclamations, dismissals,
+rebukes, a shocked question and an emphatic refusal. English dictionary views now
+offer a separate Spanish counterpart region filter. Spanish lexical senses link
+to RAE/DLE; country-specific naturalness remains pending, not city-certified.
+The collection now has 27 entries. Strong wording is excluded by the mild filter.
+
+Translate recognizes these complete English phrases locally in everyday mode,
+including offline without a model pack. This does not rewrite fragments within
+longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
+All other input retains the existing translation route. Local output stays
+editable and is labelled a vulgar counterpart with its sense and review status.
+
 ## Sources and copyright approach
 
 The catalog includes Academia Ecuatoriana de la Lengua’s Diccionario académico de ecuatorianismos and CORPHA, the Ministerio de Educación’s searchable Ecuador dictionary, ASALE’s Diccionario de americanismos, and additional lexicographic and phraseology references.

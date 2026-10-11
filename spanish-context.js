@@ -158,24 +158,39 @@ const HablaSpanishContext = (() => {
     'es-EC':'Ecuador', 'es-BO':'Bolivia', 'es-MX':'Mexico',
     'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia'
   };
+  const englishVulgarityPairs = [
+    {term:'¡Mierda!',us:'Fuck! / Shit! (anger or frustration)',uk:'Fuck! / Shit! (anger or frustration)',aliases:['fuck!','shit!'],requireExclamation:true,url:'https://dle.rae.es/mierda',note:'An angry exclamation, not the sexual verb or a literal reference to excrement. The emotional force varies with the speaker.'},
+    {term:'¡Vete a la mierda!',us:'Fuck off!',uk:'Fuck off!',aliases:['fuck off'],url:'https://dle.rae.es/mierda',note:'A forceful, insulting dismissal addressed to one person with informal tú. It is not a friendly instruction to leave.'},
+    {term:'No me jodas.',us:"Don't fuck with me.",uk:"Don't fuck with me.",aliases:["don't fuck with me",'do not fuck with me'],url:'https://dle.rae.es/joder',note:'A vulgar rebuke meaning stop bothering or messing with me. This is not a literal sexual request.'},
+    {term:'¿Qué carajo está pasando?',us:'What the fuck is going on?',uk:'What the fuck is going on?',aliases:['what the fuck is going on'],url:'https://dle.rae.es/carajo',note:'An angry or shocked question about what is happening. The English intensifier is retained as vulgar Spanish wording.'},
+    {term:'¡Y una mierda!',us:'Not a fucking chance! (refusal)',uk:'Not a fucking chance! (refusal)',aliases:['not a fucking chance'],url:'https://dle.rae.es/mierda',note:'An emphatic vulgar refusal. Surprise and refusal are different uses; this pair is for rejecting a proposal.'},
+    {term:'¡Jódete!',us:'Go fuck yourself!',uk:'Go fuck yourself!',aliases:['go fuck yourself'],url:'https://dle.rae.es/joder',note:'A hostile vulgar rebuke addressed to one person with informal tú. It does not describe a literal sexual act.'}
+  ].map(entry=>({...entry,regions:Object.keys(dictionaryRegions),register:'Strong vulgarity',scope:'Shared Spanish editorial counterpart; country-specific naturalness review pending.',shared:true}));
+  const englishPhraseKey = text => plain(text.trim()).replace(/[’]/g,"'").replace(/[.!?]+$/g,'').trim().replace(/\s+/g,' ');
+  function translateEnglishVulgarity(text,{source='en-US',target='es-EC',purpose='everyday'}={}) {
+    if(purpose==='academic'||!['en-US','en-GB'].includes(source)||!Object.hasOwn(dictionaryRegions,target))return null;
+    const key=englishPhraseKey(text);
+    const entry=englishVulgarityPairs.find(entry=>(!entry.requireExclamation||/!\s*$/.test(text))&&entry.aliases.some(alias=>englishPhraseKey(alias)===key));
+    return entry?{text:entry.term,register:entry.register,note:entry.note,scope:entry.scope,url:entry.url}:null;
+  }
   const cityEvidence = {
     monterrey:['huerco / huerca'],
     'mexico-city':['güey / wey','no mames'],
     bogota:['parce / parcero','gonorrea']
   };
-  function dictionary({query='',region='es-EC',tone='all'}={}) {
+  function dictionary({query='',region='es-EC',tone='all',target='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [...slangEntries,...dictionaryExtras].filter(entry => {
+    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
-      const regionMatches=english||region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
+      const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,entry.note,entry.register,...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
       return regionMatches && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
     }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
-      const {pattern,...publicEntry}=entry;
+      const {pattern,aliases,requireExclamation,...publicEntry}=entry;
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;

@@ -191,6 +191,7 @@ textarea::placeholder { color: #9ca39f; }
 .regional-slang > h2 { margin: 4px 0 15px; color: var(--green); font-size: 24px; }
 .regional-slang-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 12px 0; }
 .regional-slang-filters label { display: grid; gap: 6px; color: var(--green); font-size: 13px; font-weight: 750; }
+.regional-slang-filters [hidden] { display: none; }
 .regional-slang-filters select { width: 100%; min-width: 0; min-height: 46px; padding: 9px; border: 1px solid var(--line); border-radius: 13px; background: white; color: var(--ink); font: inherit; }
 .regional-slang-card header { align-items: flex-start; flex-wrap: wrap; }
 .regional-slang-card h3 { margin: 0; color: var(--green); font-size: 20px; }

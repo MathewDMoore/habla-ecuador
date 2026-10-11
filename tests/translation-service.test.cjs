@@ -12,6 +12,17 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ fresh();
+ for(const source of ['en-US','en-GB']) {
+  assert.equal(await run(`requestGeneralTranslation("Fuck off!","en-ec",{source:"${source}",target:"es-EC",purpose:"everyday"})`),'¡Vete a la mierda!');
+ }
+ assert.equal(await run('requestGeneralTranslation("Shit!","en-ec",{source:"en-US",target:"es-BO",purpose:"everyday",onDevice:true})'),'¡Mierda!');
+ assert.equal(requests.length,0,'exact vulgar counterparts stay local without a model download or API');
+ await assert.rejects(run('requestGeneralTranslation("Fuck off!","en-ec",{source:"en-US",target:"es-EC",isCurrent:()=>false})'),e=>e.code==='superseded');
+ handler=async text=>ok(text);
+ assert.equal(await run('requestGeneralTranslation("Fuck off!","en-ec",{source:"en-US",target:"es-EC",purpose:"academic"})'),'Fuck off!');
+ assert.equal(requests.length,1,'academic text stays on the existing engine');
+ fresh();
  assert.equal(run('imageParagraphText("Una frase\\ncon pantalla estrecha.\\n\\nOtro párrafo.")'),'Una frase con pantalla estrecha.\n\nOtro párrafo.');
  assert.equal(run('imageParagraphText("Espero que\\n\\nllegues pronto.\\n\\nOtro párrafo.")'),'Espero que llegues pronto.\n\nOtro párrafo.');
  run('sourceLanguage="es-MX";direction="ec-en";translationPurpose="everyday"');
