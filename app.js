@@ -2779,7 +2779,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=85").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=85.1").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
