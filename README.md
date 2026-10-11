@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Music passage context (v0.23.4 · build 89)
+
+Live music drafts retain a connected sentence or capture segment, instead of starting an update at an arbitrary five-word overlap. Oversized unpunctuated passages wait for manual review rather than losing their beginning. Clearly dangling Spanish/English clause endings wait for more captured words without spending an online translation request; this is a conservative heuristic, not a grammar validator. Recognition can still miss words or mistake sung vocals. This release does not repair Apple's singing recognition or guarantee translation quality from the free provider.
+
+Captured source words are visible beside each live draft. Pending incomplete words have a separate display so they cannot appear paired with an earlier translation. Paused capture retains existing editable passage review. Both external-speaker and future same-phone Bluetooth workflows remain available; native version stays 0.1.3 (4).
+
 ### Ambiguous chingar/chinga lookup (v0.23.3 · build 88)
 
 Three Mexican dictionary entries separate the verb, noun, and en chinga speed

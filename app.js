@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.23.3 · build 88";
+const APP_VERSION = "0.23.4 · build 89";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -858,15 +858,34 @@ function recentMusicPassage(text) {
   return selected.join(" ");
 }
 
-function nextMusicLivePassage(text, previous) {
-  if (!previous) return recentMusicPassage(text);
+function nextMusicLivePassage(text, previous="") {
   const words = text.trim().split(/\s+/), old = previous.trim().split(/\s+/);
   const key = word => word.toLowerCase().replace(/[¿¡.,!?;:]/g, "");
   let shared = 0;
   while (shared < Math.min(words.length,old.length) && key(words[shared]) === key(old[shared])) shared += 1;
-  // Keep a short leading context around new/revised words. Stable earlier verses
-  // are not repeatedly charged to the free service on every live update.
-  return recentMusicPassage(words.slice(shared >= 3 ? Math.max(0,shared - 5) : 0).join(" "));
+  // An arbitrary five-word overlap can cut off the subject or governing verb.
+  // Resume only at a sentence/segment boundary before the revised words.
+  const matches = [...text.trim().matchAll(/[^\s]+/g)];
+  const revisionStart = matches[Math.min(shared,matches.length-1)]?.index || 0;
+  let start = 0;
+  for (const boundary of text.trim().matchAll(/[.!?]\s+|\n+/g)) {
+    const end = boundary.index + boundary[0].length;
+    if (end <= revisionStart) start = end;
+  }
+  const passage = text.trim().slice(start).trim();
+  // A long unpunctuated clause needs review; never silently chop its beginning.
+  return utf8Length(passage) <= 450 ? passage : "";
+}
+
+function musicFragmentReason(passage, language) {
+  if (!passage) return "This passage is too long without a clear sentence break. Stop to review and split the captured words.";
+  const ending = passage.toLowerCase().replace(/[.!?…,:;¿¡]+$/g, "").trim();
+  const dangling = languageFamily(language) === "es"
+    ? /\b(?:que|porque|aunque|pero|para|con|sin|del|al|el|la|los|las|un|una|de|en|por|y|o|que\s+(?:ya|no|yo|tú|él|ella|nosotros|ellos|ellas))$/u
+    : /\b(?:because|although|but|with|without|of|to|the|a|an|and|or|that\s+(?:i|you|he|she|we|they)|(?:i|you|he|she|we|they)(?:'re|'s|\s+(?:am|are|is))\s+(?:already|not))$/u;
+  return dangling.test(ending)
+    ? "The captured phrase ends mid-clause. Waiting for more words; stop to correct it if recognition missed the rest."
+    : "";
 }
 
 function resetMusicLivePreview() {
@@ -874,6 +893,7 @@ function resetMusicLivePreview() {
   if ($("#music-live-draft")) { $("#music-live-draft").value = ""; $("#music-live-draft").readOnly = true; }
   if ($("#music-live-source")) $("#music-live-source").textContent = "";
   if ($("#music-live-status")) $("#music-live-status").textContent = "";
+  if ($("#music-live-pending")) { $("#music-live-pending").hidden = true; $("#music-live-pending").textContent = ""; }
 }
 
 function queueMusicLiveDraft(session) {
@@ -890,6 +910,7 @@ function setMusicLiveEnabled(enabled) {
   live.enabled = enabled;
   live.revision += 1;
   clearTimeout(live.timer); live.timer = null;
+  $("#music-live-pending").hidden = true;
   if (!enabled) {
     $("#music-live-status").textContent = "Live draft paused. Capturing words continues.";
   } else {
@@ -924,7 +945,15 @@ async function translateMusicLivePassage(session) {
     return;
   }
   const passage = nextMusicLivePassage(source,live.lastSource);
+  const fragmentReason = musicFragmentReason(passage,session.lang);
+  if (fragmentReason) {
+    $("#music-live-status").textContent = fragmentReason + (live.lastPassage ? " The previous paired draft remains below." : "");
+    $("#music-live-pending").hidden = false;
+    $("#music-live-pending").textContent = `Waiting for a complete phrase: ${passage || source}`;
+    return;
+  }
   if (passage.split(/\s+/).length < 3 || passage === live.lastPassage) return;
+  $("#music-live-pending").hidden = true;
   const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
   if (!onDevice && (live.requests >= 30 || live.characters + passage.length > 2500)) {
     live.failed = true;
@@ -942,7 +971,7 @@ async function translateMusicLivePassage(session) {
   $("#music-live-status").textContent = "Translating the latest captured passage…";
   try {
     const draft = await requestGeneralTranslation(passage,live.way,
-      {purpose:live.purpose,target:live.target,onDevice,isCurrent:current,inputType:"music"});
+      {purpose:live.purpose,source:session.lang,target:live.target,onDevice,isCurrent:current,inputType:"music"});
     if (!current()) return;
     live.lastSource = source;
     live.lastPassage = passage;

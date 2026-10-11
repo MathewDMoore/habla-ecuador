@@ -267,6 +267,7 @@ async function main() {
   timers.get(firstTimer)();
   assert.equal(drafts.length,1);
   assert.equal(drafts[0].options.target,'en-GB');
+  assert.equal(drafts[0].options.source,'es-MX');
   assert.equal(drafts[0].options.inputType,'music');
   liveRecognition.emit('Hola amiga estamos bailando juntos esta noche');
   assert.equal(run('musicListening.live.timer'),null,'only one translation is in flight');
@@ -362,12 +363,39 @@ async function main() {
   const bounded=run('recentMusicPassage(longPassage)');
   assert.ok(Buffer.byteLength(bounded,'utf8')<=450);
   assert.ok(bounded.endsWith('boliviano'));
-  context.earlier='Las palabras de la primera estrofa quedan guardadas sin repetirse demasiado pronto';
-  context.extended=context.earlier+' y ahora llegan palabras nuevas';
+  context.earlier='Las palabras de la primera estrofa quedan guardadas sin repetirse demasiado pronto.';
+  context.extended=context.earlier+' Ahora llegan palabras nuevas';
   const incremental=run('nextMusicLivePassage(extended,earlier)');
-  assert.ok(incremental.endsWith('y ahora llegan palabras nuevas'));
+  assert.equal(incremental,'Ahora llegan palabras nuevas');
   assert.ok(!incremental.startsWith('Las palabras'),'stable earlier verses are not repeatedly translated');
+  assert.equal(run('nextMusicLivePassage("Por favor, no le digas que ya volvió.","Por favor, no le digas que ya")'), 'Por favor, no le digas que ya volvió.','a revised connected clause retains its beginning');
+  assert.equal(run('nextMusicLivePassage(longPassage,"")'), '', 'an oversized unpunctuated clause is not chopped into a misleading tail');
+  assert.match(run('musicFragmentReason("Por favor, no le digas que ya…","es-MX")'), /mid-clause/);
+  assert.match(run('musicFragmentReason("Vamos para la","es-EC")'), /mid-clause/);
+  assert.match(run('musicFragmentReason("Please do not tell her because","en-US")'), /mid-clause/);
+  assert.equal(run('musicFragmentReason("Por favor, no le digas que ya volvió.","es-MX")'), '');
+  assert.equal(run('musicFragmentReason("Vamos para allá ya.","es-MX")'), '');
   assert.equal(element('#translator-input').value,'');
+
+  // Recording regression: incomplete "que ya" must not spend the free quota or
+  // publish "you're already" as a finished translation. Later words recover it.
+  run('startMusicListening()'); const fragmentRecognition=recordings.at(-1);
+  const beforeFragment=drafts.length;
+  fragmentRecognition.emit('Por favor, no le digas que ya');
+  timers.get(run('musicListening.live.timer'))(); await flush();
+  assert.equal(drafts.length,beforeFragment);
+  assert.equal(run('musicListening.live.requests'),0);
+  assert.equal(element('#music-live-preview').hidden,true);
+  assert.equal(element('#music-live-pending').hidden,false);
+  assert.match(element('#music-live-pending').textContent,/Por favor, no le digas que ya/);
+  assert.match(element('#music-live-status').textContent,/mid-clause/);
+  fragmentRecognition.emit('Por favor, no le digas que ya volvió.');
+  timers.get(run('musicListening.live.timer'))(); await flush();
+  assert.equal(drafts.length,beforeFragment+1);
+  assert.equal(drafts.at(-1).text,'Por favor, no le digas que ya volvió.');
+  assert.equal(element('#music-live-pending').hidden,true);
+  assert.equal(element('#music-live-source').textContent,'Por favor, no le digas que ya volvió.');
+  run('cancelMusicListening(); newMusicSong()');
 
   // Review retains paired passages; corrected Spanish can be translated through
   // its original route without silently editing the full captured transcript.

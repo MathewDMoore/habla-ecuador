@@ -8,15 +8,15 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=88.1">
-  <script src="research-reference.js?v=88.1" defer></script>
-  <script src="document-import.js?v=88.1" defer></script>
-  <script src="saved-paper.js?v=88.1" defer></script>
-  <script src="offline-device.js?v=88.1" defer></script>
-  <script src="english-varieties.js?v=88.1" defer></script>
-  <script src="screenshot-import.js?v=88.1" defer></script>
-  <script src="spanish-context.js?v=88.1" defer></script>
-  <script src="app.js?v=88.1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=89">
+  <script src="research-reference.js?v=89" defer></script>
+  <script src="document-import.js?v=89" defer></script>
+  <script src="saved-paper.js?v=89" defer></script>
+  <script src="offline-device.js?v=89" defer></script>
+  <script src="english-varieties.js?v=89" defer></script>
+  <script src="screenshot-import.js?v=89" defer></script>
+  <script src="spanish-context.js?v=89" defer></script>
+  <script src="app.js?v=89" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.23.3 · build 88</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.23.4 · build 89</span></div>
     </header>
 
     <main>
@@ -225,9 +225,10 @@
             </label>
             <label class="music-live-toggle"><input id="music-live-translation" type="checkbox" checked> Live translation draft</label>
             <p id="music-live-status" class="import-status" role="status" aria-live="polite"></p>
+            <p id="music-live-pending" class="music-live-pending" hidden></p>
             <section id="music-live-preview" class="music-live-preview" aria-label="Latest translated music passage" hidden>
               <p id="music-live-label" class="result-label">Latest passage draft</p>
-              <details class="compact-info"><summary>Captured passage</summary><p id="music-live-source"></p></details>
+              <p class="music-source-label">Captured words · check against the song</p><p id="music-live-source"></p>
               <label class="sr-only" for="music-live-draft">Latest translated passage; editable after stopping capture</label>
               <textarea id="music-live-draft" rows="3" readonly></textarea>
             </section>
