@@ -165,12 +165,13 @@ const HablaSpanishContext = (() => {
   };
   function dictionary({query='',region='es-EC',tone='all'}={}) {
     const search=plain(query.trim());
+    const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
     return [...slangEntries,...dictionaryExtras].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
-      const regionMatches=region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
-      const searchable=plain([entry.term,entry.us,entry.uk,entry.scope,entry.note,entry.register,...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
+      const regionMatches=english||region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
+      const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,entry.note,entry.register,...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
       return regionMatches && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
-    }).sort((a,b) => (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
+    }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
       const {pattern,...publicEntry}=entry;
       return JSON.parse(JSON.stringify(publicEntry));
     });

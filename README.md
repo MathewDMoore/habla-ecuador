@@ -48,6 +48,16 @@ translator notes without broadening automatic replacements. New headwords are
 dictionary-only, and all entries remain local after the app is cached; opening
 source websites requires internet. No API, paid service or media files were added.
 
+### English lookup (v0.23.1 · build 86)
+
+Region also offers U.S. English and U.K. English. These views put the selected
+English gloss first, sort by that gloss, and show its Spanish counterpart plus
+the other English comparison. Search checks the selected English gloss, Spanish
+headword and context. The views index the existing 21 Spanish slang entries;
+they do not claim a separate, validated corpus of British or American slang.
+Tone labels refer to the Spanish source. Country and city evidence stays in the
+Context & sources disclosure, and English view audio retains Spanish voice tags.
+
 ## Sources and copyright approach
 
 The catalog includes Academia Ecuatoriana de la Lengua’s Diccionario académico de ecuatorianismos and CORPHA, the Ministerio de Educación’s searchable Ecuador dictionary, ASALE’s Diccionario de americanismos, and additional lexicographic and phraseology references.
