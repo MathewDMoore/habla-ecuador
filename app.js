@@ -1559,7 +1559,8 @@ function renderSpanishContext(sourceText,draft='') {
   if(languageFamily(sourceLanguage)==='es'&&draft&&typeof HablaSpanishContext!=='undefined')findings.push(...HablaSpanishContext.residue(sourceText,draft,{purpose:translationPurpose,target:targetLanguage,region:sourceLanguage}));
   panel.hidden=!findings.length;
   if(findings.some(item=>item.kind==='word-senses'&&item.choices.length))panel.open=true;
-  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}">${item.choiceLabels?.[choice] ? `Use ${escapeHtml(item.choiceLabels[choice])}` : `Use ${escapeHtml(choice)} meaning`}</button>`).join('')}</div>`:''}`).join(''):'';
+  const selectedMeaning=typeof HablaSpanishContext==='undefined'?null:HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}).find(item=>item.text===draft)?.id;
+  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}" aria-pressed="${selectedMeaning===choice}">${item.choiceLabels?.[choice] ? `Use ${escapeHtml(item.choiceLabels[choice])}` : `Use ${escapeHtml(choice)} meaning`}</button>`).join('')}</div>`:''}`).join(''):'';
   return findings;
 }
 
@@ -2813,7 +2814,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=88").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=88.1").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

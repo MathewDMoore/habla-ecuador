@@ -494,6 +494,8 @@ button:disabled { cursor: default; }
 #spanish-context { margin: .6rem 0; padding: 0 1rem; color: #fff; }
 #spanish-context[open] { padding-bottom: .8rem; }
 .context-choice-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; }
+.context-choice-actions button { min-height: 44px; padding: 10px 12px; border: 1px solid #b2c9bd; border-radius: 12px; background: #31564b; color: white; font: inherit; font-size: 13px; font-weight: 700; text-align: left; }
+.context-choice-actions button[aria-pressed="true"] { background: var(--mint); color: var(--green); border-color: var(--mint); }
 .translation-purpose { margin-bottom: .5rem; }
 
 .screenshot-preview-wrap { position: relative; display: table; margin: .5rem auto; }
