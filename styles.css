@@ -187,6 +187,19 @@ textarea::placeholder { color: #9ca39f; }
 .evidence-counts span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 800; line-height: 1.25; text-transform: uppercase; }
 .dictionary-search { display: block; padding: 4px 15px; border: 1px solid var(--line); border-radius: 16px; background: white; }
 .dictionary-search input { width: 100%; min-height: 46px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 16px; }
+.regional-slang { margin: 0 0 28px; }
+.regional-slang > h2 { margin: 4px 0 15px; color: var(--green); font-size: 24px; }
+.regional-slang-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 12px 0; }
+.regional-slang-filters label { display: grid; gap: 6px; color: var(--green); font-size: 13px; font-weight: 750; }
+.regional-slang-filters select { width: 100%; min-width: 0; min-height: 46px; padding: 9px; border: 1px solid var(--line); border-radius: 13px; background: white; color: var(--ink); font: inherit; }
+.regional-slang-card header { align-items: flex-start; flex-wrap: wrap; }
+.regional-slang-card h3 { margin: 0; color: var(--green); font-size: 20px; }
+.slang-tone { padding: 5px 8px; border-radius: 9px; background: var(--mint); color: var(--green); font-size: 11px; line-height: 1.4; }
+.slang-tone.caution { background: #fff0d9; color: #73431d; }
+.regional-gloss { margin: 10px 0; font-size: 15px; line-height: 1.5; }
+.regional-gloss b { color: var(--green); font-size: 12px; }
+.regional-slang-card .compact-info { margin-bottom: 0; }
+@media (max-width: 360px) { .regional-slang-filters { grid-template-columns: 1fr; } }
 .evidence-filters { display: flex; gap: 7px; margin: 12px 0; overflow-x: auto; padding-bottom: 3px; }
 .evidence-filters button { flex: 0 0 auto; padding: 9px 11px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: 11px; font-weight: 800; }
 .evidence-filters button.active { border-color: var(--green); background: var(--green); color: white; }

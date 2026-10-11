@@ -144,6 +144,37 @@ const HablaSpanishContext = (() => {
     }
     return {text,changes};
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning};
+  // The browseable dictionary shares translator notes; extra headwords do not
+  // change translation rules or turn country evidence into a city claim.
+  const dictionaryExtras = [
+    {term:'acolitar',regions:['es-EC','es-CO'],register:'Informal',scope:'Ecuador and Colombia: support or help.',us:'to help / back someone up',uk:'to help / back someone up',note:'Support with an activity or idea. Example: ¿Me acolitas con esto? — Can you give me a hand with this?',url:asale('acolitar')},
+    {term:'camello',regions:['es-EC','es-MX','es-CO'],register:'Informal',scope:'Ecuador, Mexico and Colombia: work or job; Ecuador also records workplace.',us:'work / job (Ecuador also: workplace)',uk:'work / job (Ecuador also: workplace)',note:'The animal meaning is camel. Bolivia records a separate shoemaking tool sense. Employment context must support the slang reading. Example: Ya me voy al camello. — I am heading to work.',url:asale('camello')},
+    {term:'chiro / chira',regions:['es-EC','es-MX'],register:'Informal',scope:'Ecuador: without money. Mexico: pretty, cute or very good.',us:'broke (Ecuador) / cute or great (Mexico)',uk:'broke (Ecuador) / cute or great (Mexico)',note:'Do not carry the Ecuadorian meaning into a Mexican sentence automatically. Ecuador example: Estoy chiro. — I am broke.',url:asale('chiro')},
+    {term:'aniñado / aniñada',regions:['es-EC'],register:'Informal; can sound judgmental',scope:'Ecuador: upper-class associations or an elegant appearance.',us:'posh / upper-class / upscale',uk:'posh / upper-class / upmarket',note:'About a person this may sound teasing or critical. Example: Ese lugar es medio aniñado. — That place is a bit posh.',url:asale('aniñado')},
+    {term:'ñaño / ñaña',regions:['es-EC','es-BO','es-PE'],register:'Familiar',scope:'Ecuador: brother or sister; Bolivia: brother, and close friend in central, southern and western areas; Peru: friend.',us:'sibling (Ecuador) / brother (Bolivia) / friend (Peru and parts of Bolivia)',uk:'sibling (Ecuador) / brother (Bolivia) / friend (Peru and parts of Bolivia)',note:'Family and friendship readings need context. A shared term cannot establish where someone is from.',url:asale('ñaño')},
+    {term:'guagua',regions:['es-EC','es-BO','es-PE'],register:'Familiar',scope:'Ecuador and Bolivia: young child; Ecuador and rural Peru: nursing baby.',us:'young child (Ecuador/Bolivia) / baby (Ecuador/rural Peru)',uk:'young child (Ecuador/Bolivia) / baby (Ecuador/rural Peru)',note:'Some Caribbean varieties use guagua for a bus. The surrounding sentence and known source variety matter.',url:asale('guagua')}
+  ];
+  const dictionaryRegions = {
+    'es-EC':'Ecuador', 'es-BO':'Bolivia', 'es-MX':'Mexico',
+    'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia'
+  };
+  const cityEvidence = {
+    monterrey:['huerco / huerca'],
+    'mexico-city':['güey / wey','no mames'],
+    bogota:['parce / parcero','gonorrea']
+  };
+  function dictionary({query='',region='es-EC',tone='all'}={}) {
+    const search=plain(query.trim());
+    return [...slangEntries,...dictionaryExtras].filter(entry => {
+      const caution=/vulgar|offensive|insult/i.test(entry.register);
+      const regionMatches=region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
+      const searchable=plain([entry.term,entry.us,entry.uk,entry.scope,entry.note,entry.register,...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
+      return regionMatches && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
+    }).sort((a,b) => (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
+      const {pattern,...publicEntry}=entry;
+      return JSON.parse(JSON.stringify(publicEntry));
+    });
+  }
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;

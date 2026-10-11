@@ -8,6 +8,8 @@ Serve this folder with a static web server, then open the local URL. The app loa
 
 ## Current prototype
 
+- Browse a regional slang dictionary with Ecuador first, six country filters,
+  documented city filters, tone filtering, U.S./U.K. meanings and device voices.
 - Search Spanish and English without accent marks.
 - Browse learner-ready vocabulary by conversation room.
 - Show natural US English and UK English translations.
@@ -26,6 +28,25 @@ Serve this folder with a static web server, then open the local URL. The app loa
 - `data/ecuador-bolivia-comparisons-v1.json` — evidence-backed Ecuador/Bolivia relationships and learner alerts.
 - `data/lexicon.schema.json` — structured vocabulary and verification model.
 - `data/sources.json` — source catalog and provenance metadata.
+- `spanish-context.js` — shared local regional slang notes and the browseable
+  dictionary. Editorial glosses link to the supporting dictionary or study.
+
+## Regional slang dictionary (v0.23.0 · build 85)
+
+Dictionary now starts with 21 local entries across Ecuador, Bolivia, Mexico,
+Venezuela, Peru and Colombia. Search headwords, either English gloss, context or
+region; choose all tones, exclude vulgarity/insults, or review caution-labelled
+terms. All-regions ordering keeps Ecuador first. Both English glosses remain
+visible and have separate voice buttons; available voices depend on the device.
+Context and source links use closed disclosures to keep the phone view compact.
+
+City filters expose only the existing cited evidence: huerco in Monterrey,
+güey/no mames in Mexico City, and parcero/gonorrea in Bogotá. Caracas and Lima
+remain country guidance, not city validation. This is a starting collection,
+not an exhaustive dialect dictionary or speaker-origin detector. It reuses
+translator notes without broadening automatic replacements. New headwords are
+dictionary-only, and all entries remain local after the app is cached; opening
+source websites requires internet. No API, paid service or media files were added.
 
 ## Sources and copyright approach
 

@@ -1,5 +1,23 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary}=require('../spanish-context.js');
+for (const region of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
+ const entries=dictionary({region});
+ assert.ok(entries.length>0);
+ assert.ok(entries.every(entry=>entry.regions.includes(region)&&entry.url.startsWith('https://')&&entry.us&&entry.uk));
+}
+assert.equal(dictionary({region:'monterrey'})[0].term,'huerco / huerca');
+assert.equal(dictionary({region:'mexico-city'}).length,2);
+assert.equal(dictionary({region:'bogota'}).length,2);
+assert.deepEqual(dictionary({region:'caracas'}),[],'no invented city attestation');
+assert.equal(dictionary({query:'NO MAMES',region:'all',tone:'mild'}).length,0);
+assert.equal(dictionary({query:'NO MAMES',region:'all',tone:'caution'}).length,1);
+assert.ok(dictionary({query:'Bogota',region:'all'}).length>0,'accent-insensitive city search');
+assert.equal(dictionary({query:'broke',region:'es-EC'})[0].term,'chiro / chira');
+assert.match(dictionary({query:'pata',region:'es-EC'})[0].scope,/group of friends/i);
+assert.match(dictionary({query:'pata',region:'es-PE'})[0].us,/buddy/);
+const copy=dictionary({region:'all'});
+copy[0].regions.length=0;
+assert.ok(dictionary({region:'all'})[0].regions.includes('es-EC'),'browsing cannot mutate translator data');
 assert.equal(chooseSlangMeaning("Don't suck, dude! That child is coming.",'surprise'),'No fucking way, dude! That child is coming.');
 assert.equal(chooseSlangMeaning('Do not suck!','rebuke'),'Stop bullshitting!');
 assert.equal(chooseSlangMeaning('Don’t suck!','rebuke'),'Stop bullshitting!');

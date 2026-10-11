@@ -59,7 +59,10 @@ async function main() {
   assert.ok(calls>1);
   for (const file of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,file),'utf8');
-    assert.equal((html.match(/value="es-MX"/g)||[]).length,2,'Mexico appears on both sides');
+    for (const side of ['source-language-select','target-language-select']) {
+      const selector=html.match(new RegExp('<select[^>]*id="'+side+'"[^>]*>[\\s\\S]*?</select>'))?.[0];
+      assert.ok(selector?.includes('value="es-MX"'),'Mexico appears on '+side);
+    }
     const referenceIndex=html.search(/research-reference\.js\?v=[^"']+/);
     const appIndex=html.search(/app\.js\?v=[^"']+/);
     assert.ok(referenceIndex >= 0 && appIndex > referenceIndex, 'reference loads before the app');

@@ -8,15 +8,15 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=84">
-  <script src="research-reference.js?v=84" defer></script>
-  <script src="document-import.js?v=84" defer></script>
-  <script src="saved-paper.js?v=84" defer></script>
-  <script src="offline-device.js?v=84" defer></script>
-  <script src="english-varieties.js?v=84" defer></script>
-  <script src="screenshot-import.js?v=84" defer></script>
-  <script src="spanish-context.js?v=84" defer></script>
-  <script src="app.js?v=84" defer></script>
+  <link rel="stylesheet" href="styles.css?v=85">
+  <script src="research-reference.js?v=85" defer></script>
+  <script src="document-import.js?v=85" defer></script>
+  <script src="saved-paper.js?v=85" defer></script>
+  <script src="offline-device.js?v=85" defer></script>
+  <script src="english-varieties.js?v=85" defer></script>
+  <script src="screenshot-import.js?v=85" defer></script>
+  <script src="spanish-context.js?v=85" defer></script>
+  <script src="app.js?v=85" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.22.32 · build 84</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.23.0 · build 85</span></div>
     </header>
 
     <main>
@@ -470,8 +470,25 @@
       <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
         <div class="view-heading">
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
-          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Ecuadorian dictionary</h1></div>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish dictionary</h1></div>
         </div>
+        <section class="regional-slang" aria-labelledby="regional-slang-title">
+          <p class="eyebrow">Ecuador first · compare regions</p>
+          <h2 id="regional-slang-title">Regional slang dictionary</h2>
+          <label class="dictionary-search"><span class="sr-only">Search regional slang</span><input id="regional-slang-search" type="search" placeholder="Slang, English meaning, or city…"></label>
+          <div class="regional-slang-filters">
+            <label>Region<select id="regional-slang-region">
+              <option value="es-EC">Ecuador</option><option value="all">All regions · Ecuador first</option>
+              <option value="es-BO">Bolivia</option><option value="es-MX">Mexico</option>
+              <option value="es-VE">Venezuela</option><option value="es-PE">Peru</option><option value="es-CO">Colombia</option>
+              <optgroup label="City evidence"><option value="monterrey">Monterrey, Nuevo León</option><option value="mexico-city">Mexico City</option><option value="bogota">Bogotá</option></optgroup>
+            </select></label>
+            <label>Tone<select id="regional-slang-tone"><option value="all">All tones</option><option value="mild">Without vulgarity / insults</option><option value="caution">Vulgar / potentially offensive</option></select></label>
+          </div>
+          <details class="compact-info"><summary>Usage &amp; sources</summary><p>Meanings depend on the sentence, relationship and tone. U.S. and U.K. options are editorial glosses, not automatic replacements. Linked dictionaries and studies support the noted usage; they do not certify every city or accent. Caracas and Lima currently have country guidance; city review is pending. Entries stay available offline after the app has loaded; source links require internet. Voices depend on your device.</p></details>
+          <p id="regional-slang-count" class="status" role="status"></p>
+          <div id="regional-slang-results" class="expression-results"></div>
+        </section>
         <p class="dictionary-intro">Every entry shows what supports it, what has been checked, and what still needs Ecuadorian review.</p>
         <div id="evidence-counts" class="evidence-counts" aria-live="polite"></div>
         <label class="dictionary-search"><span class="sr-only">Search evidence-backed entries</span><input id="dictionary-search" type="search" placeholder="Search Spanish, English, or a region…"></label>
