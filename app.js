@@ -1541,7 +1541,7 @@ function renderRegionalTranslation(sourceText,result,missing) {
   const bridge = languageFamily(sourceLanguage) === "es" ? regionalSpanishBridge(sourceText) : regionalEnglishBridge(sourceText);
   result.hidden = false;
   missing.hidden = true;
-  $(".result-label").textContent = bridge.label;
+  $("#translation-result .result-label").textContent = bridge.label;
   setEditableTranslation(sourceText,bridge.text,{regionalBridge:true});
   $("#literal-result").textContent = `${languageLabel(sourceLanguage)} → ${languageLabel(targetLanguage)} · editable regional draft`;
   $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
@@ -1611,7 +1611,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
     result.hidden = false;
     missing.hidden = true;
-    $(".result-label").textContent = translationPurpose === "academic"
+    $("#translation-result .result-label").textContent = translationPurpose === "academic"
       ? `${languageLabel(targetLanguage)} academic draft`
       : `${languageLabel(targetLanguage)} translation`;
     activeTranslationEdit = null;
@@ -1648,13 +1648,13 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       if (embeddedEntry && translationPurpose !== "academic") {
         const literalMeaning = englishVariant === "uk" ? embeddedEntry.literalUk : embeddedEntry.literalUs;
         const regionalMeaning = englishVariant === "uk" ? embeddedEntry.uk : embeddedEntry.us;
-        $(".result-label").textContent = `${languageLabel(targetLanguage)} · context-aware work expression`;
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · context-aware work expression`;
         $("#literal-result").textContent = `Recognized ${languageLabel(sourceLanguage)} work expression: ${embeddedEntry.spanish} = ${regionalMeaning} · Literal word: ${literalMeaning}`;
         $("#usage-note").innerHTML = `<strong>Work expression recognized · ${escapeHtml(languageLabel(sourceLanguage))}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
       }
       const localVulgarity = HablaSpanishContext.translateEnglishVulgarity(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
       if (localVulgarity) {
-        $(".result-label").textContent = `${languageLabel(targetLanguage)} · vulgar counterpart`;
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · vulgar counterpart`;
         $("#literal-result").textContent = "Local editorial phrase · shared Spanish · country review pending";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localVulgarity.register)}</strong><span>${escapeHtml(localVulgarity.note)} ${escapeHtml(localVulgarity.scope)} <a href="${escapeHtml(localVulgarity.url)}" target="_blank" rel="noreferrer">Spanish sense: RAE · DLE</a></span>`;
       }
@@ -1683,7 +1683,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   missing.hidden = true;
   const isCultural = phrase.culturalEntry === true;
   const isPreservedCultural = Boolean(preservedEntry);
-  $(".result-label").textContent = isPreservedCultural
+  $("#translation-result .result-label").textContent = isPreservedCultural
     ? "Ecuadorian Spanish · preserved slang sense"
     : phrase.verificationLabel
       ? phrase.verificationLabel
@@ -2798,7 +2798,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=87").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=87.1").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
