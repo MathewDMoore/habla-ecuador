@@ -1,4 +1,4 @@
-# Native iPhone microphone prototype — 0.1.2 (3)
+# Native iPhone microphone prototype — 0.1.3 (4)
 
 This is a native companion prototype for the existing Habla Ecuador
 translator. Its specific test is whether music from **another app on the same
@@ -8,7 +8,18 @@ phone microphone. Build 80's browser selector did not fix the reported interrupt
 The companion loads the current hosted translator in WKWebView. A bundled bridge
 replaces Web Speech microphone capture with AVAudioEngine and native Apple speech only
 inside this app. Existing transcript editing, song continuation, language selection
-and translation behavior are reused. The hosted website is v0.22.31, build 83.
+and translation behavior are reused. The hosted website is v0.22.32, build 84.
+
+## Hosted build 84: restore native navigation
+
+The native companion's translator.html entry point was applying the standalone
+translator CSS, which hides bottom navigation. When the trusted native speech
+bridge is present, hosted startup now redirects to index.html?start=translate.
+That reuses the existing full app with Today, Translate, Dictionary, Music and
+Practice, opening Translate first. Ordinary standalone web launches stay compact.
+This hosted update needs a close/reopen online, not a new Xcode build. Native
+capture stays 0.1.3 (4); music transcription remains unresolved. The redirect
+retains the same origin for device-local saved papers and translations.
 
 ## Native 0.1.3 (4): diagnose capture without words
 

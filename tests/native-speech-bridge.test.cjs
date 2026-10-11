@@ -18,6 +18,32 @@ function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuad
 }
 assert.equal(harness("https://example.com").window.SpeechRecognition, undefined);
 assert.equal(harness(undefined, "/unrelated/").window.SpeechRecognition, undefined);
+assert.equal(typeof harness(undefined, "/habla-ecuador/index.html").window.__hablaNativeSpeech, "function");
+// Exercise the actual startup boundary: native standalone redirects before any
+// binding, while the full app and ordinary web translator initialize normally.
+const appSource = fs.readFileSync("app.js", "utf8");
+const initPrefix = appSource.slice(appSource.indexOf("function init() {"), appSource.indexOf('  localStorage.removeItem("habla-ecuador-ios-voice-correction-v1")'));
+function launch(path, native) {
+  const url = new URL(path, "https://mathewdmoore.github.io");
+  const redirects = [];
+  let bindings = 0;
+  vm.runInNewContext(initPrefix + "}\ninit();", {
+    URL, URLSearchParams,
+    location:{href:url.href, pathname:url.pathname, search:url.search, replace:target => redirects.push(target)},
+    window:native ? {__hablaNativeSpeech:() => {}} : {},
+    HablaOffline:{bind:() => bindings++}, HablaScreenshot:{bind:() => bindings++},
+    beginScreenshotImport:() => {}, previewScreenshotText:() => {}
+  });
+  return {redirects, bindings};
+}
+assert.deepEqual(launch("/habla-ecuador/translator.html", true), {
+  redirects:["https://mathewdmoore.github.io/habla-ecuador/index.html?start=translate"], bindings:0
+});
+assert.deepEqual(launch("/habla-ecuador/index.html?start=translate", true), {redirects:[], bindings:2});
+assert.deepEqual(launch("/habla-ecuador/translator.html", false), {redirects:[], bindings:2});
+assert.deepEqual(launch("/habla-ecuador/index.html?standalone=translator", true), {
+  redirects:["https://mathewdmoore.github.io/habla-ecuador/index.html?start=translate"], bindings:0
+});
 const {window, messages, nodes} = harness();
 const panel = nodes.find(node => node.tag === "details");
 const modeSelect = nodes.find(node => node.tag === "select");
