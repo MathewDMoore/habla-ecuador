@@ -48,7 +48,29 @@ options; vulgarity must retain its intended meaning and strength.
    usable across phones; identify native-only behavior clearly when necessary.
 5. **Learning and history.** Add the separately requested searchable, local
    translation history and optional review/practice from saved phrases, with
-   editing, deletion and private backup controls.
+   editing, deletion and private backup controls. Build lessons from real
+   conversations: review the user's original sentence, compare a corrected
+   translation, explain one useful regional/contextual distinction, speak a
+   reply, and revisit the phrase later. Keep private conversations local unless
+   the user explicitly chooses to share them.
+
+## Conversation, stories and music learning
+
+The October 11 follow-up adds learning through actual conversation and short
+stories as a product goal. Use original or appropriately licensed stories with
+graded difficulty, a short spoken passage, comprehension, a conversational reply,
+and a small set of useful phrases. Reading, listening and speaking should support
+one another, with Ecuador first and regional/U.S./U.K. comparisons where useful.
+Existing fixed practice lessons are a foundation; generated conversation lessons
+and graded story features are not implemented or validated yet.
+
+The immediate priority remains music translation practice and the unresolved
+transcription work. Practise short user-supplied passages, checking the captured
+words before interpreting affection, idioms, slang, vulgarity and regional clues.
+Compare literal and contextual meanings, correct the editable draft and speak it
+back. Use imported screenshots or typed passages when singing recognition misses
+words. This should build from the existing capture/passage-review tools; it must
+not publish user-supplied song lyrics or label uncertain transcripts as accurate.
 
 ## Constraints
 
