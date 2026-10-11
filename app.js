@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.23.2 · build 87";
+const APP_VERSION = "0.23.3 · build 88";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1365,6 +1365,11 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     if (!isCurrent()) throw translationFailure("superseded");
     return localVulgarity.text;
   }
+  const wordMeanings = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.wordMeanings(text,{source,target,purpose}) : [];
+  if (wordMeanings.length) {
+    if (!isCurrent()) throw translationFailure("superseded");
+    return wordMeanings.map(item=>item.text).join("; ");
+  }
   const image=inputType==='image'&&purpose!=='academic';
   const music=inputType==='music'&&purpose!=='academic';
   const sourceDraft=image?imageParagraphText(text):text;
@@ -1553,13 +1558,17 @@ function renderSpanishContext(sourceText,draft='') {
   const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
   if(languageFamily(sourceLanguage)==='es'&&draft&&typeof HablaSpanishContext!=='undefined')findings.push(...HablaSpanishContext.residue(sourceText,draft,{purpose:translationPurpose,target:targetLanguage,region:sourceLanguage}));
   panel.hidden=!findings.length;
-  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}">Use ${escapeHtml(choice)} meaning</button>`).join('')}</div>`:''}`).join(''):'';
+  if(findings.some(item=>item.kind==='word-senses'&&item.choices.length))panel.open=true;
+  body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}">${item.choiceLabels?.[choice] ? `Use ${escapeHtml(item.choiceLabels[choice])}` : `Use ${escapeHtml(choice)} meaning`}</button>`).join('')}</div>`:''}`).join(''):'';
   return findings;
 }
 
 function applySlangMeaning(choice) {
   const edit=activeTranslationEdit;
-  if(!edit||edit.sourceLanguage!=='es-MX'||edit.purpose!=='everyday'||!edit.targetLanguage.startsWith('en')||edit.source!==$('#translator-input').value.trim()||edit.sourceLanguage!==sourceLanguage||edit.targetLanguage!==targetLanguage)return;
+  if(!edit||!edit.sourceLanguage.startsWith('es-')||edit.purpose!=='everyday'||!edit.targetLanguage.startsWith('en')||edit.source!==$('#translator-input').value.trim()||edit.sourceLanguage!==sourceLanguage||edit.targetLanguage!==targetLanguage)return;
+  const wordMeaning=HablaSpanishContext.wordMeanings(edit.source,{source:edit.sourceLanguage,target:edit.targetLanguage,purpose:edit.purpose}).find(item=>item.id===choice);
+  if(wordMeaning){$('#natural-result').textContent=wordMeaning.text;saveActiveTranslationEdit();return;}
+  if(edit.sourceLanguage!=='es-MX')return;
   const draft=$('#natural-result').textContent.trim();
   const finding=HablaSpanishContext.residue(edit.source,draft,{region:edit.sourceLanguage,target:edit.targetLanguage}).find(item=>item.choices?.includes(choice));
   if(!finding)return;
@@ -1653,12 +1662,18 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#usage-note").innerHTML = `<strong>Work expression recognized · ${escapeHtml(languageLabel(sourceLanguage))}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
       }
       const localVulgarity = HablaSpanishContext.translateEnglishVulgarity(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
+      const wordMeanings = HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
+      if(wordMeanings.length){
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · word meanings`;
+        $("#literal-result").textContent = "Local editorial word lookup · context required";
+        $("#usage-note").innerHTML = '<strong>Choose the intended meaning</strong><span>This isolated word can have different meanings. Review Context &amp; regional expressions below and choose the sense you intend. The choices edit your draft and stay on this device.</span>';
+      }
       if (localVulgarity) {
         $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · vulgar counterpart`;
         $("#literal-result").textContent = "Local editorial phrase · shared Spanish · country review pending";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localVulgarity.register)}</strong><span>${escapeHtml(localVulgarity.note)} ${escapeHtml(localVulgarity.scope)} <a href="${escapeHtml(localVulgarity.url)}" target="_blank" rel="noreferrer">Spanish sense: RAE · DLE</a></span>`;
       }
-      if (onDevice && !referenceMatch && !localVulgarity) {
+      if (onDevice && !referenceMatch && !localVulgarity && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
@@ -2798,7 +2813,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=87.1").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=88").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

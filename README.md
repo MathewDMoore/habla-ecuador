@@ -72,6 +72,21 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Ambiguous chingar/chinga lookup (v0.23.3 · build 88)
+
+Three Mexican dictionary entries separate the verb, noun, and en chinga speed
+expression. Sources distinguish bothering, sexual usage, burdens/beatings,
+breakage/failure and hard work. No country is inferred from a single word, and
+sexual meanings do not establish consent. There are now 30 dictionary entries.
+
+Isolated chinga/chingar shows local English meanings with explicit choice buttons;
+Mexico also exposes the noun senses. Chingarse/en chinga have Mexico-scoped local
+lookup. Word choices edit and save the current draft only when source, target and
+input still match. Quoted words, longer sentences and academic material remain on
+the existing route. Notes flag relevant verb forms without automatically replacing
+their sentence. This resolves the bare-word ambiguity, not general language
+understanding or every chingar construction.
+
 ## Sources and copyright approach
 
 The catalog includes Academia Ecuatoriana de la Lengua’s Diccionario académico de ecuatorianismos and CORPHA, the Ministerio de Educación’s searchable Ecuador dictionary, ASALE’s Diccionario de americanismos, and additional lexicographic and phraseology references.

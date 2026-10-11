@@ -98,10 +98,28 @@ const HablaSpanishContext = (() => {
     return /\b(?:voy|vamos|va|ir|llego|llegar|salgo|salir)\s+(?:a\s+el|al|del)\s+camello\b/.test(source)
       || /\b(?:empleo|trabajo|oficina|jefe|laboral|sueldo|salario)\b/.test(source);
   }
+  function wordMeanings(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
+    if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return [];
+    const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
+    const option=(id,text,label)=>({id,text,label});
+    if(word==='chinga'||word==='chingar') {
+      const options=[option('chingar-bother','bother / annoy','Bother / annoy'),option('chingar-sex','fuck (sexual sense)','Sexual meaning')];
+      if(source==='es-MX'&&word==='chinga')options.push(option('chinga-burden','a punishing chore / a fucking grind','Punishing task'),option('chinga-beating','a beating','Beating'));
+      return options;
+    }
+    if(source==='es-MX'&&word==='chingarse')return [option('chingar-failure','break / fail / get fucked up','Break / fail'),option('chingar-work','work extremely hard / work your ass off','Work extremely hard')];
+    if(source==='es-MX'&&word==='en chinga')return [option('chinga-speed','really fast / in a hurry','Speed / hurry')];
+    return [];
+  }
   function analyse(text,{source='es-EC',purpose='everyday',image=false,target='en-GB'}={}) {
     if(!source.startsWith('es') || purpose==='academic')return [];
     const value=unquoted(text),findings=[];
     const add=(term,detail,url)=>findings.push({term,detail,url});
+    if(/\bching(?:ar(?:se)?|a|as|an|amos|ando|ue|ues|uen|o)\b/i.test(plain(value))) {
+      const meanings=wordMeanings(text,{source,target,purpose});
+      const detail='Chinga can be a form of chingar, not just a noun. RAE records bothering/annoying and a sexual sense; in Mexico, chinga can also be a punishing obligation or beating, and en chinga means quickly. Mexican sexual senses can involve assault; do not infer consent. The full sentence and source variety decide the reading. Neutral bother/annoy can understate vulgar force; fuck with someone may fit a vulgar rebuke.';
+      findings.push({term:'chingar / chinga',kind:meanings.length?'word-senses':'ambiguous-slang',detail,url:'https://dle.rae.es/chingar',references:[{name:'Mexican verb senses · DEM',url:'https://dem.colmex.mx/ver/chingar'},{name:'Mexican noun / speed · ASALE',url:asale('chinga')}],choices:meanings.length>1?meanings.map(item=>item.id):[],choiceLabels:Object.fromEntries(meanings.map(item=>[item.id,item.label]))});
+    }
     if(address.test(value))add('corazón','Likely an affectionate address: sweetheart or darling. This use is shared across Spanish-speaking regions; it does not identify a country.','https://www.rae.es/gramática/sintaxis/las-formas-de-tratamiento-ii-sustantivos-y-grupos-nominales');
     if(causalAddress(value))add('que after an invitation','Here que introduces a reason for the invitation: because or for. Other uses of que can mean that or which.','https://dle.rae.es/que');
     if(/\bqu[eé]\s+rico\b/i.test(value))add('qué rico',pleasure(value)?'The touch or affection context suggests pleasure: that feels so good. Food, wealth and irony require different readings.':'Could express delicious taste, pleasure or another evaluation. Review the surrounding meaning; this expression alone does not identify a country.','https://dle.rae.es/rico');
@@ -147,6 +165,9 @@ const HablaSpanishContext = (() => {
   // The browseable dictionary shares translator notes; extra headwords do not
   // change translation rules or turn country evidence into a city claim.
   const dictionaryExtras = [
+    {term:'chingar / chinga (verb)',regions:['es-MX'],register:'Vulgar / context-sensitive',scope:'Mexican verb usage; chinga can be a conjugated form or command.',us:'bother / fuck with someone; fuck (sexual sense)',uk:'bother / fuck with someone; fuck (sexual sense)',note:'A bare word does not select the meaning. RAE records annoying and sexual senses; the Mexican DEM includes serious harm and sexual assault. Context must establish the intended action and consent.',url:'https://dem.colmex.mx/ver/chingar',references:[{name:'RAE · chingar',url:'https://dle.rae.es/chingar'}]},
+    {term:'chinga (noun)',regions:['es-MX'],register:'Vulgar',scope:'Mexico: an onerous situation or obligation, excessive mistreatment, or a beating.',us:'a punishing chore / a fucking grind / a beating (context required)',uk:'a punishing chore / a fucking grind / a beating (context required)',note:'A noun reading such as una chinga is different from the verb chinga. These are editorial options, not interchangeable translations.',url:asale('chinga')},
+    {term:'en chinga',regions:['es-MX'],register:'Informal expression with a vulgar word',scope:'Mexico: quickly or in a hurry.',us:'really fast / in a hurry',uk:'really fast / in a hurry',note:'This fixed expression concerns speed, not a sexual act. Whether English needs a swear-word intensifier depends on the sentence and tone.',url:asale('chinga')},
     {term:'acolitar',regions:['es-EC','es-CO'],register:'Informal',scope:'Ecuador and Colombia: support or help.',us:'to help / back someone up',uk:'to help / back someone up',note:'Support with an activity or idea. Example: ¿Me acolitas con esto? — Can you give me a hand with this?',url:asale('acolitar')},
     {term:'camello',regions:['es-EC','es-MX','es-CO'],register:'Informal',scope:'Ecuador, Mexico and Colombia: work or job; Ecuador also records workplace.',us:'work / job (Ecuador also: workplace)',uk:'work / job (Ecuador also: workplace)',note:'The animal meaning is camel. Bolivia records a separate shoemaking tool sense. Employment context must support the slang reading. Example: Ya me voy al camello. — I am heading to work.',url:asale('camello')},
     {term:'chiro / chira',regions:['es-EC','es-MX'],register:'Informal',scope:'Ecuador: without money. Mexico: pretty, cute or very good.',us:'broke (Ecuador) / cute or great (Mexico)',uk:'broke (Ecuador) / cute or great (Mexico)',note:'Do not carry the Ecuadorian meaning into a Mexican sentence automatically. Ecuador example: Estoy chiro. — I am broke.',url:asale('chiro')},
@@ -191,6 +212,6 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,wordMeanings};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;

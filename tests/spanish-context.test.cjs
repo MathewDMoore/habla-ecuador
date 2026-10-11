@@ -1,5 +1,16 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,wordMeanings}=require('../spanish-context.js');
+assert.equal(wordMeanings('chinga',{source:'es-MX'}).length,4);
+assert.equal(wordMeanings('CHINGAR!',{source:'es-EC'}).length,2);
+assert.equal(wordMeanings('chingarse',{source:'es-MX'}).length,2);
+assert.equal(wordMeanings('en chinga',{source:'es-MX'})[0].text,'really fast / in a hurry');
+for(const text of ['"chinga"','No me chingues.','Una chinga de trabajo.','chinga y otra cosa'])assert.equal(wordMeanings(text,{source:'es-MX'}).length,0);
+assert.equal(wordMeanings('chinga',{source:'es-MX',purpose:'academic'}).length,0);
+assert.equal(wordMeanings('chinga',{source:'en-US'}).length,0);
+assert.equal(wordMeanings('chinga',{target:'es-BO'}).length,0);
+assert.equal(analyse('chinga',{source:'es-MX'}).find(item=>item.kind==='word-senses').choices.length,4);
+assert.ok(analyse('No me chingues.',{source:'es-MX'}).some(item=>item.kind==='ambiguous-slang'));
+assert.ok(dictionary({region:'es-MX',query:'chinga'}).some(entry=>entry.term==='en chinga'));
 for (const source of ['en-US','en-GB']) for (const target of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
  assert.equal(translateEnglishVulgarity('Fuck off!',{source,target}).text,'¡Vete a la mierda!');
  assert.equal(translateEnglishVulgarity('Shit!',{source,target}).text,'¡Mierda!');
