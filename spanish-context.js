@@ -179,6 +179,30 @@ const HablaSpanishContext = (() => {
     'es-EC':'Ecuador', 'es-BO':'Bolivia', 'es-MX':'Mexico',
     'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia'
   };
+  // Recording-inspired headwords, independently checked 2026-10-12.
+  // Shared literal/clinical entries indicate availability, not local slang evidence.
+  const sharedRegions = Object.keys(dictionaryRegions);
+  const nci = term => `https://www.cancer.gov/espanol/publicaciones/diccionarios/diccionario-cancer/def/${term}`;
+  const recordingEntries = [
+    {term:'verga (literal)',speech:'verga',category:'literal',regions:sharedRegions,register:'Neutral literal senses',scope:'General Spanish dictionary senses; not a regional slang claim.',us:'yard (sailing) / long thin rod / crossbow bow',uk:'yard (sailing) / long thin rod / crossbow bow',note:'The sailing word names the spar holding a sail. These object senses do not imply a sexual meaning.',url:'https://dle.rae.es/verga'},
+    {term:'verga (vulgar anatomy)',speech:'verga',category:'slang',regions:sharedRegions,register:'Vulgar anatomical usage',scope:'General Spanish anatomical meaning; Mexican vulgar register checked in DEM. Country-specific naturalness review pending.',us:'dick / cock; neutral clinical word: penis',uk:'dick / cock; neutral clinical word: penis',note:'This anatomical reading is separate from the sailing object and fixed expressions. In a clinical translation, penis preserves the organ but loses the vulgar register.',url:'https://dem.colmex.mx/Ver/verga',references:[{name:'RAE · literal and anatomical senses',url:'https://dle.rae.es/verga'}]},
+    {term:'de la verga',category:'slang',regions:['es-MX'],register:'Vulgar',scope:'Mexico · DEM phrase attestation.',us:'fucking awful / in terrible shape',uk:'fucking awful / in a terrible state',note:'An adverse evaluation or condition, not anatomy. Select wording using the complete sentence.',url:'https://dem.colmex.mx/Ver/verga'},
+    {term:'valer / importar verga',category:'slang',regions:['es-MX'],register:'Vulgar',scope:'Mexico · DEM phrase attestation.',us:'not matter / not be worth shit',uk:'not matter / not be worth shit',note:'The subject and situation decide between indifference and lack of value; these options are not interchangeable.',url:'https://dem.colmex.mx/Ver/verga'},
+    {term:'ni verga / ni vergas',category:'slang',regions:['es-MX','es-BO'],register:'Vulgar',scope:'Mexico: nothing or emphatic refusal (DEM); Bolivia: nothing (ASALE).',us:'nothing (strong emphasis); Mexico also: no fucking way',uk:'nothing (strong emphasis); Mexico also: no fucking way',note:'The plural form and refusal reading here are Mexican. Do not transfer that refusal reading to Bolivia automatically.',url:'https://www.asale.org/damer/verga',references:[{name:'El Colegio de México · DEM',url:'https://dem.colmex.mx/Ver/verga'}]},
+    {term:'¡verga!',category:'slang',regions:['es-MX','es-VE','es-BO'],register:'Vulgar exclamation',scope:'Mexico/Venezuela: surprise or rejection (RAE); Bolivia: surprise (ASALE).',us:'fuck! / holy shit! (reaction)',uk:'fuck! / bloody hell! (reaction)',note:'Tone decides the English reaction and its force. Bolivian surprise evidence does not establish every Mexican or Venezuelan use there.',url:'https://www.asale.org/damer/%C2%A1verga%21',references:[{name:'RAE · DLE',url:'https://dle.rae.es/verga'}]},
+    {term:'cojón / cojones',category:'slang',regions:sharedRegions,register:'Vulgar / colloquial',scope:'General Spanish dictionary entry; country-specific naturalness review pending.',us:'ball / balls (anatomy); fuck! (exclamation)',uk:'bollock / bollocks (anatomy); bloody hell! (exclamation)',note:'Clinical wording is testicle/testicles. The plural also works as an emotional exclamation; the body-part reading is not automatic.',url:'https://dle.rae.es/coj%C3%B3n'},
+    ...[
+      {term:'testículo',us:'testicle',note:'Clinical anatomical term. Cojón is a vulgar alternative, not the same register.',url:nci('testiculo')},
+      {term:'escroto',us:'scrotum',note:'The sac containing the testicles; it is not a synonym for a testicle.',url:nci('escroto')},
+      {term:'uretra',us:'urethra',note:'Carries urine out from the bladder. Do not confuse it with uréter (ureter).',url:nci('uretra')},
+      {term:'vagina',us:'vagina',note:'The internal canal. Vulva names external structures; the two terms are not interchangeable.',url:nci('vagina')},
+      {term:'vulva',us:'vulva',note:'External genital structures, including the labia and clitoris. Distinguish from the internal vagina.',url:nci('vulva')},
+      {term:'labios mayores',us:'labia majora / outer labia',note:'Anatomical outer folds of the vulva. Here labios does not mean the lips of the mouth.',url:'https://www.cancer.org/es/cancer/tipos/cancer-de-vulva/si-usted-tiene-cancer-de-vulva.html'},
+      {term:'labios menores',us:'labia minora / inner labia',note:'Anatomical inner folds of the vulva. Inner/outer identifies the structures, not their size in every person.',url:'https://www.cancer.org/es/cancer/tipos/cancer-de-vulva/si-usted-tiene-cancer-de-vulva.html'},
+      {term:'glande del pene',us:'glans penis / head of the penis',note:'Names the head of the penis, not the entire organ.',url:'https://www.cun.es/diccionario-medico/terminos/glande'},
+      {term:'histerectomía',us:'hysterectomy',note:'Surgery removing the uterus, wholly or partly. Do not infer removal of the ovaries from this word alone.',url:'https://medlineplus.gov/spanish/hysterectomy.html'}
+    ].map(entry=>({...entry,uk:entry.us,category:'clinical',regions:sharedRegions,register:'Clinical / neutral',scope:'Shared clinical Spanish terminology; not regional slang.'}))
+  ];
   const englishVulgarityPairs = [
     {term:'¡Mierda!',us:'Fuck! / Shit! (anger or frustration)',uk:'Fuck! / Shit! (anger or frustration)',aliases:['fuck!','shit!'],requireExclamation:true,url:'https://dle.rae.es/mierda',note:'An angry exclamation, not the sexual verb or a literal reference to excrement. The emotional force varies with the speaker.'},
     {term:'¡Vete a la mierda!',us:'Fuck off!',uk:'Fuck off!',aliases:['fuck off'],url:'https://dle.rae.es/mierda',note:'A forceful, insulting dismissal addressed to one person with informal tú. It is not a friendly instruction to leave.'},
@@ -199,14 +223,14 @@ const HablaSpanishContext = (() => {
     'mexico-city':['güey / wey','no mames'],
     bogota:['parce / parcero','gonorrea']
   };
-  function dictionary({query='',region='es-EC',tone='all',target='all'}={}) {
+  function dictionary({query='',region='es-EC',tone='all',target='all',category='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs].filter(entry => {
+    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,entry.note,entry.register,...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
-      return regionMatches && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
+      return regionMatches && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
     }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
       const {pattern,aliases,requireExclamation,...publicEntry}=entry;
       return JSON.parse(JSON.stringify(publicEntry));

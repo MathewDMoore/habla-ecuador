@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.23.5 · build 90";
+const APP_VERSION = "0.23.6 · build 91";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2262,22 +2262,22 @@ function renderRegionalSlang() {
   const englishLead = region === "en-US" ? "us" : region === "en-GB" ? "uk" : null;
   $("#regional-slang-target-label").hidden = !englishLead;
   const directionLabel = englishLead ? `${englishLead === "us" ? "U.S." : "U.K."} English → Spanish` : "U.S. & U.K. English";
-  $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Slang, English meaning, or city…";
-  const entries = HablaSpanishContext.dictionary({query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,target:englishLead?$("#regional-slang-target").value:"all"});
-  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : "No entries match. Try another region, tone, or search.";
+  $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Spanish term, English meaning, or city…";
+  const entries = HablaSpanishContext.dictionary({query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,target:englishLead?$("#regional-slang-target").value:"all"});
+  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : "No entries match. Try another region, category, tone, or search.";
   root.innerHTML = entries.map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
-    const sources = [{name:entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : "ASALE · Americanisms", url:entry.url}, ...(entry.references || [])];
+    const sources = [{name:entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms", url:entry.url}, ...(entry.references || [])];
     return `<article class="expression-card regional-slang-card">
       <header><h3>${escapeHtml(englishLead ? entry[englishLead] : entry.term)}</h3><span class="slang-tone ${caution ? "caution" : ""}">${escapeHtml(entry.register)}</span></header>
       ${englishLead ? `<p class="regional-gloss"><b>Spanish</b> ${escapeHtml(entry.term)}</p>` : ""}
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       ${entry.shared ? `<p class="expression-note">Shared Spanish · country review pending</p>` : ""}
-      <div class="dictionary-audio" aria-label="Hear slang meanings">
-        <button type="button" data-regional-audio="${escapeHtml(entry.term)}" data-audio-lang="${voice}">🔊 Spanish</button>
+      <div class="dictionary-audio" aria-label="Hear dictionary meanings">
+        <button type="button" data-regional-audio="${escapeHtml(entry.speech || entry.term)}" data-audio-lang="${voice}">🔊 Spanish</button>
         <button type="button" data-regional-audio="${escapeHtml(entry.us)}" data-audio-lang="en-US">🔊 U.S.</button>
         <button type="button" data-regional-audio="${escapeHtml(entry.uk)}" data-audio-lang="en-GB">🔊 U.K.</button>
       </div>
@@ -2840,6 +2840,7 @@ function init() {
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
   $("#regional-slang-region").addEventListener("change", renderRegionalSlang);
   $("#regional-slang-tone").addEventListener("change", renderRegionalSlang);
+  $("#regional-dictionary-category").addEventListener("change", renderRegionalSlang);
   $("#regional-slang-target").addEventListener("change", renderRegionalSlang);
   $("#regional-slang-results").addEventListener("click", event => {
     const button = event.target.closest?.("[data-regional-audio]");

@@ -11,6 +11,21 @@ assert.equal(wordMeanings('chinga',{target:'es-BO'}).length,0);
 assert.equal(analyse('chinga',{source:'es-MX'}).find(item=>item.kind==='word-senses').choices.length,4);
 assert.ok(analyse('No me chingues.',{source:'es-MX'}).some(item=>item.kind==='ambiguous-slang'));
 assert.ok(dictionary({region:'es-MX',query:'chinga'}).some(entry=>entry.term==='en chinga'));
+// Clinical vocabulary stays visible without vulgarity and does not acquire a
+// slang reading just because a country is selected. Fixed phrases keep scope.
+const clinical=dictionary({region:'es-EC',category:'clinical',tone:'mild'});
+assert.equal(clinical.length,9);
+assert.ok(clinical.every(entry=>entry.register==='Clinical / neutral'));
+assert.equal(dictionary({region:'all',category:'clinical',tone:'caution'}).length,0);
+assert.equal(dictionary({region:'es-BO',category:'clinical',query:'hysterectomy'})[0].term,'histerectomía');
+assert.equal(dictionary({region:'en-US',category:'clinical',query:'urethra',target:'es-EC'})[0].term,'uretra');
+assert.equal(dictionary({region:'es-EC',category:'literal',query:'verga'})[0].speech,'verga');
+assert.equal(dictionary({region:'es-EC',category:'slang',query:'verga'}).length,1,'no Mexican idioms silently relabelled Ecuadorian');
+assert.ok(dictionary({region:'es-MX',category:'slang',query:'verga'}).some(entry=>entry.term==='de la verga'));
+assert.ok(dictionary({region:'es-BO',category:'slang',query:'ni verga'}).some(entry=>/refusal reading/.test(entry.note)));
+assert.equal(dictionary({region:'en-GB',category:'slang',query:'bollock'})[0].term,'cojón / cojones');
+assert.equal(dictionary({region:'en-US',category:'slang',query:'bollock'}).length,0);
+assert.equal(dictionary({region:'all',query:'crotolamo'}).length,0,'recording-only joke is not a validated medical term');
 for (const source of ['en-US','en-GB']) for (const target of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
  assert.equal(translateEnglishVulgarity('Fuck off!',{source,target}).text,'¡Vete a la mierda!');
  assert.equal(translateEnglishVulgarity('Shit!',{source,target}).text,'¡Mierda!');

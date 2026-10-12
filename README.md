@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Dictionary context and clinical terms (v0.23.6 · build 91)
+
+Two dictionary recordings supplied by Mathew informed 16 independently checked entries: literal and vulgar verga senses, selected Mexican/Bolivian expressions, cojón/cojones, and nine neutral clinical/anatomy terms. Category filters separate Slang & expressions, Literal meanings, and Clinical & anatomy. Clinical entries remain available when vulgarity is excluded. U.S./U.K. lookup, speech buttons, and linked sources remain available. General Spanish availability does not establish country-specific slang use; each phrase retains its source scope. These entries are dictionary references, not automatic whole-sentence translation replacements or model training.
+
+The collection now has 46 entries. This is a web-only update; no additional Xcode rebuild is needed for these dictionary changes. [Recording review and remaining headwords](docs/DICTIONARY_RECORDING_REVIEW_2026-10-12.md) records what was added and what still needs review.
+
 ### Finalized music passages (v0.23.5 · build 90; native 0.1.4 / 5)
 
 The modern native recognizer now sends finalized and tentative passage text separately, while its song session continues. Live translation uses only finalized passages when this metadata is available. Tentative words remain in the full editable capture and are labelled separately; withdrawing a tentative guess clears it instead of leaving stale words on screen. Stop keeps unfinished words for explicit review and translation. Finalization does not establish accuracy and cannot recover missed singing.
