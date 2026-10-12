@@ -8,15 +8,15 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=92">
-  <script src="research-reference.js?v=92" defer></script>
-  <script src="document-import.js?v=92" defer></script>
-  <script src="saved-paper.js?v=92" defer></script>
-  <script src="offline-device.js?v=92" defer></script>
-  <script src="english-varieties.js?v=92" defer></script>
-  <script src="screenshot-import.js?v=92" defer></script>
-  <script src="spanish-context.js?v=92" defer></script>
-  <script src="app.js?v=92" defer></script>
+  <link rel="stylesheet" href="styles.css?v=93">
+  <script src="research-reference.js?v=93" defer></script>
+  <script src="document-import.js?v=93" defer></script>
+  <script src="saved-paper.js?v=93" defer></script>
+  <script src="offline-device.js?v=93" defer></script>
+  <script src="english-varieties.js?v=93" defer></script>
+  <script src="screenshot-import.js?v=93" defer></script>
+  <script src="spanish-context.js?v=93" defer></script>
+  <script src="app.js?v=93" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +25,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.23.7 · build 92</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.24.0 · build 93</span></div>
     </header>
 
     <main>
@@ -359,7 +359,13 @@
         </div>
 
         <div id="conversation-panel" hidden>
-          <p class="conversation-help">Choose or type each speaker’s name. Tap your microphone once, speak, then tap it again to finish. Names stay only on this device.</p>
+          <div class="conversation-controls">
+            <label>Mode<select id="conversation-playback"><option value="spoken">Conversation · speak translations</option><option value="text">Text only · silent translations</option></select></label>
+            <label>English variety<select id="conversation-english-language"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
+            <label>Spanish variety<select id="conversation-spanish-language"><option value="es-EC">Ecuador</option><option value="es-BO">Bolivia</option><option value="es-MX">Mexico</option><option value="es-VE">Venezuela</option><option value="es-PE">Peru</option><option value="es-CO">Colombia</option></select></label>
+          </div>
+          <p id="conversation-mode-status" class="conversation-help" role="status"></p>
+          <p class="conversation-help">Choose or type each speaker’s name. Tap your microphone once, speak, then tap it again to finish. Each microphone uses its assigned language. Clear English/Spanish text can switch translation direction; short or mixed speech needs checking. Names stay only on this device.</p>
           <section class="conversation-names" aria-labelledby="conversation-names-title">
             <div class="conversation-names-heading">
               <div><p class="voice-settings-kicker">Conversation setup</p><h2 id="conversation-names-title">Who is speaking?</h2></div>
@@ -463,7 +469,16 @@
           </div>
           <p id="conversation-status" class="status" aria-live="polite">Ready when you are.</p>
           <button id="pause-conversation" class="text-button speech-pause-button" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
-          <div id="conversation-turns" class="turns"></div>
+          <details class="conversation-composer"><summary>Write a turn</summary>
+            <form id="conversation-text-form">
+              <label>Speaker<select id="conversation-text-speaker"><option value="english" data-conversation-text-name="english">Mathew</option><option value="spanish" data-conversation-text-name="spanish">Maria</option></select></label>
+              <label>Language of this text<select id="conversation-text-language"><option value="auto">Check from text</option><option value="english">English</option><option value="spanish">Spanish</option></select></label>
+              <label class="conversation-text-field">Your turn<textarea id="conversation-text" rows="3" maxlength="8000" placeholder="Write what you want to say…"></textarea></label>
+              <button id="conversation-text-send" type="submit" class="primary-button">Translate turn</button>
+            </form>
+            <p>Choose the language yourself for short or mixed text. Turns stay in this open session; they are cleared when you reload.</p>
+          </details>
+          <div id="conversation-turns" class="turns" aria-live="polite"></div>
           <button id="clear-conversation" class="text-button">Clear this conversation</button>
         </div>
       </section>

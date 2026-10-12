@@ -5,24 +5,18 @@ conversation, text-only and custom-settings experience.
 
 ## Current state
 
-Hosted v0.23.3 / build 88 already has a Conversation tab with two named speaker
-buttons, tap-to-start/finish capture, visible interim/final text, language-family
-checks, translated turns, automatic playback after a completed turn, and Pause.
-These are implemented behaviors, not a claim of dependable live recognition on
-every device. The reported live music transcription problem remains unresolved.
+Hosted v0.24.0 / build 93 includes two named speaker microphones, visible interim/final text, explicit source/target binding per turn, independent regional language settings, persistent spoken/text-only mode, per-turn Hear controls, and a typed-turn fallback with explicit language choice. Uncertain short text stays labelled and is not automatically spoken. Completed turns retain the settings captured at their start. Text-only changes and leaving the panel guard delayed playback.
 
-The app has no listening-mode preset, private phone-to-ear playback control,
-conversation text-only preset, or unified custom mode settings. Native microphone
-diagnostics do not establish reliable continuous transcription or ear routing.
+Recognized-text language hints can switch direction; they do not provide bilingual audio recognition. The microphone uses the assigned language, and captured words are not silently rewritten. Reliable native/browser speech, continuous capture, conversation editing/history, private ear playback, stories and generated lessons still require work. Neither diagnostics nor automated tests validate physical-phone capture.
 
 ## Requested modes
 
 | Mode | Intended experience | Remaining work |
 | --- | --- | --- |
 | Listening | Start once, see incoming speech and its English/Spanish translation, and hear short translated passages privately. | Reliable continuous capture, passage boundaries, latency measurement, bounded translation requests, and physical testing of private ear/headphone output. |
-| Conversation | Two people take turns; show each original and translation, then speak the translation aloud. | Simple preset, dependable handoffs, correct explicit source/target per turn, and prevention of playback being recaptured as speech. |
-| Text only | Show speech and translation while audio playback stays off. | Explicit preset and enforcement across automatic and delayed playback; keep deliberate Hear controls available. |
-| Custom settings | Choose speaker languages/regions, output behavior, voice and speed. | One compact settings disclosure, persistence on the device, and clear indication of active settings. |
+| Conversation | Two people take turns; show each original and translation, then speak the translation aloud. | Preset, explicit routing and capture/playback guards implemented in build 93; physical-phone handoffs and recognition need validation. |
+| Text only | Show speech and translation while audio playback stays off. | Implemented in build 93, including delayed responses and explicit Hear controls; physical-device confirmation remains. |
+| Custom settings | Choose speaker languages/regions, output behavior, voice and speed. | Names, language varieties and spoken/silent controls persist in build 93. Unified voice/rate and private output routing remain open. |
 
 Ecuadorian Spanish stays the default, with independent Spanish-region and
 U.S./U.K. English choices. Regional labels must not promise an unavailable accent
@@ -81,5 +75,4 @@ claim zero latency, perfect interpretation, complete-song recognition, automatic
 speaker identification, or unrestricted background listening. Keep source text
 and translation editable, and do not publish imported private papers.
 
-This file records requirements and acceptance checks. It does not mark any of
-the unimplemented presets as released or change the hosted/native build number.
+This roadmap distinguishes build 93 features from remaining work. No native speech, continuous listening, stories or private-output feature is marked released by this update.

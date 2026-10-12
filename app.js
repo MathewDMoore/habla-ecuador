@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.23.7 · build 92";
+const APP_VERSION = "0.24.0 · build 93";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -236,6 +236,17 @@ let selectedChoice = "";
 let turns = [];
 let liveConversationTurn = null;
 let conversationGeneration = 0;
+const CONVERSATION_PLAYBACK_KEY = "habla-ecuador-conversation-playback-v1";
+let conversationPlayback = localStorage.getItem(CONVERSATION_PLAYBACK_KEY) === "text" ? "text" : "spoken";
+let conversationActive = false;
+let conversationComposerBusy = false;
+const CONVERSATION_LOCALES_KEY = "habla-ecuador-conversation-locales-v1";
+let conversationLocaleOverrides = {};
+try {
+  const saved=JSON.parse(localStorage.getItem(CONVERSATION_LOCALES_KEY)||"{}");
+  if(['en-US','en-GB'].includes(saved?.english))conversationLocaleOverrides.english=saved.english;
+  if(['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO'].includes(saved?.spanish))conversationLocaleOverrides.spanish=saved.spanish;
+} catch {}
 let recognition = null;
 let evidenceFilter = "all";
 let expressionFilter = "all";
@@ -284,6 +295,8 @@ function saveSpeakerName(role, value) {
   localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
   const label = $('[data-speaker-label="' + role + '"]');
   if (label) label.textContent = speakerNames[role];
+  const textLabel = $('[data-conversation-text-name="' + role + '"]');
+  if(textLabel)textLabel.textContent = speakerNames[role];
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
 }
@@ -298,6 +311,8 @@ function syncSpeakerNames() {
     if (preset) preset.value = Array.from(preset.options).some(option => option.value === name) ? name : "";
     const label = $('[data-speaker-label="' + role + '"]');
     if (label) label.textContent = name;
+    const textLabel = $('[data-conversation-text-name="' + role + '"]');
+    if(textLabel)textLabel.textContent = name;
   });
 }
 
@@ -389,6 +404,7 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
 
 function openView(id) {
   if (id !== "translator-view") cancelMusicListening();
+  if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
   $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
   window.scrollTo({top:0, behavior:"smooth"});
@@ -2069,6 +2085,8 @@ function swapDirection() {
 
 function setMode(mode) {
   if (mode !== "translate") cancelMusicListening();
+  if(mode !== "conversation") leaveConversation();
+  else { conversationActive = true; syncConversationLocaleUi(); }
   $$(".mode").forEach(button => { const active = button.dataset.mode === mode; button.classList.toggle("active", active); button.setAttribute("aria-selected", String(active)); });
   $("#translate-panel").hidden = mode !== "translate";
   $("#conversation-panel").hidden = mode !== "conversation";
@@ -2082,10 +2100,10 @@ function showToast(message) {
   showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-const SPANISH_CONVERSATION_HINTS = new Set(["a","al","algo","aqui","bien","como","con","cuando","de","del","despues","donde","el","ella","en","es","esta","estoy","gracias","hola","la","las","lo","los","me","mi","muy","no","para","pero","por","porque","que","quiero","se","si","soy","su","te","tengo","tu","un","una","vamos","voy","y","ya"]);
+const SPANISH_CONVERSATION_HINTS = new Set(["a","al","algo","aqui","bien","como","con","cuando","de","del","despues","donde","el","ella","en","es","esta","estoy","gracias","hola","la","las","lo","los","me","mi","muy","no","para","pero","por","porque","que","quiero","se","si","soy","su","te","tengo","tu","un","una","vale","vamos","verga","voy","y","ya"]);
 const ENGLISH_CONVERSATION_HINTS = new Set(["a","after","am","and","are","around","because","but","can","do","going","good","hello","here","how","i","in","is","it","me","my","no","not","of","on","please","so","thank","that","the","there","this","to","want","we","what","when","where","with","yes","you","your"]);
 
-function detectConversationLanguage(text, expectedRole) {
+function conversationLanguageEvidence(text, expectedRole) {
   const clean = normalize(text);
   const words = clean.split(" ").filter(Boolean);
   let spanishScore = words.filter(word => SPANISH_CONVERSATION_HINTS.has(word)).length;
@@ -2093,15 +2111,62 @@ function detectConversationLanguage(text, expectedRole) {
   if (/[¿¡ñáéíóúü]/i.test(text)) spanishScore += 3;
   if (words.some(word => /(?:ando|iendo|ción|ciones|mente)$/.test(word))) spanishScore += 2;
   if (/\b(?:i'm|i've|don't|can't|won't|it's|you're|we're|they're)\b/i.test(text)) englishScore += 3;
-  if (spanishScore > englishScore) return "es";
-  if (englishScore > spanishScore) return "en";
-  return expectedRole === "spanish" ? "es" : "en";
+  if (spanishScore >= englishScore + 2 || (spanishScore > englishScore && /\b(?:hola|gracias|adios)\b/.test(clean))) return {family:"es",confident:true};
+  if (englishScore >= spanishScore + 2 || (englishScore > spanishScore && /\b(?:hello|thanks|yes|goodbye)\b/.test(clean))) return {family:"en",confident:true};
+  return {family:expectedRole === "spanish" ? "es" : "en",confident:false};
+}
+
+function detectConversationLanguage(text, expectedRole) {
+  return conversationLanguageEvidence(text,expectedRole).family;
+}
+
+function setConversationPlayback(value) {
+  conversationPlayback = value === "text" ? "text" : "spoken";
+  localStorage.setItem(CONVERSATION_PLAYBACK_KEY,conversationPlayback);
+  if(conversationPlayback === "text")stopSpeechPlayback();
+  $("#conversation-playback").value = conversationPlayback;
+  $("#conversation-mode-status").textContent = conversationPlayback === "text"
+    ? "Text only · translations stay silent. Use Hear translation when you choose."
+    : "Conversation · completed, confirmed turns are spoken after the microphone closes.";
+}
+
+function leaveConversation() {
+  if(!conversationActive)return;
+  conversationActive = false;
+  if(activeRecognitionButton?.dataset.speakerRole)cancelListening(true);
+  stopSpeechPlayback();
+  renderTurns();
+}
+
+function hearConversationTurn(index) {
+  const turn=turns[index];
+  if(!turn||turn.pending||turn.failed||recognition||liveConversationTurn)return;
+  say(turn.translation,turn.target);
+}
+
+async function submitConversationText() {
+  const input=$("#conversation-text"),text=input.value.trim();
+  if(!text||conversationComposerBusy)return;
+  if(recognition)return showToast("Finish the microphone turn before adding text.");
+  conversationActive = true;
+  const role=$("#conversation-text-speaker").value === "spanish" ? "spanish" : "english";
+  const forcedRole=$("#conversation-text-language").value;
+  const generation=conversationGeneration;
+  conversationComposerBusy = true;
+  $("#conversation-text-send").disabled = true;
+  try {
+    await handleConversationText(role,speakerName(role),text,true,{forcedRole,locales:conversationLocales()});
+    if(generation===conversationGeneration&&input.value.trim()===text)input.value="";
+  } finally {
+    conversationComposerBusy = false;
+    $("#conversation-text-send").disabled = false;
+  }
 }
 
 function renderTurns() {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
-  box.innerHTML = visibleTurns.map(turn => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small>${escapeHtml(turn.speaker)} · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small><p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p></article>`).join("");
+  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small>${escapeHtml(turn.speaker)} · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
   box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
@@ -2112,43 +2177,66 @@ function startConversation(role, button) {
 function conversationLocales() {
   const pair = [targetLanguage, sourceLanguage];
   return {
-    spanish:pair.find(code => languageFamily(code) === "es") || "es-EC",
-    english:pair.find(code => languageFamily(code) === "en") || (englishVariant === "uk" ? "en-GB" : "en-US")
+    spanish:conversationLocaleOverrides.spanish || pair.find(code => languageFamily(code) === "es") || "es-EC",
+    english:conversationLocaleOverrides.english || pair.find(code => languageFamily(code) === "en") || (englishVariant === "uk" ? "en-GB" : "en-US")
   };
 }
 
+function syncConversationLocaleUi() {
+  const locales=conversationLocales();
+  for(const role of ['english','spanish']) {
+    const select=$('#conversation-'+role+'-language');
+    if(select)select.value=locales[role];
+  }
+}
+
+function setConversationLocale(role,locale) {
+  if(!['english','spanish'].includes(role)||!TRANSLATOR_LANGUAGES[locale]||languageFamily(locale)!==(role==='spanish'?'es':'en'))return;
+  conversationLocaleOverrides[role]=locale;
+  localStorage.setItem(CONVERSATION_LOCALES_KEY,JSON.stringify(conversationLocaleOverrides));
+  syncConversationLocaleUi();
+}
+
 function conversationOptions(role, button) {
+  conversationActive = true;
   const way = role === "spanish" ? "ec-en" : "en-ec";
   const name = speakerName(role);
-  const expectedLanguage = role === "spanish" ? "Spanish" : "English";
   const locales = conversationLocales();
   const generation = conversationGeneration;
   const firstTurnIndex = turns.length;
-  $("#conversation-status").textContent = `Listening to ${name} · ${expectedLanguage} expected, either language accepted…`;
+  let captureError="";
+  const unavailable=!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  $("#conversation-status").textContent = unavailable ? "Speech recognition is unavailable here. Write a turn below." : `Listening to ${name} · microphone set to ${languageLabel(locales[role])}…`;
   return {
-    way, lang:locales[role], button,
+    way, lang:locales[role], button, correctTranscript:false,
     onText:(text, final, metadata) => handleConversationText(role, name, text, final, {...metadata,locales}),
     onEnd:() => {
+      if(generation !== conversationGeneration)return;
+      renderTurns();
       if (generation === conversationGeneration && turns.length > firstTurnIndex) finishConversationTurn(turns[turns.length-1]);
-    }
+      else $("#conversation-status").textContent = captureError || "No words captured. Try the microphone again or write a turn below.";
+    },
+    onError:error => { if(generation===conversationGeneration&&error!=="aborted") { captureError=recognitionErrorMessage(error)+" You can also write a turn below."; $("#conversation-status").textContent=captureError; } }
   };
 }
 
 function finishConversationTurn(turn) {
   if (!turn || turn.pending || recognition || liveConversationTurn || turns[turns.length-1] !== turn || turn.finished) return;
   turn.finished = true;
-  if (!turn.provisional && !turn.failed) say(turn.translation, turn.target);
+  if (conversationActive && conversationPlayback === "spoken" && !turn.provisional && !turn.failed && !turn.languageUncertain) say(turn.translation, turn.target);
   $("#conversation-status").textContent = turn.failed
     ? "Translation is temporarily unavailable, but your dictated text is still shown above."
-    : `${turn.languageLabel}${turn.switched ? " · role language overridden correctly" : ""} · translation complete.`;
+    : `${turn.languageLabel}${turn.switched ? " · translation direction switched" : ""} · translation complete${turn.languageUncertain ? "; check the language before using it" : ""}.`;
 }
 
-async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales()}={}) {
+async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole}={}) {
   const generation = conversationGeneration;
-  const detectedFamily = detectConversationLanguage(text, expectedRole);
+  const manual=forcedRole === "spanish" || forcedRole === "english";
+  const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole);
+  const detectedFamily = evidence.family;
   const actualRole = detectedFamily === "es" ? "spanish" : "english";
   const way = actualRole === "spanish" ? "ec-en" : "en-ec";
-  const languageLabel = `${detectedFamily === "es" ? "Spanish detected" : "English detected"}${provisional ? " · transcript needs checking" : ""}`;
+  const languageLabel = `${detectedFamily === "es" ? "Spanish" : "English"} ${manual ? "chosen" : evidence.confident ? "from text" : "selected · language uncertain"}${provisional ? " · transcript needs checking" : ""}`;
   const switched = actualRole !== expectedRole;
   liveConversationTurn = {role:actualRole,speaker,source:text,translation:final ? "Translating…" : "Listening…",languageLabel,pending:true};
   renderTurns();
@@ -2156,7 +2244,8 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
   if (!final) return;
 
   const target = way === "en-ec" ? locales.spanish : locales.english;
-  const turn = {role:actualRole,speaker,source:text,translation:"Translating…",languageLabel,pending:true,target,provisional,switched};
+  const sourceLocale=way === "en-ec" ? locales.english : locales.spanish;
+  const turn = {role:actualRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,languageUncertain:!evidence.confident};
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
@@ -2164,7 +2253,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
   try {
     turn.translation = phrase
       ? way === "en-ec" ? phrase.natural : (locales.english === "en-GB" ? phrase.uk : phrase.us) || phrase.en
-      : await requestGeneralTranslation(text, way, {purpose:"everyday",target});
+      : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)});
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
     renderTurns();
@@ -2188,6 +2277,7 @@ function clearConversation() {
   turns = [];
   liveConversationTurn = null;
   renderTurns();
+  if($("#conversation-text"))$("#conversation-text").value="";
   $("#conversation-status").textContent = "Conversation cleared. Nothing was stored.";
 }
 
@@ -2847,6 +2937,12 @@ function init() {
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
   $("#clear-conversation").addEventListener("click", clearConversation);
+  setConversationPlayback(conversationPlayback);
+  syncConversationLocaleUi();
+  $("#conversation-playback").addEventListener("change",event=>setConversationPlayback(event.target.value));
+  for(const role of ['english','spanish'])$('#conversation-'+role+'-language').addEventListener('change',event=>setConversationLocale(role,event.target.value));
+  $("#conversation-text-form").addEventListener("submit",event=>{event.preventDefault();submitConversationText();});
+  $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
   $("#regional-slang-region").addEventListener("change", renderRegionalSlang);
@@ -2888,7 +2984,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=88.1").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=93").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

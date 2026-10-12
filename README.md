@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Conversation and text-only modes (v0.24.0 · build 93)
+
+Conversation now has a persistent spoken/text-only setting, independent English and Spanish variety choices, per-turn Hear controls, and a typed-turn fallback with manual language choice. Turn originals remain visible during recognition. Each final turn binds its actual source and target explicitly, preventing local idiom/context rules from accidentally using the main translator's opposite source. Clear English/Spanish clues in recognized text can switch direction while retaining the original speaker name and exact captured words. The microphone still uses the assigned language; this is not bilingual audio detection. Ambiguous short text is labelled uncertain and is not spoken automatically. Choose its language explicitly in the text composer.
+
+Text-only mode suppresses automatic playback even when an earlier translation finishes late, and changing back does not replay previous turns. Hear remains an explicit user choice and is unavailable while a microphone turn is active. Leaving the conversation stops capture/playback and prevents delayed auto speech. Transcript text is not silently rewritten by the walking-context heuristic. Microphone failures offer a typed fallback; the change does not claim physical-phone recognition has been validated. Names and mode/variety settings stay on the device; conversation turns remain in memory until clearing/reloading. Free-service and on-device translation behavior are preserved. No native rebuild is required for these web changes.
+
 ### Indifference expression (v0.23.7 · build 92)
 
 A phone recording showed Ecuadorian `“Me vale verga` rendered as `“I'm worth a dick` with Research selected. Complete `me/te/nos vale verga` utterances now use the ASALE-attested indifference sense locally in everyday and research mode, producing `I/You/We don't give a fuck`. An agreeing `A mí me…` form is also recognized. Outer quotation marks (including a lone pasted opening quote) and punctuation are preserved. This retains source register rather than neutralizing quoted vulgar speech in research.

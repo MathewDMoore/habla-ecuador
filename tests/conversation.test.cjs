@@ -40,6 +40,7 @@ const context = vm.createContext({
   fetch:async()=>{throw new Error('Unexpected network request');}
 });
 vm.runInContext(fs.readFileSync(path.join(root,'research-reference.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(root,'spanish-context.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context);
 const run = code => vm.runInContext(code,context);
 context.spoken = spoken;
@@ -145,6 +146,68 @@ async function main() {
   assert.equal(element('#natural-result').textContent,'¿Qué tal estás?');
   run('targetLanguage="es-MX"; setEditableTranslation("How are you?","¿Cómo estás?");');
   assert.equal(element('#natural-result').textContent,'¿Cómo estás?');
+  // Spanish text from the English speaker uses the actual turn source, even
+  // when the global translator points in the opposite direction.
+  run('clearConversation(); sourceLanguage="en-US";targetLanguage="es-EC";translationPurpose="everyday";startConversation("english",b1)');
+  const idiom=recordings.at(-1);
+  idiom.emit('Me vale verga',true);idiom.onend();await flush();
+  assert.equal(run('turns[0].source'),'Me vale verga');
+  assert.equal(run('turns[0].sourceLocale'),'es-EC');
+  assert.equal(run('turns[0].target'),'en-US');
+  assert.equal(run('turns[0].translation'),"I don't give a fuck");
+
+  // Source/target and custom conversation settings are pinned to the turn.
+  const routes=[];context.routes=routes;
+  run('conversationTranslationEngine=requestGeneralTranslation;requestGeneralTranslation=async(text,way,options)=>{routes.push({text,way,source:options.source,target:options.target});return "A translated turn.";};clearConversation();');
+  run('setConversationLocale("spanish","es-MX");setConversationLocale("english","en-GB")');
+  assert.equal(run('conversationOptions("spanish",b2).lang'),'es-MX');
+  assert.match(storage.get('habla-ecuador-conversation-locales-v1'),/es-MX/);
+  run('setConversationLocale("english","es-EC")');
+  assert.equal(run('conversationLocales().english'),'en-GB','invalid language family does not replace the speaker variety');
+  await run('handleConversationText("spanish","Maria","Estas instrucciones contienen detalles nuevos.",true)');
+  assert.equal(routes.at(-1).source,'es-MX');assert.equal(routes.at(-1).target,'en-GB');
+
+  // Text-only mode suppresses automatic speech but retains explicit Hear.
+  run('clearConversation();conversationLocaleOverrides={};setConversationPlayback("text")');
+  const silentBefore=spoken.length;
+  await run('handleConversationText("english","Mathew","How are you?",true)');
+  assert.equal(spoken.length,silentBefore);
+  assert.ok(element('#conversation-turns').innerHTML.includes('Hear translation'));
+  run('hearConversationTurn(0)');assert.equal(spoken.length,silentBefore+1);
+  assert.equal(storage.get('habla-ecuador-conversation-playback-v1'),'text');
+
+  // A late response must respect the mode at completion, not an old setting.
+  let finishDelayed;context.delayedTurn=()=>new Promise(resolve=>finishDelayed=resolve);
+  run('clearConversation();setConversationPlayback("spoken");requestGeneralTranslation=delayedTurn');
+  const delayedBefore=spoken.length;
+  const delayed=run('handleConversationText("english","Mathew","I have another new question.",true)');
+  run('setConversationPlayback("text")');finishDelayed('Una pregunta nueva.');await delayed;
+  assert.equal(spoken.length,delayedBefore);
+  run('setConversationPlayback("spoken")');assert.equal(spoken.length,delayedBefore,'switching back does not replay old turns');
+
+  // Leaving the panel also prevents delayed speech.
+  run('clearConversation();conversationActive=true');
+  const hidden=run('handleConversationText("english","Mathew","I have another question again.",true)');
+  run('leaveConversation()');finishDelayed('Otra pregunta más.');await hidden;
+  assert.equal(spoken.length,delayedBefore);
+  run('requestGeneralTranslation=async(text,way,options)=>{routes.push({text,way,source:options.source,target:options.target});return "A translated turn.";};conversationActive=true;clearConversation()');
+
+  // Ambiguous short input preserves the chosen language and stays silent;
+  // writing a turn with an explicit language removes that ambiguity.
+  assert.equal(run('conversationLanguageEvidence("No","english").confident'),false);
+  await run('handleConversationText("english","Mathew","No",true)');
+  assert.equal(run('turns[0].languageUncertain'),true);assert.equal(spoken.length,delayedBefore);
+  assert.match(element('#conversation-status').textContent,/check the language/);
+  run('clearConversation();setConversationPlayback("text")');
+  element('#conversation-text').value='No';element('#conversation-text-speaker').value='english';element('#conversation-text-language').value='spanish';
+  await run('submitConversationText()');
+  assert.equal(run('turns[0].speaker'),'Mathew');assert.equal(run('turns[0].role'),'spanish');
+  assert.equal(run('turns[0].languageUncertain'),false);assert.equal(routes.at(-1).source,'es-EC');
+  assert.equal(element('#conversation-text').value,'');assert.equal(element('#conversation-text-send').disabled,false);
+  for(const name of ['index.html','translator.html']) {
+    const html=fs.readFileSync(path.join(root,name),'utf8');
+    for(const id of ['conversation-playback','conversation-mode-status','conversation-english-language','conversation-spanish-language','conversation-text-form','conversation-text-speaker','conversation-text-language','conversation-text-send'])assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1);
+  }
   run('targetLanguage="es-EC"; translationPurpose="academic"; setEditableTranslation("How are you?","¿Cómo estás?");');
   assert.equal(element('#natural-result').textContent,'¿Cómo estás?');
   console.log('Conversation checks passed: interim preservation, final playback, stale events, handoffs, cross-language text, delayed/cleared responses, Mexico/Bolivia and US/UK locales, saved edits.');

@@ -1,5 +1,5 @@
-const CACHE = "habla-ecuador-v92";
-const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=92", "app.js?v=92", "screenshot-import.js?v=92", "spanish-context.js?v=92", "english-varieties.js?v=92", "offline-device.js?v=92", "offline-worker.js?v=92", "document-import.js?v=92", "saved-paper.js?v=92", "research-reference.js?v=92", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg"];
+const CACHE = "habla-ecuador-v93";
+const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=93", "app.js?v=93", "screenshot-import.js?v=93", "spanish-context.js?v=93", "english-varieties.js?v=93", "offline-device.js?v=93", "offline-worker.js?v=93", "document-import.js?v=93", "saved-paper.js?v=93", "research-reference.js?v=93", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
