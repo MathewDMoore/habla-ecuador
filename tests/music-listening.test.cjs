@@ -37,7 +37,7 @@ const context = vm.createContext({
   clearTimeout(id) { timers.delete(id); },
   localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
   window:{SpeechRecognition:Recognition, speechSynthesis:{}},
-  speechSynthesis:{cancel(){}},
+  speechSynthesis:{cancel(){context.speechCancels=(context.speechCancels||0)+1;},resume(){context.speechResumes=(context.speechResumes||0)+1;}},
   document:{querySelector:element,querySelectorAll:selector=>selector === 'audio' ? [{pause(){context.audioPaused++;}}] : [],addEventListener(){}, createElement:()=>({textContent:"", get innerHTML(){return this.textContent;}, set innerHTML(value){this.value=value;}})},
   fetch:async()=>{throw new Error('Unexpected network request');}
 });
@@ -56,7 +56,7 @@ async function main() {
   const first=recordings.at(-1);
   assert.equal(first.continuous,true);
   assert.equal(first.lang,'es-MX');
-  assert.equal(context.audioPaused,1);
+  assert.equal(context.audioPaused,0,'starting Listen keeps the existing song playing');
   assert.equal(musicButton.textContent,'Stop listening');
   first.emit('Caminando aterrorizando la cuadra',true);
   assert.equal(element('#translator-input').value,'Caminando aterrorizando la cuadra','music preserves words instead of applying speech-dictation corrections');
@@ -211,8 +211,11 @@ async function main() {
   run('updateMusicSourceHelp()');
   assert.equal(element('#bluetooth-music-help').hidden,false);
   const pausesBefore=context.audioPaused;
+  const speechCancelsBefore=context.speechCancels||0,speechResumesBefore=context.speechResumes||0;
   run('startMusicListening()');
   assert.equal(context.audioPaused,pausesBefore,'Bluetooth mode does not pause the source song');
+  assert.equal(context.speechCancels||0,speechCancelsBefore,'idle Listen does not call speech cancel');
+  assert.equal(context.speechResumes||0,speechResumesBefore,'idle Listen does not activate speech resume');
   assert.equal(run('musicListening.phoneBluetooth'),true);
   assert.equal(element('#music-playback-source').disabled,true);
   const bluetooth=recordings.at(-1);
@@ -234,11 +237,15 @@ async function main() {
   element('#music-playback-source').value='external';
   run('updateMusicSourceHelp(); startMusicListening()');
   assert.equal(element('#bluetooth-music-help').hidden,true);
-  assert.equal(context.audioPaused,pausesBefore+1,'external-source mode still prevents feedback from app music');
+  assert.equal(context.audioPaused,pausesBefore,'Listen never explicitly pauses music, including the default playback selection');
   const external=recordings.at(-1);
   run('handleMusicPlayerPlay(activePlayer,[activePlayer])');
-  assert.equal(external.aborted,true,'ordinary playback still interrupts external capture');
-  assert.equal(run('musicListening'),null);
+  assert.equal(external.aborted,undefined,'playing a song keeps music capture active regardless of source selection');
+  assert.equal(run('musicListening !== null'),true);
+  run('newMusicSong()');
+  run('activeSpeechPlayback={utterance:{}};startMusicListening()');
+  assert.equal(context.speechCancels||0,speechCancelsBefore+1,'Listen still stops an actual Habla translation voice once');
+  assert.equal(context.speechResumes||0,speechResumesBefore,'stopping a voice for capture does not resume speech');
   run('newMusicSong()');
   element('#translator-input').value='user edited words';
 

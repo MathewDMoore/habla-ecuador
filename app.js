@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.0 · build 93";
+const APP_VERSION = "0.24.1 · build 94";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -529,13 +529,14 @@ function updateSpeechPauseControls() {
 }
 
 function stopSpeechPlayback() {
+  const hadUtterance = Boolean(activeSpeechPlayback?.utterance);
   speechRequestId += 1;
   activeSpeechPlayback = null;
-  if ("speechSynthesis" in window) {
+  if (hadUtterance && "speechSynthesis" in window) {
     speechSynthesis.cancel();
-    // cancel() leaves the global synthesizer paused; clear it for the next voice.
-    speechSynthesis.resume?.();
   }
+  // Do not activate Safari's speech audio session while nothing is speaking.
+  // The next actual speech segment resumes the synthesizer when needed.
   updateSpeechPauseControls();
 }
 
@@ -611,10 +612,10 @@ function toggleSpeechPause() {
   // must never overwrite the user's choice or discard the remembered position.
   updateSpeechPauseControls();
   if (session.paused) {
+    const hadUtterance = Boolean(session.utterance);
     session.token += 1;
     session.utterance = null;
-    speechSynthesis.cancel();
-    speechSynthesis.resume?.();
+    if(hadUtterance)speechSynthesis.cancel();
   } else {
     setTimeout(() => startSpeechSegment(session),160);
   }
@@ -1044,14 +1045,9 @@ function updateMusicSourceHelp() {
   if ($("#bluetooth-music-help")) $("#bluetooth-music-help").hidden = !bluetooth;
 }
 
-function prepareMusicCaptureAudio(phoneBluetooth) {
-  // The user's song must stay audible for acoustic Bluetooth capture. This
-  // controls only Habla's players; other apps and routing belong to the OS.
-  if (!phoneBluetooth) $$("audio").forEach(player => player.pause());
-}
-
 function handleMusicPlayerPlay(player, players) {
-  if (!musicListening?.phoneBluetooth) cancelMusicListening();
+  // Selecting a song does not stop an active music capture. Only other tracks
+  // are paused, preserving the existing single-track playback rule.
   players.forEach(otherPlayer => {
     if (otherPlayer !== player && !otherPlayer.paused) otherPlayer.pause();
   });
@@ -1115,7 +1111,6 @@ function startMusicListening() {
   translationRequest += 1;
   stopSpeechPlayback();
   const phoneBluetooth = $("#music-playback-source")?.value === "phone-bluetooth";
-  prepareMusicCaptureAudio(phoneBluetooth);
   const session = {baseText, baseConfirmedText:baseText, heard:false, error:"", stopping:false, lang:sourceLanguage,
     confirmedSource:null, tentativeText:"",
     phoneBluetooth, song:$("#music-capture-length").value === "song",
@@ -2984,7 +2979,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=93").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=94").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

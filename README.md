@@ -72,6 +72,14 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Listen audio side effects (v0.24.1 · build 94)
+
+Mathew reported that Listen stops music playing in another iPhone app while Habla runs in Safari. Listen no longer explicitly pauses Habla's music players under any playback-source selection, and starting a Habla track no longer cancels an active music capture. Single-track playback still pauses other tracks when a new track is chosen.
+
+Idle speech cleanup no longer calls speech-synthesis Cancel or Resume. Cancelling an actual Habla translation voice still works; Resume is deferred until a real speech segment starts. These are app-side fixes, not evidence that Safari can keep another app playing while its speech-recognition microphone is active. The reported physical-iPhone/Safari scenario still needs testing. No experimental audio-session override, native-route change, forced playback in another app or new native build is included.
+
+Related primary reports: [WebKit speech/audio interference](https://bugs.webkit.org/show_bug.cgi?id=321436), [speech recognition audio-session activation](https://bugs.webkit.org/show_bug.cgi?id=317741). These reports concern related behavior; they do not establish the cause of this user's interruption. The native capture already requests playAndRecord + mixWithOthers + Bluetooth A2DP; Safari does not run that native bridge.
+
 ### Conversation and text-only modes (v0.24.0 · build 93)
 
 Conversation now has a persistent spoken/text-only setting, independent English and Spanish variety choices, per-turn Hear controls, and a typed-turn fallback with manual language choice. Turn originals remain visible during recognition. Each final turn binds its actual source and target explicitly, preventing local idiom/context rules from accidentally using the main translator's opposite source. Clear English/Spanish clues in recognized text can switch direction while retaining the original speaker name and exact captured words. The microphone still uses the assigned language; this is not bilingual audio detection. Ambiguous short text is labelled uncertain and is not spoken automatically. Choose its language explicitly in the text composer.

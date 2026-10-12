@@ -9,9 +9,9 @@ const element = selector => {
   return elements.get(selector);
 };
 const synth = {
-  paused:false,cancel(){this.last?.onerror?.({error:'interrupted'});},
+  paused:false,cancels:0,resumes:0,cancel(){this.cancels++;this.last?.onerror?.({error:'interrupted'});},
   // Deliberately stale flag: the old implementation lost its Resume label.
-  pause(){this.paused=false;},resume(){this.paused=false;},
+  pause(){this.paused=false;},resume(){this.resumes++;this.paused=false;},
   getVoices:()=>[{name:'Google US English',lang:'en-US',voiceURI:'en',localService:true}],
   speak(u){this.last=u;spoken.push(u);}
 };
@@ -28,9 +28,14 @@ const controls=['#pause-result','#pause-conversation'].map(element);
 const paused=()=>assert.ok(controls.every(b=>b.textContent==='▶ Resume' && !b.disabled && b.attrs['aria-pressed']==='true'));
 const playing=()=>assert.ok(controls.every(b=>b.textContent==='⏸ Pause' && !b.disabled));
 run('updateSpeechPauseControls()');assert.ok(controls.every(b=>b.disabled));
+run('stopSpeechPlayback();stopSpeechPlayback()');
+assert.equal(synth.cancels,0,'idle cleanup must not claim the speech audio session');
+assert.equal(synth.resumes,0,'idle cleanup must not resume speech while another app plays music');
 
 run('say("First translation.","en-US");toggleSpeechPause();');drain();
 assert.equal(spoken.length,0,'paused during loading must not enqueue audio');paused();
+assert.equal(synth.cancels,0,'pausing before a voice starts does not cancel an idle synthesizer');
+assert.equal(synth.resumes,0,'pausing before a voice starts does not activate speech audio');
 run('toggleSpeechPause()');drain();playing();assert.equal(spoken.length,1);
 const first=spoken.at(-1);
 first.onboundary({charIndex:6});
