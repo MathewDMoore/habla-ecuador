@@ -514,7 +514,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         transcript.update(text: text, start: range.start.seconds, end: range.end.seconds, final: final)
         // A finalized phrase is not the end of a song/session. Always send the full
         // current text, with final=false until Stop has drained all analyzer results.
-        emit(["id": id, "type": "result", "text": transcript.text, "final": false])
+        emit(["id": id, "type": "result", "text": transcript.text, "final": false,
+              "confirmedText": transcript.confirmedText, "tentativeText": transcript.tentativeText])
     }
 
     private var resultSummary: String {
@@ -545,7 +546,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private func end() {
         guard !cancelled else { return }
         if !transcript.text.isEmpty {
-            emit(["id": id, "type": "result", "text": transcript.text, "final": true])
+            emit(["id": id, "type": "result", "text": transcript.text, "final": true,
+                  "confirmedText": transcript.confirmedText, "tentativeText": transcript.tentativeText])
         }
         cancel()
         emit(["id": id, "type": "end"])
@@ -601,6 +603,10 @@ struct NativeTranscript {
     }
     private var passages: [Passage] = []
     var text: String { passages.map(\.text).joined(separator: " ") }
+    // Passage finalization is independent of Stop/session finalization. Keep
+    // tentative words visible for review without using them in automatic drafts.
+    var confirmedText: String { passages.filter { $0.final }.map(\.text).joined(separator: " ") }
+    var tentativeText: String { passages.filter { !$0.final }.map(\.text).joined(separator: " ") }
     mutating func update(text: String, start: Double, end: Double, final: Bool) {
         guard start.isFinite, end.isFinite, end >= start else { return }
         let value = text.trimmingCharacters(in: .whitespacesAndNewlines)

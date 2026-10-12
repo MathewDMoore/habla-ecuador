@@ -20,7 +20,7 @@
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.3 (4)";
+    summary.textContent = "iPhone speech · native 0.1.4 (5)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -99,7 +99,9 @@
       if (!message.final && !instance.interimResults) return;
       const result = [{transcript:message.text, confidence:message.confidence ?? 0}];
       result.isFinal = Boolean(message.final);
-      instance._emit("result", {resultIndex:0, results:[result]});
+      const passage = typeof message.confirmedText === "string"
+        ? {confirmedText:message.confirmedText, tentativeText:message.tentativeText || ""} : {};
+      instance._emit("result", {resultIndex:0, results:[result], ...passage});
     } else if (message.type === "error") {
       if (message.error !== "aborted") {
         latestError = message;

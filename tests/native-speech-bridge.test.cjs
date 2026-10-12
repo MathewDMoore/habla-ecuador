@@ -133,4 +133,21 @@ assert.match(detail.textContent, /TestDomain \/ 123/);
 diagnostic.start();
 assert.equal(window.recognitionErrorMessage("native-recognition"), "browser native-recognition");
 assert.equal(diagnostic.lang, "es-EC");
+// A finalized passage must not end a still-running native song session.
+const finalized = new window.SpeechRecognition();
+finalized.interimResults = true;
+const finalizedEvents = [];
+finalized.onresult = event => finalizedEvents.push({text:event.results[0][0].transcript,
+  sessionFinal:event.results[0].isFinal, confirmed:event.confirmedText, tentative:event.tentativeText});
+finalized.start();
+const finalizedID = messages.at(-1).id;
+receive({id:finalizedID,type:"result",text:"Una frase completa. Un borrador",final:false,
+  confirmedText:"Una frase completa.",tentativeText:"Un borrador"});
+assert.deepEqual(finalizedEvents,[{text:"Una frase completa. Un borrador",sessionFinal:false,
+  confirmed:"Una frase completa.",tentative:"Un borrador"}]);
+receive({id:finalizedID,type:"result",text:"Una frase completa.",final:false,
+  confirmedText:"Una frase completa.",tentativeText:""});
+assert.equal(finalizedEvents.at(-1).tentative, "");
+receive({id:finalizedID,type:"end"});
+
 console.log("Native speech bridge: passed (JavaScript behavior; no physical iPhone audio test)");

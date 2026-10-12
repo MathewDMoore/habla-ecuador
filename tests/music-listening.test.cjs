@@ -25,10 +25,10 @@ class Recognition {
   start() { this.onstart?.(); }
   stop() { this.stopped = true; }
   abort() { this.aborted = true; }
-  emit(text, final=false) {
+  emit(text, final=false, metadata={}) {
     const result = [{transcript:text}];
     result.isFinal = final;
-    this.onresult({results:[result]});
+    this.onresult({results:[result], ...metadata});
   }
 }
 const context = vm.createContext({
@@ -296,6 +296,45 @@ async function main() {
   assert.equal(element('#music-live-preview').hidden,true);
   assert.equal(element('#music-review').hidden,true);
   assert.equal(run('musicPassages.length'),0);
+
+  // Native passage finalization is separate from ending the microphone session.
+  // Rough guesses remain visible, but neither route translates them automatically.
+  run('startMusicListening()');
+  const finalizedRecognition=recordings.at(-1);
+  const beforeFinalized=drafts.length;
+  finalizedRecognition.emit('Palabras mal reconocidas',false,{confirmedText:'',tentativeText:'Palabras mal reconocidas'});
+  timers.get(run('musicListening.live.timer'))(); await flush();
+  assert.equal(drafts.length,beforeFinalized,'tentative recognition spends no live request');
+  assert.equal(run('musicListening.live.requests'),0);
+  assert.match(element('#music-live-pending').textContent,/Tentative recognition/);
+  assert.equal(element('#translator-input').value,'Palabras mal reconocidas');
+  finalizedRecognition.emit('',false,{confirmedText:'',tentativeText:''});
+  assert.equal(element('#translator-input').value,'','an empty native revision clears withdrawn guesses');
+  finalizedRecognition.emit('Una frase completa. Otra conjetura',false,
+    {confirmedText:'Una frase completa.',tentativeText:'Otra conjetura'});
+  timers.get(run('musicListening.live.timer'))();
+  assert.equal(drafts.at(-1).text,'Una frase completa.','only the finalized source reaches translation');
+  assert.ok(run('musicListening'),'passage finalization does not end the song');
+  finalizedRecognition.emit('Una frase completa. Otra revisión tentativa',false,
+    {confirmedText:'Una frase completa.',tentativeText:'Otra revisión tentativa'});
+  settle('A complete sentence.'); await flush();
+  assert.equal(element('#music-live-source').textContent,'Una frase completa.');
+  assert.match(element('#music-live-pending').textContent,/Otra revisión tentativa/);
+  assert.equal(run('musicListening.live.timer'),null,'tentative-only revisions do not repeat the confirmed translation');
+  finalizedRecognition.emit('Una frase completa. La segunda frase.',false,
+    {confirmedText:'Una frase completa. La segunda frase.',tentativeText:''});
+  timers.get(run('musicListening.live.timer'))();
+  assert.equal(drafts.at(-1).text,'La segunda frase.');
+  settle('The second sentence.'); await flush();
+  assert.equal(element('#music-live-pending').hidden,true);
+  assert.match(element('#music-live-status').textContent,/Finalized words can still be wrong/);
+  finalizedRecognition.emit('Una frase completa. La segunda frase. Última conjetura',false,
+    {confirmedText:'Una frase completa. La segunda frase.',tentativeText:'Última conjetura'});
+  run('stopMusicListening()'); finalizedRecognition.onend();
+  assert.match(element('#translator-input').value,/Última conjetura/,'Stop retains unconfirmed words for manual review');
+  assert.equal(element('#translate-music').disabled,false);
+  assert.match(element('#music-live-pending').textContent,/Unconfirmed words kept for review/);
+  run('newMusicSong()');
 
   // Toggling off/on during a request invalidates it and schedules a fresh draft.
   run('startMusicListening()');const toggled=recordings.at(-1);

@@ -1,4 +1,4 @@
-# Native iPhone microphone prototype — 0.1.3 (4)
+# Native iPhone microphone prototype — 0.1.4 (5)
 
 This is a native companion prototype for the existing Habla Ecuador
 translator. Its specific test is whether music from **another app on the same
@@ -9,6 +9,14 @@ The companion loads the current hosted translator in WKWebView. A bundled bridge
 replaces Web Speech microphone capture with AVAudioEngine and native Apple speech only
 inside this app. Existing transcript editing, song continuation, language selection
 and translation behavior are reused. The hosted website is v0.22.32, build 84.
+
+## Native 0.1.4 (5) + hosted build 90: preserve passage finalization
+
+SpeechAnalyzer's `isFinal` describes a passage, not the whole microphone session. Previously the bridge flattened that distinction to `final:false` until Stop, and automatic music drafts translated tentative guesses. The bridge now carries `confirmedText` and `tentativeText` separately. Hosted build 90 translates only finalized passages when that metadata is present, keeps tentative words visible, and retains unfinished words for manual review after Stop. An empty tentative revision now clears withdrawn guesses in the hosted capture.
+
+This changes which captured words reach automatic translation; it does **not** improve recognition of singing, repair missed words or establish translation accuracy. Ordinary browser capture and installed native 0.1.3 (4) remain compatible and retain their previous draft behavior. Keep both external-speaker capture and future same-phone Bluetooth playback available. Audio configuration is unchanged.
+
+For an existing signed checkout, refresh `NativeSpeechCapture.swift` and `NativeSpeech.js` from origin/main, preserve local signing/project settings, set Version **0.1.4** and Build **5**, then Run on the iPhone. Reopen online to load hosted build **90**. A website refresh cannot install the native change. Verify the disclosure says **native 0.1.4 (5)**, tentative words remain visible without triggering live drafts, finalized passages translate while listening continues, and Stop leaves unfinished words editable. Physical Alexa/music transcription remains unverified.
 
 ## Hosted build 84: restore native navigation
 

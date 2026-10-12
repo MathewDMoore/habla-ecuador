@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Finalized music passages (v0.23.5 · build 90; native 0.1.4 / 5)
+
+The modern native recognizer now sends finalized and tentative passage text separately, while its song session continues. Live translation uses only finalized passages when this metadata is available. Tentative words remain in the full editable capture and are labelled separately; withdrawing a tentative guess clears it instead of leaving stale words on screen. Stop keeps unfinished words for explicit review and translation. Finalization does not establish accuracy and cannot recover missed singing.
+
+This requires rebuilding/installing native **0.1.4 (5)**. Hosted build 90 remains compatible with native 0.1.3 (4) and ordinary browser capture, which retain their prior live-draft behavior because they do not supply native passage-finalization metadata. No audio route, permission, automatic backend switching, or free-provider change was made. The online eight-second and on-device three-second schedules, budgets, paired passage editing, continuation, imports and language selectors remain in place. Automated bridge/music tests cover tentative suppression, later finalization, withdrawn guesses, continued capture and review after Stop. Singing recognition remains unresolved until tested on the physical iPhone.
+
 ### Music passage context (v0.23.4 · build 89)
 
 Live music drafts retain a connected sentence or capture segment, instead of starting an update at an arbitrary five-word overlap. Oversized unpunctuated passages wait for manual review rather than losing their beginning. Clearly dangling Spanish/English clause endings wait for more captured words without spending an online translation request; this is a conservative heuristic, not a grammar validator. Recognition can still miss words or mistake sung vocals. This release does not repair Apple's singing recognition or guarantee translation quality from the free provider.
