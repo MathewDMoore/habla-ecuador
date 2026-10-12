@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.23.6 · build 91";
+const APP_VERSION = "0.23.7 · build 92";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1422,6 +1422,11 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
   }
   if (text.length > 8000) throw translationFailure("research_limit");
+  const localIndifference = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.translateIndifferenceExpression(text,{source,target}) : null;
+  if(localIndifference) {
+    if(!isCurrent())throw translationFailure("superseded");
+    return localIndifference.text;
+  }
   const localVulgarity = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.translateEnglishVulgarity(text,{source,target,purpose}) : null;
   if (localVulgarity) {
     if (!isCurrent()) throw translationFailure("superseded");
@@ -1725,6 +1730,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#usage-note").innerHTML = `<strong>Work expression recognized · ${escapeHtml(languageLabel(sourceLanguage))}</strong><span>${escapeHtml(embeddedEntry.note)} The sentence was translated after replacing the slang sense with neutral Spanish; the original text remains unchanged.</span>`;
       }
       const localVulgarity = HablaSpanishContext.translateEnglishVulgarity(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
+      const localIndifference = HablaSpanishContext.translateIndifferenceExpression(sourceText,{source:sourceLanguage,target:targetLanguage});
       const wordMeanings = HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
       if(wordMeanings.length){
         $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · word meanings`;
@@ -1736,7 +1742,12 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#literal-result").textContent = "Local editorial phrase · shared Spanish · country review pending";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localVulgarity.register)}</strong><span>${escapeHtml(localVulgarity.note)} ${escapeHtml(localVulgarity.scope)} <a href="${escapeHtml(localVulgarity.url)}" target="_blank" rel="noreferrer">Spanish sense: RAE · DLE</a></span>`;
       }
-      if (onDevice && !referenceMatch && !localVulgarity && !wordMeanings.length) {
+      if(localIndifference) {
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · idiomatic meaning`;
+        $("#literal-result").textContent = "Local editorial expression · source register retained";
+        $("#usage-note").innerHTML = `<strong>${escapeHtml(localIndifference.register)}</strong><span>${escapeHtml(localIndifference.note)} ${escapeHtml(localIndifference.scope)} <a href="${escapeHtml(localIndifference.url)}" target="_blank" rel="noreferrer">Usage: ASALE</a></span>`;
+      }
+      if (onDevice && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }

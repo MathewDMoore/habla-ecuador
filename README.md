@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Indifference expression (v0.23.7 · build 92)
+
+A phone recording showed Ecuadorian `“Me vale verga` rendered as `“I'm worth a dick` with Research selected. Complete `me/te/nos vale verga` utterances now use the ASALE-attested indifference sense locally in everyday and research mode, producing `I/You/We don't give a fuck`. An agreeing `A mí me…` form is also recognized. Outer quotation marks (including a lone pasted opening quote) and punctuation are preserved. This retains source register rather than neutralizing quoted vulgar speech in research.
+
+The rule covers these standalone constructions for Ecuador, Bolivia and Mexico into U.S./U.K. English. It does not replace substrings in papers, guess ambiguous `le/les`, accept negated or expanded expressions, or establish general translation accuracy. The dictionary adds a separately scoped `me vale verga` entry (47 total entries). It works without the online service or an on-device model download. Editable drafts and stale-request protection remain in place. No native rebuild is needed.
+
 ### Dictionary context and clinical terms (v0.23.6 · build 91)
 
 Two dictionary recordings supplied by Mathew informed 16 independently checked entries: literal and vulgar verga senses, selected Mexican/Bolivian expressions, cojón/cojones, and nine neutral clinical/anatomy terms. Category filters separate Slang & expressions, Literal meanings, and Clinical & anatomy. Clinical entries remain available when vulgarity is excluded. U.S./U.K. lookup, speech buttons, and linked sources remain available. General Spanish availability does not establish country-specific slang use; each phrase retains its source scope. These entries are dictionary references, not automatic whole-sentence translation replacements or model training.

@@ -13,7 +13,7 @@ The first searches `verdga`, with `verga` among the results. The second browses 
 - Nine neutral clinical entries: testículo, escroto, uretra, vagina, vulva, labios mayores, labios menores, glande del pene and histerectomía.
 - Category filtering; neutral clinical vocabulary remains searchable with vulgarity excluded. Existing device speech controls remain available.
 
-The current dictionary has 46 entries. A clinical term available under Ecuador or Bolivia is shared clinical Spanish, not a claim about local slang. Added entries do not alter automatic sentence translation, speech recognition, or academic translation rules.
+At build 91, the dictionary has 46 entries. A clinical term available under Ecuador or Bolivia is shared clinical Spanish, not a claim about local slang. Added entries do not alter automatic sentence translation, speech recognition, or academic translation rules.
 
 ## Remaining discovery leads
 
@@ -39,3 +39,9 @@ The current dictionary has 46 entries. A clinical term available under Ecuador o
 - [NIH MedlinePlus — histerectomía](https://medlineplus.gov/spanish/hysterectomy.html).
 
 All glosses are editorial vocabulary aids; no source is represented as certifying a full translated passage or a country-specific accent. No native-speaker validation or model training is claimed.
+
+## Follow-up recording — build 92
+
+The 02:03:23 recording (14.13 seconds) shows the actual app: Ecuadorian Spanish → U.S. English, Research selected, on-device status, input `“Me vale verga`, output `“I'm worth a dick`. This establishes a translation error, not a spelling error or music-capture failure.
+
+The exact indifference construction now has a local translation in both purposes. ASALE's [valer](https://www.asale.org/damer/valer) entry explicitly records valerle verga in Ecuador, Bolivia and Mexico. Build 92 handles complete me/te/nos utterances (plus agreeing A mí me), preserves outer quotes and punctuation, and adds one dictionary entry. The reported input is tested through the actual general-translation and rendered-result paths. Negations, longer passages and ambiguous le/les remain outside this rule rather than being guessed. This is a bounded idiom correction, not model training or a general academic translation fix.

@@ -13,6 +13,23 @@ const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseD
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
  fresh();
+ // Reproduce the phone recording: a pasted opening quote, Ecuadorian source,
+ // Research selected and on-device translation. No model or service is needed.
+ for(const source of ['es-EC','es-BO','es-MX'])for(const target of ['en-US','en-GB'])for(const purpose of ['everyday','academic']) {
+  assert.equal(await run(`requestGeneralTranslation('“Me vale verga',"ec-en",{source:"${source}",target:"${target}",purpose:"${purpose}",onDevice:true})`),"“I don't give a fuck");
+ }
+ assert.equal(await run('requestGeneralTranslation("¡Me vale verga!","ec-en",{source:"es-EC",target:"en-US",purpose:"academic"})'),"I don't give a fuck!");
+ assert.equal(requests.length,0,'known standalone idiom bypasses the broken literal translation in either mode');
+ await assert.rejects(run('requestGeneralTranslation("Me vale verga","ec-en",{source:"es-EC",target:"en-US",isCurrent:()=>false})'),e=>e.code==='superseded');
+ run('sourceLanguage="es-EC";targetLanguage="en-US";direction="ec-en";translationPurpose="academic"');
+ element('#translator-input').value='“Me vale verga';
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,"“I don't give a fuck");
+ assert.equal(element('#translator-input').value,'“Me vale verga','original pasted quote stays intact');
+ assert.match(element('#translation-result .result-label').textContent,/idiomatic meaning/);
+ assert.match(element('#usage-note').innerHTML,/Usage: ASALE/);
+ assert.doesNotMatch(element('#literal-result').textContent,/On-device machine/);
+ run('translationPurpose="everyday"');
  for(const source of ['en-US','en-GB']) {
   assert.equal(await run(`requestGeneralTranslation("Fuck off!","en-ec",{source:"${source}",target:"es-EC",purpose:"everyday"})`),'¡Vete a la mierda!');
  }

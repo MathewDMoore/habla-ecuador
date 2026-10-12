@@ -1,5 +1,15 @@
 const assert=require('node:assert/strict');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,wordMeanings}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings}=require('../spanish-context.js');
+assert.equal(translateIndifferenceExpression('Me vale verga').text,"I don't give a fuck");
+assert.equal(translateIndifferenceExpression('A mí me vale verga.').text,"I don't give a fuck.");
+assert.equal(translateIndifferenceExpression('Te vale verga.').text,"You don't give a fuck.");
+assert.equal(translateIndifferenceExpression('Nos vale verga!').text,"We don't give a fuck!");
+assert.equal(translateIndifferenceExpression('“Me vale verga.”').text,"“I don't give a fuck.”");
+assert.equal(translateIndifferenceExpression('"Me vale verga".').text,'"I don\'t give a fuck".');
+for(const text of ['No me vale verga','No vale mi verga','Me vale verga, pero sí me importa.','El investigador citó “Me vale verga”.','Me vale verga\nOtra frase','A mí te vale verga','Me vale una verga','“Me vale verga"'])assert.equal(translateIndifferenceExpression(text),null,'no unsupported negation, expanded phrase or prose override');
+assert.equal(translateIndifferenceExpression('Me vale verga',{source:'es-VE'}),null);
+assert.equal(translateIndifferenceExpression('Me vale verga',{target:'es-BO'}),null);
+assert.match(dictionary({region:'es-EC',query:'me vale verga'})[0].us,/don't give a fuck/);
 assert.equal(wordMeanings('chinga',{source:'es-MX'}).length,4);
 assert.equal(wordMeanings('CHINGAR!',{source:'es-EC'}).length,2);
 assert.equal(wordMeanings('chingarse',{source:'es-MX'}).length,2);
@@ -20,7 +30,7 @@ assert.equal(dictionary({region:'all',category:'clinical',tone:'caution'}).lengt
 assert.equal(dictionary({region:'es-BO',category:'clinical',query:'hysterectomy'})[0].term,'histerectomía');
 assert.equal(dictionary({region:'en-US',category:'clinical',query:'urethra',target:'es-EC'})[0].term,'uretra');
 assert.equal(dictionary({region:'es-EC',category:'literal',query:'verga'})[0].speech,'verga');
-assert.equal(dictionary({region:'es-EC',category:'slang',query:'verga'}).length,1,'no Mexican idioms silently relabelled Ecuadorian');
+assert.equal(dictionary({region:'es-EC',category:'slang',query:'de la verga'}).length,0,'no Mexican idioms silently relabelled Ecuadorian');
 assert.ok(dictionary({region:'es-MX',category:'slang',query:'verga'}).some(entry=>entry.term==='de la verga'));
 assert.ok(dictionary({region:'es-BO',category:'slang',query:'ni verga'}).some(entry=>/refusal reading/.test(entry.note)));
 assert.equal(dictionary({region:'en-GB',category:'slang',query:'bollock'})[0].term,'cojón / cojones');

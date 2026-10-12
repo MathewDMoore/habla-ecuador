@@ -184,6 +184,7 @@ const HablaSpanishContext = (() => {
   const sharedRegions = Object.keys(dictionaryRegions);
   const nci = term => `https://www.cancer.gov/espanol/publicaciones/diccionarios/diccionario-cancer/def/${term}`;
   const recordingEntries = [
+    {term:'me vale verga',category:'slang',regions:['es-EC','es-BO','es-MX'],register:'Strong vulgarity',scope:'ASALE records valerle verga for complete indifference in Ecuador, Bolivia and Mexico, among other countries.',us:"I don't give a fuck",uk:"I don't give a fuck",note:'Me identifies the person who does not care. This expression is different from saying something is worthless. Strong source register is retained, including when quoted in research.',url:'https://www.asale.org/damer/valer'},
     {term:'verga (literal)',speech:'verga',category:'literal',regions:sharedRegions,register:'Neutral literal senses',scope:'General Spanish dictionary senses; not a regional slang claim.',us:'yard (sailing) / long thin rod / crossbow bow',uk:'yard (sailing) / long thin rod / crossbow bow',note:'The sailing word names the spar holding a sail. These object senses do not imply a sexual meaning.',url:'https://dle.rae.es/verga'},
     {term:'verga (vulgar anatomy)',speech:'verga',category:'slang',regions:sharedRegions,register:'Vulgar anatomical usage',scope:'General Spanish anatomical meaning; Mexican vulgar register checked in DEM. Country-specific naturalness review pending.',us:'dick / cock; neutral clinical word: penis',uk:'dick / cock; neutral clinical word: penis',note:'This anatomical reading is separate from the sailing object and fixed expressions. In a clinical translation, penis preserves the organ but loses the vulgar register.',url:'https://dem.colmex.mx/Ver/verga',references:[{name:'RAE · literal and anatomical senses',url:'https://dle.rae.es/verga'}]},
     {term:'de la verga',category:'slang',regions:['es-MX'],register:'Vulgar',scope:'Mexico · DEM phrase attestation.',us:'fucking awful / in terrible shape',uk:'fucking awful / in a terrible state',note:'An adverse evaluation or condition, not anatomy. Select wording using the complete sentence.',url:'https://dem.colmex.mx/Ver/verga'},
@@ -218,6 +219,22 @@ const HablaSpanishContext = (() => {
     const entry=englishVulgarityPairs.find(entry=>(!entry.requireExclamation||/!\s*$/.test(text))&&entry.aliases.some(alias=>englishPhraseKey(alias)===key));
     return entry?{text:entry.term,register:entry.register,note:entry.note,scope:entry.scope,url:entry.url}:null;
   }
+  function translateIndifferenceExpression(text,{source='es-EC',target='en-US'}={}) {
+    if(!['es-EC','es-BO','es-MX'].includes(source)||!['en-US','en-GB'].includes(target))return null;
+    // Match a complete utterance, retaining outer quotes and punctuation. A
+    // pasted opening quote alone is valid input, as in the reported recording.
+    // Do not replace substrings, negations, or quoted phrases inside prose.
+    const parts=text.trim().match(/^([“"'‘]?)([^“”"'‘’\n]+?)([”"'’]?)([.!?]*)$/u);
+    if(!parts)return null;
+    const [,open,body,close,after]=parts;
+    if(open&&close&&({'“':'”','‘':'’','"':'"',"'":"'"}[open]!==close))return null;
+    const punctuation=body.trim().match(/[.!?]+$/)?.[0]||'';
+    const key=plain(body.trim().replace(/^[¡¿]/,'').replace(/[.!?]+$/,'')).trim().replace(/\s+/g,' ');
+    const match=key.match(/^(?:(a mi) )?(me|te|nos) vale verga$/);
+    if(!match||(match[1]&&match[2]!=='me'))return null;
+    const subject={me:'I',te:'You',nos:'We'}[match[2]];
+    return {text:`${open}${subject} don't give a fuck${punctuation}${close}${after}`,register:'Strong vulgarity',scope:'Indifference expression attested in Ecuador, Bolivia and Mexico by ASALE.',note:'The complete expression means not caring at all. Its vulgar register is retained in both everyday and research translation; it is not translated as anatomical worth.',url:'https://www.asale.org/damer/valer'};
+  }
   const cityEvidence = {
     monterrey:['huerco / huerca'],
     'mexico-city':['güey / wey','no mames'],
@@ -236,6 +253,6 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,wordMeanings};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
