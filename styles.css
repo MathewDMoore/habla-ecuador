@@ -528,6 +528,8 @@ button:disabled { cursor: default; }
 .music-capture-length select {display:block; width:100%; margin-top:.35rem; min-height:44px; padding:.6rem .75rem; border:1px solid var(--line); border-radius:12px; background:var(--white); color:var(--ink); font:inherit;}
 #bluetooth-music-help {margin-bottom:.7rem;}
 
+.music-live-mode { display: grid; gap: 6px; margin: 10px 0; font-size: 13px; font-weight: 700; }
+.music-live-mode select { width: 100%; min-width: 0; min-height: 44px; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); font: inherit; }
 .music-live-toggle {display:flex;align-items:center;gap:.65rem;margin:.7rem 0;font-weight:650;min-height:44px;}
 .music-live-toggle input {width:22px;height:22px;accent-color:var(--green);}
 .music-live-preview {padding:1rem;margin:.8rem 0;border:1px solid var(--line);border-radius:18px;background:var(--white);}

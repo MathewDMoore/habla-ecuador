@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Faster live music previews (v0.24.2 · build 95)
+
+Live translation now checks for new words every 1 second on-device or 3 seconds online, plus recognition and translation processing time. Confirmed passages remain the default. The optional Live update → Quick preview includes tentative native recognition and labels the resulting draft unconfirmed. Such previews can change or disappear; they enter finalized passage history only after recognition confirms the source. Browser recognition without native certainty metadata retains its existing draft behavior.
+
+Translation failures expose Retry live translation while the microphone and captured text remain active. Retry preserves the consumed online request/character budget; the 30-request/2,500-character free preview caps and one-request-at-a-time guard remain. A network error does not establish that a daily quota was exceeded. The installed app in the reviewed recording used Online service; its on-device pack must be enabled separately from Safari. These web changes require no native rebuild and do not guarantee streaming latency or physical-phone recognition accuracy.
+
 ### Listen audio side effects (v0.24.1 · build 94)
 
 Mathew reported that Listen stops music playing in another iPhone app while Habla runs in Safari. Listen no longer explicitly pauses Habla's music players under any playback-source selection, and starting a Habla track no longer cancels an active music capture. Single-track playback still pauses other tracks when a new track is chosen.

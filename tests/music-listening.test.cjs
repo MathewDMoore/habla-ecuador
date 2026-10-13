@@ -268,7 +268,7 @@ async function main() {
   const liveRecognition=recordings.at(-1);
   liveRecognition.emit('Hola amiga estamos bailando');
   const firstTimer=run('musicListening.live.timer');
-  assert.equal(timerDelays.get(firstTimer),8000);
+  assert.equal(timerDelays.get(firstTimer),3000);
   liveRecognition.emit('Hola amiga estamos bailando juntos');
   assert.equal(run('musicListening.live.timer'),firstTimer,'interim bursts share one scheduled request');
   timers.get(firstTimer)();
@@ -395,7 +395,7 @@ async function main() {
   assert.ok(run('musicListening'));
   context.HablaOffline={shouldUse:()=>true};
   run('refreshMusicLiveRoute()');
-  assert.equal(timerDelays.get(run('musicListening.live.timer')),3000);
+  assert.equal(timerDelays.get(run('musicListening.live.timer')),1000);
   timers.get(run('musicListening.live.timer'))();await flush();
   assert.equal(drafts.at(-1).options.onDevice,true);
   assert.equal(element('#music-live-draft').value,'Offline draft');
@@ -516,6 +516,67 @@ async function main() {
   assert.equal(element('#music-review-passage').children.length,20);
   assert.equal(run('musicPassages.at(-1).id'),6,'older entries are evicted without reconstructing lyrics');
   run('newMusicSong()');
+  // Quick previews remain provisional until the exact source is finalized.
+  context.HablaOffline={shouldUse:()=>true};
+  context.liveTranslate=(text,way,options)=>{
+    drafts.push({text,way,options});
+    return new Promise(resolve=>{settle=resolve;});
+  };
+  element('#music-live-translation').checked=true;
+  run('requestGeneralTranslation=liveTranslate; setMusicLiveUpdateMode("quick"); startMusicListening()');
+  const quick=recordings.at(-1);
+  quick.emit('Una frase completa.',false,{confirmedText:'',tentativeText:'Una frase completa.'});
+  timers.get(run('musicListening.live.timer'))();
+  settle('A complete phrase.');await flush();
+  assert.equal(run('musicListening.live.lastProvisional'),true);
+  assert.equal(run('musicPassages.length'),0);
+  assert.match(element('#music-live-label').textContent,/unconfirmed quick preview/);
+  const previewRequests=drafts.length;
+  quick.emit('Una frase completa.',true,{confirmedText:'Una frase completa.',tentativeText:''});
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(drafts.length,previewRequests,'confirmation promotes the existing draft without another request');
+  assert.equal(run('musicListening.live.lastProvisional'),false);
+  assert.equal(run('musicPassages.length'),1);
+  run('cancelMusicListening(); newMusicSong(); startMusicListening()');
+  const withdrawn=recordings.at(-1);
+  withdrawn.emit('Otra frase completa.',false,{confirmedText:'',tentativeText:'Otra frase completa.'});
+  timers.get(run('musicListening.live.timer'))();settle('Another complete phrase.');await flush();
+  withdrawn.emit('',false,{confirmedText:'',tentativeText:''});
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(element('#music-live-preview').hidden,true,'withdrawn tentative recognition clears its preview');
+  assert.equal(run('musicPassages.length'),0);
+  run('cancelMusicListening(); newMusicSong(); setMusicLiveUpdateMode("confirmed")');
+
+  // Retry preserves the microphone, captured words and consumed online budget.
+  context.HablaOffline={shouldUse:()=>false};
+  context.liveTranslate=async()=>{const error=new Error('network');error.code='network';throw error;};
+  run('requestGeneralTranslation=liveTranslate; startMusicListening()');
+  const retryRecognition=recordings.at(-1);
+  retryRecognition.emit('Una frase para traducir.',true);
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(run('musicListening.live.failed'),true);
+  assert.equal(element('#music-live-retry').hidden,false);
+  const consumed=run('musicListening.live.characters');
+  assert.equal(run('musicListening.live.requests'),1);
+  context.liveTranslate=async()=> 'A phrase to translate.';
+  run('requestGeneralTranslation=liveTranslate; retryMusicLiveDraft()');
+  assert.equal(run('musicListening.live.characters'),consumed);
+  assert.equal(run('musicListening.live.requests'),1);
+  assert.equal(element('#translator-input').value,'Una frase para traducir.');
+  assert.equal(retryRecognition.aborted,undefined);
+  assert.equal(retryRecognition.stopped,undefined);
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(run('musicListening.live.requests'),2);
+  assert.equal(run('musicListening.live.characters'),consumed*2);
+  assert.equal(element('#music-live-draft').value,'A phrase to translate.');
+  assert.equal(element('#music-live-retry').hidden,true);
+  run('stopMusicListening()');retryRecognition.onend();
+  assert.equal(element('#music-live-retry').hidden,true);
+  for(const page of ['index.html','translator.html']) {
+    const html=fs.readFileSync(path.join(root,page),'utf8');
+    for(const id of ['music-live-update-mode','music-live-retry'])
+      assert.equal(html.split(`id="${id}"`).length-1,1,`${page} exposes ${id} once`);
+  }
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

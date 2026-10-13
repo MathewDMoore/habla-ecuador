@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.1 · build 94";
+const APP_VERSION = "0.24.2 · build 95";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -914,17 +914,60 @@ function resetMusicLivePreview() {
   if ($("#music-live-source")) $("#music-live-source").textContent = "";
   if ($("#music-live-status")) $("#music-live-status").textContent = "";
   if ($("#music-live-pending")) { $("#music-live-pending").hidden = true; $("#music-live-pending").textContent = ""; }
+  if ($("#music-live-retry")) $("#music-live-retry").hidden = true;
 }
 
 function queueMusicLiveDraft(session) {
   const live = session.live;
   if (!live?.enabled || live.failed || live.busy || live.timer || session.stopping || musicListening !== session) return;
-  const delay = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse() ? 3000 : 8000;
+  const delay = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse() ? 1000 : 3000;
   live.timer = setTimeout(() => { live.timer = null; translateMusicLivePassage(session); }, delay);
 }
 
 function musicLiveSource(session) {
+  if(session.live.mode === "quick" && session.confirmedSource !== null && session.tentativeText)return $("#translator-input").value.trim();
   return session.confirmedSource ?? $("#translator-input").value.trim();
+}
+
+function musicLiveProvisional(session) {
+  return session.live.mode === "quick" && session.confirmedSource !== null && Boolean(session.tentativeText);
+}
+
+function updateMusicLiveRetry(session) {
+  const button=$("#music-live-retry");
+  if(button)button.hidden=!session?.live.enabled||!session.live.failed||!session.live.errorCode;
+}
+
+function retryMusicLiveDraft() {
+  const session=musicListening;
+  if(!session||session.stopping||session.live.busy||!session.live.enabled)return;
+  session.live.failed=false;session.live.errorCode="";session.live.errorMessage="";
+  session.live.revision+=1;
+  clearTimeout(session.live.timer);session.live.timer=null;
+  updateMusicLiveRetry(session);
+  $("#music-live-status").textContent="Retrying translation of the latest captured words. Listening continues.";
+  queueMusicLiveDraft(session);
+}
+
+function setMusicLiveUpdateMode(mode) {
+  const value=mode === "quick" ? "quick" : "confirmed";
+  $("#music-live-update-mode").value=value;
+  localStorage.setItem("habla-ecuador-music-live-update-v1",value);
+  if(musicListening) {
+    musicListening.live.mode=value;
+    musicListening.live.lastProvisional=false;
+    refreshMusicLiveRoute();
+  }
+}
+
+function showMusicLiveDraftKind(session,onDevice) {
+  const live=session.live;
+  $("#music-live-label").textContent=`${languageLabel(live.target)} · ${live.lastProvisional ? "unconfirmed quick preview" : "latest passage draft"}`;
+  $("#music-live-status").textContent=live.lastProvisional
+    ? "Quick preview includes tentative recognition. Words and translation can change; it is not saved as a finalized passage."
+    : session.confirmedSource !== null
+      ? "Draft uses finalized recognition passages. Finalized words can still be wrong; check them against the song."
+      : `Live draft checks new words about every ${onDevice ? 1 : 3} seconds, plus translation time. Missed lyrics still need review.`;
 }
 
 function showTentativeMusicWords(session) {
@@ -947,10 +990,12 @@ function setMusicLiveEnabled(enabled) {
   } else {
     live.failed = false;
     live.errorMessage = "";
+    live.errorCode = "";
     live.lastSource = "";
     $("#music-live-status").textContent = "Live draft on. Waiting for the next passage…";
     queueMusicLiveDraft(session);
   }
+  updateMusicLiveRetry(session);
 }
 
 function refreshMusicLiveRoute() {
@@ -966,10 +1011,19 @@ function refreshMusicLiveRoute() {
 async function translateMusicLivePassage(session) {
   const live = session.live;
   const source = musicLiveSource(session);
+  const provisional=musicLiveProvisional(session);
   if (musicListening !== session || session.stopping || !live.enabled || live.failed || live.busy
       || sourceLanguage !== session.lang || targetLanguage !== live.target
       || translationPurpose !== live.purpose) return;
   if (!source || source === live.lastSource) {
+    if(!source&&live.lastProvisional) {
+      $("#music-live-preview").hidden=true;
+      live.lastSource="";live.lastPassage="";live.lastProvisional=false;
+    } else if(source===live.lastSource&&live.lastProvisional&&!provisional) {
+      live.lastProvisional=false;
+      showMusicLiveDraftKind(session,typeof HablaOffline !== "undefined"&&HablaOffline.shouldUse());
+      keepMusicPassage(live.lastPassage,$("#music-live-draft").value,session);
+    }
     if (showTentativeMusicWords(session)) $("#music-live-status").textContent = "Waiting for recognition to finalize new words. Tentative words remain above for review.";
     return;
   }
@@ -1010,24 +1064,24 @@ async function translateMusicLivePassage(session) {
     if (!current()) return;
     live.lastSource = source;
     live.lastPassage = passage;
+    live.lastProvisional=provisional;
     $("#music-live-preview").hidden = false;
-    $("#music-live-label").textContent = `${languageLabel(live.target)} · latest passage draft`;
     $("#music-live-source").textContent = passage;
     $("#music-live-draft").value = draft;
     $("#music-live-draft").readOnly = true;
-    keepMusicPassage(passage,draft,session);
-    $("#music-live-status").textContent = session.confirmedSource !== null
-      ? "Live draft uses finalized recognition passages. Finalized words can still be wrong; check them against the song. Tentative words wait for confirmation."
-      : `Live draft updates about every ${onDevice ? 3 : 8} seconds, plus translation time. It translates captured words; missed lyrics need review.`;
+    if(!provisional)keepMusicPassage(passage,draft,session);
+    showMusicLiveDraftKind(session,onDevice);
   } catch (error) {
     if (!current()) return;
     live.failed = true;
+    live.errorCode=error.code||"service";
     const message = translationErrorMessage(error);
     live.errorMessage = `${message.title} ${message.help}`;
     $("#music-live-status").textContent = `Live draft paused. ${live.errorMessage} Capturing words continues.`;
+    updateMusicLiveRetry(session);
   } finally {
     live.busy = false;
-    if (musicListening === session && !session.stopping && (source !== musicLiveSource(session) || revision !== live.revision)) queueMusicLiveDraft(session);
+    if (musicListening === session && !session.stopping && (source !== musicLiveSource(session) || provisional !== musicLiveProvisional(session) || revision !== live.revision)) queueMusicLiveDraft(session);
   }
 }
 
@@ -1114,7 +1168,7 @@ function startMusicListening() {
   const session = {baseText, baseConfirmedText:baseText, heard:false, error:"", stopping:false, lang:sourceLanguage,
     confirmedSource:null, tentativeText:"",
     phoneBluetooth, song:$("#music-capture-length").value === "song",
-    live:{enabled:Boolean($("#music-live-translation")?.checked),target:targetLanguage,
+    live:{enabled:Boolean($("#music-live-translation")?.checked),mode:$("#music-live-update-mode")?.value === "quick" ? "quick" : "confirmed",lastProvisional:false,errorCode:"",target:targetLanguage,
       purpose:translationPurpose,way:direction,revision:0,busy:false,timer:null,failed:false,
       lastSource:baseText,lastPassage:"",requests:0,characters:0,errorMessage:""}};
   resetMusicLivePreview();
@@ -1146,6 +1200,7 @@ function startMusicListening() {
       else if (session.live.enabled) $("#music-live-status").textContent = "Capture stopped before a live draft was ready. Captured words, if any, remain above.";
     }
     musicListening = null;
+    updateMusicLiveRetry(null);
     syncMusicReview();
     button.disabled = false;
     button.setAttribute("aria-pressed", "false");
@@ -2854,6 +2909,9 @@ function init() {
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
+  if($("#music-live-update-mode"))$("#music-live-update-mode").value=localStorage.getItem("habla-ecuador-music-live-update-v1") === "quick" ? "quick" : "confirmed";
+  $("#music-live-update-mode")?.addEventListener("change",event=>setMusicLiveUpdateMode(event.target.value));
+  $("#music-live-retry")?.addEventListener("click",retryMusicLiveDraft);
   $("#music-review-passage")?.addEventListener("change", event => {
     musicReviewRequest += 1;
     selectedMusicPassage = Number(event.target.value);
@@ -2979,7 +3037,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=94").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=95").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
