@@ -72,6 +72,10 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Quito dictionary evidence (v0.24.3 · build 96)
+
+The regional dictionary adds one bounded, source-supported Quito entry: `chulla`. It separates the literal/popular “single or unmatched” sense from the Quito-linked social and cultural archetype, and warns that the city evidence does not make the term exclusive to Quito or universally current. The entry links ASALE, the Academia Ecuatoriana de la Lengua and the Municipality of Quito. A Quito city filter and Ecuadorian audio locale are included. No automatic translation rule, speech-recognition behavior, private material or native code changed.
+
 ### Faster live music previews (v0.24.2 · build 95)
 
 Live translation now checks for new words every 1 second on-device or 3 seconds online, plus recognition and translation processing time. Confirmed passages remain the default. The optional Live update → Quick preview includes tentative native recognition and labels the resulting draft unconfirmed. Such previews can change or disappear; they enter finalized passage history only after recognition confirms the source. Browser recognition without native certainty metadata retains its existing draft behavior.

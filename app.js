@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.2 · build 95";
+const APP_VERSION = "0.24.3 · build 96";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2419,7 +2419,7 @@ function renderRegionalSlang() {
   root.innerHTML = entries.map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
-    const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
+    const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
     const sources = [{name:entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms", url:entry.url}, ...(entry.references || [])];
     return `<article class="expression-card regional-slang-card">
       <header><h3>${escapeHtml(englishLead ? entry[englishLead] : entry.term)}</h3><span class="slang-tone ${caution ? "caution" : ""}">${escapeHtml(entry.register)}</span></header>
@@ -2427,6 +2427,7 @@ function renderRegionalSlang() {
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       ${entry.shared ? `<p class="expression-note">Shared Spanish · country review pending</p>` : ""}
+      ${entry.uncertainty ? `<p class="expression-note"><b>Evidence limit:</b> ${escapeHtml(entry.uncertainty)}</p>` : ""}
       <div class="dictionary-audio" aria-label="Hear dictionary meanings">
         <button type="button" data-regional-audio="${escapeHtml(entry.speech || entry.term)}" data-audio-lang="${voice}">🔊 Spanish</button>
         <button type="button" data-regional-audio="${escapeHtml(entry.us)}" data-audio-lang="en-US">🔊 U.S.</button>
@@ -3037,7 +3038,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=95").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=96").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

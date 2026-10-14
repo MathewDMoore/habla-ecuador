@@ -1,4 +1,6 @@
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
 const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings}=require('../spanish-context.js');
 assert.equal(translateIndifferenceExpression('Me vale verga').text,"I don't give a fuck");
 assert.equal(translateIndifferenceExpression('A mí me vale verga.').text,"I don't give a fuck.");
@@ -59,6 +61,24 @@ for (const region of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO']) {
  assert.ok(entries.every(entry=>entry.regions.includes(region)&&entry.url.startsWith('https://')&&entry.us&&entry.uk));
 }
 assert.equal(dictionary({region:'monterrey'})[0].term,'huerco / huerca');
+const quito=dictionary({region:'quito'});
+assert.equal(quito.length,1);
+assert.equal(quito[0].term,'chulla');
+assert.match(quito[0].us,/single \/ unmatched/);
+assert.match(quito[0].note,/bare word/);
+assert.match(quito[0].uncertainty,/not exclusive to Quito/);
+assert.equal(quito[0].references.length,2);
+assert.equal(dictionary({region:'es-EC',category:'slang',query:'chulla',tone:'mild'})[0].term,'chulla');
+assert.equal(dictionary({region:'es-MX',query:'chulla'}).length,0,'Quito evidence does not become Mexican guidance');
+assert.equal(dictionary({region:'quito',query:'chullita'}).length,0,'an unvalidated related form does not match the entry');
+assert.equal(dictionary({region:'quito',query:'camel'}).length,0,'unrelated meanings do not match');
+for(const page of ['index.html','translator.html']) {
+ const html=fs.readFileSync(path.join(__dirname,'..',page),'utf8');
+ assert.equal(html.split('<option value="quito">Quito</option>').length-1,1,`${page} exposes one compact Quito filter`);
+}
+const appSource=fs.readFileSync(path.join(__dirname,'..','app.js'),'utf8');
+assert.match(appSource,/Evidence limit:<\/b>/,'regional cards expose uncertainty metadata');
+assert.match(appSource,/quito:"es-EC"/,'Quito audio uses the Ecuadorian locale');
 assert.equal(dictionary({region:'mexico-city'}).length,2);
 assert.equal(dictionary({region:'bogota'}).length,2);
 assert.deepEqual(dictionary({region:'caracas'}),[],'no invented city attestation');
