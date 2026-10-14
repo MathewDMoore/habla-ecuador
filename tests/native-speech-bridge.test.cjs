@@ -179,3 +179,17 @@ unsupportedCapture.continuous = true;
 unsupportedCapture.start();
 assert.equal(unsupported.messages.at(-1).input, undefined);
 assert.equal(unsupported.playbackSource.children.length, 0);
+
+// Exercise the hosted visibility handler, not a duplicate test implementation.
+let visibilityHandler, visibilityCancels = 0;
+const visibilityLine = appSource.split("\n").find(line => line.includes('document.addEventListener("visibilitychange"'));
+const visibilityContext = {
+  document:{hidden:true,addEventListener:(name,handler)=>{visibilityHandler=handler;}},
+  window:{__hablaSystemAudioCaptureActive:false}, cancelMusicListening:()=>visibilityCancels++
+};
+vm.runInNewContext(visibilityLine,visibilityContext);
+visibilityHandler(); assert.equal(visibilityCancels,1);
+visibilityContext.window.__hablaSystemAudioCaptureActive=true;
+visibilityHandler(); assert.equal(visibilityCancels,1,"explicit device capture survives switching to the playback app");
+visibilityContext.document.hidden=false;
+visibilityHandler(); assert.equal(visibilityCancels,1);

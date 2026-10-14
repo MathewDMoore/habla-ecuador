@@ -23,3 +23,11 @@ On a physical iPhone running iOS 27: select Translate, source and target languag
 If a source supplies silence, report that as unavailable playback rather than producing a fabricated translation. Do not infer app-wide support from one successful title or a successful compile.
 
 App Store/TestFlight distribution of the new background mode requires separate validation; this prototype is for a directly installed development build first.
+
+## Validation status — 13 October 2026
+
+All 13 JavaScript suites passed. The added bridge tests cover explicit system-input selection, ordinary microphone isolation, unsupported builds, replacement-session ownership and the hosted visibility handler. Property lists parse and the diff passes whitespace checks.
+
+GitHub's macOS runner did not have an iOS 27 SDK. Run 38491217284 stopped at SDK selection before compiling; this is not a successful native build. The iOS 27 implementation is therefore uncompiled and unvalidated. Do not merge or describe it as enabled until Xcode 27 compilation and physical-phone tests complete. There is no change to the currently deployed build 95/native 0.1.4 (5).
+
+The prototype additionally bounds pending PCM callbacks and analyzer buffering to avoid retaining an unlimited audio queue if processing stalls. These bounds need on-device load testing; dropping queued audio is not a recognition-quality fix.

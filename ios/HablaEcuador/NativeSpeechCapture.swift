@@ -459,7 +459,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                 status("Loading \(backend) for \(localeTag)…")
                 try await analyzer.prepareToAnalyze(in: format)
                 try checkActive()
-                let (sequence, continuation) = AsyncStream<AnalyzerInput>.makeStream()
+                let (sequence, continuation) = AsyncStream<AnalyzerInput>.makeStream(bufferingPolicy: systemAudio ? .bufferingNewest(100) : .unbounded)
                 input = continuation
                 try await analyzer.start(inputSequence: sequence)
                 try checkActive()
@@ -659,6 +659,7 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
     private let onStarted: () -> Void
     private let onError: (Error) -> Void
     private let queue = DispatchQueue(label: "habla.system-audio")
+    private let pendingAudio = DispatchSemaphore(value: 20)
     private var capture: SCStream?
     private var cancelled = false
     private var starting = false
@@ -739,7 +740,13 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .audio, CMSampleBufferDataIsReady(sampleBuffer) else { return }
         // Keep session state and converter use main-thread owned, as for the analyzer.
-        DispatchQueue.main.async { [weak self] in self?.receive(sampleBuffer) }
+        // Bound retained PCM when the UI/recognizer cannot keep up in the background.
+        guard pendingAudio.wait(timeout: .now()) == .success else { return }
+        let gate = pendingAudio
+        DispatchQueue.main.async { [weak self] in
+            defer { gate.signal() }
+            self?.receive(sampleBuffer)
+        }
     }
 
     private func receive(_ sample: CMSampleBuffer) {
