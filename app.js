@@ -2928,7 +2928,7 @@ function init() {
     $("#translate-music").disabled = true;
     renderTranslation({allowMusic:true});
   });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelMusicListening(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);

@@ -6,6 +6,7 @@
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;
+  const syncSystemAudioFlag = () => { window.__hablaSystemAudioCaptureActive = [...sessions.values()].some(instance => instance._systemAudio); };
   let detailText = "Native bridge ready. Tap the microphone and speak a short sentence first.";
   let panel, detail, modeSelect;
   function setDetail(text, failed = false) {
@@ -19,8 +20,15 @@
     panel = document.createElement("details");
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
+    if (window.__hablaSystemAudioSupported) {
+      const source = document.querySelector("#music-playback-source");
+      const option = document.createElement("option");
+      option.value = "system";
+      option.textContent = "This iPhone's audio · experimental";
+      source?.append(option);
+    }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.4 (5)";
+    summary.textContent = "iPhone speech · native 0.1.5 (6)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -65,11 +73,15 @@
       latestError = null;
       if (modeSelect) modeSelect.disabled = true;
       setDetail("Starting native iPhone recognition…");
+      this._systemAudio = Boolean(this.continuous && window.__hablaSystemAudioSupported
+        && document.querySelector("#music-playback-source")?.value === "system");
+      syncSystemAudioFlag();
       try {
         window.webkit.messageHandlers.hablaSpeech.postMessage({action:"start", id,
-          lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous});
+          lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous, ...(this._systemAudio ? {input:"system"} : {})});
       } catch (error) {
         sessions.delete(id);
+        syncSystemAudioFlag();
         this._id = null;
         if (modeSelect) modeSelect.disabled = false;
         throw error;
@@ -92,6 +104,7 @@
     if (!instance) return;
     if (message.type === "end") {
       sessions.delete(message.id);
+      syncSystemAudioFlag();
       instance._id = null;
       if (modeSelect && !sessions.size) modeSelect.disabled = false;
       instance._emit("end");
