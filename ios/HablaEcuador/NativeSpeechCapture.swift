@@ -675,7 +675,6 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
     func start() {
         let picker = SCContentSharingPicker.shared
         var configuration = SCContentSharingPickerConfiguration()
-        configuration.allowedPickerModes = [.singleDisplay]
         configuration.showsMicrophoneControl = false
         configuration.showsCameraControl = false
         picker.defaultConfiguration = configuration
@@ -696,13 +695,10 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
             do {
                 let configuration = SCStreamConfiguration()
                 configuration.capturesAudio = true
-                configuration.captureMicrophone = false
                 configuration.excludesCurrentProcessAudio = true
                 configuration.sampleRate = Int(self.format.sampleRate)
                 configuration.channelCount = Int(self.format.channelCount)
                 configuration.width = 2; configuration.height = 2
-                configuration.minimumFrameInterval = CMTime(seconds: 1, preferredTimescale: 600)
-                configuration.queueDepth = 3
                 let stream = SCStream(filter: filter, configuration: configuration, delegate: self)
                 self.capture = stream
                 try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: self.queue)
