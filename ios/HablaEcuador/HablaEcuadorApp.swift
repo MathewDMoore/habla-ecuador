@@ -30,6 +30,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         super.viewDidLoad()
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: "window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
+            injectionTime: .atDocumentStart, forMainFrameOnly: true))
         if let scriptURL = Bundle.main.url(forResource: "NativeSpeech", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
             configuration.userContentController.addUserScript(WKUserScript(
@@ -57,7 +60,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         webView.load(URLRequest(url: site))
     }
 
-    @objc private func suspendCapture() { speech?.abortActive() }
+    @objc private func suspendCapture() { if speech?.isSystemAudioActive != true { speech?.abortActive() } }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let origin = message.frameInfo.securityOrigin
@@ -67,7 +70,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
         switch action {
-        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto")
+        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system")
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break

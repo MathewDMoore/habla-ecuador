@@ -2,19 +2,20 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const source = fs.readFileSync("ios/HablaEcuador/NativeSpeech.js", "utf8");
-function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html") {
+function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html", systemSupport = false, sourceValue = "external") {
   const messages = [];
   const nodes = [];
-  const document = {readyState:"complete", querySelector:() => ({parentElement:{after:() => {}}}),
+  const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
+  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : ({parentElement:{after:() => {}}}),
     createElement:tag => {
       const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); }};
       nodes.push(node);
       return node;
     }};
-  const window = {recognitionErrorMessage:error => "browser " + error,
+  const window = {__hablaSystemAudioSupported:systemSupport, recognitionErrorMessage:error => "browser " + error,
     webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
   vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException});
-  return {window, messages, nodes};
+  return {window, messages, nodes, playbackSource};
 }
 assert.equal(harness("https://example.com").window.SpeechRecognition, undefined);
 assert.equal(harness(undefined, "/unrelated/").window.SpeechRecognition, undefined);
@@ -151,3 +152,44 @@ assert.equal(finalizedEvents.at(-1).tentative, "");
 receive({id:finalizedID,type:"end"});
 
 console.log("Native speech bridge: passed (JavaScript behavior; no physical iPhone audio test)");
+
+// Direct device capture is explicitly available only in a capable native build.
+const direct = harness(undefined, undefined, true, "system");
+assert.equal(direct.playbackSource.children[0].value, "system");
+const directMic = new direct.window.SpeechRecognition();
+directMic.start();
+assert.equal(direct.messages.at(-1).input, undefined, "ordinary voice input remains microphone input");
+direct.window.__hablaNativeSpeech({id:"1",type:"end"});
+const deviceAudio = new direct.window.SpeechRecognition();
+deviceAudio.continuous = true;
+deviceAudio.start();
+assert.equal(direct.messages.at(-1).input, "system");
+assert.equal(direct.window.__hablaSystemAudioCaptureActive, true);
+// Replacement capture must not lose the background flag when the old end arrives.
+const newerAudio = new direct.window.SpeechRecognition();
+newerAudio.continuous = true;
+newerAudio.start();
+direct.window.__hablaNativeSpeech({id:"2",type:"end"});
+assert.equal(direct.window.__hablaSystemAudioCaptureActive, true);
+direct.window.__hablaNativeSpeech({id:"3",type:"end"});
+assert.equal(direct.window.__hablaSystemAudioCaptureActive, false);
+const unsupported = harness(undefined, undefined, false, "system");
+const unsupportedCapture = new unsupported.window.SpeechRecognition();
+unsupportedCapture.continuous = true;
+unsupportedCapture.start();
+assert.equal(unsupported.messages.at(-1).input, undefined);
+assert.equal(unsupported.playbackSource.children.length, 0);
+
+// Exercise the hosted visibility handler, not a duplicate test implementation.
+let visibilityHandler, visibilityCancels = 0;
+const visibilityLine = appSource.split("\n").find(line => line.includes('document.addEventListener("visibilitychange"'));
+const visibilityContext = {
+  document:{hidden:true,addEventListener:(name,handler)=>{visibilityHandler=handler;}},
+  window:{__hablaSystemAudioCaptureActive:false}, cancelMusicListening:()=>visibilityCancels++
+};
+vm.runInNewContext(visibilityLine,visibilityContext);
+visibilityHandler(); assert.equal(visibilityCancels,1);
+visibilityContext.window.__hablaSystemAudioCaptureActive=true;
+visibilityHandler(); assert.equal(visibilityCancels,1,"explicit device capture survives switching to the playback app");
+visibilityContext.document.hidden=false;
+visibilityHandler(); assert.equal(visibilityCancels,1);

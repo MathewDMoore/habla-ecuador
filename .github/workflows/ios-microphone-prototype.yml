@@ -32,6 +32,26 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Select an iOS 27 SDK for system-audio compilation
+        run: |
+          python3 - <<'PY'
+          import glob, os, subprocess
+          candidates = sorted(glob.glob('/Applications/Xcode*.app/Contents/Developer'), reverse=True)
+          for candidate in candidates:
+              environment = dict(os.environ, DEVELOPER_DIR=candidate)
+              version = subprocess.run(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'], env=environment, capture_output=True, text=True)
+              try:
+                  supported = version.returncode == 0 and int(version.stdout.strip().split('.')[0]) >= 27
+              except ValueError:
+                  supported = False
+              if supported:
+                  with open(os.environ['GITHUB_ENV'], 'a') as output:
+                      output.write('DEVELOPER_DIR=' + candidate + '\n')
+                  print('Selected simulator SDK ' + version.stdout.strip())
+                  break
+          else:
+              raise SystemExit('No iOS 27 SDK is installed on this runner. System-audio code has NOT been compile-validated; build it with Xcode 27 on a Mac.')
+          PY
       - name: Verify native phrase accumulation
         run: python3 tests/run-native-transcript-state.py
       - name: Verify converted audio and queue diagnostics
