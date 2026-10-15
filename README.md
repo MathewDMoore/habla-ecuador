@@ -72,6 +72,12 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Spanish tomorrow spelling (v0.24.4 · build 97)
+
+The online service was reproduced returning `Yo voy a trabajar manana` for `I'm going to work tomorrow.` The shared English-to-Spanish translation path now restores the ñ in standalone `manana` only when the English source explicitly contains `tomorrow`. The spelling and next-day sense follow [RAE/ASALE DLE: mañana](https://dle.rae.es/ma%C3%B1ana). This applies across supported Spanish targets, online and on-device drafts, including cached provider responses. It preserves case, other Unicode text, quotations, code, links, email, handles, compound words, source text and saved user edits. If the English source itself contains Manana/mañana, the rule skips the ambiguous name or literal spelling. Spanish-to-English and regional bridges keep their existing behavior.
+
+Regression coverage reproduces the phone's rendered result, checks U.S./U.K. sources and every Spanish target, both purposes, offline output, cache reuse, protected text and saved edits. This is one bounded spelling guard, not general Spanish spellchecking or evidence that translation/transcription quality is solved. No native rebuild is required; the installed wrapper loads the hosted app. The separate iOS system-audio prototype remains unmerged.
+
 ### Quito dictionary evidence (v0.24.3 · build 96)
 
 The regional dictionary adds one bounded, source-supported Quito entry: `chulla`. It separates the literal/popular “single or unmatched” sense from the Quito-linked social and cultural archetype, and warns that the city evidence does not make the term exclusive to Quito or universally current. The entry links ASALE, the Academia Ecuatoriana de la Lengua and the Municipality of Quito. A Quito city filter and Ecuadorian audio locale are included. No automatic translation rule, speech-recognition behavior, private material or native code changed.

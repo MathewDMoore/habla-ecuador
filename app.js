@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.3 · build 96";
+const APP_VERSION = "0.24.4 · build 97";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1307,6 +1307,18 @@ function decodeTranslation(value) {
   return box.value;
 }
 
+function refineSpanishOrthography(draft, source) {
+  // RAE DLE: https://dle.rae.es/ma%C3%B1ana . MyMemory can return the
+  // unaccented spelling for English "tomorrow". Require that source meaning;
+  // an explicitly supplied Manana/mañana may be a name or literal spelling.
+  if (!/\btomorrow\b/i.test(source) || /(?:^|[^\p{L}\p{M}\p{N}_])ma[nñ]ana(?:$|[^\p{L}\p{M}\p{N}_])/iu.test(source)) return draft;
+  // Keep quoted text, code, links, email, handles and compound words intact.
+  return draft.replace(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]+|`[^`]*`|"[^"\n]*"|“[^”]*”|‘[^’]*’|«[^»]*»|'[^'\n]*'|[@#][\p{L}\p{M}\p{N}_-]+|[\p{L}\p{M}\p{N}_-]+/giu, token => {
+    if (!/^manana$/i.test(token)) return token;
+    return token.slice(0,2) + (token[2] === "N" ? "Ñ" : "ñ") + token.slice(3);
+  });
+}
+
 function protectResearchTokens(text) {
   const protectedValues = [];
   const protectedText = text.replace(/https?:\/\/[^\s)\]}]+|\bdoi\s*:\s*10\.\d{4,9}\/[^\s)\]}]+|\b10\.\d{4,9}\/[-._;()/:A-Z0-9]+|\[[0-9,;\s–-]+\]|\([^()\n]{0,90}\b(?:19|20)\d{2}[a-z]?[^()\n]{0,50}\)/gi, value => {
@@ -1521,7 +1533,8 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
   const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
-  return languageFamily(target) === "en" ? convertEnglishVariety(refined,target,{source:text,purpose}) : refined;
+  if (languageFamily(target) === "en") return convertEnglishVariety(refined,target,{source:text,purpose});
+  return languageFamily(source) === "en" && languageFamily(target) === "es" ? refineSpanishOrthography(refined,text) : refined;
 }
 
 
@@ -3038,7 +3051,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=96").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=97").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -13,6 +13,37 @@ const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseD
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
  fresh();
+ // The provider's actual response to the phone's dictated English sentence.
+ handler=async()=>ok('Yo voy a trabajar manana');
+ for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO'])for(const purpose of ['everyday','academic']) {
+  assert.equal(await run(`requestGeneralTranslation("I'm going to work tomorrow.","en-ec",{source:"${source}",target:"${target}",purpose:"${purpose}"})`),'Yo voy a trabajar mañana');
+ }
+ assert.equal(requests.length,2,'cached provider drafts also receive the spelling correction');
+ context.HablaOffline={shouldUse:()=>false,translate:async()=> 'Yo voy a trabajar manana'};
+ assert.equal(await run('requestGeneralTranslation("I am going to work tomorrow.","en-ec",{source:"en-US",target:"es-EC",onDevice:true})'),'Yo voy a trabajar mañana');
+ assert.equal(run('refineSpanishOrthography("Manana, MANANA y manana.","Tomorrow, tomorrow and tomorrow.")'),'Mañana, MAÑANA y mañana.');
+ assert.equal(run('refineSpanishOrthography("Mañana y café; niño, año, pingüino.","Tomorrow.")'),'Mañana y café; niño, año, pingüino.');
+ for(const draft of ['"manana"','“manana”','‘manana’','«manana»',"'manana'",'`manana`','https://example.com/manana','manana@example.com','@manana','#manana','manana-store','mananas','mananaño','ñmanana','manana\u0301']) {
+  context.protectedDraft=draft;
+  assert.equal(run('refineSpanishOrthography(protectedDraft,"Tomorrow.")'),draft,'literal tokens and Unicode word boundaries stay intact');
+ }
+ for(const source of ['I met Manana yesterday.','I will meet Manana tomorrow.','I will meet Mañana tomorrow.','The word "manana" appears tomorrow.','The source says tomorrowish.']) {
+  context.literalSource=source;
+  assert.equal(run('refineSpanishOrthography("Manana viene manana.",literalSource)'),'Manana viene manana.','ambiguous names and unrelated source text are not guessed');
+ }
+ run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec";translationPurpose="everyday"');
+ element('#translator-input').value="I'm going to work tomorrow.";
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'Yo voy a trabajar mañana','the rendered phone result receives the correction');
+ assert.equal(element('#translator-input').value,"I'm going to work tomorrow.",'the dictated source remains unchanged');
+ element('#natural-result').textContent='Mañana voy al trabajo.';run('saveActiveTranslationEdit()');
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'Mañana voy al trabajo.','user-saved wording remains authoritative');
+ run('restoreGeneratedTranslation()');
+ assert.equal(element('#natural-result').textContent,'Yo voy a trabajar mañana');
+ fresh();handler=async()=>ok('Meet Manana tomorrow.');
+ assert.equal(await run('requestGeneralTranslation("Nos vemos mañana.","ec-en",{source:"es-EC",target:"en-US"})'),'Meet Manana tomorrow.','English output is never spell-corrected as Spanish');
+ fresh();
  // Reproduce the phone recording: a pasted opening quote, Ecuadorian source,
  // Research selected and on-device translation. No model or service is needed.
  for(const source of ['es-EC','es-BO','es-MX'])for(const target of ['en-US','en-GB'])for(const purpose of ['everyday','academic']) {
