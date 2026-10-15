@@ -1,4 +1,14 @@
-# Same-iPhone audio capture — experimental native 0.1.5 (6)
+# Same-iPhone audio capture — experimental native 0.1.6 (7)
+
+## Compact translation layout — 14 October 2026
+
+Native 0.1.6 (7) groups the existing full-source editor, full translation, and latest paired passage into one compact reading card. Playback settings, document tools, and native diagnostics no longer sit between the source and its translation. Long fields scroll without truncating their stored values; the full translation's playback and editing actions remain available under Playback & translation notes. The existing DOM nodes, IDs, handlers, editing and saved-gloss behavior are preserved. This layout is injected by the native companion and needs a new install; the hosted website has not changed.
+
+All 13 JavaScript suites pass. DOM checks against both index.html and translator.html confirm node identity, unique IDs, retained editor values and input handlers, app-owned visibility, and available playback/capture controls. Visual verification on the physical iPhone and an Xcode build of this revision remain pending.
+
+The preceding native 0.1.5 (6), commit 6757a48, compiled successfully on the user's Mac with Xcode 27.0 (27A266a), iPhoneOS SDK 27.0, unsigned generic-iOS Debug. The user subsequently installed and launched it on the iPhone. A supplied screen recording shows the system-audio input selected, captured text, a live translated passage, retained text after a user-stop report, and analyzer diagnostics of 71.3 seconds / 3,564 buffers / zero rejected. The supplied recording's audio track is silent, so transcription fidelity and uninterrupted source playback cannot be verified from it. Microphone isolation, stop-indicator cleanup, other playback apps and protected playback remain unverified. The diagnostic label Microphone audio is misleading for the selected system input and remains an open issue.
+
+## Original prototype notes — native 0.1.5 (6)
 
 This prototype adds an opt-in system-audio input to the existing hosted translator. It is not yet verified on the user's iPhone, Spotify, Apple Podcasts or Audible. It does not guarantee access to protected playback, better sung transcription, or real-time spoken dubbing.
 
