@@ -29,7 +29,24 @@
     sourceLabel.textContent = "Full source text";
     inputCard.prepend(sourceLabel);
     inputCard.before(workspace);
-    workspace.append(inputCard, result, preview);
+    const emptyTarget = document.createElement("section");
+    emptyTarget.id = "native-empty-translation";
+    emptyTarget.setAttribute("aria-label", "Translation");
+    const targetLabel = document.createElement("p");
+    targetLabel.className = "result-label";
+    targetLabel.textContent = "Translation";
+    const targetHint = document.createElement("p");
+    targetHint.className = "native-empty-hint";
+    targetHint.textContent = "Your translation will appear here.";
+    emptyTarget.append(targetLabel, targetHint);
+    workspace.append(inputCard, emptyTarget, result, preview);
+    // The hosted app hides empty results. Reserve the target area until a real
+    // full translation or paired live passage takes its place; never fake output.
+    const syncEmptyTarget = () => { emptyTarget.hidden = !result.hidden || !preview.hidden; };
+    syncEmptyTarget();
+    const targetObserver = new MutationObserver(syncEmptyTarget);
+    targetObserver.observe(result, {attributes:true, attributeFilter:["hidden"]});
+    targetObserver.observe(preview, {attributes:true, attributeFilter:["hidden"]});
     const missing = document.querySelector("#no-result");
     if (missing) workspace.append(missing);
     // Keep full-text playback/editing tools available without stretching the pair.
@@ -48,6 +65,9 @@
       #native-translation-workspace > .input-card {margin:0;border:0;border-radius:0;box-shadow:none;padding:12px 14px 50px;}
       .native-source-label {display:block;margin-bottom:6px;color:var(--green);font-size:12px;font-weight:600;}
       #native-translation-workspace #translator-input {display:block;box-sizing:border-box;height:clamp(80px,14svh,140px);min-height:80px;max-height:22svh;overflow:auto;font-size:18px;font-weight:400;}
+      #native-empty-translation {box-sizing:border-box;min-height:140px;min-height:18svh;padding:12px 14px;background:var(--green);color:white;}
+      #native-empty-translation[hidden] {display:none;}
+      #native-empty-translation .native-empty-hint {margin:12px 0 0;font-size:18px;font-weight:400;line-height:1.4;opacity:.8;}
       #native-translation-workspace > #translation-result {margin:0;border-radius:0;padding:12px 14px;}
       #native-translation-workspace #natural-result {max-height:24svh;overflow:auto;padding:4px 0;font-size:19px;font-weight:400;}
       #native-translation-workspace > .music-live-preview {margin:0;padding:12px 14px;border:0;border-top:1px solid var(--line);border-radius:0;}
