@@ -572,6 +572,53 @@ async function main() {
   assert.equal(element('#music-live-retry').hidden,true);
   run('stopMusicListening()');retryRecognition.onend();
   assert.equal(element('#music-live-retry').hidden,true);
+  // The exact unfinished English tail in the supplied recording waits for its
+  // object; a finalized complete clause can then reach the translation engine.
+  context.englishCalls=0;
+  context.liveTranslate=async()=>{context.englishCalls++;return 'No hay comisiones sobre tus ventas.';};
+  run('requestGeneralTranslation=liveTranslate;newMusicSong();sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair();startMusicListening()');
+  const englishFragment=recordings.at(-1);
+  englishFragment.emit('There are no commissions on');
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(context.englishCalls,0);
+  assert.match(element('#music-live-status').textContent,/mid-clause/);
+  englishFragment.emit('There are no commissions on your sales.');
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(context.englishCalls,1);
+  assert.equal(element('#music-live-source').textContent,'There are no commissions on your sales.');
+  for(const phrase of ['Turn it on.','Come on!','That is what I came for.','I am in.'])
+    assert.equal(run(`musicFragmentReason(${JSON.stringify(phrase)},"en-US")`),'','complete phrasal endings are not blocked');
+  run('cancelMusicListening();newMusicSong()');
+  // System input uses route-specific messages, while legacy web and ordinary
+  // microphone capture keep their existing behavior.
+  element('#music-live-translation').checked=false;
+  element('#music-playback-source').value='system';
+  context.window.__hablaSystemAudioSupported=true;
+  run('startMusicListening()');
+  assert.match(element('#music-listening-status').textContent,/this iPhone's audio/);
+  assert.doesNotMatch(element('#music-listening-status').textContent,/microphone|keep this screen open/);
+  run('cancelMusicListening()');
+  assert.match(element('#music-listening-status').textContent,/playback app may be sending silence/);
+  context.window.__hablaSystemAudioSupported=false;
+  element('#music-playback-source').value='external';
+  // Continuing a stopped native capture must not certify an earlier guess.
+  element('#music-live-translation').checked=true;
+  run('newMusicSong();setMusicLiveUpdateMode("confirmed");startMusicListening()');
+  const uncertainCapture=recordings.at(-1);
+  uncertainCapture.emit('The first sentence. questionable ending',false,
+    {confirmedText:'The first sentence.',tentativeText:'questionable ending'});
+  run('stopMusicListening()');uncertainCapture.onend();
+  run('startMusicListening()');
+  const nextCapture=recordings.at(-1);
+  nextCapture.emit('The next sentence.',false,{confirmedText:'The next sentence.',tentativeText:''});
+  assert.equal(run('musicLiveSource(musicListening)'),'The first sentence.\nThe next sentence.','Continue never promotes an old tentative guess into finalized recognition');
+  assert.match(element('#translator-input').value,/questionable ending/,'the uncertain words remain available for review');
+  assert.match(element('#music-live-pending').textContent,/questionable ending/);
+  run('cancelMusicListening();startMusicListening()');
+  const legacyContinuation=recordings.at(-1);
+  legacyContinuation.emit('New legacy recognition without native metadata.');
+  assert.match(run('musicLiveSource(musicListening)'),/New legacy recognition/,'changing to a recognizer without native metadata does not hide its new words');
+  run('cancelMusicListening();newMusicSong()');
   for(const page of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,page),'utf8');
     for(const id of ['music-live-update-mode','music-live-retry'])

@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.4 · build 97";
+const APP_VERSION = "0.24.5 · build 98";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -770,6 +770,9 @@ let musicListening = null;
 let musicTranscriptReview = false;
 let musicCapturedText = "";
 let musicCapturedLanguage = "";
+let musicCapturedConfirmedText = null;
+let musicCapturedTentativeText = "";
+let musicFullTranslation = null;
 let musicPassages = [];
 let musicPassageID = 0;
 let selectedMusicPassage = null;
@@ -903,7 +906,10 @@ function musicFragmentReason(passage, language) {
   const dangling = languageFamily(language) === "es"
     ? /\b(?:que|porque|aunque|pero|para|con|sin|del|al|el|la|los|las|un|una|de|en|por|y|o|que\s+(?:ya|no|yo|tú|él|ella|nosotros|ellos|ellas))$/u
     : /\b(?:because|although|but|with|without|of|to|the|a|an|and|or|that\s+(?:i|you|he|she|we|they)|(?:i|you|he|she|we|they)(?:'re|'s|\s+(?:am|are|is))\s+(?:already|not))$/u;
-  return dangling.test(ending)
+  // "Turn it on" is complete; a fee/commission "on" needs its object.
+  const missingEnglishObject = languageFamily(language) === "en"
+    && /\b(?:commissions?|fees?|charges?|tax(?:es)?|interest|based|depend(?:s|ing)?)\s+on$/u.test(ending);
+  return dangling.test(ending) || missingEnglishObject
     ? "The captured phrase ends mid-clause. Waiting for more words; stop to correct it if recognition missed the rest."
     : "";
 }
@@ -1116,10 +1122,13 @@ function cancelMusicListening(preserveTranscript=true) {
 }
 
 function newMusicSong() {
+  musicFullTranslation = null;
   cancelMusicListening();
   saveActiveTranslationEdit();
   musicCapturedText = "";
   musicCapturedLanguage = "";
+  musicCapturedConfirmedText = null;
+  musicCapturedTentativeText = "";
   musicTranscriptReview = false;
   resetMusicLivePreview();
   musicReviewRequest += 1;
@@ -1132,6 +1141,63 @@ function newMusicSong() {
   $("#music-listening-status").textContent = "Ready for a new song. Choose From, then tap Listen to music.";
   updateMusicListenLabel();
   renderTranslation();
+}
+
+async function translateCapturedMusic() {
+  const source = $("#translator-input").value.trim();
+  if (musicListening || musicFullTranslation || !musicTranscriptReview || !source) return;
+  const request = {source,language:sourceLanguage,target:targetLanguage,purpose:translationPurpose,
+    uncertain:Boolean(musicCapturedText === source && musicCapturedLanguage === sourceLanguage && musicCapturedTentativeText)};
+  musicFullTranslation = request;
+  $("#music-listening-status").textContent = "Translating captured words…";
+  $("#translate-music").disabled = true;
+  try {
+    const pending = renderTranslation({allowMusic:true});
+    const renderRequest = translationRequest;
+    await pending;
+    if (musicFullTranslation !== request) return;
+    const current = request.source === $("#translator-input").value.trim()
+      && request.language === sourceLanguage && request.target === targetLanguage
+      && request.purpose === translationPurpose && renderRequest === translationRequest;
+    const completed = current && lastCompletedTranslation?.source === request.source
+      && lastCompletedTranslation.sourceLanguage === request.language
+      && lastCompletedTranslation.targetLanguage === request.target;
+    if (completed) {
+      const incomplete = Boolean(musicFragmentReason(source,request.language));
+      $("#music-listening-status").textContent = incomplete
+        ? "Draft ready, but the captured source ends mid-phrase. Missing words can change its meaning."
+        : request.uncertain
+          ? "Draft ready. Some captured words were unconfirmed; check them before relying on the translation."
+        : "Translation ready. Check the draft against the captured words.";
+      if (incomplete) {
+        $("#translation-result .result-label").textContent += " · incomplete captured text";
+        $("#usage-note").innerHTML += "<p>The captured source ends mid-phrase. This draft cannot supply the missing words; continue listening or correct the source before relying on its meaning.</p>";
+      }
+      if (request.uncertain) {
+        $("#translation-result .result-label").textContent += " · unconfirmed captured words";
+        $("#usage-note").innerHTML += "<p>Some source words were still tentative when capture stopped. They are included in this manually requested draft and need review; recognition has not confirmed them.</p>";
+      }
+    } else {
+      musicTranscriptReview = true;
+      $("#music-listening-status").textContent = current
+        ? "Translation could not finish. Captured words are kept. Check the error message, then tap Translate captured words to retry."
+        : "The text or language changed. Check the captured words, then tap Translate captured words again.";
+    }
+  } catch {
+    if (musicFullTranslation !== request) return;
+    musicTranscriptReview = true;
+    $("#music-listening-status").textContent = "Translation could not finish. Captured words are kept. Tap Translate captured words to retry.";
+  } finally {
+    if (musicFullTranslation === request) {
+      musicFullTranslation = null;
+      $("#translate-music").disabled = !musicTranscriptReview || !$("#translator-input").value.trim();
+    }
+  }
+}
+
+function retryTranslation() {
+  if (documentImportActive && importedDocument) return $("#translate-document").click();
+  return musicTranscriptReview ? translateCapturedMusic() : renderTranslation();
 }
 
 function stopMusicListening() {
@@ -1157,17 +1223,23 @@ function startMusicListening() {
     return;
   }
   cancelListening(true);
+  musicFullTranslation = null;
   musicReviewRequest += 1;
   saveActiveTranslationEdit();
-  const baseText = musicContinuationAvailable() ? $("#translator-input").value.trim() : "";
+  const continuing = musicContinuationAvailable();
+  const baseText = continuing ? $("#translator-input").value.trim() : "";
+  const baseConfirmedText = continuing && musicCapturedConfirmedText !== null ? musicCapturedConfirmedText : baseText;
+  const baseTentativeText = continuing ? musicCapturedTentativeText : "";
   closeImportedDocument();
   clearTimeout(translationTimer);
   translationRequest += 1;
   stopSpeechPlayback();
-  const phoneBluetooth = $("#music-playback-source")?.value === "phone-bluetooth";
-  const session = {baseText, baseConfirmedText:baseText, heard:false, error:"", stopping:false, lang:sourceLanguage,
-    confirmedSource:null, tentativeText:"",
-    phoneBluetooth, song:$("#music-capture-length").value === "song",
+  const playbackSource = $("#music-playback-source")?.value;
+  const phoneBluetooth = playbackSource === "phone-bluetooth";
+  const systemAudio = playbackSource === "system" && window.__hablaSystemAudioSupported === true;
+  const session = {baseText, baseConfirmedText, baseTentativeText, heard:false, error:"", stopping:false, lang:sourceLanguage,
+    confirmedSource:null, tentativeText:baseTentativeText,
+    phoneBluetooth, systemAudio, song:$("#music-capture-length").value === "song",
     live:{enabled:Boolean($("#music-live-translation")?.checked),mode:$("#music-live-update-mode")?.value === "quick" ? "quick" : "confirmed",lastProvisional:false,errorCode:"",target:targetLanguage,
       purpose:translationPurpose,way:direction,revision:0,busy:false,timer:null,failed:false,
       lastSource:baseText,lastPassage:"",requests:0,characters:0,errorMessage:""}};
@@ -1181,7 +1253,9 @@ function startMusicListening() {
   $("#music-capture-length").disabled = true;
   if ($("#music-playback-source")) $("#music-playback-source").disabled = true;
   $("#translate-music").disabled = true;
-  status.textContent = "Starting microphone… allow access if asked.";
+  status.textContent = systemAudio
+    ? "Starting this iPhone's audio capture… allow Apple's picker if asked."
+    : "Starting microphone… allow access if asked.";
   session.finish = () => {
     if (musicListening !== session) return;
     clearTimeout(session.timer);
@@ -1212,10 +1286,14 @@ function startMusicListening() {
     if (ready) {
       musicCapturedText = $("#translator-input").value.trim();
       musicCapturedLanguage = session.lang;
+      if (session.heard || !continuing || session.confirmedSource !== null) musicCapturedConfirmedText = session.confirmedSource;
+      musicCapturedTentativeText = session.tentativeText;
     }
     updateMusicListenLabel();
     status.textContent = session.error || (ready
       ? "Capture paused. Check the words above, then Translate captured words. Continue listening adds the next passage; New song starts fresh."
+      : session.systemAudio
+        ? "No words captured from this iPhone's audio. The playback app may be sending silence. Your previous text is unchanged."
       : session.phoneBluetooth
         ? "No words captured. Check that music is still audible on the Bluetooth speaker. iOS may have paused it or changed the audio route. Your previous text is unchanged."
         : "No words captured. Move closer to the other device or try clearer vocals. Your previous text is unchanged.");
@@ -1232,7 +1310,9 @@ function startMusicSegment(session) {
     onStart:() => {
       if (session.stopping) return;
       const duration = session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
-      status.textContent = session.phoneBluetooth
+      status.textContent = session.systemAudio
+        ? `Capturing this iPhone's audio… ${duration}. You can switch to the playback app; tap Stop listening when finished.`
+        : session.phoneBluetooth
         ? `Listening through the microphone… check the Bluetooth speaker is still playing. ${duration}; keep Habla open, then Stop listening.`
         : `Listening to the song… ${duration}; keep this screen open. Tap Stop listening when finished.`;
     },
@@ -1241,7 +1321,7 @@ function startMusicSegment(session) {
       if (text) session.heard = segmentHeard = true;
       if (typeof metadata.confirmedText === "string") {
         session.confirmedSource = [session.baseConfirmedText,metadata.confirmedText].filter(Boolean).join("\n").trim();
-        session.tentativeText = metadata.tentativeText || "";
+        session.tentativeText = [session.baseTentativeText,metadata.tentativeText || ""].filter(Boolean).join("\n").trim();
         if (session.live.enabled) {
           if (!showTentativeMusicWords(session)) $("#music-live-pending").hidden = true;
         }
@@ -1274,6 +1354,7 @@ function startMusicSegment(session) {
       // loop on silence, denied access or service errors; those need a tap.
       session.baseText = $("#translator-input").value.trim();
       session.baseConfirmedText = session.confirmedSource ?? session.baseText;
+      session.baseTentativeText = session.tentativeText;
       status.textContent = "Browser capture restarted. Earlier words are kept; check for a gap between passages.";
       session.restartTimer = setTimeout(() => startMusicSegment(session),200);
     },
@@ -1738,6 +1819,11 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   const requestId = ++translationRequest;
   if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
+  const requestContext = {source:sourceLanguage,target:targetLanguage,purpose:translationPurpose};
+  const current = () => requestId === translationRequest
+    && sourceText === $("#translator-input").value.trim()
+    && requestContext.source === sourceLanguage && requestContext.target === targetLanguage
+    && requestContext.purpose === translationPurpose;
   renderSpanishContext(sourceText);
   const preservedEntry = direction === "en-ec"
     && preservedCulturalContext
@@ -1780,8 +1866,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
       const inputType=importedDocument?.kind==='image'?'image':allowMusic?'music':undefined;
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:()=>requestId === translationRequest,onDevice,inputType});
-      if (requestId !== translationRequest) return;
+      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
+      if (!current()) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
@@ -1831,7 +1917,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
     } catch (error) {
-      if (requestId !== translationRequest) return;
+      if (!current()) return;
       activeTranslationEdit = null;
       $("#natural-result").removeAttribute("contenteditable");
       updateTranslationEditUi();
@@ -2854,10 +2940,7 @@ function init() {
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   bindDocumentTools();
   window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause});
-  $("#retry-translation")?.addEventListener("click", () => {
-    if (documentImportActive && importedDocument) $("#translate-document").click();
-    else renderTranslation();
-  });
+  $("#retry-translation")?.addEventListener("click", retryTranslation);
   syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
@@ -2892,6 +2975,8 @@ function init() {
     if (musicListening) cancelMusicListening(false);
     if (musicCapturedText && musicCapturedLanguage === sourceLanguage) {
       musicCapturedText = $("#translator-input").value.trim();
+      musicCapturedConfirmedText = musicCapturedText;
+      musicCapturedTentativeText = "";
       updateMusicListenLabel();
     }
     if (musicTranscriptReview) {
@@ -2918,7 +3003,7 @@ function init() {
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
   });
-  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicTranscriptReview = false; musicCapturedText = ""; updateMusicListenLabel(); $("#translate-music").disabled = true; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
+  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicFullTranslation = null; musicTranscriptReview = false; musicCapturedText = ""; updateMusicListenLabel(); $("#translate-music").disabled = true; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
@@ -2936,13 +3021,8 @@ function init() {
   $("#music-review-translate")?.addEventListener("click", translateReviewedMusicPassage);
   $("#offline-use")?.addEventListener("change", refreshMusicLiveRoute);
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
-  $("#translate-music")?.addEventListener("click", () => {
-    if (musicListening || !musicTranscriptReview || !$("#translator-input").value.trim()) return;
-    $("#music-listening-status").textContent = "Translating captured words. Check the draft below.";
-    $("#translate-music").disabled = true;
-    renderTranslation({allowMusic:true});
-  });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelMusicListening(); });
+  $("#translate-music")?.addEventListener("click", translateCapturedMusic);
+  document.addEventListener("visibilitychange", () => { if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);
@@ -3051,7 +3131,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=97").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=98").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

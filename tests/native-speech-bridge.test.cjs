@@ -22,6 +22,21 @@ assert.equal(typeof harness(undefined, "/habla-ecuador/index.html").window.__hab
 // Exercise the actual startup boundary: native standalone redirects before any
 // binding, while the full app and ordinary web translator initialize normally.
 const appSource = fs.readFileSync("app.js", "utf8");
+// The installed system-audio companion loads this hosted page. Switching to a
+// playback app must not trigger the page's ordinary microphone cleanup.
+let visibilityHandler, visibilityCancels = 0;
+const visibilityLine = appSource.split("\n").find(line => line.includes('document.addEventListener("visibilitychange"'));
+const visibilityContext = {
+  document:{hidden:true,addEventListener:(name,handler)=>{visibilityHandler=handler;}},
+  window:{__hablaSystemAudioCaptureActive:true},cancelMusicListening:()=>visibilityCancels++
+};
+vm.runInNewContext(visibilityLine,visibilityContext);
+visibilityHandler();
+assert.equal(visibilityCancels,0,"hosted page preserves an explicitly active native system-audio session");
+visibilityContext.window.__hablaSystemAudioCaptureActive=false;
+visibilityHandler();assert.equal(visibilityCancels,1,"ordinary microphone capture still ends when hidden");
+visibilityContext.document.hidden=false;
+visibilityHandler();assert.equal(visibilityCancels,1,"returning to the page never cancels capture");
 const initPrefix = appSource.slice(appSource.indexOf("function init() {"), appSource.indexOf('  localStorage.removeItem("habla-ecuador-ios-voice-correction-v1")'));
 function launch(path, native) {
   const url = new URL(path, "https://mathewdmoore.github.io");

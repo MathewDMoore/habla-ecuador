@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const elements=new Map();
-function element(selector){if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,dataset:{},classList:{toggle(){},add(){},remove(){}},setAttribute(){},removeAttribute(){}});return elements.get(selector);}
+function element(selector){if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,dataset:{},children:[],replaceChildren(){this.children=[];},append(child){this.children.push(child);},classList:{toggle(){},add(){},remove(){}},setAttribute(){},removeAttribute(){}});return elements.get(selector);}
 let handler,requests=[];
 const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
  document:{querySelector:element,addEventListener(){},createElement:()=>({textContent:'',get innerHTML(){return this.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},set innerHTML(v){this.value=v;}})},
@@ -12,6 +12,66 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ fresh();
+ // Recording regression: the final captured English clause ends in "on".
+ run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec";translationPurpose="everyday";musicTranscriptReview=true');
+ element('#translator-input').value='There are no commissions on';
+ handler=async()=>ok('No hay comisiones sobre');
+ await run('translateCapturedMusic()');
+ assert.match(element('#music-listening-status').textContent,/Draft ready.*mid-phrase/);
+ assert.doesNotMatch(element('#music-listening-status').textContent,/Translating/);
+ assert.match(element('#translation-result .result-label').textContent,/incomplete captured text/);
+ assert.match(element('#usage-note').innerHTML,/missing words/);
+ assert.equal(element('#translator-input').value,'There are no commissions on');
+ fresh();
+ element('#translator-input').value='There are no commissions on your sales.';
+ run('musicTranscriptReview=true');
+ handler=async()=>{throw new TypeError('Failed to fetch');};
+ await run('translateCapturedMusic()');
+ assert.match(element('#music-listening-status').textContent,/could not finish/);
+ assert.equal(element('#translate-music').disabled,false,'a failed full translation can be retried without restarting capture');
+ assert.equal(run('musicTranscriptReview'),true);
+ assert.equal(element('#translator-input').value,'There are no commissions on your sales.');
+ handler=async()=>ok('No hay comisiones sobre tus ventas.');
+ await run('retryTranslation()');
+ assert.equal(element('#natural-result').textContent,'No hay comisiones sobre tus ventas.');
+ assert.match(element('#music-listening-status').textContent,/Translation ready/);
+ assert.doesNotMatch(element('#translation-result .result-label').textContent,/incomplete/);
+ assert.equal(element('#translate-music').disabled,true,'a completed request no longer looks busy or retryable');
+ fresh();
+ element('#translator-input').value='The words may be uncertain.';
+ run('musicTranscriptReview=true;musicCapturedText="The words may be uncertain.";musicCapturedLanguage="en-US";musicCapturedTentativeText="uncertain"');
+ handler=async()=>ok('Las palabras pueden ser inciertas.');
+ await run('translateCapturedMusic()');
+ assert.match(element('#music-listening-status').textContent,/unconfirmed/);
+ assert.match(element('#translation-result .result-label').textContent,/unconfirmed captured words/);
+ assert.equal(element('#translator-input').value,'The words may be uncertain.');
+ run('newMusicSong()');
+ // The same completion handling applies to a local phrase with no API request.
+ fresh();element('#translator-input').value="I don't understand.";run('musicTranscriptReview=true');
+ await run('translateCapturedMusic()');
+ assert.equal(requests.length,0);
+ assert.match(element('#music-listening-status').textContent,/Translation ready/);
+ // New song and an edited source must win over a late service response.
+ fresh();let finishFull;
+ handler=()=>new Promise(resolve=>{finishFull=()=>resolve(ok('Respuesta vieja.'));});
+ element('#translator-input').value='A captured sentence for translation.';run('musicTranscriptReview=true');
+ let pendingFull=run('translateCapturedMusic()');
+ await run('translateCapturedMusic()');
+ assert.equal(requests.length,1,'double taps do not send duplicate full translations');
+ run('newMusicSong()');finishFull();await pendingFull;
+ assert.equal(element('#translator-input').value,'');
+ assert.match(element('#music-listening-status').textContent,/Ready for a new song/);
+ assert.equal(element('#translation-result').hidden,true);
+ fresh();element('#translator-input').value='Another captured source sentence.';run('musicTranscriptReview=true');
+ pendingFull=run('translateCapturedMusic()');
+ element('#translator-input').value='The user corrected the captured words.';
+ element('#natural-result').textContent='Keep this current draft.';
+ finishFull();await pendingFull;
+ assert.equal(element('#natural-result').textContent,'Keep this current draft.','late output cannot render against changed source before the input debounce');
+ assert.match(element('#music-listening-status').textContent,/text or language changed/);
+ assert.equal(element('#translate-music').disabled,false);
+ run('newMusicSong()');
  fresh();
  // The provider's actual response to the phone's dictated English sentence.
  handler=async()=>ok('Yo voy a trabajar manana');

@@ -72,6 +72,18 @@ longer sentences, quoted phrases, academic text, or ambiguous bare fuck/shit.
 All other input retains the existing translation route. Local output stays
 editable and is labelled a vulgar counterpart with its sense and review status.
 
+### Capture and translation continuity (v0.24.5 · build 98)
+
+The installed 0.1.6 (7) system-audio companion loads the hosted page. The prototype already marked explicit system capture with `__hablaSystemAudioCaptureActive`, but deployed main still cancelled capture on every hidden-page event. The hosted handler now preserves that explicit native session while retaining ordinary microphone cleanup. System-input status and help describe the picker and switching to the playback app, and distinguish unavailable/silent system input from an external microphone. This is compatibility with the existing installed prototype; native code and the separate prototype PR are unchanged.
+
+Translate captured words now waits for a real result, ends its busy message on success or failure, restores retry after failure, and routes the general Retry translation action through the captured-text workflow. A double tap cannot duplicate requests. New song, a new capture, ordinary dictation, changed text and changed language reject stale completion. The renderer checks the actual source and language pair before publishing asynchronous output, including during input debounce.
+
+Stop/Continue and normal segment restarts retain native confirmation metadata. Previously, Continue promoted every retained word—including tentative guesses—into confirmed source. Tentative words now stay available in the source and review notice but stay out of native confirmed-only live translation. Manually translating the full capture explicitly labels inclusion of unconfirmed words. Editing the retained source makes that edited text authoritative. Recognizers without native certainty metadata retain their existing behavior.
+
+The supplied recording ends in `There are no commissions on`. A bounded financial/noun-preposition check now waits for the missing object in live mode and labels manually translated incomplete captures. Complete phrasal endings such as `Turn it on` and `Come on` are not blocked. This does not infer missing speech or establish general grammatical/translation accuracy.
+
+Regressions cover the previously failing hidden-page guard, actual 0.1.6 (7) JavaScript bridge paired with the updated hosted app, interrupted-clause recovery, confirmation across Continue, full-translation success/failure/retry, stale responses and route messages. JavaScript checks cannot validate iOS audio capture or recognition on a physical phone. The supplied screen recording has silent audio, so its exact spoken source and translation fidelity remain unverified. No new native build is required for these hosted changes; device playback and recognition still need a focused follow-up.
+
 ### Spanish tomorrow spelling (v0.24.4 · build 97)
 
 The online service was reproduced returning `Yo voy a trabajar manana` for `I'm going to work tomorrow.` The shared English-to-Spanish translation path now restores the ñ in standalone `manana` only when the English source explicitly contains `tomorrow`. The spelling and next-day sense follow [RAE/ASALE DLE: mañana](https://dle.rae.es/ma%C3%B1ana). This applies across supported Spanish targets, online and on-device drafts, including cached provider responses. It preserves case, other Unicode text, quotations, code, links, email, handles, compound words, source text and saved user edits. If the English source itself contains Manana/mañana, the rule skips the ambiguous name or literal spelling. Spanish-to-English and regional bridges keep their existing behavior.
