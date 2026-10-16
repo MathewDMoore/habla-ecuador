@@ -469,6 +469,19 @@ button:disabled { cursor: default; }
 #saved-paper-source { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
 .reference-excerpts > :not(summary) { display: block; margin-top: 10px; }
 #saved-paper-print { display: none; }
+#whole-document-print { display: none; }
+.whole-document-tools h2 { font-size: 1.2rem; margin: 0 0 .65rem; }
+.whole-document-tools label { display: block; margin: .8rem 0 .4rem; font-weight: 650; }
+.whole-document-tools select, #document-full-draft { width: 100%; box-sizing: border-box; }
+#document-full-draft { padding: 14px; border: 1px solid var(--line, #d5d9d1); border-radius: 12px; font: 16px/1.6 Georgia,serif; color: #1b2723; background: white; resize: vertical; }
+#document-full-draft[readonly] { background: #f6f6f1; }
+.whole-document-tools button:disabled { opacity: .55; }
+@media print {
+  body.printing-whole-document > * { display: none !important; }
+  body.printing-whole-document > #whole-document-print { display: block !important; margin: 0; color: black; background: white; font: 12pt/1.5 Georgia,serif; }
+  body.printing-whole-document { background: white; }
+  #whole-document-print h1 { font: bold 18pt/1.25 Georgia,serif; break-after: avoid; }
+}
 @media (min-width: 780px) { #saved-paper-editors.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media print {
   body.printing-saved-paper > * { display: none !important; }

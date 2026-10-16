@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.24.5 · build 98";
+const APP_VERSION = "0.25.0 · build 99";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -199,6 +199,7 @@ function languageLabel(code) {
 }
 
 function syncLanguagePair({persist=true}={}) {
+  wholeDocumentTools?.pause('Paused because the language settings changed. Saved progress keeps its original languages.');
   direction = translatorRoute();
   englishVariant = targetLanguage === "en-GB" || (languageFamily(targetLanguage) !== "en" && sourceLanguage === "en-GB") ? "uk" : "us";
   if (persist) localStorage.setItem(TRANSLATOR_PAIR_STORAGE_KEY, JSON.stringify({source:sourceLanguage,target:targetLanguage}));
@@ -206,6 +207,7 @@ function syncLanguagePair({persist=true}={}) {
   const targetSelect = $("#target-language-select");
   if (sourceSelect) sourceSelect.value = sourceLanguage;
   if (targetSelect) targetSelect.value = targetLanguage;
+  wholeDocumentTools?.refresh();
 }
 
 function sourceSpeechLocale() {
@@ -262,6 +264,7 @@ let documentImportActive = false;
 let documentLoading = false;
 let importedDocument = null;
 let documentImportRequest = 0;
+let wholeDocumentTools = null;
 let comparisonContext = null;
 let comparisonChanges = [];
 let comparisonPurpose = "everyday";
@@ -1575,7 +1578,7 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress}={}) {
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
@@ -1604,9 +1607,13 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const chunks = splitLongTranslationText(protectedDocument.text);
   if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
   const translated = [];
-  for (const chunk of chunks) {
+  for (let index=0;index<chunks.length;index++) {
+    const chunk=chunks[index];
     if (!isCurrent()) throw translationFailure("superseded");
-    const draft=chunk.separator ? chunk.text : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
+    const cached=chunk.separator?undefined:chunkProgress?.read(index,chunk.text);
+    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
+    if (!isCurrent()) throw translationFailure("superseded");
+    if(!chunk.separator&&cached===undefined)chunkProgress?.write(index,chunk.text,draft);
     let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;
     if(way==='ec-en'&&!chunk.separator&&purpose!=='academic'&&typeof HablaSpanishContext!=='undefined')contextualDraft=HablaSpanishContext.refine(contextualDraft,chunk.text,{purpose}).text;
     translated.push(contextualDraft);
@@ -1672,7 +1679,7 @@ function setEditableTranslation(source, generated, metadata={}) {
   const result = $("#natural-result");
   const key = translationEditKey(source);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
-  const target = savedText || generated;
+  const target = metadata.documentDraft ? generated : savedText || generated;
   if ($("#compare-english")) $("#compare-english").disabled = languageFamily(targetLanguage) !== "en";
   result.textContent = target;
   result.setAttribute("contenteditable", "true");
@@ -1704,6 +1711,7 @@ function saveActiveTranslationEdit() {
     edited:finalText !== activeTranslationEdit.generated
   };
   updateTranslationEditUi();
+  recordCurrentDocumentDraft();
 }
 
 function restoreGeneratedTranslation() {
@@ -1723,6 +1731,14 @@ function restoreGeneratedTranslation() {
   };
   updateTranslationEditUi();
   showToast("Generated translation restored.");
+  recordCurrentDocumentDraft();
+}
+
+function recordCurrentDocumentDraft() {
+  if(!importedDocument || importedDocument.kind==='image' || !documentImportActive || !lastCompletedTranslation)return;
+  const draft=lastCompletedTranslation;
+  if(draft.sourceLanguage!==sourceLanguage || draft.targetLanguage!==targetLanguage || draft.purpose!==translationPurpose)return;
+  wholeDocumentTools?.recordSection(importedDocument.index,draft.source,draft.target);
 }
 
 function regionalSpanishBridge(sourceText) {
@@ -1976,6 +1992,7 @@ function updateEcuadorResearchPaperLink() {
 }
 
 function closeImportedDocument() {
+  wholeDocumentTools?.pause('Document closed. Completed progress is saved; reopen it under Saved document progress.');
   if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
   documentImportRequest += 1;
   documentImportActive = false;
@@ -1985,6 +2002,7 @@ function closeImportedDocument() {
   if (preview) preview.hidden = true;
   if ($("#document-file")) $("#document-file").value = "";
   if ($("#document-status")) $("#document-status").textContent = "";
+  wholeDocumentTools?.refresh();
 }
 
 function safeDocumentSections(text) {
@@ -1996,6 +2014,7 @@ function safeDocumentSections(text) {
 
 function selectDocumentSection(index) {
   if (!importedDocument) return;
+  wholeDocumentTools?.pause('Paused while reviewing a section. Resume entire document when ready.');
   cancelMusicListening();
   musicTranscriptReview = false;
   musicCapturedText = "";
@@ -2018,9 +2037,59 @@ function selectDocumentSection(index) {
   $("#document-status").textContent = `${importedDocument.name} · section ${index + 1} of ${importedDocument.sections.length} · ${importedDocument.total.toLocaleString()} characters imported. Preview only; click Translate this section when ready.`;
   lastCompletedTranslation = null;
   activeTranslationEdit = null;
+  wholeDocumentTools?.refresh();
+  const saved=wholeDocumentTools?.section(index);
+  if(saved?.translation)showDocumentSectionDraft(index,saved,{sourceLanguage,targetLanguage,onDevice:typeof HablaOffline!=='undefined'&&HablaOffline.shouldUse()});
+}
+
+function populateDocumentSections() {
+  const select=$('#document-section');select.replaceChildren();
+  importedDocument.sections.forEach((text,index)=>{
+    const option=document.createElement('option');option.value=String(index);
+    option.textContent=`Section ${index+1} of ${importedDocument.sections.length} · ${text.length.toLocaleString()} characters`;
+    select.append(option);
+  });
+  documentLoading=false;$('#document-preview').hidden=false;$('#translate-document').disabled=false;
+  selectDocumentSection(0);
+}
+
+function showDocumentSectionDraft(index,part,job) {
+  if(!importedDocument || importedDocument.index!==index || importedDocument.sections[index].trim()!==part.source.trim()
+    || sourceLanguage!==job.sourceLanguage || targetLanguage!==job.targetLanguage)return;
+  setEditableTranslation(part.source.trim(),part.translation,{onDevice:job.onDevice,documentDraft:true});
+  $('#translation-result').hidden=false;
+  $('#translation-result .result-label').textContent=languageLabel(targetLanguage)+' document draft';
+  $('#literal-result').textContent='Editable document translation · saved progress';
+  $('#usage-note').textContent='Review terminology and wording against the source before sharing.';
+}
+
+function bindWholeDocumentTools() {
+  if(typeof HablaWholeDocument==='undefined')return;
+  wholeDocumentTools=HablaWholeDocument.bind({
+    getDocument:()=>{
+      if(!documentImportActive||!importedDocument||documentLoading||importedDocument.kind==='image')return null;
+      importedDocument.sections[importedDocument.index]=$('#translator-input').value;
+      return {name:importedDocument.name,sections:importedDocument.sections};
+    },
+    getRoute:()=>({sourceLanguage,targetLanguage,purpose:translationPurpose,onDevice:typeof HablaOffline!=='undefined'&&HablaOffline.shouldUse()}),
+    label:languageLabel,
+    formatError:error=>{const message=translationErrorMessage(error);return message.title+' '+message.help;},
+    translate:(text,options)=>requestGeneralTranslation(text,languageFamily(options.sourceLanguage)==='en'?'en-ec':'ec-en',{
+      source:options.sourceLanguage,target:options.targetLanguage,purpose:options.purpose,onDevice:options.onDevice,
+      isCurrent:options.isCurrent,chunkProgress:options.chunkProgress}),
+    onSection:showDocumentSectionDraft,
+    openDocument:job=>{
+      closeImportedDocument();cancelMusicListening();clearTimeout(translationTimer);translationRequest++;
+      sourceLanguage=job.sourceLanguage;targetLanguage=job.targetLanguage;syncLanguagePair();
+      setTranslationPurpose(job.purpose,false);
+      importedDocument={name:job.name,sections:job.parts.map(part=>part.source),index:0,total:job.parts.reduce((n,part)=>n+part.source.length,0)};
+      documentImportActive=true;populateDocumentSections();
+    }
+  });
 }
 
 function beginScreenshotImport() {
+  wholeDocumentTools?.pause('Paused while opening an image. Document progress is saved.');
   cancelMusicListening();
   musicTranscriptReview = false;
   musicCapturedText = "";
@@ -2055,10 +2124,11 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
-  $("#choose-document").addEventListener("click", () => $("#document-file").click());
+  $("#choose-document").addEventListener("click", () => {wholeDocumentTools?.pause('Paused while choosing another document. Progress is saved.');$("#document-file").click();});
   $("#document-file").addEventListener("change", async event => {
     const file = event.target.files[0];
     if (!file) return;
+    wholeDocumentTools?.pause('Paused while opening another document. Progress is saved.');
     cancelMusicListening();
     musicTranscriptReview = false;
     musicCapturedText = "";
@@ -2083,23 +2153,10 @@ function bindDocumentTools() {
       const extracted = await HablaDocument.extract(file);
       if (token !== documentImportRequest) return;
       importedDocument = {name:file.name, sections:safeDocumentSections(extracted.text), index:0, total:extracted.text.length};
-      if (languageFamily(sourceLanguage) !== "es") sourceLanguage = "es-EC";
-      targetLanguage = "en-GB";
       preservedCulturalContext = null;
       syncLanguagePair();
       setTranslationPurpose("academic", false);
-      const select = $("#document-section");
-      select.replaceChildren();
-      importedDocument.sections.forEach((text, index) => {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = `Section ${index + 1} of ${importedDocument.sections.length} · ${text.length.toLocaleString()} characters`;
-        select.append(option);
-      });
-      documentLoading = false;
-      $("#document-preview").hidden = false;
-      $("#translate-document").disabled = false;
-      selectDocumentSection(0);
+      populateDocumentSections();
     } catch (error) {
       if (token !== documentImportRequest) return;
       documentLoading = false;
@@ -2116,6 +2173,7 @@ function bindDocumentTools() {
   });
   $("#translate-document").addEventListener("click", async () => {
     if (!importedDocument) return;
+    if(wholeDocumentTools?.runner.busy)return;
     clearTimeout(translationTimer);
     $("#document-status").textContent = `${importedDocument.name} · translating section ${importedDocument.index + 1} of ${importedDocument.sections.length}.`;
     lastCompletedTranslation = null;
@@ -2124,6 +2182,7 @@ function bindDocumentTools() {
     const text = $("#translator-input").value.trim();
     await renderTranslation({allowImported:true});
     if (importedDocument !== document || importedDocument.index !== index || $("#translator-input").value.trim() !== text) return;
+    recordCurrentDocumentDraft();
     $("#document-status").textContent = `${document.name} · section ${index + 1} of ${document.sections.length} · ${lastCompletedTranslation?.source === text ? "draft ready. Compare U.K. / U.S. English below, or choose the next section." : "translation did not finish. Review the message below and try again."}`;
   });
   $("#close-document").addEventListener("click", () => {
@@ -2185,6 +2244,7 @@ function updateEnglishComparisonDifferences() {
 }
 
 function setTranslationPurpose(purpose, rerender=true) {
+  if((purpose==='academic'?'academic':'everyday')!==translationPurpose)wholeDocumentTools?.pause('Paused because the translation purpose changed. Progress is saved.');
   translationPurpose = purpose === "academic" ? "academic" : "everyday";
   localStorage.setItem(TRANSLATION_PURPOSE_STORAGE_KEY, translationPurpose);
   $$('[data-purpose]').forEach(button => {
@@ -2209,6 +2269,7 @@ function setTranslationPurpose(purpose, rerender=true) {
       : "Type or tap the microphone to speak…";
   }
   if (musicListening && musicListening.live.purpose !== translationPurpose) refreshMusicLiveRoute();
+  wholeDocumentTools?.refresh();
   if (rerender && input?.value.trim()) renderTranslation();
 }
 
@@ -2939,6 +3000,7 @@ function init() {
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   bindDocumentTools();
+  bindWholeDocumentTools();
   window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause});
   $("#retry-translation")?.addEventListener("click", retryTranslation);
   syncLanguagePair({persist:false});
@@ -2971,6 +3033,7 @@ function init() {
     if(button)applySlangMeaning(button.dataset.slangMeaning);
   });
   $("#translator-input").addEventListener("input", () => {
+    wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
     if (musicListening) cancelMusicListening(false);
     if (musicCapturedText && musicCapturedLanguage === sourceLanguage) {
@@ -2991,6 +3054,7 @@ function init() {
       lastCompletedTranslation = null;
       $("#translation-result").hidden = true;
       $("#english-comparison").hidden = true;
+      wholeDocumentTools?.refresh();
     }
     if (documentLoading) {
       documentLoading = false;
@@ -3131,7 +3195,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=98").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=99").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
