@@ -8,15 +8,16 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=98">
-  <script src="research-reference.js?v=98" defer></script>
-  <script src="document-import.js?v=98" defer></script>
-  <script src="saved-paper.js?v=98" defer></script>
-  <script src="offline-device.js?v=98" defer></script>
-  <script src="english-varieties.js?v=98" defer></script>
-  <script src="screenshot-import.js?v=98" defer></script>
-  <script src="spanish-context.js?v=98" defer></script>
-  <script src="app.js?v=98" defer></script>
+  <link rel="stylesheet" href="styles.css?v=99">
+  <script src="research-reference.js?v=99" defer></script>
+  <script src="document-import.js?v=99" defer></script>
+  <script src="whole-document.js?v=99" defer></script>
+  <script src="saved-paper.js?v=99" defer></script>
+  <script src="offline-device.js?v=99" defer></script>
+  <script src="english-varieties.js?v=99" defer></script>
+  <script src="screenshot-import.js?v=99" defer></script>
+  <script src="spanish-context.js?v=99" defer></script>
+  <script src="app.js?v=99" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -25,7 +26,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.24.5 · build 98</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.25.0 · build 99</span></div>
     </header>
 
     <main>
@@ -152,6 +153,7 @@
             <p id="screenshot-status" class="import-status" role="status" aria-live="polite"></p>
             <button id="cancel-screenshot" type="button" hidden>Cancel reading</button>
             <input id="document-file" type="file" accept=".docx,.doc,.pdf,.txt" hidden>
+            <details class="compact-info"><summary>Restore document progress</summary><button id="import-document-progress" type="button">Open progress backup</button><input id="document-progress-file" type="file" accept=".json,application/json" hidden></details>
             <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Copy a screenshot and tap Paste image, or paste into the text box. Images are read locally. The reader may need an internet connection to download its files; choose the From language and check extracted text before translating. Open Image area to exclude screen controls.</p></details>
             <p id="document-status" role="status" aria-live="polite"></p>
 
@@ -217,11 +219,40 @@
               <div id="document-section-controls">
               <label for="document-section">Document section</label>
               <select id="document-section"></select>
-              <details class="compact-info"><summary>About document sections</summary><p>Review or edit the text below, then translate this section. Repeat for every section; the whole document is not translated at once.</p></details>
+              <details class="compact-info"><summary>About document sections</summary><p>Review or edit this section, or choose Translate entire document below to process all sections in order with saved progress.</p></details>
               </div>
               <button id="translate-document" type="button">Translate this section</button>
               <button id="close-document" type="button">Close document</button>
             </div>
+          <section id="whole-document-tools" class="document-tools whole-document-tools" aria-labelledby="whole-document-heading" hidden>
+            <h2 id="whole-document-heading">Whole document</h2>
+            <p>Translate every section in order and combine the results into one editable draft. Keep this page open while translating.</p>
+            <div class="paper-actions">
+              <button id="translate-entire-document" type="button" class="primary-button" disabled>Translate entire document</button>
+              <button id="pause-entire-document" type="button" hidden>Pause translation</button>
+            </div>
+            <p id="whole-document-status" class="import-status" role="status" aria-live="polite"></p>
+            <details class="compact-info"><summary>Translation and saved progress</summary><p>Online mode sends the whole document text to the free translation service after you tap Translate entire document. On-device mode keeps it here. Progress saves on this device after each completed segment; service limits pause the queue. Reopening a document never starts translation automatically. Download a progress backup to keep edits if browser data is cleared. Formatting and images from the original PDF or Word file are not retained.</p></details>
+            <details id="whole-document-history" class="compact-info" hidden>
+              <summary>Saved document progress</summary>
+              <label for="whole-document-saved">Choose a document</label>
+              <select id="whole-document-saved"></select>
+              <button id="open-document-progress" type="button">Open saved document</button>
+            </details>
+            <div id="document-full-draft-panel" hidden>
+              <label for="document-full-draft">Combined translation draft</label>
+              <textarea id="document-full-draft" rows="12" maxlength="600000" readonly spellcheck="true" aria-describedby="whole-document-edit-help"></textarea>
+              <p id="whole-document-edit-help">Completed sections appear here during translation. When all sections finish, you can edit the complete draft and export it. Check the translation against your original before sharing.</p>
+              <div class="paper-actions">
+                <button id="print-document" type="button" disabled>Print / Save as PDF</button>
+                <button id="download-document-text" type="button" disabled>Download translation text</button>
+                <button id="download-document-html" type="button" disabled>Download printable document</button>
+                <button id="backup-document-progress" type="button">Download progress backup</button>
+              </div>
+              <p>On iPhone, use Share or Print to save the exported document to Files. If printing does not open in the installed app, download the printable document and open it in Safari.</p>
+            </div>
+          </section>
+
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
@@ -514,6 +545,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <article id="saved-paper-print" aria-label="Printable saved paper"></article>
+  <article id="whole-document-print" aria-label="Printable complete document"></article>
 </body>
 </html>
 
