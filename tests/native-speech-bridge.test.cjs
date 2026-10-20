@@ -2,20 +2,28 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const source = fs.readFileSync("ios/HablaEcuador/NativeSpeech.js", "utf8");
-function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html", systemSupport = false, sourceValue = "external") {
+function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html", systemSupport = false, sourceValue = "external", songSupport = false) {
   const messages = [];
   const nodes = [];
+  const timers = new Map();
+  let nextTimer = 0;
+  const musicListen = {disabled:false, clicks:0, pressed:"false", parentElement:{after(){}},
+    getAttribute(){return this.pressed;}, click(){if (!this.disabled) {this.clicks++;this.onClick?.();}}};
   const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
-  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : ({parentElement:{after:() => {}}}),
+  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}}),
     createElement:tag => {
-      const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); }};
+      const listeners = {};
+      const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); },
+        addEventListener(type, callback) { listeners[type] = callback; },
+        click() { if (!this.disabled) listeners.click?.(); }};
       nodes.push(node);
       return node;
     }};
-  const window = {__hablaSystemAudioSupported:systemSupport, recognitionErrorMessage:error => "browser " + error,
+  const window = {__hablaSongIdentificationSupported:songSupport, __hablaSystemAudioSupported:systemSupport, recognitionErrorMessage:error => "browser " + error,
     webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
-  vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException});
-  return {window, messages, nodes, playbackSource};
+  vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException,
+    setTimeout(fn){const id=++nextTimer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
+  return {window, messages, nodes, playbackSource, musicListen, timers};
 }
 assert.equal(harness("https://example.com").window.SpeechRecognition, undefined);
 assert.equal(harness(undefined, "/unrelated/").window.SpeechRecognition, undefined);
@@ -193,3 +201,138 @@ visibilityContext.window.__hablaSystemAudioCaptureActive=true;
 visibilityHandler(); assert.equal(visibilityCancels,1,"explicit device capture survives switching to the playback app");
 visibilityContext.document.hidden=false;
 visibilityHandler(); assert.equal(visibilityCancels,1);
+
+
+// Song ID is opt-in, same-iPhone-only, and never creates a second capture.
+assert.equal(harness().nodes.some(node => node.id === "native-identify-song"), false);
+const songs = harness(undefined, undefined, true, "system", true);
+const identify = songs.nodes.find(node => node.id === "native-identify-song");
+const songStatus = songs.nodes.find(node => node.id === "native-song-status");
+const songResult = songs.nodes.find(node => node.id === "native-song-result");
+const songEvent = songs.window.__hablaNativeSpeech;
+assert.equal(identify.disabled,false,"paused capture keeps identification actionable");
+const songMic = new songs.window.SpeechRecognition();
+songMic.start(); songEvent({id:"1",type:"start"});
+identify.click();
+assert.match(songStatus.textContent,/Stop the current microphone/);
+assert.equal(songs.messages.filter(message=>message.action==='identify-song').length,0,"ordinary dictation never identifies songs");
+songEvent({id:"1",type:"end"});
+const songCapture = new songs.window.SpeechRecognition();
+songCapture.continuous = true;
+const songWords = [];
+songCapture.onresult = event => songWords.push(event.results[0][0].transcript);
+songCapture.start();
+assert.equal(identify.disabled,false,"a tap can queue identification while audio starts");
+songEvent({id:"2",type:"start"});
+assert.equal(identify.disabled,false);
+assert.equal(songs.messages.filter(message=>message.action==='identify-song').length,0,"no automatic catalog requests");
+identify.click();
+const songRequest = songs.messages.at(-1);
+assert.deepEqual(songRequest,{action:"identify-song",id:"2",requestId:"song-1"});
+identify.click();
+assert.equal(songs.messages.filter(message=>message.action==='identify-song').length,1,"double tap makes one request");
+songEvent({id:"2",type:"song",requestId:"old",status:"matched",title:"Stale title"});
+assert.equal(identify.disabled,true,"wrong request cannot finish the active lookup");
+songEvent({id:"2",type:"song",requestId:"song-1",status:"matched",title:"<img src=x onerror=alert(1)>",artist:"Test artist",url:"javascript:alert(1)"});
+assert.equal(songResult.children[0].textContent,"<img src=x onerror=alert(1)>","metadata is assigned as text");
+assert.equal(songResult.children.some(node=>node.tag==='a'),false,"untrusted URLs never become links");
+assert.equal(identify.disabled,false);
+songEvent({id:"2",type:"result",text:"Recognition continues",final:false});
+// Default recognition only reports final results, as before.
+songEvent({id:"2",type:"result",text:"Recognition continues",final:true});
+assert.deepEqual(songWords,["Recognition continues"]);
+assert.equal(songs.messages.filter(message=>message.action==='start').length,2,"song ID starts no extra capture");
+identify.click();
+songEvent({id:"2",type:"song",requestId:"song-2",status:"unavailable",message:"Service unavailable; listening continues."});
+assert.match(songStatus.textContent,/Service unavailable/);
+assert.equal(songCapture._id,"2","service error leaves recognition alive");
+assert.equal(identify.disabled,false);
+identify.click();
+songCapture.stop();
+assert.equal(identify.disabled,false,"stopped capture can be resumed by an explicit tap");
+const afterStop = songStatus.textContent;
+songEvent({id:"2",type:"song",requestId:"song-3",status:"matched",title:"Too late"});
+assert.equal(songStatus.textContent,afterStop,"late result after stop is rejected");
+songEvent({id:"2",type:"end"});
+const replacement = new songs.window.SpeechRecognition(); replacement.continuous=true;
+replacement.start();songEvent({id:"3",type:"start"});identify.click();
+const newer = new songs.window.SpeechRecognition();newer.continuous=true;newer.start();
+const replacementStatus = songStatus.textContent;
+songEvent({id:"3",type:"song",requestId:"song-4",status:"matched",title:"Replaced capture"});
+assert.equal(songStatus.textContent,replacementStatus,"replacement invalidates the old song request before old end");
+songEvent({id:"3",type:"end"});songEvent({id:"4",type:"start"});
+identify.click();
+songEvent({id:"4",type:"song",requestId:"song-5",status:"not-found",message:"No song identified."});
+assert.equal(songStatus.textContent,"No song identified.");
+assert.equal(identify.disabled,false,"no-match allows an explicit retry");
+identify.click();
+songEvent({id:"4",type:"song",requestId:"song-6",status:"matched",title:"An original test song",artist:"Example artist",url:"https://www.shazam.com/song/123/test"});
+assert.equal(songResult.children.at(-1).href,"https://www.shazam.com/song/123/test");
+songEvent({id:"4",type:"end"});
+assert.equal(identify.disabled,false);
+console.log("Native song identification bridge passed: opt-in, source isolation, stale requests, cancellation, safe metadata, errors and speech continuity (native matching unverified)");
+
+const externalSongs=harness(undefined,undefined,true,"external",true);
+const externalCapture=new externalSongs.window.SpeechRecognition();externalCapture.continuous=true;
+externalCapture.start();externalSongs.window.__hablaNativeSpeech({id:"1",type:"start"});
+externalSongs.nodes.find(node=>node.id==='native-identify-song').click();
+assert.match(externalSongs.nodes.find(node=>node.id==='native-song-status').textContent,/Stop the current microphone/);
+assert.equal(externalSongs.messages.filter(message=>message.action==='identify-song').length,0,"song feature cannot silently switch an external/microphone capture to system input");
+
+// Reproduce the device recording: a paused session showing Continue listening.
+const paused = harness(undefined,undefined,true,"system",true);
+const pausedButton=paused.nodes.find(node=>node.id==='native-identify-song');
+const pausedStatus=paused.nodes.find(node=>node.id==='native-song-status');
+const pausedEvent=paused.window.__hablaNativeSpeech;
+let resumed;
+paused.musicListen.onClick=()=>{
+  resumed=new paused.window.SpeechRecognition();resumed.continuous=true;resumed.start();
+};
+pausedButton.click();pausedButton.click();
+assert.equal(paused.musicListen.clicks,1,"one Identify tap invokes Continue listening exactly once");
+assert.equal(paused.messages.length,1);
+assert.deepEqual(paused.messages[0],{action:"start",id:"1",lang:"es-EC",mode:"auto",interimResults:false,continuous:true,input:"system"});
+assert.equal(pausedButton.disabled,true,"duplicate taps are blocked while awaiting screen permission");
+assert.match(pausedStatus.textContent,/approve screen sharing/);
+assert.equal(paused.timers.size,1);
+pausedEvent({id:"1",type:"start"});
+assert.deepEqual(paused.messages.at(-1),{action:"identify-song",id:"1",requestId:"song-1"});
+assert.equal(paused.timers.size,0,"capture startup cancels the startup deadline");
+pausedEvent({id:"1",type:"start"});
+assert.equal(paused.messages.filter(message=>message.action==='identify-song').length,1);
+resumed.stop();pausedEvent({id:"1",type:"end"});
+assert.equal(pausedButton.disabled,false);
+pausedButton.click(); // Resume another paused passage; cancel in Apple's picker.
+pausedEvent({id:"2",type:"error",error:"aborted"});
+assert.equal(pausedButton.disabled,false,"picker cancellation releases the queued action");
+pausedEvent({id:"2",type:"start"}); // Even a delayed start must not submit the cancelled query.
+assert.equal(paused.messages.filter(message=>message.action==='identify-song').length,1);
+pausedEvent({id:"2",type:"end"});
+pausedButton.click();
+assert.equal(paused.timers.size,1);
+[...paused.timers.values()][0]();
+assert.equal(pausedButton.disabled,false,"no startup callback cannot strand the button");
+assert.match(pausedStatus.textContent,/has not started/);
+pausedEvent({id:"3",type:"start"});
+assert.equal(paused.messages.filter(message=>message.action==='identify-song').length,1,"a timed-out action never submits later");
+
+const starting=harness(undefined,undefined,true,"system",true);
+const startupCapture=new starting.window.SpeechRecognition();startupCapture.continuous=true;startupCapture.start();
+starting.nodes.find(node=>node.id==='native-identify-song').click();
+assert.equal(starting.musicListen.clicks,0,"already-starting capture must not be toggled off");
+starting.window.__hablaNativeSpeech({id:"1",type:"start"});
+assert.equal(starting.messages.filter(message=>message.action==='identify-song').length,1);
+
+const sourceChoice=harness(undefined,undefined,true,"external",true);
+sourceChoice.nodes.find(node=>node.id==='native-identify-song').click();
+assert.match(sourceChoice.nodes.find(node=>node.id==='native-song-status').textContent,/Choose This iPhone/);
+assert.equal(sourceChoice.playbackSource.value,"external");
+assert.equal(sourceChoice.musicListen.clicks,0);
+assert.equal(sourceChoice.messages.length,0);
+
+const finishing=harness(undefined,undefined,true,"system",true);
+finishing.musicListen.disabled=true;
+finishing.nodes.find(node=>node.id==='native-identify-song').click();
+assert.match(finishing.nodes.find(node=>node.id==='native-song-status').textContent,/Capture is finishing/);
+assert.equal(finishing.messages.length,0);
+console.log("Paused song identification: passed (resume, startup gate, duplicate taps, cancellation, timeout and explicit source choice)");
