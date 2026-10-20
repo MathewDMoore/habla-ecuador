@@ -128,7 +128,11 @@
   function setDetail(text, failed = false) {
     detailText = text;
     if (detail) detail.textContent = text;
-    if (panel && failed) panel.open = true;
+    if (panel && failed) {
+      panel.open = true;
+      const options = panel.closest?.("#native-music-options");
+      if (options) options.open = true;
+    }
   }
   // Keep the existing editors and handlers; only move their DOM nodes together.
   // Injected by the prototype so the hosted release does not need a deployment.
@@ -198,6 +202,120 @@
     // Scrollable captured passages remain reachable with a hardware keyboard.
     document.querySelector("#music-live-source").tabIndex = 0;
   }
+  function installMusicWorkspace() {
+    const music = document.querySelector("#music-view");
+    const translate = document.querySelector("#translate-panel");
+    const capture = document.querySelector(".music-capture");
+    const workspace = document.querySelector("#native-translation-workspace");
+    const languages = document.querySelector(".language-picker-row");
+    const openView = window.openView;
+    // Older/standalone pages keep their working layout if a required hook is absent.
+    if (!music || !translate || !capture || !workspace || !languages
+        || typeof openView !== "function" || typeof window.setMode !== "function"
+        || typeof window.renderMusic !== "function" || document.querySelector("#native-music-workspace")) return;
+    const musicWorkspace = document.createElement("section");
+    musicWorkspace.id = "native-music-workspace";
+    musicWorkspace.setAttribute("aria-label", "Listen and translate music");
+    const editors = document.createElement("div");
+    musicWorkspace.append(editors);
+    const musicTitle = document.querySelector("#music-title");
+    if (musicTitle) musicTitle.textContent = "Listen & translate";
+
+    // Retain every original player, source/license link and culture section.
+    const explore = document.createElement("details");
+    explore.id = "native-music-explore";
+    explore.className = "compact-info";
+    const exploreTitle = document.createElement("summary");
+    exploreTitle.textContent = "Explore recordings & culture";
+    explore.append(exploreTitle);
+    for (const child of [...music.children]) {
+      if (!child.matches(".view-heading")) explore.append(child);
+    }
+    music.append(musicWorkspace, explore);
+
+    // Only settings/help collapse. Stop, Identify and live status remain visible.
+    const options = document.createElement("details");
+    options.id = "native-music-options";
+    options.className = "compact-info";
+    const optionsTitle = document.createElement("summary");
+    optionsTitle.textContent = "Listening options & help";
+    options.append(optionsTitle);
+    for (const child of [...capture.children]) {
+      if (child.matches("label, details")) options.append(child);
+    }
+    const setup = document.createElement("p");
+    setup.textContent = "Choose your audio source and live translation preferences in Listening options.";
+    setup.className = "native-music-hint";
+    capture.prepend(setup);
+    capture.append(options);
+    musicWorkspace.append(capture);
+
+    // Move the same editors rather than cloning IDs, handlers or editable drafts.
+    const shared = [languages, workspace, document.querySelector("#spanish-context"),
+      document.querySelector(".english-comparison")].filter(Boolean).map(node => {
+      const home = document.createComment("shared translation editor");
+      node.before(home);
+      return {node, home};
+    });
+    const restoreEditors = () => shared.forEach(({node, home}) => home.after(node));
+    window.openView = id => {
+      if (id !== "music-view") {
+        if (id === "translator-view") restoreEditors();
+        return openView(id);
+      }
+      // The hosted router cancels capture on every non-Translate destination.
+      // Enter through its existing Translate route to retain the current session,
+      // then select Music. Other destinations retain their normal stop behavior.
+      window.setMode("translate");
+      openView("translator-view");
+      shared.forEach(({node}) => editors.append(node));
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view === music));
+      document.querySelectorAll(".bottom-nav button").forEach(button =>
+        button.classList.toggle("active", button.dataset.open === "music-view"));
+      window.renderMusic();
+    };
+    const shortcuts = document.createElement("div");
+    shortcuts.id = "native-translate-shortcuts";
+    const musicLink = document.createElement("button");
+    musicLink.type = "button";
+    musicLink.textContent = "Music listening →";
+    musicLink.addEventListener("click", () => window.openView("music-view"));
+    const speechLink = document.createElement("button");
+    speechLink.type = "button";
+    speechLink.textContent = "Speech settings";
+    speechLink.addEventListener("click", () => {
+      window.openView("music-view");
+      options.open = true;
+      panel.open = true;
+      options.scrollIntoView({block:"start"});
+    });
+    shortcuts.append(musicLink, speechLink);
+    workspace.after(shortcuts);
+
+    // Keep imports close at hand without several help panels above the editors.
+    const imports = document.querySelector('[aria-label="Document translation"]');
+    if (imports) {
+      const importTools = document.createElement("details");
+      importTools.id = "native-import-tools";
+      importTools.className = "compact-info";
+      const importTitle = document.createElement("summary");
+      importTitle.textContent = "Import document or image";
+      importTools.append(importTitle);
+      imports.before(importTools);
+      importTools.append(imports);
+    }
+    const style = document.createElement("style");
+    style.textContent = `
+      #native-translate-shortcuts {display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+      #native-translate-shortcuts button {min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font:inherit;}
+      #native-music-workspace .music-capture {padding:12px;}
+      #native-music-options {margin-top:12px;}
+      .native-music-hint {font-size:14px;line-height:1.4;margin:0 0 10px;}
+      #native-music-explore {margin-top:16px;}
+      #native-import-tools > .document-tools {margin:0;border:0;padding:8px 0;}
+    `;
+    document.head.append(style);
+  }
   function installNativeDetails() {
     const anchor = document.querySelector("#music-listen");
     if (!anchor) return;
@@ -212,7 +330,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.8 (9)";
+    summary.textContent = "iPhone speech · native 0.1.9 (10)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -233,6 +351,7 @@
     anchor.parentElement.after(panel);
     installTranslationWorkspace();
     installSongIdentification(anchor);
+    installMusicWorkspace();
     // The build-80 hosted UI has a browser-only error formatter. Adapt that
     // formatter within this native wrapper; leave the website source untouched.
     const browserMessage = window.recognitionErrorMessage;
