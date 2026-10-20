@@ -31,7 +31,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
         configuration.userContentController.addUserScript(WKUserScript(
-            source: "window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
+            source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         if let scriptURL = Bundle.main.url(forResource: "NativeSpeech", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
@@ -71,6 +71,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let action = body["action"] as? String else { return }
         switch action {
         case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system")
+        case "identify-song":
+            guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
+            speech.identifySong(id: id, requestID: requestID)
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break

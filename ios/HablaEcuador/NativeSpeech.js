@@ -6,6 +6,79 @@
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;
+  let songButton, songStatus, songResult;
+  let songRequest = null;
+  let nextSongRequest = 0;
+  const songSession = () => [...sessions.values()].reverse().find(instance =>
+    instance.continuous && instance._systemAudio && instance._started && !instance._finishing);
+  function updateSongButton() {
+    if (songButton) songButton.disabled = Boolean(songRequest) || !songSession();
+  }
+  function finishSongRequest(id) {
+    if (songRequest?.id !== id) return;
+    songRequest = null;
+    if (songStatus) songStatus.textContent = "Identification stopped. Your captured words are unchanged.";
+  }
+  function installSongIdentification(anchor) {
+    if (!window.__hablaSongIdentificationSupported) return;
+    const card = document.createElement("section");
+    card.id = "native-song-identification";
+    card.setAttribute("aria-label", "Song identification");
+    card.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
+    songButton = document.createElement("button");
+    songButton.id = "native-identify-song";
+    songButton.type = "button";
+    songButton.textContent = "Identify this song";
+    songButton.style.cssText = "min-height:44px;width:100%";
+    songStatus = document.createElement("p");
+    songStatus.id = "native-song-status";
+    songStatus.setAttribute("role", "status");
+    songStatus.textContent = "Start This iPhone's audio capture, then identify. Uses Shazam's online catalog; no lyrics are fetched.";
+    songResult = document.createElement("div");
+    songResult.id = "native-song-result";
+    songButton.addEventListener("click", () => {
+      const instance = songSession();
+      if (!instance || songRequest) return;
+      songRequest = {id:instance._id, requestId:`song-${++nextSongRequest}`};
+      songResult.textContent = "";
+      songStatus.textContent = "Identifying the song with Shazam… Listening and translation continue.";
+      updateSongButton();
+      try {
+        window.webkit.messageHandlers.hablaSpeech.postMessage({action:"identify-song", ...songRequest});
+      } catch {
+        songRequest = null;
+        songStatus.textContent = "Could not start song identification. Try again.";
+        updateSongButton();
+      }
+    });
+    card.append(songButton, songStatus, songResult);
+    anchor.parentElement.after(card);
+    updateSongButton();
+  }
+  function receiveSong(message) {
+    if (!songRequest || message.id !== songRequest.id || message.requestId !== songRequest.requestId) return;
+    songRequest = null;
+    if (message.status === "matched" && typeof message.title === "string" && message.title.trim()) {
+      songStatus.textContent = "Song identified by Shazam. This match does not verify captured words or translation.";
+      const title = document.createElement("p");
+      title.textContent = message.title;
+      const artist = document.createElement("p");
+      artist.textContent = typeof message.artist === "string" ? message.artist : "Artist unavailable";
+      songResult.append(title, artist);
+      // Native metadata never becomes HTML or an unrestricted navigable URL.
+      if (typeof message.url === "string" && /^https:\/\/(?:www\.)?shazam\.com\//i.test(message.url)) {
+        const link = document.createElement("a");
+        link.href = message.url;
+        link.textContent = "View on Shazam";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        songResult.append(link);
+      }
+    } else {
+      songStatus.textContent = typeof message.message === "string" ? message.message : "No song identified. Try another passage.";
+    }
+    updateSongButton();
+  }
   const syncSystemAudioFlag = () => { window.__hablaSystemAudioCaptureActive = [...sessions.values()].some(instance => instance._systemAudio); };
   let detailText = "Native bridge ready. Tap the microphone and speak a short sentence first.";
   let panel, detail, modeSelect;
@@ -96,7 +169,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.6 (7)";
+    summary.textContent = "iPhone speech · native 0.1.7 (8)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -116,6 +189,7 @@
     panel.append(summary, label, detail);
     anchor.parentElement.after(panel);
     installTranslationWorkspace();
+    installSongIdentification(anchor);
     // The build-80 hosted UI has a browser-only error formatter. Adapt that
     // formatter within this native wrapper; leave the website source untouched.
     const browserMessage = window.recognitionErrorMessage;
@@ -138,18 +212,25 @@
       if (this._id !== null) throw new DOMException("Already listening", "InvalidStateError");
       const id = String(++nextID);
       this._id = id;
+      this._started = false;
+      this._finishing = false;
       sessions.set(id, this);
       latestError = null;
       if (modeSelect) modeSelect.disabled = true;
       setDetail("Starting native iPhone recognition…");
       this._systemAudio = Boolean(this.continuous && window.__hablaSystemAudioSupported
         && document.querySelector("#music-playback-source")?.value === "system");
+      for (const other of sessions.values()) {
+        if (other !== this) { other._finishing = true; finishSongRequest(other._id); }
+      }
+      updateSongButton();
       syncSystemAudioFlag();
       try {
         window.webkit.messageHandlers.hablaSpeech.postMessage({action:"start", id,
           lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous, ...(this._systemAudio ? {input:"system"} : {})});
       } catch (error) {
         sessions.delete(id);
+        updateSongButton();
         syncSystemAudioFlag();
         this._id = null;
         if (modeSelect) modeSelect.disabled = false;
@@ -159,7 +240,12 @@
     stop() { this._command("stop"); }
     abort() { this._command("abort"); }
     _command(action) {
-      if (this._id !== null) window.webkit.messageHandlers.hablaSpeech.postMessage({action, id:this._id});
+      if (this._id !== null) {
+        this._finishing = true;
+        finishSongRequest(this._id);
+        updateSongButton();
+        window.webkit.messageHandlers.hablaSpeech.postMessage({action, id:this._id});
+      }
     }
     _emit(type, properties = {}) {
       const event = new Event(type);
@@ -171,8 +257,11 @@
   Object.defineProperty(window, "__hablaNativeSpeech", {value:message => {
     const instance = sessions.get(message.id);
     if (!instance) return;
+    if (message.type === "song") { receiveSong(message); return; }
     if (message.type === "end") {
       sessions.delete(message.id);
+      finishSongRequest(message.id);
+      updateSongButton();
       syncSystemAudioFlag();
       instance._id = null;
       if (modeSelect && !sessions.size) modeSelect.disabled = false;
@@ -185,6 +274,9 @@
         ? {confirmedText:message.confirmedText, tentativeText:message.tentativeText || ""} : {};
       instance._emit("result", {resultIndex:0, results:[result], ...passage});
     } else if (message.type === "error") {
+      instance._finishing = true;
+      finishSongRequest(message.id);
+      updateSongButton();
       if (message.error !== "aborted") {
         latestError = message;
         setDetail([message.message || "Native speech stopped.", message.detail].filter(Boolean).join("\n"), true);
@@ -193,7 +285,11 @@
     } else if (message.type === "status") {
       setDetail(message.text);
       if (message.reveal && panel) panel.open = true;
-    } else if (message.type === "start") instance._emit("start");
+    } else if (message.type === "start") {
+      instance._started = true;
+      updateSongButton();
+      instance._emit("start");
+    }
   }});
   window.SpeechRecognition = NativeSpeechRecognition;
   window.webkitSpeechRecognition = NativeSpeechRecognition;

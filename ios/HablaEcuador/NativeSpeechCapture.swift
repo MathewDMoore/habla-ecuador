@@ -1,6 +1,7 @@
 import AVFoundation
 import Speech
 import UIKit
+import ShazamKit
 #if compiler(>=6.3) && canImport(ScreenCaptureKit)
 import ScreenCaptureKit
 #endif
@@ -208,6 +209,16 @@ final class NativeSpeechCapture {
         }
     }
 
+    func identifySong(id: String, requestID: String) {
+        guard activeID == id, !stopping else { return }
+        guard systemAudio, let modern else {
+            emit(["id": id, "type": "song", "requestId": requestID, "status": "unavailable",
+                  "message": "Choose This iPhone's audio and start listening before identifying a song."])
+            return
+        }
+        modern.identifySong(requestID: requestID)
+    }
+
     func stop(id: String) {
         guard activeID == id, !stopping else { return }
         stopping = true
@@ -276,6 +287,7 @@ private protocol NativeSystemAudioInput: AnyObject {
 }
 
 private protocol NativeModernCapture: AnyObject {
+    func identifySong(requestID: String)
     func stop()
     func cancel()
 }
@@ -372,6 +384,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private let useDictation: Bool
     private let systemAudio: Bool
     private var systemSource: NativeSystemAudioInput?
+    private var songMatcher: NativeSongMatcher?
     private let emit: ([String: Any]) -> Void
     private let engine = AVAudioEngine()
     private let stats = NativeInputStats()
@@ -470,6 +483,23 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         }
     }
 
+    func identifySong(requestID: String) {
+        guard systemAudio, startedAt != nil, !cancelled, !stopping else {
+            emit(["id": id, "type": "song", "requestId": requestID, "status": "unavailable",
+                  "message": "Start this iPhone's audio capture first."])
+            return
+        }
+        songMatcher?.cancel()
+        songMatcher = NativeSongMatcher { [weak self] result in
+            guard let self, !self.cancelled, !self.stopping else { return }
+            var event = result
+            event["id"] = self.id
+            event["type"] = "song"
+            event["requestId"] = requestID
+            self.emit(event)
+        }
+    }
+
     private func checkActive() throws {
         if cancelled || stopping || Task.isCancelled { throw CancellationError() }
     }
@@ -481,6 +511,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                 let source = IPhoneSystemAudioInput(format: format, onBuffer: { [weak self] buffer in
                     guard let self, !self.cancelled, !self.stopping else { return }
                     self.stats.observe(buffer)
+                    self.songMatcher?.consume(buffer)
                     let delivery = continuation.yield(AnalyzerInput(buffer: buffer))
                     if case .enqueued = delivery { self.stats.forwarded(buffer, accepted: true) }
                     else { self.stats.forwarded(buffer, accepted: false) }
@@ -624,6 +655,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     }
 
     private func stopAudio() {
+        songMatcher?.cancel(); songMatcher = nil
         systemSource?.cancel(); systemSource = nil
         meter?.invalidate(); meter = nil
         engine.stop()
@@ -645,6 +677,100 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         input?.finish(); input = nil
         if let analyzer { Task { await analyzer.cancelAndFinishNow() } }
         analyzer = nil
+    }
+}
+
+
+// Only feeds a user-requested match from the existing system-audio buffers.
+// This owns no microphone, audio engine, file, or speech-recognition session.
+private final class NativeSongMatcher: NSObject, SHSessionDelegate {
+    private let emit: ([String: Any]) -> Void
+    private let session = SHSession()
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
+    private var sourceFormat: AVAudioFormat?
+    private var converter: AVAudioConverter?
+    private var deadline: DispatchWorkItem?
+    private var finished = false
+    private var seconds: Double = 0
+
+    init(emit: @escaping ([String: Any]) -> Void) {
+        self.emit = emit
+        super.init()
+        session.delegate = self
+        let deadline = DispatchWorkItem { [weak self] in
+            self?.complete(["status": "not-found", "message": "No song identified. Try a clearer recorded passage; speech, silence or an uncatalogued recording may not match."])
+        }
+        self.deadline = deadline
+        DispatchQueue.main.asyncAfter(deadline: .now() + 25, execute: deadline)
+    }
+
+    func consume(_ buffer: AVAudioPCMBuffer) {
+        guard !finished, seconds < 20, buffer.frameLength > 0 else { return }
+        guard buffer.format.sampleRate > 0 else { return }
+        if sourceFormat != buffer.format {
+            sourceFormat = buffer.format
+            converter = AVAudioConverter(from: buffer.format, to: format)
+            converter?.primeMethod = .none
+        }
+        guard let converter else {
+            complete(["status": "unavailable", "message": "This audio format cannot be used for song identification."])
+            return
+        }
+        let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * format.sampleRate / buffer.format.sampleRate)) + 32
+        guard let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return }
+        var supplied = false
+        var error: NSError?
+        let status = converter.convert(to: output, error: &error) { _, inputStatus in
+            if supplied { inputStatus.pointee = .noDataNow; return nil }
+            supplied = true; inputStatus.pointee = .haveData; return buffer
+        }
+        guard status != .error, error == nil else {
+            complete(["status": "unavailable", "message": "Audio conversion for song identification failed. Listening can continue."])
+            return
+        }
+        let remaining = AVAudioFrameCount(max(0, (20 - seconds) * format.sampleRate))
+        output.frameLength = min(output.frameLength, remaining)
+        guard output.frameLength > 0 else { return }
+        seconds += Double(output.frameLength) / format.sampleRate
+        session.matchStreamingBuffer(output, at: nil)
+    }
+
+    func session(_ session: SHSession, didFind match: SHMatch) {
+        // Delegate callbacks may arrive off-main or after cancellation.
+        let item = match.mediaItems.first
+        let title = item?.title
+        let artist = item?.artist
+        let webURL = item?.webURL?.absoluteString
+        DispatchQueue.main.async { [weak self] in
+            guard let title, !title.isEmpty else {
+                self?.complete(["status": "not-found", "message": "The service returned no song title."])
+                return
+            }
+            var result: [String: Any] = ["status": "matched", "title": title, "artist": artist ?? "Artist unavailable"]
+            if let webURL { result["url"] = webURL }
+            self?.complete(result)
+        }
+    }
+
+    func session(_ session: SHSession, didNotFindMatchFor signature: SHSignature, error: Error?) {
+        guard let error else { return } // More audio may still match before the deadline.
+        let codes = nativeErrorCodes(error as NSError)
+        DispatchQueue.main.async { [weak self] in
+            self?.complete(["status": "unavailable", "message": "Song identification is unavailable. Check internet access and Habla's ShazamKit App Service. Listening can continue.", "detail": codes])
+        }
+    }
+
+    private func complete(_ event: [String: Any]) {
+        guard !finished else { return }
+        cancel()
+        emit(event)
+    }
+
+    func cancel() {
+        finished = true
+        deadline?.cancel(); deadline = nil
+        session.delegate = nil
+        converter = nil
     }
 }
 

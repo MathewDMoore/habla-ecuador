@@ -2,17 +2,20 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const source = fs.readFileSync("ios/HablaEcuador/NativeSpeech.js", "utf8");
-function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html", systemSupport = false, sourceValue = "external") {
+function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuador/translator.html", systemSupport = false, sourceValue = "external", songSupport = false) {
   const messages = [];
   const nodes = [];
   const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
   const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : ({parentElement:{after:() => {}}}),
     createElement:tag => {
-      const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); }};
+      const listeners = {};
+      const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); },
+        addEventListener(type, callback) { listeners[type] = callback; },
+        click() { if (!this.disabled) listeners.click?.(); }};
       nodes.push(node);
       return node;
     }};
-  const window = {__hablaSystemAudioSupported:systemSupport, recognitionErrorMessage:error => "browser " + error,
+  const window = {__hablaSongIdentificationSupported:songSupport, __hablaSystemAudioSupported:systemSupport, recognitionErrorMessage:error => "browser " + error,
     webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
   vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException});
   return {window, messages, nodes, playbackSource};
@@ -193,3 +196,76 @@ visibilityContext.window.__hablaSystemAudioCaptureActive=true;
 visibilityHandler(); assert.equal(visibilityCancels,1,"explicit device capture survives switching to the playback app");
 visibilityContext.document.hidden=false;
 visibilityHandler(); assert.equal(visibilityCancels,1);
+
+
+// Song ID is opt-in, same-iPhone-only, and never creates a second capture.
+assert.equal(harness().nodes.some(node => node.id === "native-identify-song"), false);
+const songs = harness(undefined, undefined, true, "system", true);
+const identify = songs.nodes.find(node => node.id === "native-identify-song");
+const songStatus = songs.nodes.find(node => node.id === "native-song-status");
+const songResult = songs.nodes.find(node => node.id === "native-song-result");
+const songEvent = songs.window.__hablaNativeSpeech;
+assert.equal(identify.disabled,true);
+const songMic = new songs.window.SpeechRecognition();
+songMic.start(); songEvent({id:"1",type:"start"});
+assert.equal(identify.disabled,true,"ordinary dictation never identifies songs");
+songEvent({id:"1",type:"end"});
+const songCapture = new songs.window.SpeechRecognition();
+songCapture.continuous = true;
+const songWords = [];
+songCapture.onresult = event => songWords.push(event.results[0][0].transcript);
+songCapture.start();
+assert.equal(identify.disabled,true,"wait for audio startup before identifying");
+songEvent({id:"2",type:"start"});
+assert.equal(identify.disabled,false);
+assert.equal(songs.messages.filter(message=>message.action==='identify-song').length,0,"no automatic catalog requests");
+identify.click();
+const songRequest = songs.messages.at(-1);
+assert.deepEqual(songRequest,{action:"identify-song",id:"2",requestId:"song-1"});
+identify.click();
+assert.equal(songs.messages.filter(message=>message.action==='identify-song').length,1,"double tap makes one request");
+songEvent({id:"2",type:"song",requestId:"old",status:"matched",title:"Stale title"});
+assert.equal(identify.disabled,true,"wrong request cannot finish the active lookup");
+songEvent({id:"2",type:"song",requestId:"song-1",status:"matched",title:"<img src=x onerror=alert(1)>",artist:"Test artist",url:"javascript:alert(1)"});
+assert.equal(songResult.children[0].textContent,"<img src=x onerror=alert(1)>","metadata is assigned as text");
+assert.equal(songResult.children.some(node=>node.tag==='a'),false,"untrusted URLs never become links");
+assert.equal(identify.disabled,false);
+songEvent({id:"2",type:"result",text:"Recognition continues",final:false});
+// Default recognition only reports final results, as before.
+songEvent({id:"2",type:"result",text:"Recognition continues",final:true});
+assert.deepEqual(songWords,["Recognition continues"]);
+assert.equal(songs.messages.filter(message=>message.action==='start').length,2,"song ID starts no extra capture");
+identify.click();
+songEvent({id:"2",type:"song",requestId:"song-2",status:"unavailable",message:"Service unavailable; listening continues."});
+assert.match(songStatus.textContent,/Service unavailable/);
+assert.equal(songCapture._id,"2","service error leaves recognition alive");
+assert.equal(identify.disabled,false);
+identify.click();
+songCapture.stop();
+assert.equal(identify.disabled,true);
+const afterStop = songStatus.textContent;
+songEvent({id:"2",type:"song",requestId:"song-3",status:"matched",title:"Too late"});
+assert.equal(songStatus.textContent,afterStop,"late result after stop is rejected");
+songEvent({id:"2",type:"end"});
+const replacement = new songs.window.SpeechRecognition(); replacement.continuous=true;
+replacement.start();songEvent({id:"3",type:"start"});identify.click();
+const newer = new songs.window.SpeechRecognition();newer.continuous=true;newer.start();
+const replacementStatus = songStatus.textContent;
+songEvent({id:"3",type:"song",requestId:"song-4",status:"matched",title:"Replaced capture"});
+assert.equal(songStatus.textContent,replacementStatus,"replacement invalidates the old song request before old end");
+songEvent({id:"3",type:"end"});songEvent({id:"4",type:"start"});
+identify.click();
+songEvent({id:"4",type:"song",requestId:"song-5",status:"not-found",message:"No song identified."});
+assert.equal(songStatus.textContent,"No song identified.");
+assert.equal(identify.disabled,false,"no-match allows an explicit retry");
+identify.click();
+songEvent({id:"4",type:"song",requestId:"song-6",status:"matched",title:"An original test song",artist:"Example artist",url:"https://www.shazam.com/song/123/test"});
+assert.equal(songResult.children.at(-1).href,"https://www.shazam.com/song/123/test");
+songEvent({id:"4",type:"end"});
+assert.equal(identify.disabled,true);
+console.log("Native song identification bridge passed: opt-in, source isolation, stale requests, cancellation, safe metadata, errors and speech continuity (native matching unverified)");
+
+const externalSongs=harness(undefined,undefined,true,"external",true);
+const externalCapture=new externalSongs.window.SpeechRecognition();externalCapture.continuous=true;
+externalCapture.start();externalSongs.window.__hablaNativeSpeech({id:"1",type:"start"});
+assert.equal(externalSongs.nodes.find(node=>node.id==='native-identify-song').disabled,true,"song feature cannot silently switch an external/microphone capture to system input");
