@@ -577,6 +577,44 @@ async function main() {
     for(const id of ['music-live-update-mode','music-live-retry'])
       assert.equal(html.split(`id="${id}"`).length-1,1,`${page} exposes ${id} once`);
   }
+  // Connect the real native button to the real hosted Continue listening path.
+  // A paused capture must retain earlier words, use system input, and wait for
+  // native start before submitting the user's identification request.
+  const nativeMessages=[], nativeNodes=[];
+  Object.assign(context,{EventTarget,Event,DOMException,location:{origin:'https://mathewdmoore.github.io',pathname:'/habla-ecuador/index.html'}});
+  Object.assign(context.window,{__hablaSongIdentificationSupported:true,__hablaSystemAudioSupported:true,
+    webkit:{messageHandlers:{hablaSpeech:{postMessage:message=>nativeMessages.push(structuredClone(message))}}}});
+  context.document.readyState='complete';
+  context.document.createElement=tag=>{
+    const node={tag,style:{},children:[],setAttribute(){},append(...children){this.children.push(...children);},
+      addEventListener(type,handler){this[type]=handler;},click(){if(!this.disabled)this.clickHandler?.();}};
+    node.addEventListener=(type,handler)=>{node[`${type}Handler`]=handler;};
+    nativeNodes.push(node);return node;
+  };
+  const attributes={};
+  musicButton.parentElement={after(){}};
+  musicButton.setAttribute=(name,value)=>{attributes[name]=value;};
+  musicButton.getAttribute=name=>attributes[name];
+  musicButton.click=()=>{if(!musicButton.disabled)run('startMusicListening()');};
+  element('#music-playback-source').value='system';
+  element('#music-live-translation').checked=false;
+  vm.runInContext(fs.readFileSync(path.join(root,'ios/HablaEcuador/NativeSpeech.js'),'utf8'),context);
+  const identifySong=nativeNodes.find(node=>node.id==='native-identify-song');
+  const keptSource=element('#translator-input').value;
+  assert.equal(musicButton.textContent,'Continue listening');
+  identifySong.click();
+  assert.equal(nativeMessages.length,1);
+  assert.equal(nativeMessages[0].action,'start');
+  assert.equal(nativeMessages[0].input,'system');
+  assert.equal(element('#translator-input').value,keptSource);
+  context.window.__hablaNativeSpeech({id:'1',type:'start'});
+  assert.equal(nativeMessages[1].action,'identify-song');
+  context.window.__hablaNativeSpeech({id:'1',type:'song',requestId:'song-1',status:'matched',title:'Example song',artist:'Example artist'});
+  assert.equal(element('#translator-input').value,keptSource,'song metadata never replaces captured text');
+  context.window.__hablaNativeSpeech({id:'1',type:'result',text:'Siguiente frase.',final:false});
+  assert.equal(element('#translator-input').value,keptSource+'\nSiguiente frase.','resumed speech appends to the paused passage');
+  run('stopMusicListening()');context.window.__hablaNativeSpeech({id:'1',type:'end'});
+  assert.equal(musicButton.textContent,'Continue listening');
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

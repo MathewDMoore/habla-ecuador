@@ -8,14 +8,34 @@
   let latestError = null;
   let songButton, songStatus, songResult;
   let songRequest = null;
+  let songStartup = null;
   let nextSongRequest = 0;
   const songSession = () => [...sessions.values()].reverse().find(instance =>
     instance.continuous && instance._systemAudio && instance._started && !instance._finishing);
   function updateSongButton() {
-    if (songButton) songButton.disabled = Boolean(songRequest) || !songSession();
+    if (songButton) songButton.disabled = Boolean(songRequest || songStartup);
+  }
+  function clearSongStartup() {
+    if (songStartup) clearTimeout(songStartup.timer);
+    songStartup = null;
+  }
+  function requestSong(instance) {
+    clearSongStartup();
+    songRequest = {id:instance._id, requestId:`song-${++nextSongRequest}`};
+    songResult.textContent = "";
+    songStatus.textContent = "Identifying the song with Shazam… Listening and translation continue.";
+    updateSongButton();
+    try {
+      window.webkit.messageHandlers.hablaSpeech.postMessage({action:"identify-song", ...songRequest});
+    } catch {
+      songRequest = null;
+      songStatus.textContent = "Could not start song identification. Try again.";
+      updateSongButton();
+    }
   }
   function finishSongRequest(id) {
-    if (songRequest?.id !== id) return;
+    if (songRequest?.id !== id && songStartup?.id !== id) return;
+    clearSongStartup();
     songRequest = null;
     if (songStatus) songStatus.textContent = "Identification stopped. Your captured words are unchanged.";
   }
@@ -33,21 +53,44 @@
     songStatus = document.createElement("p");
     songStatus.id = "native-song-status";
     songStatus.setAttribute("role", "status");
-    songStatus.textContent = "Start This iPhone's audio capture, then identify. Uses Shazam's online catalog; no lyrics are fetched.";
+    songStatus.textContent = "Choose This iPhone's audio, then tap Identify this song. Paused capture resumes after you approve screen sharing. Uses Shazam's online catalog; no lyrics are fetched.";
     songResult = document.createElement("div");
     songResult.id = "native-song-result";
     songButton.addEventListener("click", () => {
       const instance = songSession();
-      if (!instance || songRequest) return;
-      songRequest = {id:instance._id, requestId:`song-${++nextSongRequest}`};
-      songResult.textContent = "";
-      songStatus.textContent = "Identifying the song with Shazam… Listening and translation continue.";
+      if (songRequest || songStartup) return;
+      if (instance) { requestSong(instance); return; }
+      // Paused capture is a normal state, not a reason for an inert button.
+      // Reuse the app's Continue listening action so it retains captured words.
+      const pending = [...sessions.values()].find(session => !session._finishing);
+      if (pending && (!pending.continuous || !pending._systemAudio)) {
+        songStatus.textContent = "Stop the current microphone capture, choose This iPhone's audio, then tap Identify this song.";
+        return;
+      }
+      if (document.querySelector("#music-playback-source")?.value !== "system") {
+        songStatus.textContent = "Choose This iPhone's audio under Music playback, then tap Identify this song. Other audio inputs are not supported for song identification yet.";
+        return;
+      }
+      if (!pending && anchor.disabled) {
+        songStatus.textContent = "Capture is finishing. Wait for Continue listening, then tap Identify this song again.";
+        return;
+      }
+      const startup = {id:pending?._id ?? null};
+      songStartup = startup;
+      startup.timer = setTimeout(() => {
+        if (songStartup !== startup) return;
+        clearSongStartup();
+        songStatus.textContent = "Audio capture has not started. Approve screen sharing or check iPhone speech below, then tap Identify this song again.";
+        updateSongButton();
+      }, 45000);
+      songStatus.textContent = "Starting this iPhone's audio… approve screen sharing if asked. Song identification begins when capture starts.";
       updateSongButton();
       try {
-        window.webkit.messageHandlers.hablaSpeech.postMessage({action:"identify-song", ...songRequest});
+        // Do not toggle an already-starting/restarting capture off.
+        if (!pending && anchor.getAttribute("aria-pressed") !== "true") anchor.click();
       } catch {
-        songRequest = null;
-        songStatus.textContent = "Could not start song identification. Try again.";
+        clearSongStartup();
+        songStatus.textContent = "Could not start audio capture. Check iPhone speech below, then try again.";
         updateSongButton();
       }
     });
@@ -169,7 +212,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.7 (8)";
+    summary.textContent = "iPhone speech · native 0.1.8 (9)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -223,6 +266,10 @@
       for (const other of sessions.values()) {
         if (other !== this) { other._finishing = true; finishSongRequest(other._id); }
       }
+      if (songStartup && songStartup.id === null) {
+        songStartup.id = id;
+        if (!this._systemAudio) finishSongRequest(id);
+      }
       updateSongButton();
       syncSystemAudioFlag();
       try {
@@ -230,6 +277,7 @@
           lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous, ...(this._systemAudio ? {input:"system"} : {})});
       } catch (error) {
         sessions.delete(id);
+        finishSongRequest(id);
         updateSongButton();
         syncSystemAudioFlag();
         this._id = null;
@@ -289,6 +337,7 @@
       instance._started = true;
       updateSongButton();
       instance._emit("start");
+      if (songStartup?.id === message.id && songSession() === instance) requestSong(instance);
     }
   }});
   window.SpeechRecognition = NativeSpeechRecognition;
