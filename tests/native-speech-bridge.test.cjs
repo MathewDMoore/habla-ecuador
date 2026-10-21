@@ -7,7 +7,8 @@ function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuad
   const nodes = [];
   const timers = new Map();
   let nextTimer = 0;
-  const musicListen = {disabled:false, clicks:0, pressed:"false", parentElement:{after(){}},
+  const musicListen = {disabled:false, clicks:0, pressed:"false", style:{}, parentElement:{after(){},before(){}},
+    setAttribute(name,value){if(name==="aria-pressed")this.pressed=value;},
     getAttribute(){return this.pressed;}, click(){if (!this.disabled) {this.clicks++;this.onClick?.();}}};
   const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
   const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}}),
@@ -336,3 +337,40 @@ finishing.nodes.find(node=>node.id==='native-identify-song').click();
 assert.match(finishing.nodes.find(node=>node.id==='native-song-status').textContent,/Capture is finishing/);
 assert.equal(finishing.messages.length,0);
 console.log("Paused song identification: passed (resume, startup gate, duplicate taps, cancellation, timeout and explicit source choice)");
+
+// Primary capture state comes from actual native lifecycle events, not the tap.
+const controls=harness(undefined,undefined,true,"system");
+const ui=controls.nodes.find(node=>node.id==='native-capture-status');
+const hint=controls.nodes.find(node=>node.id==='native-capture-hint');
+const send=controls.window.__hablaNativeSpeech;
+const musicCapture=new controls.window.SpeechRecognition();
+musicCapture.continuous=true;musicCapture.interimResults=true;musicCapture.start();
+const firstID=controls.messages.at(-1).id;
+assert.match(ui.textContent,/Waiting for screen-sharing approval/);
+assert.equal(controls.musicListen.textContent,'Cancel startup');
+send({id:firstID,type:'status',text:'Input audio: 8.0 s · input peak -12 dBFS'});
+assert.match(ui.textContent,/Waiting for screen-sharing approval/,'meter alone cannot mark startup as successful');
+send({id:firstID,type:'start'});
+assert.match(ui.textContent,/Listening · waiting for audio/);
+assert.equal(controls.musicListen.textContent,'Stop listening');
+for(let i=1;i<=3;i++)send({id:firstID,type:'status',text:`Input audio: ${i}.0 s · input peak -120 dBFS`});
+assert.match(ui.textContent,/no audio detected/);
+assert.match(hint.textContent,/screenshot instead/);
+send({id:firstID,type:'status',text:'Input audio: 4.0 s · input peak -12 dBFS'});
+assert.match(ui.textContent,/audio detected/);assert.match(hint.textContent,/No words yet/);
+send({id:firstID,type:'result',text:'Palabras de prueba.',final:false});
+assert.match(ui.textContent,/words received/);
+send({id:firstID,type:'status',text:'Input audio: 5.0 s · input peak -12 dBFS\nCapture backlog drops: 2 buffers'});
+assert.match(ui.textContent,/audio gaps detected/);
+send({id:firstID,type:'error',error:'native-recognition',message:'The capture stream stopped.'});
+send({id:firstID,type:'end'});
+assert.match(ui.textContent,/Capture stopped/);assert.match(hint.textContent,/stream stopped/);
+musicCapture.start();const retryID=controls.messages.at(-1).id;
+send({id:firstID,type:'status',text:'Input audio: 10.0 s · input peak -12 dBFS'});
+send({id:firstID,type:'start'});assert.match(ui.textContent,/Waiting for screen-sharing approval/);
+musicCapture.stop();assert.match(ui.textContent,/Stopping capture/);
+send({id:retryID,type:'start'});assert.match(ui.textContent,/Stopping capture/,'late start cannot revive a cancelled picker');
+send({id:retryID,type:'end'});assert.match(ui.textContent,/Capture stopped/);
+const micControls=harness();const mic=new micControls.window.SpeechRecognition();mic.continuous=true;mic.start();
+assert.match(micControls.nodes.find(node=>node.id==='native-capture-status').textContent,/Starting microphone/);
+console.log('Capture controls passed: permission gate, real start, silence/recovery, word receipt, input gaps, errors, stale sessions and cancellation.');

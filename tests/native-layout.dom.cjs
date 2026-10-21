@@ -41,6 +41,11 @@ async function main() {
   assert.equal($('#choose-document').closest('details').id,'native-import-tools');
   assert.equal($('#native-speech-details').closest('#native-music-options').open,false);
   assert.ok($('#native-music-explore #open-music-tracks'));
+  assert.equal($('#music-listen').closest('#native-capture-controls').id,'native-capture-controls');
+  assert.equal($('#music-playback-source').closest('#native-capture-controls').id,'native-capture-controls');
+  assert.equal($('#native-capture-controls').closest('details'),null,'primary controls never hide in a disclosure');
+  assert.match($('#native-capture-status').textContent,/Ready to listen/);
+  assert.match($('#music-listen').textContent,/Start listening|Listen to music/);
   const idCounts=()=>{const counts={};for(const node of d.querySelectorAll('[id]'))counts[node.id]=(counts[node.id]||0)+1;return counts;};
   assert.ok(Object.values(idCounts()).every(count=>count===1),'no duplicate editor/control IDs');
   editor.value='Texto editado para conservar.';target.textContent='An edited translation.';
@@ -56,8 +61,10 @@ async function main() {
   // Explicit same-iPhone request uses the existing capture and native bridge.
   $('#music-live-translation').checked=false;$('#music-playback-source').value='system';
   $('#native-identify-song').click();
+  assert.match($('#native-capture-status').textContent,/Waiting for screen-sharing approval/);
   const start=messages.at(-1);assert.equal(start.action,'start');assert.equal(start.input,'system');
   w.__hablaNativeSpeech({id:start.id,type:'start'});
+  assert.match($('#native-capture-status').textContent,/Listening/);
   assert.equal(messages.at(-1).action,'identify-song');
   w.__hablaNativeSpeech({id:start.id,type:'result',text:'Una frase de prueba.',final:false});
   assert.match(editor.value,/Una frase de prueba/);
