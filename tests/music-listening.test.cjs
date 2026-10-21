@@ -592,7 +592,8 @@ async function main() {
     nativeNodes.push(node);return node;
   };
   const attributes={};
-  musicButton.parentElement={after(){}};
+  musicButton.style={};
+  musicButton.parentElement={after(){},before(){}};
   musicButton.setAttribute=(name,value)=>{attributes[name]=value;};
   musicButton.getAttribute=name=>attributes[name];
   musicButton.click=()=>{if(!musicButton.disabled)run('startMusicListening()');};

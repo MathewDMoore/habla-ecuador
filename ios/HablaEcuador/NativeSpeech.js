@@ -134,6 +134,77 @@
       if (options) options.open = true;
     }
   }
+  let captureStatus, captureHint, captureButton, captureOwner = null;
+  function paintCapture(state, text, hint = "") {
+    if (!captureStatus) return;
+    if (captureStatus.textContent !== text) captureStatus.textContent = text;
+    captureStatus.setAttribute("data-state", state);
+    captureHint.textContent = hint;
+    captureStatus.style.color = state === "error" || state === "silent" || state === "gaps" ? "#8e342a" : "var(--green)";
+    if (captureButton) {
+      const busy = state === "waiting" || state === "starting";
+      captureButton.textContent = busy ? "Cancel startup" : state === "stopping" ? "Stopping…"
+        : ["listening", "silent", "words", "gaps"].includes(state) ? "Stop listening"
+        : document.querySelector("#translator-input")?.value?.trim() ? "Continue listening" : "Start listening";
+      captureButton.setAttribute("aria-pressed", ["listening", "silent", "words", "gaps"].includes(state) ? "true" : "false");
+    }
+  }
+  function installCaptureControls(anchor) {
+    captureButton = anchor;
+    const card = document.createElement("section");
+    card.id = "native-capture-controls";
+    card.setAttribute("aria-label", "Music capture");
+    card.style.cssText = "position:sticky;top:0;z-index:5;background:var(--cream,#fffaf0);border:2px solid var(--green);border-radius:16px;padding:12px;margin:10px 0;box-shadow:0 3px 12px #0002";
+    const musicWorkspace = document.querySelector("#native-music-workspace");
+    if (musicWorkspace?.prepend) musicWorkspace.prepend(card);
+    else anchor.parentElement.before?.(card);
+    // Keep source choice in sight; advanced recognition options stay collapsed.
+    const sourceLabel = document.querySelector("#music-playback-source")?.closest?.("label");
+    if (sourceLabel) card.append(sourceLabel);
+    captureStatus = document.createElement("p");
+    captureStatus.id = "native-capture-status";
+    captureStatus.setAttribute("role", "status");
+    captureStatus.setAttribute("aria-live", "polite");
+    captureStatus.style.cssText = "font-size:18px;font-weight:700;margin:8px 0";
+    captureHint = document.createElement("p");
+    captureHint.id = "native-capture-hint";
+    captureHint.style.cssText = "font-size:14px;margin:6px 0";
+    anchor.style.cssText = "width:100%;min-height:52px";
+    card.append(captureStatus, captureHint, anchor);
+    const detailsButton = document.createElement("button");
+    detailsButton.type = "button";
+    detailsButton.textContent = "Capture details";
+    detailsButton.addEventListener("click", () => {
+      const options = panel?.closest?.("#native-music-options");
+      if (options) options.open = true;
+      if (panel) { panel.open = true; panel.scrollIntoView?.({block:"nearest"}); }
+    });
+    card.append(detailsButton);
+    const setup = document.querySelector(".native-music-hint");
+    if (setup) setup.textContent = "Choose the audio source, then Start listening. Captured words appear above; no audio file is saved.";
+    paintCapture("ready", "Ready to listen", "This captures words for translation. It does not save an audio recording.");
+  }
+  function captureProgress(instance, text) {
+    if (captureOwner !== instance._id || instance._finishing || !instance._started) return;
+    const sample = String(text).match(/(?:Input|Microphone) audio: ([\d.]+) s · input peak (-?[\d.]+) dBFS/);
+    if (!sample) return;
+    const seconds = Number(sample[1]), level = Number(sample[2]);
+    if (level <= -90) instance._quietReadings = (instance._quietReadings || 0) + 1;
+    else instance._quietReadings = 0;
+    const elapsed = `${Math.floor(seconds)} s received`;
+    const drops = Number(String(text).match(/Capture backlog drops: (\d+)/)?.[1] || 0);
+    if (drops > 0) {
+      paintCapture("gaps", "Listening · audio gaps detected", `${elapsed}. Capture dropped ${drops} audio buffers; words may be missing. Stop and retry if this keeps increasing.`);
+    } else if (instance._quietReadings >= 3) {
+      paintCapture("silent", "Listening · no audio detected", `${elapsed}. Play audio and check the selected source. Screen recording may interrupt capture; use a screenshot instead.`);
+    } else if (level > -90) {
+      paintCapture(instance._hasWords ? "words" : "listening", instance._hasWords ? "Listening · words received" : "Listening · audio detected",
+        `${elapsed}. ${instance._hasWords ? "Check the captured words above; accuracy is not verified." : "No words yet; audio presence does not prove recognition."}`);
+    } else {
+      paintCapture("listening", "Listening · waiting for audio", `${elapsed}. Play audio from the selected source.`);
+    }
+  }
+
   // Keep the existing editors and handlers; only move their DOM nodes together.
   // Injected by the prototype so the hosted release does not need a deployment.
   function installTranslationWorkspace() {
@@ -330,7 +401,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.9 (10)";
+    summary.textContent = "iPhone speech · native 0.1.10 (11)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -352,6 +423,7 @@
     installTranslationWorkspace();
     installSongIdentification(anchor);
     installMusicWorkspace();
+    installCaptureControls(anchor);
     // The build-80 hosted UI has a browser-only error formatter. Adapt that
     // formatter within this native wrapper; leave the website source untouched.
     const browserMessage = window.recognitionErrorMessage;
@@ -382,6 +454,18 @@
       setDetail("Starting native iPhone recognition…");
       this._systemAudio = Boolean(this.continuous && window.__hablaSystemAudioSupported
         && document.querySelector("#music-playback-source")?.value === "system");
+      if (!this.continuous && captureOwner !== null) {
+        captureOwner = null;
+        paintCapture("stopped", "Music capture stopped", "Speech mode is using the microphone. Captured music words are kept.");
+      }
+      if (this.continuous) {
+        captureOwner = id;
+        this._quietReadings = 0;
+        this._hasWords = false;
+        paintCapture(this._systemAudio ? "waiting" : "starting",
+          this._systemAudio ? "Waiting for screen-sharing approval" : "Starting microphone…",
+          this._systemAudio ? "Choose Habla Ecuador and Share Entire Screen in Apple's picker. Then play your audio. Capture has not started yet." : "Allow microphone access if asked. Capture has not started yet.");
+      }
       for (const other of sessions.values()) {
         if (other !== this) { other._finishing = true; finishSongRequest(other._id); }
       }
@@ -399,6 +483,7 @@
         finishSongRequest(id);
         updateSongButton();
         syncSystemAudioFlag();
+        if (captureOwner === id) { captureOwner = null; paintCapture("error", "Could not start capture", "Tap Start listening to retry. Your words are kept."); }
         this._id = null;
         if (modeSelect) modeSelect.disabled = false;
         throw error;
@@ -409,6 +494,7 @@
     _command(action) {
       if (this._id !== null) {
         this._finishing = true;
+        if (captureOwner === this._id) paintCapture("stopping", "Stopping capture…", "Keeping your captured words.");
         finishSongRequest(this._id);
         updateSongButton();
         window.webkit.messageHandlers.hablaSpeech.postMessage({action, id:this._id});
@@ -430,11 +516,21 @@
       finishSongRequest(message.id);
       updateSongButton();
       syncSystemAudioFlag();
+      const ownsCapture = captureOwner === message.id;
       instance._id = null;
       if (modeSelect && !sessions.size) modeSelect.disabled = false;
       instance._emit("end");
+      if (ownsCapture) {
+        captureOwner = null;
+        paintCapture(instance._captureError ? "error" : "stopped", instance._captureError ? "Capture stopped · check source" : "Capture stopped",
+          instance._captureError || "Your captured words are kept. Tap Start or Continue listening to resume.");
+      }
     } else if (message.type === "result") {
       if (!message.final && !instance.interimResults) return;
+      if (captureOwner === message.id && !instance._finishing && message.text?.trim()) {
+        instance._hasWords = true;
+        paintCapture("words", "Listening · words received", "Check the captured words above; accuracy is not verified.");
+      }
       const result = [{transcript:message.text, confidence:message.confidence ?? 0}];
       result.isFinal = Boolean(message.final);
       const passage = typeof message.confirmedText === "string"
@@ -444,6 +540,10 @@
       instance._finishing = true;
       finishSongRequest(message.id);
       updateSongButton();
+      if (captureOwner === message.id) {
+        instance._captureError = message.error === "aborted" ? "" : message.message || "Capture ended unexpectedly. Check the selected source and retry.";
+        paintCapture(instance._captureError ? "error" : "stopped", instance._captureError ? "Capture stopped · check source" : "Capture cancelled", instance._captureError || "Your captured words are kept.");
+      }
       if (message.error !== "aborted") {
         latestError = message;
         setDetail([message.message || "Native speech stopped.", message.detail].filter(Boolean).join("\n"), true);
@@ -451,11 +551,13 @@
       instance._emit("error", {error:message.error});
     } else if (message.type === "status") {
       setDetail(message.text);
+      captureProgress(instance, message.text);
       if (message.reveal && panel) panel.open = true;
     } else if (message.type === "start") {
       instance._started = true;
       updateSongButton();
       instance._emit("start");
+      if (captureOwner === message.id && !instance._finishing) paintCapture("listening", "Listening · waiting for audio", instance._systemAudio ? "Play your audio now. Capture is active; no audio file is saved." : "Play audio near the microphone. Capture is active; no audio file is saved.");
       if (songStartup?.id === message.id && songSession() === instance) requestSong(instance);
     }
   }});
