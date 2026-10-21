@@ -44,6 +44,7 @@ async function main() {
   assert.equal($('#music-listen').closest('#native-capture-controls').id,'native-capture-controls');
   assert.equal($('#music-playback-source').closest('#native-capture-controls').id,'native-capture-controls');
   assert.equal($('#native-capture-controls').closest('details'),null,'primary controls never hide in a disclosure');
+  assert.equal($('#native-music-workspace').firstElementChild.id,'native-capture-controls','Start/Stop appears before the growing transcript');
   assert.match($('#native-capture-status').textContent,/Ready to listen/);
   assert.match($('#music-listen').textContent,/Start listening|Listen to music/);
   const idCounts=()=>{const counts={};for(const node of d.querySelectorAll('[id]'))counts[node.id]=(counts[node.id]||0)+1;return counts;};

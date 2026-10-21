@@ -155,7 +155,9 @@
     card.id = "native-capture-controls";
     card.setAttribute("aria-label", "Music capture");
     card.style.cssText = "position:sticky;top:0;z-index:5;background:var(--cream,#fffaf0);border:2px solid var(--green);border-radius:16px;padding:12px;margin:10px 0;box-shadow:0 3px 12px #0002";
-    anchor.parentElement.before?.(card);
+    const musicWorkspace = document.querySelector("#native-music-workspace");
+    if (musicWorkspace?.prepend) musicWorkspace.prepend(card);
+    else anchor.parentElement.before?.(card);
     // Keep source choice in sight; advanced recognition options stay collapsed.
     const sourceLabel = document.querySelector("#music-playback-source")?.closest?.("label");
     if (sourceLabel) card.append(sourceLabel);

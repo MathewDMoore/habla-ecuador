@@ -1,6 +1,6 @@
 # Visible native music capture controls
 
-Native 0.1.10 (11) prepares a visible capture card with the existing source selector and Start/Continue/Stop button. The card stays outside collapsed help, sticks within the Music capture section while scrolling, and retains the existing button node and handlers. Capture details are one explicit action away. Other source/translation editors and workflows remain intact.
+Native 0.1.10 (11) prepares a visible capture card with the existing source selector and Start/Continue/Stop button. The card appears above the growing transcript, stays outside collapsed help, sticks within the Music workspace while scrolling, and retains the existing button node and handlers. Capture details are one explicit action away. Other source/translation editors and workflows remain intact.
 
 Starting this iPhone's audio says **Waiting for screen-sharing approval**, with a **Cancel startup** button. This is not presented as active capture. Only the native start event shows **Listening**. Subsequent meter updates distinguish waiting for audio, detected audio, three consecutive near-silent readings (at or below -90 dBFS), and capture backlog gaps. Nonempty recognition results show **words received**, without claiming accuracy. Stop, cancellation, errors and session handoff clear the active state. Old sessions cannot revive the current card. Status titles use text and color, and titles only mutate when their text changes to avoid repeated live announcements for an unchanged title.
 
