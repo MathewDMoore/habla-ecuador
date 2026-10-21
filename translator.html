@@ -8,16 +8,18 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=99">
-  <script src="research-reference.js?v=99" defer></script>
-  <script src="document-import.js?v=99" defer></script>
-  <script src="whole-document.js?v=99" defer></script>
-  <script src="saved-paper.js?v=99" defer></script>
-  <script src="offline-device.js?v=99" defer></script>
-  <script src="english-varieties.js?v=99" defer></script>
-  <script src="screenshot-import.js?v=99" defer></script>
-  <script src="spanish-context.js?v=99" defer></script>
-  <script src="app.js?v=99" defer></script>
+  <link rel="stylesheet" href="styles.css?v=100">
+  <script src="research-reference.js?v=100" defer></script>
+  <script src="document-import.js?v=100" defer></script>
+  <script src="whole-document.js?v=100" defer></script>
+  <script src="saved-paper.js?v=100" defer></script>
+  <script src="offline-device.js?v=100" defer></script>
+  <script src="english-varieties.js?v=100" defer></script>
+  <script src="screenshot-import.js?v=100" defer></script>
+  <script src="spanish-context.js?v=100" defer></script>
+  <script src="bilingual-music.js?v=100" defer></script>
+  <script src="button-feedback.js?v=100" defer></script>
+  <script src="app.js?v=100" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -26,7 +28,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.25.0 · build 99</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.25.1 · build 100</span></div>
     </header>
 
     <main>
@@ -173,6 +175,10 @@
               <p>Connect your speaker in your phone’s Bluetooth settings and choose it as the music output. Play the song, open Habla, choose From and tap Listen to music. Keep the phone near the speaker and check that playback continues. Habla listens through the microphone; it does not read the music app’s audio stream.</p>
               <p>This option keeps Habla’s music player running. iOS or your browser may still pause other music apps or switch the audio route when the microphone starts. If playback stops, stop listening, resume music from Control Center and try again. Returning to another app or locking the screen pauses capture and keeps collected words. Same-phone Bluetooth listening is not yet verified on a physical iPhone; a second playback device remains an alternative.</p>
             </details>
+            <label class="music-capture-length" for="music-source-mode">Music translation language
+              <select id="music-source-mode"><option value="auto" selected>Detect Spanish + English · experimental</option><option value="selected">Use selected From language</option></select>
+            </label>
+            <p id="music-language-status" class="import-status" role="status" aria-live="polite">Automatic Spanish/English text routing · experimental. Speech capture still uses From; check missed language switches.</p>
             <label class="music-capture-length" for="music-capture-length">Listening length
               <select id="music-capture-length"><option value="song" selected>Whole song · up to 10 minutes</option><option value="clip">Short passage · 30 seconds</option></select>
             </label>
