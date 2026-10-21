@@ -38,3 +38,20 @@ for rate in [44100.0, 48000.0] {
     }
 }
 print("Native audio: production conversion preserves signal/duration and meters forwarded/rejected buffers")
+
+// Capture losses occur before observe()/forwarded(); they must remain visible
+// even if no converted samples ever reach the analyzer.
+let lossOnly = NativeInputStats()
+lossOnly.captureDropped(seconds: 0.125)
+lossOnly.captureDropped(seconds: 0.125)
+lossOnly.captureDropped(seconds: .nan)
+lossOnly.captureDropped(seconds: -1)
+assert(lossOnly.summary.contains("Capture backlog drops: 4 buffers · 0.25 s"))
+assert(lossOnly.summary.contains("Analyzer queue: 0.0 s · 0 buffers"))
+assert(lossOnly.summary.contains("rejected 0"))
+assert(lossOnly.summary.contains("Audio was lost before recognition"))
+// The callback runs outside the main queue; concurrent observations are safe.
+let concurrentLoss = NativeInputStats()
+DispatchQueue.concurrentPerform(iterations: 1000) { _ in concurrentLoss.captureDropped(seconds: 0.01) }
+assert(concurrentLoss.summary.contains("Capture backlog drops: 1000 buffers · 10.00 s"))
+print("Capture loss diagnostics: upstream loss, invalid durations and concurrent counters passed")
