@@ -44,6 +44,7 @@ const context = vm.createContext({
 vm.runInContext(fs.readFileSync(path.join(root,'research-reference.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context);
 const run = code => vm.runInContext(code,context);
+const realTranslation=run('requestGeneralTranslation');
 context.spoken = spoken;
 run('say = (text,lang) => spoken.push({text,lang});');
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -624,6 +625,34 @@ async function main() {
     for(const id of ['music-live-update-mode','music-live-retry'])
       assert.equal(html.split(`id="${id}"`).length-1,1,`${page} exposes ${id} once`);
   }
+  // Actual bilingual routing can translate Spanish while From and To are both English.
+  context.HablaBilingualMusic=require('../bilingual-music.js');
+  context.realTranslation=realTranslation;
+  element('#music-source-mode').value='auto';
+  context.HablaOffline={shouldUse:()=>true,translate:async()=> 'I have work.'};
+  element('#music-live-translation').checked=true;
+  run('requestGeneralTranslation=realTranslation; sourceLanguage="en-US";targetLanguage="en-GB";syncLanguagePair();newMusicSong();startMusicListening()');
+  const bilingualCapture=recordings.at(-1);
+  bilingualCapture.emit('Yo tengo trabajo. I want to stay.',true);
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(element('#music-live-draft').value,'I have work. I want to stay.');
+  assert.equal(run('sourceLanguage'),'en-US');assert.equal(run('targetLanguage'),'en-GB');
+  run('stopMusicListening()');bilingualCapture.onend();
+  context.HablaOffline.shouldUse=()=>false;
+  run('newMusicSong();startMusicListening();musicListening.live.requests=29');
+  const limitedBilingual=recordings.at(-1);
+  limitedBilingual.emit('Yo tengo trabajo. I want to stay. Yo quiero trabajar.',true);
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(run('musicListening.live.failed'),true,'two required requests cannot exceed remaining allowance');
+  assert.equal(run('musicListening.live.requests'),29);
+  run('stopMusicListening()');limitedBilingual.onend();
+  run('newMusicSong();startMusicListening();musicListening.live.requests=30');
+  const alreadyTarget=recordings.at(-1);alreadyTarget.emit('I want to stay.',true);
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.equal(run('musicListening.live.failed'),false,'already-target words use no request allowance');
+  assert.equal(run('musicListening.live.requests'),30);
+  assert.equal(element('#music-live-draft').value,'I want to stay.');
+  run('stopMusicListening()');alreadyTarget.onend();
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

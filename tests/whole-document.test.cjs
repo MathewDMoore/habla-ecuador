@@ -145,14 +145,17 @@ async function main(){
   // Both app entry points load the new module before app.js and keep unique controls.
   for(const name of ['index.html','translator.html']){
     const source=fs.readFileSync(name,'utf8');
-    assert.ok(source.indexOf('whole-document.js?v=99')<source.indexOf('app.js?v=99'));
+    const wholeScript=source.match(/whole-document\.js\?v=\d+/)?.[0];
+    const appScript=source.match(/app\.js\?v=\d+/)?.[0];
+    assert.ok(wholeScript && appScript && source.indexOf(wholeScript)<source.indexOf(appScript));
     assert.equal((source.match(/id="translate-entire-document"/g)||[]).length,1);
     assert.equal((source.match(/id="whole-document-print"/g)||[]).length,1);
     assert.ok(source.indexOf('id="import-document-progress"')<source.indexOf('id="whole-document-tools"'),'backup recovery remains outside the hidden active-document panel');
     assert.ok(!source.includes('the whole document is not translated at once'));
   }
-  assert.ok(fs.readFileSync('sw.js','utf8').includes('whole-document.js?v=99'));
-  assert.ok(fs.readFileSync('app.js','utf8').includes('register("sw.js?v=99")'));
+  const cacheVersion=fs.readFileSync('sw.js','utf8').match(/habla-ecuador-v(\d+)/)[1];
+  assert.ok(fs.readFileSync('sw.js','utf8').includes(`whole-document.js?v=${cacheVersion}`));
+  assert.ok(fs.readFileSync('app.js','utf8').includes(`register("sw.js?v=${cacheVersion}")`));
   console.log('Whole-document checks passed: sequential processing, pause/resume, reload persistence, segment retries, complete-only export, multiple papers, language preservation, edits, privacy, storage errors and safe printable output.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

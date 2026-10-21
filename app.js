@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.0 · build 99";
+const APP_VERSION = "0.25.1 · build 100";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -903,7 +903,19 @@ function nextMusicLivePassage(text, previous="") {
   return utf8Length(passage) <= 450 ? passage : "";
 }
 
-function musicFragmentReason(passage, language) {
+function bilingualMusicEnabled() {
+  return typeof HablaBilingualMusic !== "undefined" && $("#music-source-mode")?.value === "auto";
+}
+
+function musicTranslationRequestCost(text,source,target,purpose="everyday") {
+  if (!bilingualMusicEnabled() || purpose === "academic") return 1;
+  return HablaBilingualMusic.plan(text,{source,target}).parts.reduce((sum,part) => sum +
+    (part.language && part.language !== languageFamily(target)
+      ? splitLongTranslationText(part.text.trim()).filter(chunk=>!chunk.separator).length : 0),0);
+}
+
+function musicFragmentReason(passage, language, checkBoth=false) {
+  if (checkBoth) return musicFragmentReason(passage,"es-EC") || musicFragmentReason(passage,"en-US");
   if (!passage) return "This passage is too long without a clear sentence break. Stop to review and split the captured words.";
   const ending = passage.toLowerCase().replace(/[.!?…,:;¿¡]+$/g, "").trim();
   const dangling = languageFamily(language) === "es"
@@ -1036,14 +1048,14 @@ async function translateMusicLivePassage(session) {
     if (showTentativeMusicWords(session)) $("#music-live-status").textContent = "Waiting for recognition to finalize new words. Tentative words remain above for review.";
     return;
   }
-  if (languageFamily(session.lang) === languageFamily(live.target)) {
+  if (languageFamily(session.lang) === languageFamily(live.target) && !bilingualMusicEnabled()) {
     live.failed = true;
     live.errorMessage = "Live drafts need Spanish ↔ English. Regional comparisons remain available after capture.";
     $("#music-live-status").textContent = live.errorMessage;
     return;
   }
   const passage = nextMusicLivePassage(source,live.lastSource);
-  const fragmentReason = musicFragmentReason(passage,session.lang);
+  const fragmentReason = musicFragmentReason(passage,session.lang,bilingualMusicEnabled());
   if (fragmentReason) {
     $("#music-live-status").textContent = fragmentReason + (live.lastPassage ? " The previous paired draft remains below." : "");
     $("#music-live-pending").hidden = false;
@@ -1053,7 +1065,8 @@ async function translateMusicLivePassage(session) {
   if (passage.split(/\s+/).length < 3 || passage === live.lastPassage) return;
   if (!showTentativeMusicWords(session)) $("#music-live-pending").hidden = true;
   const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
-  if (!onDevice && (live.requests >= 30 || live.characters + passage.length > 2500)) {
+  const requestCost=musicTranslationRequestCost(passage,session.lang,live.target,live.purpose);
+  if (!onDevice && (live.requests + requestCost > 30 || live.characters + (requestCost ? passage.length : 0) > 2500)) {
     live.failed = true;
     live.errorMessage = "Online live draft paused to protect the free allowance. Use the downloaded on-device translation pack for longer live drafts, or translate the collected words after Stop.";
     $("#music-live-status").textContent = live.errorMessage + " Capturing continues.";
@@ -1065,7 +1078,7 @@ async function translateMusicLivePassage(session) {
     && translationPurpose === live.purpose
     && onDevice === (typeof HablaOffline !== "undefined" && HablaOffline.shouldUse());
   live.busy = true;
-  if (!onDevice) { live.requests += 1; live.characters += passage.length; }
+  if (!onDevice) { live.requests += requestCost; live.characters += requestCost ? passage.length : 0; }
   $("#music-live-status").textContent = "Translating the latest captured passage…";
   try {
     const draft = await requestGeneralTranslation(passage,live.way,
@@ -1578,7 +1591,26 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode}={}) {
+  if (text.length > 8000) throw translationFailure("research_limit");
+  if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
+    const plan = HablaBilingualMusic.plan(text,{source,target});
+    if (musicTranslationRequestCost(text,source,target,purpose) > 20) throw translationFailure("research_limit");
+    const translated=[];
+    for (const part of plan.parts) {
+      if (!isCurrent()) throw translationFailure("superseded");
+      if (!part.language || part.language === languageFamily(target)) { translated.push(part.text); continue; }
+      const locale = languageFamily(source) === part.language ? source : part.language === "es" ? "es-EC" : "en-US";
+      const trimmed=part.text.trim();
+      const draft=await requestGeneralTranslation(trimmed,part.language === "es" ? "ec-en" : "en-ec",
+        {purpose,source:locale,target,isCurrent,onDevice,inputType:"music",musicSourceMode:"selected"});
+      translated.push(part.text.slice(0,part.text.indexOf(trimmed))+draft+part.text.slice(part.text.indexOf(trimmed)+trimmed.length));
+    }
+    if (!isCurrent()) throw translationFailure("superseded");
+    const status=$("#music-language-status");
+    if(status) status.textContent=HablaBilingualMusic.label(plan);
+    return translated.join("");
+  }
   if (purpose === "academic" && way === "ec-en") {
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
@@ -1644,10 +1676,10 @@ function academicSourceFingerprint(source) {
   return `${normalize(source).slice(0,80)}|${(hash >>> 0).toString(36)}`;
 }
 
-function translationEditKey(source, way=direction, variant=englishVariant, purpose=translationPurpose) {
+function translationEditKey(source, way=direction, variant=englishVariant, purpose=translationPurpose, musicSourceMode="selected") {
   const targetVariant = languageFamily(targetLanguage) === "en" ? variant : targetLanguage;
   const sourceKey = purpose === "academic" ? academicSourceFingerprint(source) : normalize(source);
-  return `${purpose}|${sourceLanguage}>${targetLanguage}|${way}|${targetVariant}|${sourceKey}`;
+  return `${purpose}|${sourceLanguage}>${targetLanguage}|${way}|${targetVariant}|${sourceKey}${musicSourceMode === "auto" ? "|bilingual-music-v1" : ""}`;
 }
 
 function persistTranslationEdits() {
@@ -1666,7 +1698,7 @@ function updateTranslationEditUi() {
     return;
   }
   const currentText = $("#natural-result").textContent.trim();
-  const contextFindings=renderSpanishContext(activeTranslationEdit.source,currentText)||[];
+  const contextFindings=activeTranslationEdit.metadata.musicSourceMode === "auto" ? [] : renderSpanishContext(activeTranslationEdit.source,currentText)||[];
   const edited = currentText !== activeTranslationEdit.generated;
   status.textContent = edited
     ? "Your edited translation is saved on this device."
@@ -1677,7 +1709,7 @@ function updateTranslationEditUi() {
 
 function setEditableTranslation(source, generated, metadata={}) {
   const result = $("#natural-result");
-  const key = translationEditKey(source);
+  const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
   const target = metadata.documentDraft ? generated : savedText || generated;
   if ($("#compare-english")) $("#compare-english").disabled = languageFamily(targetLanguage) !== "en";
@@ -1840,7 +1872,10 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     && sourceText === $("#translator-input").value.trim()
     && requestContext.source === sourceLanguage && requestContext.target === targetLanguage
     && requestContext.purpose === translationPurpose;
-  renderSpanishContext(sourceText);
+  const musicInput=allowMusic || Boolean(musicCapturedText && musicCapturedText === sourceText && musicCapturedLanguage === sourceLanguage);
+  const autoMusic=musicInput && translationPurpose !== "academic" && bilingualMusicEnabled();
+  if(!autoMusic)renderSpanishContext(sourceText);
+  else if($("#spanish-context"))$("#spanish-context").hidden=true;
   const preservedEntry = direction === "en-ec"
     && preservedCulturalContext
     && normalize(sourceText) === normalize(preservedCulturalContext.input)
@@ -1858,14 +1893,14 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     missing.hidden = true;
     return;
   }
-  if (languageFamily(sourceLanguage) === languageFamily(targetLanguage)) {
+  if (languageFamily(sourceLanguage) === languageFamily(targetLanguage) && !autoMusic) {
     renderRegionalTranslation(sourceText,result,missing);
     return;
   }
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
-  const phrase = translationPurpose === "academic" || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
+  const phrase = translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
-    const embeddedSlang = prepareEmbeddedEcuadorianSlang(sourceText,direction);
+    const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
     const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
     result.hidden = false;
     missing.hidden = true;
@@ -1881,10 +1916,10 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       ? `<strong>Research translation</strong><span>Preserving paragraph structure, citations, DOI links, and numerical references while preparing a formal draft.</span>`
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
-      const inputType=importedDocument?.kind==='image'?'image':allowMusic?'music':undefined;
+      const inputType=importedDocument?.kind==='image'?'image':musicInput?'music':undefined;
       const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
       if (!current()) return;
-      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice});
+      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
@@ -3072,6 +3107,15 @@ function init() {
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
+  $("#music-source-mode")?.addEventListener("change", () => {
+    saveActiveTranslationEdit();
+    translationRequest += 1; musicReviewRequest += 1;
+    const status=$("#music-language-status");
+    if(status) status.textContent=bilingualMusicEnabled()
+      ? "Automatic Spanish/English text routing · experimental. Speech capture still uses From; check missed language switches."
+      : "Using the selected From language for music translation.";
+    if(musicListening) refreshMusicLiveRoute();
+  });
   if($("#music-live-update-mode"))$("#music-live-update-mode").value=localStorage.getItem("habla-ecuador-music-live-update-v1") === "quick" ? "quick" : "confirmed";
   $("#music-live-update-mode")?.addEventListener("change",event=>setMusicLiveUpdateMode(event.target.value));
   $("#music-live-retry")?.addEventListener("click",retryMusicLiveDraft);
@@ -3195,7 +3239,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=99").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=100").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

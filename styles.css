@@ -558,3 +558,16 @@ button:disabled { cursor: default; }
 .music-source-label {font-size:.8rem;font-weight:650;color:var(--green);margin-bottom:.35rem;}
 .music-live-preview #music-live-source {padding:0 0 .8rem;border-bottom:1px solid var(--line);}
 .music-live-pending {white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid var(--line);padding-left:.8rem;}
+
+/* A short visible response also survives quick taps in the native web view. */
+button.is-pressed:not(:disabled), button:active:not(:disabled) {
+  transform:translateY(2px) scale(.97);
+  filter:brightness(.86);
+  box-shadow:inset 0 2px 5px rgb(0 0 0 / .2);
+}
+button:focus-visible {outline:3px solid var(--orange);outline-offset:3px;}
+button:disabled {opacity:.5;}
+@media (prefers-reduced-motion:reduce) {
+  button.is-pressed:not(:disabled), button:active:not(:disabled),
+  .push-to-talk:active:not(:disabled), .round-action:active:not(:disabled) {transform:none;}
+}
