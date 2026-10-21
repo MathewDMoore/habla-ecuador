@@ -313,6 +313,8 @@ private final class NativeInputStats {
     private var queuedBuffers: Int = 0
     private var convertedPeak: Float = 0
     private var rejectedBuffers: Int = 0
+    private var captureDroppedBuffers: Int = 0
+    private var captureDroppedSeconds: Double = 0
     func observe(_ buffer: AVAudioPCMBuffer) {
         var amplitude: Float = 0
         let interleaved = buffer.format.isInterleaved
@@ -341,12 +343,24 @@ private final class NativeInputStats {
         let duration = seconds; let level = peak
         let queued = queuedSeconds; let buffers = queuedBuffers
         let convertedLevel = convertedPeak; let rejected = rejectedBuffers
+        let captureDrops = captureDroppedBuffers; let lostSeconds = captureDroppedSeconds
         lock.unlock()
         let decibels = level > 0 ? max(-120, 20 * log10(Double(level))) : -120
         let convertedDecibels = convertedLevel > 0 ? max(-120, 20 * log10(Double(convertedLevel))) : -120
-        return String(format: "Microphone audio: %.1f s · input peak %.0f dBFS", duration, decibels)
+        return String(format: "Input audio: %.1f s · input peak %.0f dBFS", duration, decibels)
             + (duration == 0 ? " · waiting for audio buffers" : "")
             + String(format: "\nAnalyzer queue: %.1f s · %d buffers · converted peak %.0f dBFS · rejected %d", queued, buffers, convertedDecibels, rejected)
+            + String(format: "\nCapture backlog drops: %d buffers · %.2f s lost before conversion", captureDrops, lostSeconds)
+            + (captureDrops > 0 ? "\nAudio was lost before recognition; missing words may follow. This is separate from analyzer rejections." : "")
+    }
+
+    // Called on the capture queue: do not dispatch this counter through the
+    // same main-thread backlog that caused the loss. No sample data is retained.
+    func captureDropped(seconds duration: Double) {
+        lock.lock()
+        captureDroppedBuffers += 1
+        if duration.isFinite && duration > 0 { captureDroppedSeconds += duration }
+        lock.unlock()
     }
 
     // A microphone meter alone cannot establish that conversion and forwarding
@@ -515,6 +529,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                     let delivery = continuation.yield(AnalyzerInput(buffer: buffer))
                     if case .enqueued = delivery { self.stats.forwarded(buffer, accepted: true) }
                     else { self.stats.forwarded(buffer, accepted: false) }
+                }, onDropped: { [stats = self.stats] seconds in
+                    stats.captureDropped(seconds: seconds)
                 }, onStarted: { [weak self] in
                     guard let self, !self.cancelled, !self.stopping else { return }
                     self.startedAt = Date()
@@ -783,6 +799,7 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
     private let format: AVAudioFormat
     private let onBuffer: (AVAudioPCMBuffer) -> Void
     private let onStarted: () -> Void
+    private let onDropped: (Double) -> Void
     private let onError: (Error) -> Void
     private let queue = DispatchQueue(label: "habla.system-audio")
     private let pendingAudio = DispatchSemaphore(value: 20)
@@ -793,8 +810,8 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
     private var sourceFormat: AVAudioFormat?
 
     init(format: AVAudioFormat, onBuffer: @escaping (AVAudioPCMBuffer) -> Void,
-         onStarted: @escaping () -> Void, onError: @escaping (Error) -> Void) {
-        self.format = format; self.onBuffer = onBuffer
+         onDropped: @escaping (Double) -> Void, onStarted: @escaping () -> Void, onError: @escaping (Error) -> Void) {
+        self.format = format; self.onBuffer = onBuffer; self.onDropped = onDropped
         self.onStarted = onStarted; self.onError = onError
     }
 
@@ -863,7 +880,17 @@ private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
         guard type == .audio, CMSampleBufferDataIsReady(sampleBuffer) else { return }
         // Keep session state and converter use main-thread owned, as for the analyzer.
         // Bound retained PCM when the UI/recognizer cannot keep up in the background.
-        guard pendingAudio.wait(timeout: .now()) == .success else { return }
+        guard pendingAudio.wait(timeout: .now()) == .success else {
+            var duration = CMSampleBufferGetDuration(sampleBuffer).seconds
+            if !duration.isFinite || duration <= 0,
+               let description = CMSampleBufferGetFormatDescription(sampleBuffer),
+               let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description),
+               asbd.pointee.mSampleRate > 0 {
+                duration = Double(CMSampleBufferGetNumSamples(sampleBuffer)) / asbd.pointee.mSampleRate
+            }
+            onDropped(duration)
+            return
+        }
         let gate = pendingAudio
         DispatchQueue.main.async { [weak self] in
             defer { gate.signal() }
