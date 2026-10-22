@@ -145,7 +145,7 @@ final class NativeMusicReview {
 // Pure Swift storage and result policy, independently exercised without Core ML.
 struct MusicReviewSamples {
     static let capacity = 30 * 16000
-    private var storage = [Float](repeating: 0, count: capacity)
+    private var storage = [Float](repeating: 0, count: MusicReviewSamples.capacity)
     private var next = 0
     private var count = 0
     mutating func append<S: Sequence>(_ values: S) where S.Element == Float {
