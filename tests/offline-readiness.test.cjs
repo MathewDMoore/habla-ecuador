@@ -4,7 +4,7 @@ function harness(supported=true){
  const node=k=>{if(!nodes.has(k))nodes.set(k,{textContent:'',checked:false,disabled:false,events:{},addEventListener(t,f){this.events[t]=f;}});return nodes.get(k);};
  class Channel{constructor(){this.port1={close(){}};this.port2={reply:data=>queueMicrotask(()=>this.port1.onmessage({data})),close(){}};}}
  const controller={postMessage(message,ports){assert.equal(message.type,'OFFLINE_SHELL_STATUS');ports[0].reply({ready:true});}};
- class Worker{constructor(url){assert.equal(url,'offline-worker.js?v=102');}postMessage(message){messages.push(message);queueMicrotask(()=>this.onmessage({data:broken?{id:message.id,error:'Cached model failed validation'}:{id:message.id,result:message.type==='validate'?{directions:2}:'Una traducción nueva.'}}));}terminate(){}}
+ class Worker{constructor(url){assert.equal(url,'offline-worker.js?v=104');}postMessage(message){messages.push(message);queueMicrotask(()=>this.onmessage({data:broken?{id:message.id,error:'Cached model failed validation'}:{id:message.id,result:message.type==='validate'?{directions:2}:'Una traducción nueva.'}}));}terminate(){}}
  const navigator={onLine:true,...(supported?{serviceWorker:{ready:Promise.resolve(),controller},storage:{persist:async()=>false}}:{})};
  const context=vm.createContext({console,setTimeout,clearTimeout,WebAssembly,Worker,MessageChannel:Channel,navigator,caches:{open:async()=>({match:async()=>({ok:true})})},document:{querySelector:node},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},fetch:()=>{throw Error('No network permitted in readiness test');}});
  vm.runInContext(fs.readFileSync('offline-device.js','utf8'),context);const run=s=>vm.runInContext(s,context);
