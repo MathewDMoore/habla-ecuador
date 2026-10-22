@@ -37,14 +37,14 @@ async function main(){
   let response;events.fetch({request:{method:'GET',url:urls[0]},respondWith:value=>response=value});assert.equal((await response).body,'cached');assert.equal(onlineRequests,0);
   response=null;events.fetch({request:{method:'GET',url:'https://api.mymemory.translated.net/get?q=private'},respondWith:value=>response=value});assert.equal(response,null,'third-party translation requests are not cached');
   // Worker cold-load configuration and strict cache-only optional-file handling.
-  const loads=[],remoteStates=[];let disposals=0;
+  const loads=[],remoteStates=[];let disposals=0,validationProbe=false;
   const runtime={env:{backends:{onnx:{wasm:{}}}},pipeline:async(task,id,options)=>{
     loads.push({id,options});
     assert.equal(task,'translation');
     assert.equal(options.local_files_only,true);
     assert.equal(runtime.env.allowLocalModels,true,'v2 cache-only loads require local models enabled');
     assert.equal(runtime.env.allowRemoteModels,false);
-    const engine=async(text,options)=>{remoteStates.push(runtime.env.allowRemoteModels);return [{translation_text:text}];};
+    const engine=async(text,options)=>{remoteStates.push(runtime.env.allowRemoteModels);return [{translation_text:validationProbe?(text.includes("house")?"La casa es pequeña.":"The house is small."):text}];};
     engine.tokenizer=async()=>({input_ids:{dims:[1,12]}});engine.dispose=async()=>{disposals++;};return engine;
   }};
   const waiting=new Map();let id=0;
@@ -63,6 +63,10 @@ async function main(){
   assert.equal(runtime.env.backends.onnx.wasm.numThreads,1);
   assert.ok((await send('translate','invalid','bad')).error);
   assert.equal((await send('translate','ec-en','another sentence')).result,'another sentence','a failed request does not poison the queue');
+  assert.ok((await send('validate')).error,'cached identity output cannot validate a translation pack');
+  validationProbe=true;
+  assert.equal((await send('validate')).result.directions,2,'both real worker validation routes run cache-only');
+  assert.ok(remoteStates.every(value=>value===false));
   console.log('Offline checks passed: complete pack validation, failed download rejection, private local routing, full paragraphs, no silent online fallback, runtime offline cache and upgrade retention.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

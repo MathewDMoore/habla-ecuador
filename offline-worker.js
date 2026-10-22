@@ -53,6 +53,19 @@ async function handle(message) {
       if (runtime) { runtime.env.allowRemoteModels = false; runtime.env.allowLocalModels = true; }
     }
   }
+  if (message.type === "validate") {
+    // These generic probes are generated here, never taken from user documents.
+    // load(..., false) and the fetch guard prohibit network requests.
+    for (const [way,text] of [["en-ec","The house is small."],["ec-en","La casa es pequeña."]]) {
+      const engine=await load(way,false);
+      const output=await engine(text,{max_new_tokens:64,num_beams:1});
+      const result=output[0]?.translation_text;
+      if(typeof result !== "string" || !result.trim() || result.trim().toLowerCase() === text.toLowerCase()) throw new Error("The cached model did not produce a translation in both directions. Retry the download.");
+      const expected=way === "en-ec" ? "casa" : "house";
+      if(!result.toLowerCase().includes(expected)) throw new Error("The cached model failed its translation smoke check. Retry the download.");
+    }
+    return {directions:2};
+  }
   if (message.type !== "translate") throw new Error("Unknown offline request.");
   const engine = await load(message.way);
   const tokens = await engine.tokenizer(message.text);

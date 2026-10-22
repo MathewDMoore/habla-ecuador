@@ -9,12 +9,44 @@ const HablaOffline = (() => {
     "ec-en": {id:"Xenova/opus-mt-es-en", revision:"eadfd7c658a9d8929ac3b8e996b68a68e2c7d480"}
   };
   const FILES = ["config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"];
-  let ready = false, enabled = false, worker, serial = 0, installing = false;
+  let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null;
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
+  function supportProblem() {
+    if (!navigator.serviceWorker) return "This installed app or browser needs an offline-support update. Offline mode is unavailable here; your text will not be sent online while on-device mode is selected.";
+    if (!globalThis.caches || typeof Worker === "undefined" || typeof WebAssembly === "undefined") return "This device does not provide the storage or engine needed for this offline pack.";
+    return "";
+  }
+  function deadline(promise, ms, message) {
+    let timer;
+    return Promise.race([promise, new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms);})]).finally(()=>clearTimeout(timer));
+  }
+  async function controllingWorker() {
+    if (!navigator.serviceWorker) throw new Error(supportProblem());
+    await deadline(navigator.serviceWorker.ready,15000,"Offline setup has not finished. Reload while connected, then retry.");
+    if (navigator.serviceWorker.controller) return navigator.serviceWorker.controller;
+    let changed;
+    try {
+      await deadline(new Promise(resolve=> {
+        changed=()=> { if(navigator.serviceWorker.controller) resolve(); };
+        navigator.serviceWorker.addEventListener("controllerchange",changed);
+        changed();
+      }),5000,"Reload this page, then download or validate the pack.");
+    } finally {navigator.serviceWorker.removeEventListener("controllerchange",changed);}
+    return navigator.serviceWorker.controller;
+  }
+  async function checkShell(controller) {
+    const channel=new MessageChannel();
+    try {
+      return await deadline(new Promise((resolve,reject)=> {
+        channel.port1.onmessage=({data})=>data?.ready ? resolve(true) : reject(new Error("App files or dictionary data are incomplete. Reload while connected and retry."));
+        controller.postMessage({type:"OFFLINE_SHELL_STATUS"},[channel.port2]);
+      }),8000,"The app cache needs an update. Reload while connected and retry.");
+    } finally {channel.port1.close();channel.port2.close();}
+  }
   function updateModeBadge() {
     const badge = document.querySelector("#translation-engine-badge");
-    if (badge) badge.textContent = shouldUse() ? (ready ? "On device" : "On-device pack needed") : navigator.onLine === false ? "Offline" : "Online service";
+    if (badge) badge.textContent = shouldUse() ? (ready ? "On device · validated" : supportProblem() ? "On-device unavailable" : validating ? "Validating offline pack" : "On-device pack needed") : navigator.onLine === false ? "Offline" : "Online service";
   }
   const status = text => { const node = document.querySelector("#offline-status"); if (node) node.textContent = text; updateModeBadge(); };
   async function checkPack() {
@@ -26,22 +58,49 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=77");
+      worker = new Worker("offline-worker.js?v=101");
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
         if (!request) return;
         pending.delete(data.id);
+        clearTimeout(request.timer);
         if (data.error) request.reject(fail("offline_engine", data.error));
         else request.resolve(data.result);
       };
       worker.onerror = () => {
-        for (const request of pending.values()) request.reject(fail("offline_engine", "The on-device engine could not start."));
+        for (const request of pending.values()) { clearTimeout(request.timer); request.reject(fail("offline_engine", "The on-device engine could not start.")); }
+        ready = false;
         pending.clear(); worker.terminate(); worker = null;
+        status("On-device engine stopped. Validate the pack again before translating. Your text was not sent online.");
       };
     }
     const id = ++serial;
-    return new Promise((resolve, reject) => { pending.set(id, {resolve, reject}); worker.postMessage({id, type, ...payload}); });
+    return new Promise((resolve, reject) => {
+      const timer=setTimeout(()=> {
+        for (const request of pending.values()) {clearTimeout(request.timer);request.reject(fail("offline_engine","The on-device engine timed out. Your text is kept; retry or reload."));}
+        pending.clear();worker?.terminate();worker=null;ready=false;
+        status("On-device engine timed out. Validate the pack again; your text is kept and was not sent online.");
+      },type === "install" ? 600000 : 180000);
+      pending.set(id, {resolve, reject, timer});
+      try {worker.postMessage({id, type, ...payload});}
+      catch(error){clearTimeout(timer);pending.delete(id);reject(fail("offline_engine",error.message));}
+    });
+  }
+  async function validate(controller) {
+    if (validating) return validating;
+    ready=false;
+    validating=(async()=> {
+      status("Validating downloaded files, app cache and both translation directions… No user text is used.");
+      if (!await checkPack()) throw new Error("The pack is incomplete. Connect and tap Download offline pack.");
+      await checkShell(controller || await controllingWorker());
+      const result=await call("validate");
+      if (result?.directions !== 2) throw new Error("Both translation directions could not be validated.");
+      ready=true;
+      status("Offline pack validated in both directions. App and dictionary files are cached. New typed text can stay on this device. Confirm offline reopening once in airplane mode.");
+    })().finally(()=> {validating=null;});
+    updateModeBadge();
+    return validating;
   }
   async function install() {
     if (installing) return;
@@ -49,37 +108,34 @@ const HablaOffline = (() => {
     const button = document.querySelector("#offline-download");
     button.disabled = true;
     try {
-      ready = await checkPack();
-      if (ready) {
-        status("Offline pack ready. Select Use on-device translation to keep new text here.");
-        return;
+      const problem=supportProblem();
+      if (problem) throw new Error(problem);
+      const controller=await controllingWorker();
+      if (!await checkPack()) {
+        if (navigator.onLine === false) throw new Error("Connect to download the pack first.");
+        const cache = await caches.open(RUNTIME_CACHE);
+        for (const url of RUNTIME) {
+          if ((await cache.match(url))?.ok) continue;
+          status("Downloading the offline engine… Keep this page open.");
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("The engine download failed. Retry when connected.");
+          await cache.put(url, response);
+        }
+        await call("install");
       }
-      if (!navigator.onLine) throw new Error("Connect to download the pack first.");
-      if (!navigator.serviceWorker) throw new Error("This browser does not support the offline pack.");
-      await navigator.serviceWorker.ready;
-      // Ensure the current worker controls the page before remote module imports.
-      if (!navigator.serviceWorker.controller) throw new Error("Reload this page, then download the pack.");
-      const cache = await caches.open(RUNTIME_CACHE);
-      for (const url of RUNTIME) {
-        if ((await cache.match(url))?.ok) continue;
-        status("Downloading the offline engine… Keep this page open.");
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("The engine download failed. Retry when connected.");
-        await cache.put(url, response);
-      }
-      await call("install");
-      ready = await checkPack();
-      if (!ready) throw new Error("The pack is incomplete. Tap Download to continue.");
+      await validate(controller);
       enabled = true;
       try { localStorage.setItem("habla-ecuador-offline-enabled-v1", "yes"); } catch {}
       document.querySelector("#offline-use").checked = true;
-      status("Offline pack ready. New Spanish ↔ English text stays on this device. First translation may take a moment.");
+      try {await navigator.storage?.persist?.();} catch {}
     } catch (error) {
+      ready=false;
       status(`Offline pack not ready. ${error.message || "Download interrupted; retry to continue."}`);
-    } finally { installing = false; button.disabled = false; button.textContent = ready ? "Check offline pack" : "Download offline pack"; }
+    } finally { installing = false; button.disabled = Boolean(supportProblem()); button.textContent = ready ? "Validate offline pack" : "Download / validate offline pack"; }
   }
   function shouldUse() { return enabled || (ready && navigator.onLine === false); }
   async function translate(text, way) {
+    if (validating) await validating;
     if (!ready) throw fail("offline_pack", "Download the offline pack while connected first.");
     return call("translate", {text, way});
   }
@@ -97,9 +153,18 @@ const HablaOffline = (() => {
       try { localStorage.setItem("habla-ecuador-offline-enabled-v1", enabled ? "yes" : "no"); } catch {}
       status(enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
     });
-    try { ready = await checkPack(); } catch { ready = false; }
-    if (ready) { button.textContent = "Check offline pack"; status("Offline pack ready. New Spanish ↔ English text can be translated on this device."); }
-    else if (enabled) status("The offline pack is missing or incomplete. Connect and download it again.");
+    const problem=supportProblem();
+    if (problem) {button.disabled=true;status(problem);return;}
+    let downloaded=false;
+    try {downloaded=await checkPack();} catch {}
+    if (downloaded) {
+      button.textContent="Validate offline pack";
+      if(enabled) {
+        button.disabled=true;
+        try {await validate();} catch(error){status(`Offline pack not ready. ${error.message}`);}
+        finally {button.disabled=false;}
+      } else status("Pack files downloaded. Tap Validate offline pack to check both directions and offline app files.");
+    } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
   return {bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();
