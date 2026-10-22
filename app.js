@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.3 · build 102";
+const APP_VERSION = "0.25.4 · build 103";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -659,6 +659,9 @@ function setListeningButton(button, listening, finishing=false) {
   if (!button) return;
   button.classList.toggle("listening", listening);
   button.setAttribute("aria-pressed", listening ? "true" : "false");
+  if (button === $("#music-listen") && $("#input-mic")?.closest?.(".view")?.id === "music-view") {
+    setListeningButton($("#input-mic"), listening, finishing);
+  }
   const hint = button.querySelector("small");
   if (!hint) return;
   if (!button.dataset.idleHint) button.dataset.idleHint = hint.textContent.trim();
@@ -1382,6 +1385,23 @@ function stopListening() {
   if (!recognition) return;
   setListeningButton(activeRecognitionButton, true, true);
   try { recognition.stop(); } catch {}
+}
+
+function startInputMicrophone() {
+  const button = $("#input-mic");
+  // The native layout moves this same editor into Music. Its microphone must
+  // use the live capture pipeline rather than waiting for dictation to end.
+  if (musicListening || button?.closest?.(".view")?.id === "music-view") return startMusicListening();
+  startListening({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => {
+    musicFullTranslation = null;
+    musicTranscriptReview = false;
+    musicCapturedText = "";
+    updateMusicListenLabel();
+    $("#translate-music").disabled = true;
+    preservedCulturalContext = null;
+    $("#translator-input").value = text;
+    if (final) renderTranslation();
+  }});
 }
 
 function bindPushToTalk(button, getOptions) {
@@ -3146,7 +3166,7 @@ function init() {
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
   });
-  bindPushToTalk($("#input-mic"), button => ({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => { musicFullTranslation = null; musicTranscriptReview = false; musicCapturedText = ""; updateMusicListenLabel(); $("#translate-music").disabled = true; preservedCulturalContext = null; $("#translator-input").value = text; if (final) renderTranslation(); }}));
+  $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
@@ -3284,7 +3304,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=102").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=103").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

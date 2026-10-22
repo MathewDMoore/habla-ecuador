@@ -20,6 +20,18 @@ Serve this folder with a static web server, then open the local URL. The app loa
 - Display live counts for learner-ready entries and conversation rooms.
 - Browse the project’s source catalog.
 
+### Music microphone live previews (v0.25.4 · build 103)
+
+In the native Music page, the small orange microphone now starts and stops the
+same capture as Listen to music. It previously used ordinary dictation, which
+waited for recognition to finish and ignored the live-preview setting. Quick
+preview can now translate tentative words before recording ends, using the
+existing 1-second on-device / 3-second online schedule, request budget, fragment
+checks and retry controls. Both microphone controls reflect the listening state.
+Ordinary Translate dictation keeps its existing behavior. No native rebuild is
+required. Automated tests cover early previews, stopping, retained full-text
+translation and ordinary dictation; physical-iPhone latency remains unverified.
+
 ## Data layers
 
 - `data/candidate-lexicon.json` — sourced research leads and entries still being verified.

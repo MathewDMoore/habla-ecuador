@@ -653,6 +653,35 @@ async function main() {
   assert.equal(run('musicListening.live.requests'),30);
   assert.equal(element('#music-live-draft').value,'I want to stay.');
   run('stopMusicListening()');alreadyTarget.onend();
+  // The orange microphone in native Music must translate before recognition ends.
+  run('newMusicSong(); sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair();');
+  element('#music-source-mode').value='selected';
+  element('#music-live-update-mode').value='quick';
+  const orangeMic=element('#input-mic');
+  orangeMic.closest=()=>({id:'music-view'});
+  orangeMic.setAttribute=(name,value)=>{orangeMic[name]=value;};
+  context.HablaOffline.shouldUse=()=>false;
+  const orangeRequests=[];
+  context.orangeRequests=orangeRequests;
+  run('requestGeneralTranslation=async(text)=>{orangeRequests.push(text);return "Baja de ahí.";};startInputMicrophone()');
+  const orangeCapture=recordings.at(-1);
+  assert.equal(orangeCapture.continuous,true);
+  assert.equal(orangeMic['aria-pressed'],'true','orange control reflects active capture');
+  orangeCapture.emit('Jump down. Please.',false,{confirmedText:'',tentativeText:'Jump down. Please.'});
+  timers.get(run('musicListening.live.timer'))();await flush();
+  assert.deepEqual(orangeRequests,['Jump down. Please.'],'quick translation starts while native words are still tentative');
+  assert.equal(element('#music-live-draft').value,'Baja de ahí.');
+  assert.equal(element('#music-live-preview').hidden,false);
+  assert.ok(run('musicListening'),'preview does not end capture');
+  run('startInputMicrophone()');
+  assert.equal(orangeCapture.stopped,true,'second orange tap stops the same music capture');
+  orangeCapture.onend();
+  assert.equal(orangeMic['aria-pressed'],'false','orange control resets when capture ends');
+  assert.equal(element('#translate-music').disabled,false,'full translation is available after stopping');
+  orangeMic.closest=()=>({id:'translator-view'});
+  run('startInputMicrophone()');
+  assert.equal(recordings.at(-1).continuous,false,'ordinary translator dictation retains its existing behavior');
+  run('cancelListening()');
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
