@@ -30,6 +30,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         super.viewDidLoad()
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
+        // Service workers and CacheStorage require an app-bound web view.
+        // Keep the persistent store so validated packs survive app relaunches.
+        configuration.limitsNavigationsToAppBoundDomains = true
+        configuration.websiteDataStore = .default()
         configuration.userContentController.addUserScript(WKUserScript(
             source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
@@ -109,7 +113,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         guard (error as NSError).code != NSURLErrorCancelled else { return }
         let alert = UIAlertController(title: "Couldn’t open Habla Ecuador",
-            message: "An internet connection is needed to load the translator in this test app.", preferredStyle: .alert)
+            message: "Open Habla while connected once and download/validate the offline pack. If the app cache is missing or was cleared, reconnect and retry.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
             guard let self else { return }
             self.webView.load(URLRequest(url: self.site))

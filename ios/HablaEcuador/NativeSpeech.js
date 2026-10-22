@@ -401,7 +401,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.10 (11)";
+    summary.textContent = "iPhone speech · native 0.1.11 (12)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
