@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.2 · build 101";
+const APP_VERSION = "0.25.3 · build 102";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1688,7 +1688,50 @@ function persistTranslationEdits() {
   } catch {}
 }
 
+let translationSharePending = false;
+
+async function shareTranslation() {
+  if (translationSharePending) return;
+  const button = $("#share-result"), status = $("#translation-share-status");
+  const result = $("#translation-result"), draft = $("#natural-result");
+  const report = message => {
+    if (status) { status.textContent = message; status.hidden = false; }
+  };
+  // Share only the visible completed draft, including edits and paragraph breaks.
+  // Never include the original text, source URL, saved history or private metadata.
+  const text = (draft?.innerText ?? draft?.textContent ?? "").trim();
+  if (!activeTranslationEdit || result?.hidden || !text || draft?.getAttribute("contenteditable") !== "true") {
+    report("Translate some text first, then share the completed draft.");
+    return;
+  }
+  translationSharePending = true;
+  if (button) { button.disabled = true; button.textContent = "Opening sharing…"; }
+  try {
+    if (typeof navigator.share === "function") {
+      try {
+        // Call before any await: the system sheet requires this button gesture.
+        await navigator.share({title:"Habla Ecuador translation", text});
+        report("Translation handed to your sharing app.");
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") { report("Sharing cancelled."); return; }
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      report("Translation copied. Paste it into Messages, WhatsApp, email or another app. This app view cannot open the share sheet.");
+    } catch {
+      report("Sharing is unavailable here. Press and hold the translation to copy it, then paste it into your chosen app.");
+    }
+  } finally {
+    translationSharePending = false;
+    if (button) { button.textContent = "Share translation"; button.disabled = !activeTranslationEdit; }
+  }
+}
+
 function updateTranslationEditUi() {
+  const share = $("#share-result");
+  if (share) share.disabled = translationSharePending || !activeTranslationEdit;
   const status = $("#translation-edit-status");
   const restore = $("#restore-translation");
   if (!status || !restore) return;
@@ -1708,6 +1751,7 @@ function updateTranslationEditUi() {
 }
 
 function setEditableTranslation(source, generated, metadata={}) {
+  if ($("#translation-share-status")) $("#translation-share-status").hidden = true;
   const result = $("#natural-result");
   const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
@@ -3169,6 +3213,7 @@ function init() {
   $("#pause-result")?.addEventListener("click", toggleSpeechPause);
   $("#pause-conversation")?.addEventListener("click", toggleSpeechPause);
   updateSpeechPauseControls();
+  $("#share-result")?.addEventListener("click", shareTranslation);
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
   $("#natural-result").addEventListener("blur", saveActiveTranslationEdit);
@@ -3239,7 +3284,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=101").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=102").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

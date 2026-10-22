@@ -1,5 +1,5 @@
-const CACHE = "habla-ecuador-v101";
-const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=101", "app.js?v=101", "screenshot-import.js?v=101", "spanish-context.js?v=101", "bilingual-music.js?v=101", "button-feedback.js?v=101", "english-varieties.js?v=101", "offline-device.js?v=101", "offline-worker.js?v=101", "document-import.js?v=101", "whole-document.js?v=101", "saved-paper.js?v=101", "research-reference.js?v=101", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
+const CACHE = "habla-ecuador-v102";
+const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=102", "app.js?v=102", "screenshot-import.js?v=102", "spanish-context.js?v=102", "bilingual-music.js?v=102", "button-feedback.js?v=102", "english-varieties.js?v=102", "offline-device.js?v=102", "offline-worker.js?v=102", "document-import.js?v=102", "whole-document.js?v=102", "saved-paper.js?v=102", "research-reference.js?v=102", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));

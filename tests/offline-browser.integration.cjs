@@ -43,7 +43,7 @@ async function main(){
   await page.reload();
   await page.waitForFunction(()=>document.querySelector('#offline-status').textContent.includes('validated in both directions'),{},{timeout:180000});
   const results=await page.evaluate(async()=>({es:await HablaOffline.translate('The water is cold.','en-ec'),en:await HablaOffline.translate('El agua está fría.','ec-en'),data:await fetch('data/vocabulary.json').then(r=>r.ok),shell:document.querySelector('[data-app-version]').textContent}));
-  assert.match(results.es.toLowerCase(),/agua/);assert.match(results.en.toLowerCase(),/water/);assert.equal(results.data,true);assert.match(results.shell,/build 101/);
+  assert.match(results.es.toLowerCase(),/agua/);assert.match(results.en.toLowerCase(),/water/);assert.equal(results.data,true);assert.match(results.shell,/build 102/);
   assert.equal(onlineTranslationCalls,0);
   console.log(JSON.stringify({offlineReopen:true,actualModels:true,...results,onlineTranslationCalls}));
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
