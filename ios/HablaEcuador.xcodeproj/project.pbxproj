@@ -52,6 +52,10 @@
 			<array>
 				<string>000000000000000000000006</string>
 			</array>
+			<key>packageReferences</key>
+			<array>
+				<string>000000000000000000000020</string>
+			</array>
 		</dict>
 		<key>000000000000000000000002</key>
 		<dict>
@@ -75,6 +79,8 @@
 				<string>000000000000000000000011</string>
 				<string>000000000000000000000012</string>
 				<string>000000000000000000000013</string>
+				<string>000000000000000000000023</string>
+				<string>000000000000000000000025</string>
 			</array>
 			<key>path</key>
 			<string>HablaEcuador</string>
@@ -182,6 +188,7 @@
 			<array>
 				<string>000000000000000000000014</string>
 				<string>000000000000000000000015</string>
+				<string>000000000000000000000024</string>
 			</array>
 			<key>runOnlyForDeploymentPostprocessing</key>
 			<string>0</string>
@@ -195,6 +202,7 @@
 			<key>files</key>
 			<array>
 				<string>000000000000000000000016</string>
+				<string>000000000000000000000026</string>
 			</array>
 			<key>runOnlyForDeploymentPostprocessing</key>
 			<string>0</string>
@@ -206,7 +214,9 @@
 			<key>buildActionMask</key>
 			<string>2147483647</string>
 			<key>files</key>
-			<array/>
+			<array>
+				<string>000000000000000000000022</string>
+			</array>
 			<key>runOnlyForDeploymentPostprocessing</key>
 			<string>0</string>
 		</dict>
@@ -234,6 +244,10 @@
 			<string>000000000000000000000005</string>
 			<key>productType</key>
 			<string>com.apple.product-type.application</string>
+			<key>packageProductDependencies</key>
+			<array>
+				<string>000000000000000000000021</string>
+			</array>
 		</dict>
 		<key>00000000000000000000000A</key>
 		<dict>
@@ -292,13 +306,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>12</string>
+				<string>13</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.11</string>
+				<string>0.1.12</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -342,13 +356,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>12</string>
+				<string>13</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.11</string>
+				<string>0.1.12</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -362,6 +376,72 @@
 				<key>SUPPORTS_MACCATALYST</key>
 				<string>NO</string>
 			</dict>
+		</dict>
+		<key>000000000000000000000020</key>
+		<dict>
+			<key>isa</key>
+			<string>XCRemoteSwiftPackageReference</string>
+			<key>repositoryURL</key>
+			<string>https://github.com/argmaxinc/argmax-oss-swift.git</string>
+			<key>requirement</key>
+			<dict>
+				<key>kind</key>
+				<string>revision</string>
+				<key>revision</key>
+				<string>9f99b5cb6a907730543823ad271b82532782a899</string>
+			</dict>
+		</dict>
+		<key>000000000000000000000021</key>
+		<dict>
+			<key>isa</key>
+			<string>XCSwiftPackageProductDependency</string>
+			<key>package</key>
+			<string>000000000000000000000020</string>
+			<key>productName</key>
+			<string>WhisperKit</string>
+		</dict>
+		<key>000000000000000000000022</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+			<key>productRef</key>
+			<string>000000000000000000000021</string>
+		</dict>
+		<key>000000000000000000000023</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.swift</string>
+			<key>path</key>
+			<string>NativeMusicReview.swift</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000024</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+			<key>fileRef</key>
+			<string>000000000000000000000023</string>
+		</dict>
+		<key>000000000000000000000025</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>text</string>
+			<key>path</key>
+			<string>RecognitionNotices.txt</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000026</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+			<key>fileRef</key>
+			<string>000000000000000000000025</string>
 		</dict>
 	</dict>
 	<key>rootObject</key>

@@ -3,6 +3,118 @@
   if (location.origin !== "https://mathewdmoore.github.io"
       || !location.pathname.startsWith("/habla-ecuador/")
       || !window.webkit?.messageHandlers?.hablaSpeech) return;
+  let reviewEnabled, reviewStatus, reviewPreview, reviewApply, reviewUndo, reviewCancel;
+  let reviewRequest = null, reviewTimer, nextReview = 0, reviewText = "", undoText = null;
+  function reviewCommand(action, extra = {}) {
+    window.webkit.messageHandlers.hablaSpeech.postMessage({action, id:"review", ...extra});
+  }
+  function cancelReview(message = "Recognition cancelled. Captured words are unchanged.") {
+    if (reviewRequest) reviewCommand("cancel-music-review");
+    reviewRequest = null;
+    clearTimeout(reviewTimer);
+    if (reviewCancel) reviewCancel.hidden = true;
+    if (reviewStatus) reviewStatus.textContent = message;
+  }
+  function installMultilingualReview() {
+    const box = document.createElement("details");
+    box.id = "native-multilingual-review";
+    const title = document.createElement("summary");
+    title.textContent = "Try multilingual recognition · experimental";
+    const label = document.createElement("label");
+    reviewEnabled = document.createElement("input");
+    reviewEnabled.id = "native-review-enable";
+    reviewEnabled.type = "checkbox";
+    const explanation = document.createElement("span");
+    explanation.textContent = " Retain the last 30 seconds in memory for a recognition retry. Audio stays on this iPhone; a new capture or turning this off clears it.";
+    label.append(reviewEnabled, explanation);
+    reviewEnabled.addEventListener("change", () => {
+      cancelReview();
+      reviewCommand("configure-music-review", {enabled:reviewEnabled.checked});
+      reviewStatus.textContent = reviewEnabled.checked ? "Ready. Start listening, then stop and retry. First retry downloads a large model and tokenizer; Wi-Fi recommended. This is separate from the translation pack." : "Retry audio cleared. Existing captured words are unchanged.";
+      reviewPreview.hidden = reviewApply.hidden = true;
+    });
+    const retry = document.createElement("button");
+    retry.id = "native-review-retry";
+    retry.type = "button";
+    retry.textContent = "Retry last 30 seconds · download model if needed";
+    retry.addEventListener("click", () => {
+      if (reviewRequest) return;
+      if (!reviewEnabled.checked) { reviewStatus.textContent = "Enable the retry buffer before starting a new capture."; return; }
+      if (sessions.size) { reviewStatus.textContent = "Stop listening first, then retry."; return; }
+      reviewRequest = `review-${++nextReview}`;
+      reviewPreview.hidden = reviewApply.hidden = true;
+      reviewCancel.hidden = false;
+      reviewStatus.textContent = "Starting multilingual recognition… Audio stays on this iPhone.";
+      try { reviewCommand("retry-music", {id:reviewRequest}); }
+      catch { cancelReview("Could not start recognition. Try again."); return; }
+      reviewTimer = setTimeout(() => cancelReview("Recognition timed out. Captured words are unchanged; retry when the model download is ready."), 180000);
+    });
+    reviewStatus = document.createElement("p");
+    reviewStatus.id = "native-review-status";
+    reviewStatus.setAttribute("role", "status");
+    reviewStatus.textContent = "Compare a second recognizer without changing your words. Automatic language detection does not guarantee accurate singing or bilingual text.";
+    reviewCancel = document.createElement("button");
+    reviewCancel.type = "button";
+    reviewCancel.textContent = "Cancel recognition";
+    reviewCancel.hidden = true;
+    reviewCancel.addEventListener("click", () => cancelReview());
+    reviewPreview = document.createElement("p");
+    reviewPreview.id = "native-review-preview";
+    reviewPreview.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere";
+    reviewPreview.hidden = true;
+    reviewApply = document.createElement("button");
+    reviewApply.id = "native-review-apply";
+    reviewApply.type = "button";
+    reviewApply.textContent = "Replace captured words with this 30-second draft";
+    reviewApply.hidden = true;
+    reviewUndo = document.createElement("button");
+    reviewUndo.id = "native-review-undo";
+    reviewUndo.type = "button";
+    reviewUndo.textContent = "Undo draft replacement";
+    reviewUndo.hidden = true;
+    reviewApply.addEventListener("click", () => {
+      if (!reviewEnabled.checked || !reviewText || sessions.size) return;
+      const editor = document.querySelector("#translator-input");
+      if (!editor) return;
+      undoText = {before:editor.value, applied:reviewText};
+      editor.value = reviewText;
+      editor.dispatchEvent(new Event("input", {bubbles:true}));
+      reviewUndo.hidden = false;
+      reviewApply.hidden = true;
+      reviewStatus.textContent = "Draft placed in the existing text box. Review it, then translate the captured words. Undo restores the previous text.";
+    });
+    reviewUndo.addEventListener("click", () => {
+      const editor = document.querySelector("#translator-input");
+      if (!undoText || !editor) return;
+      if (editor.value !== undoText.applied) { reviewStatus.textContent = "Text has changed since replacement; undo did not overwrite your edits."; return; }
+      editor.value = undoText.before;
+      editor.dispatchEvent(new Event("input", {bubbles:true}));
+      undoText = null;
+      reviewUndo.hidden = true;
+    });
+    box.append(title, label, retry, reviewStatus, reviewCancel, reviewPreview, reviewApply, reviewUndo);
+    panel.append(box);
+    document.querySelector("#new-music-song")?.addEventListener("click", () => {
+      cancelReview("New song clears the retained retry audio.");
+      reviewCommand("configure-music-review", {enabled:false});
+      reviewText = "";
+      undoText = null;
+      reviewPreview.hidden = reviewApply.hidden = reviewUndo.hidden = true;
+    });
+  }
+  function receiveReview(message) {
+    if (!reviewRequest || message.id !== reviewRequest) return;
+    reviewStatus.textContent = String(message.message || "Recognition is working…");
+    if (message.status === "working") return;
+    reviewRequest = null;
+    clearTimeout(reviewTimer);
+    reviewCancel.hidden = true;
+    if (message.status === "done" && typeof message.text === "string" && message.text.trim()) {
+      reviewText = message.text;
+      reviewPreview.textContent = reviewText;
+      reviewPreview.hidden = reviewApply.hidden = false;
+    }
+  }
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;
@@ -401,7 +513,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.11 (12)";
+    summary.textContent = "iPhone speech · native 0.1.12 (13)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -419,6 +531,7 @@
     detail.setAttribute("role", "status");
     detail.textContent = detailText;
     panel.append(summary, label, detail);
+    installMultilingualReview();
     anchor.parentElement.after(panel);
     installTranslationWorkspace();
     installSongIdentification(anchor);
@@ -444,6 +557,8 @@
     }
     start() {
       if (this._id !== null) throw new DOMException("Already listening", "InvalidStateError");
+      cancelReview("New capture clears the previous retry audio. Captured text is kept.");
+      if (reviewPreview) reviewPreview.hidden = reviewApply.hidden = true;
       const id = String(++nextID);
       this._id = id;
       this._started = false;
@@ -477,7 +592,7 @@
       syncSystemAudioFlag();
       try {
         window.webkit.messageHandlers.hablaSpeech.postMessage({action:"start", id,
-          lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous, ...(this._systemAudio ? {input:"system"} : {})});
+          lang:this.lang, mode:modeSelect?.value || "auto", interimResults:this.interimResults, continuous:this.continuous, ...(this._systemAudio ? {input:"system"} : {}), ...(this.continuous && reviewEnabled?.checked ? {retainForReview:true} : {})});
       } catch (error) {
         sessions.delete(id);
         finishSongRequest(id);
@@ -508,6 +623,7 @@
     }
   }
   Object.defineProperty(window, "__hablaNativeSpeech", {value:message => {
+    if (message.type === "music-review") { receiveReview(message); return; }
     const instance = sessions.get(message.id);
     if (!instance) return;
     if (message.type === "song") { receiveSong(message); return; }

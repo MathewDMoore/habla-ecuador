@@ -11,6 +11,7 @@ import ScreenCaptureKit
 final class NativeSpeechCapture {
     private let emit: ([String: Any]) -> Void
     private let engine = AVAudioEngine()
+    private let musicReview = NativeMusicReview()
     private var modern: NativeModernCapture?
     private var inputStats = NativeInputStats()
     private var meter: Timer?
@@ -48,8 +49,9 @@ final class NativeSpeechCapture {
             }
     }
 
-    func start(id: String, language: String, mode: String = "auto", systemAudio: Bool = false) {
+    func start(id: String, language: String, mode: String = "auto", systemAudio: Bool = false, retainForReview: Bool = false) {
         abortActive()
+        musicReview.setEnabled(retainForReview)
         activeID = id
         generation = UUID()
         let token = generation
@@ -106,7 +108,7 @@ final class NativeSpeechCapture {
     private func begin(id: String, language: String, token: UUID) {
         if #available(iOS 26.0, *), recognitionMode != "apple-service", recognitionMode != "legacy-on-device" {
             let capture = AnalyzerMicrophoneCapture(id: id, language: language,
-                useDictation: recognitionMode == "dictation", systemAudio: systemAudio, emit: { [weak self] event in
+                useDictation: recognitionMode == "dictation", systemAudio: systemAudio, review: musicReview, emit: { [weak self] event in
                     guard let self, self.generation == token, self.activeID == id else { return }
                     if event["type"] as? String == "end" {
                         self.finish(id: id)
@@ -169,8 +171,10 @@ final class NativeSpeechCapture {
                 return
             }
             let stats = inputStats
+            let review = musicReview
             input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
                 stats.observe(buffer)
+                review.consume(buffer)
                 request.append(buffer)
             }
             tapped = true
@@ -208,6 +212,16 @@ final class NativeSpeechCapture {
                    detail: nativeErrorCodes(native) + " · " + self.inputStats.summary)
         }
     }
+
+    func configureMusicReview(enabled: Bool) { musicReview.setEnabled(enabled) }
+    func retryMusic(id: String) {
+        guard activeID == nil else {
+            emit(["type": "music-review", "id": id, "status": "error", "message": "Stop listening first, then retry the captured audio."])
+            return
+        }
+        musicReview.transcribe(id: id, emit: emit)
+    }
+    func cancelMusicReview() { musicReview.cancel() }
 
     func identifySong(id: String, requestID: String) {
         guard activeID == id, !stopping else { return }
@@ -402,6 +416,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private let emit: ([String: Any]) -> Void
     private let engine = AVAudioEngine()
     private let stats = NativeInputStats()
+    private let review: NativeMusicReview
     private var analyzer: SpeechAnalyzer?
     private var input: AsyncStream<AnalyzerInput>.Continuation?
     private var preparation: Task<Void, Never>?
@@ -423,7 +438,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private var startedAt: Date?
     private var revealedNoWords = false
 
-    init(id: String, language: String, useDictation: Bool, systemAudio: Bool = false, emit: @escaping ([String: Any]) -> Void) {
+    init(id: String, language: String, useDictation: Bool, systemAudio: Bool = false, review: NativeMusicReview, emit: @escaping ([String: Any]) -> Void) {
+        self.review = review
         self.id = id; self.language = language; self.useDictation = useDictation; self.systemAudio = systemAudio; self.emit = emit
     }
 
@@ -525,6 +541,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                 let source = IPhoneSystemAudioInput(format: format, onBuffer: { [weak self] buffer in
                     guard let self, !self.cancelled, !self.stopping else { return }
                     self.stats.observe(buffer)
+                    self.review.consume(buffer)
                     self.songMatcher?.consume(buffer)
                     let delivery = continuation.yield(AnalyzerInput(buffer: buffer))
                     if case .enqueued = delivery { self.stats.forwarded(buffer, accepted: true) }
@@ -567,8 +584,10 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         // Apple's iOS 26 sample uses AVAudioConverter; avoid iOS 27 beta-only helpers.
         converter.primeMethod = .none
         let stats = self.stats
+        let review = self.review
         node.installTap(onBus: 0, bufferSize: 1024, format: source) { [weak self] buffer, _ in
             stats.observe(buffer)
+            review.consume(buffer)
             let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * format.sampleRate / source.sampleRate)) + 32
             guard let converted = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return }
             var supplied = false
