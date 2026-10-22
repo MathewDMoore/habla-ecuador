@@ -64,7 +64,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         webView.load(URLRequest(url: site))
     }
 
-    @objc private func suspendCapture() { if speech?.isSystemAudioActive != true { speech?.abortActive() } }
+    @objc private func suspendCapture() {
+        if speech?.isSystemAudioActive != true { speech?.abortActive() }
+        speech?.cancelMusicReview()
+    }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let origin = message.frameInfo.securityOrigin
@@ -74,10 +77,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
         switch action {
-        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system")
+        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system", retainForReview: body["retainForReview"] as? Bool == true)
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
+        case "configure-music-review": speech.configureMusicReview(enabled: body["enabled"] as? Bool == true)
+        case "retry-music": speech.retryMusic(id: id)
+        case "cancel-music-review": speech.cancelMusicReview()
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break
@@ -91,7 +97,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             && url.path.hasPrefix("/habla-ecuador/")
         if trusted {
             // Discard callbacks from the old page before a new document installs its bridge.
-            if navigationAction.targetFrame?.isMainFrame != false { speech?.abortActive() }
+            if navigationAction.targetFrame?.isMainFrame != false {
+                speech?.abortActive()
+                speech?.configureMusicReview(enabled: false)
+            }
             decisionHandler(.allow)
         } else {
             decisionHandler(.cancel)

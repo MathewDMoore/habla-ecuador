@@ -11,7 +11,7 @@ function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuad
     setAttribute(name,value){if(name==="aria-pressed")this.pressed=value;},
     getAttribute(){return this.pressed;}, click(){if (!this.disabled) {this.clicks++;this.onClick?.();}}};
   const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
-  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}}),
+  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}, addEventListener(){}}),
     createElement:tag => {
       const listeners = {};
       const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); },
@@ -24,7 +24,7 @@ function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuad
     webkit:{messageHandlers:{hablaSpeech:{postMessage:message => messages.push(structuredClone(message))}}}};
   vm.runInNewContext(source, {window, document, location:{origin, pathname:path}, EventTarget, Event, DOMException,
     setTimeout(fn){const id=++nextTimer;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}});
-  return {window, messages, nodes, playbackSource, musicListen, timers};
+  return {window, document, messages, nodes, playbackSource, musicListen, timers};
 }
 assert.equal(harness("https://example.com").window.SpeechRecognition, undefined);
 assert.equal(harness(undefined, "/unrelated/").window.SpeechRecognition, undefined);
@@ -374,3 +374,71 @@ send({id:retryID,type:'end'});assert.match(ui.textContent,/Capture stopped/);
 const micControls=harness();const mic=new micControls.window.SpeechRecognition();mic.continuous=true;mic.start();
 assert.match(micControls.nodes.find(node=>node.id==='native-capture-status').textContent,/Starting microphone/);
 console.log('Capture controls passed: permission gate, real start, silence/recovery, word receipt, input gaps, errors, stale sessions and cancellation.');
+
+// Second-pass recognition runs after capture ends, independently of the hosted
+// three-second capture watchdog. It cannot silently replace text or accept old results.
+{
+  const h = harness();
+  const enabled = h.nodes.find(n => n.id === 'native-review-enable');
+  const retry = h.nodes.find(n => n.id === 'native-review-retry');
+  const status = h.nodes.find(n => n.id === 'native-review-status');
+  const preview = h.nodes.find(n => n.id === 'native-review-preview');
+  const apply = h.nodes.find(n => n.id === 'native-review-apply');
+  retry.click();
+  assert.match(status.textContent, /Enable the retry buffer/);
+  assert.equal(h.messages.length, 0);
+  enabled.checked = true;
+  const r = new h.window.SpeechRecognition();
+  r.continuous = true;
+  r.interimResults = true;
+  r.start();
+  assert.equal(h.messages.at(-1).retainForReview, true);
+  retry.click();
+  assert.match(status.textContent, /Stop listening first/);
+  h.window.__hablaNativeSpeech({id:r._id, type:'end'});
+  retry.click();
+  const first = h.messages.at(-1);
+  assert.equal(first.action, 'retry-music');
+  const count = h.messages.length;
+  retry.click();
+  assert.equal(h.messages.length, count);
+  h.window.__hablaNativeSpeech({type:'music-review', id:'stale', status:'done', text:'ignored'});
+  assert.equal(preview.hidden, true);
+  h.window.__hablaNativeSpeech({type:'music-review', id:first.id, status:'done', text:'Hola, hello.', message:'Review this draft'});
+  assert.equal(preview.textContent, 'Hola, hello.');
+  assert.equal(preview.hidden, false);
+  assert.equal(apply.hidden, false);
+  const edits = [];
+  const editor = {value:'previous captured words', dispatchEvent:e => edits.push(e.type)};
+  const query = h.document.querySelector;
+  h.document.querySelector = s => s === '#translator-input' ? editor : query(s);
+  apply.click();
+  assert.equal(editor.value, 'Hola, hello.');
+  assert.deepEqual(edits, ['input']);
+  const undo = h.nodes.find(n => n.id === 'native-review-undo');
+  undo.click();
+  assert.equal(editor.value, 'previous captured words');
+  retry.click();
+  const second = h.messages.at(-1);
+  h.window.__hablaNativeSpeech({type:'music-review', id:second.id, status:'done', text:'Another draft'});
+  apply.click();
+  editor.value = 'user changed it';
+  undo.click();
+  assert.equal(editor.value, 'user changed it');
+  assert.match(status.textContent, /did not overwrite/);
+  retry.click();
+  const pending = h.messages.at(-1);
+  const cancel = h.nodes.find(n => n.textContent === 'Cancel recognition');
+  cancel.click();
+  assert.equal(h.messages.at(-1).action, 'cancel-music-review');
+  h.window.__hablaNativeSpeech({type:'music-review', id:pending.id, status:'done', text:'late output'});
+  assert.notEqual(preview.textContent, 'late output');
+  retry.click();
+  const timer = [...h.timers.values()].at(-1);
+  timer();
+  assert.match(status.textContent, /timed out/);
+  const speech = new h.window.SpeechRecognition();
+  speech.start();
+  assert.equal(h.messages.at(-1).retainForReview, undefined); // no speech-practice retention
+}
+console.log('Multilingual retry bridge passed: explicit opt-in, stop gate, duplicate/stale/cancel/timeout isolation, review, undo and speech isolation. Native/model accuracy unverified.');

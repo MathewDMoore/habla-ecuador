@@ -103,6 +103,26 @@ async function main() {
   $('.bottom-nav [data-open="translator-view"]').click();assert.equal($('#translate-panel').hidden,false);
   assert.equal($('#translator-input'),editor);assert.equal(editor.value,currentText);
   assert.ok(Object.values(idCounts()).every(count=>count===1));
+  // The retry preview stays folded in Music and only edits the shared source
+  // after an explicit choice. It is independent of the capture watchdog.
+  assert.equal($('#native-multilingual-review').closest('#native-music-options').id,'native-music-options');
+  const retain=$('#native-review-enable'); retain.checked=true;
+  retain.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert.equal(messages.at(-1).action,'configure-music-review');
+  assert.equal(messages.at(-1).enabled,true);
+  $('#native-review-retry').click();
+  const review=messages.at(-1);assert.equal(review.action,'retry-music');
+  w.__hablaNativeSpeech({type:'music-review',id:review.id,status:'done',message:'Experimental draft',text:'Hola, hello.'});
+  assert.equal(editor.value,currentText,'review cannot replace text automatically');
+  $('#native-review-apply').click();
+  assert.equal($('#translator-input'),editor,'same source editor');
+  assert.equal(editor.value,'Hola, hello.');
+  assert.equal($('#translate-music').disabled,false,'replacement remains translatable');
+  $('#native-review-undo').click();
+  assert.equal(editor.value,currentText);
+  retain.checked=false;retain.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert.equal(messages.at(-1).enabled,false);
+  assert.equal($('#native-review-preview').hidden,true);
   assert.deepEqual(errors,[]);
   dom.window.close();
   console.log('Native layout DOM checks passed: paired editors, import disclosure, Music placement, tab routing, captured text, listeners, source isolation, stop/cancel and conversation handoff. Hosted source: '+hostedRoot);
