@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.8 · build 107";
+const APP_VERSION = "0.25.9 · build 108";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3092,7 +3092,7 @@ function renderLesson() {
   if (lessonStep === 1) content.innerHTML = `
     <div class="lesson-stage"><p class="eyebrow">Scene first</p><h1 id="lesson-title">Make a plan before sunset.</h1><p class="lead">You want to meet someone while there is still daylight. Hear the natural question before you say it.</p><div class="scene" aria-label="Sunset over Ecuador">🌄</div><div class="phrase-card"><button class="play-button" id="lesson-play" aria-label="Hear the Spanish phrase">▶</button><p class="spanish">¿A qué hora se pone el sol?</p><p class="english">What time does the sun set?</p></div><button class="primary-button" id="lesson-next">Now say it</button></div>`;
   if (lessonStep === 2) content.innerHTML = `
-    <div class="lesson-stage"><p class="eyebrow">Speak from memory</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Aim for clear key words: <em>hora</em>, <em>pone</em>, and <em>sol</em>. Flow matters more than perfection.</p><div class="mic-practice"><button id="lesson-mic" class="push-to-talk" aria-label="Hold to speak">🎙️</button><p>Hold the microphone while speaking. Release when finished.</p><div id="lesson-heard"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
+    <div class="lesson-stage"><p class="eyebrow">Guided speaking</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Read along as you speak. Aim for clear key words: <em>hora</em>, <em>pone</em>, and <em>sol</em>.</p><div class="mic-practice"><div id="lesson-speaking-prompt"><p class="spanish" lang="es-EC">¿A qué hora se pone el sol?</p><p class="english" lang="en">What time does the sun set?</p></div><button id="lesson-mic" class="push-to-talk" aria-label="Start or stop speaking" aria-describedby="lesson-speaking-prompt lesson-mic-instructions">🎙️</button><p id="lesson-mic-instructions">Tap the microphone to start. Tap again when finished.</p><div id="lesson-heard" aria-live="polite"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
   if (lessonStep === 3) content.innerHTML = `
     <div class="lesson-stage"><p class="eyebrow">Naturalness check</p><h1 id="lesson-title">What would you say in conversation?</h1><p class="lead">Choose the most natural everyday way to ask about sunset.</p><div class="choice-list"><button class="choice" data-correct="true">¿A qué hora se pone el sol?</button><button class="choice">¿A qué hora ocurre el ocaso?</button><button class="choice">¿Cuál es la hora de la puesta solar?</button></div><button class="primary-button" id="lesson-next" disabled>See the language map</button></div>`;
   if (lessonStep === 4) content.innerHTML = `
@@ -3365,7 +3365,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=107").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=108").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
