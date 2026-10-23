@@ -3,6 +3,35 @@
   if (location.origin !== "https://mathewdmoore.github.io"
       || !location.pathname.startsWith("/habla-ecuador/")
       || !window.webkit?.messageHandlers?.hablaSpeech) return;
+  function installTypingDiagnostics() {
+    if (window.__hablaTypingDiagnostics !== true) return;
+    const input = document.querySelector("#translator-input");
+    if (!input?.addEventListener) return;
+    let sequence = 0;
+    const inputTypes = new Set(["insertText", "insertReplacementText", "insertCompositionText",
+      "insertFromComposition", "insertFromPaste", "deleteContentBackward", "deleteCompositionText", "historyUndo", "historyRedo"]);
+    const report = (event, phase) => {
+      // Do not send event.data, key, clipboard contents or input.value itself.
+      const record = {action:"typing-diagnostic", id:"typing", event:event.type, phase,
+        sequence:++sequence, milliseconds:Math.round(performance.now()),
+        inputType:event.inputType ? (inputTypes.has(event.inputType) ? event.inputType : "other") : "none",
+        textUnits:input.value.length, selectionStart:input.selectionStart, selectionEnd:input.selectionEnd,
+        dataUnits:typeof event.data === "string" ? event.data.length : -1,
+        focused:document.activeElement === input, composing:Boolean(event.isComposing),
+        cancelable:event.cancelable, defaultPrevented:event.defaultPrevented};
+      try { window.webkit.messageHandlers.hablaSpeech.postMessage(record); } catch {}
+    };
+    for (const type of ["focus", "blur", "select", "paste", "cut", "keydown", "keyup",
+      "beforeinput", "input", "compositionstart", "compositionupdate", "compositionend"]) {
+      input.addEventListener(type, event => {
+        report(event, "before");
+        queueMicrotask(() => report(event, "after"));
+      }, {capture:true});
+    }
+    document.addEventListener("selectionchange", event => {
+      if (document.activeElement === input) report(event, "after");
+    });
+  }
   let shareRequest = null, nextShare = 0, shareButton, shareStatus;
   // Per-document IDs prevent a dismissed old page's sheet from finishing a new request.
   const shareDocument = Math.random().toString(36).slice(2);
@@ -545,6 +574,7 @@
     document.head.append(style);
   }
   function installNativeDetails() {
+    installTypingDiagnostics();
     const anchor = document.querySelector("#music-listen");
     if (!anchor) return;
     panel = document.createElement("details");
@@ -558,7 +588,8 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.13 (14)";
+    summary.textContent = "iPhone speech · native 0.1.15 (16)"
+      + (window.__hablaTypingDiagnostics === true ? " · input diagnostics" : "");
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
