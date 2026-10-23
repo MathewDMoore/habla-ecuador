@@ -625,3 +625,31 @@ button:disabled {opacity:.5;}
     height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important;
   }
 }
+
+/* Compact, in-card Spanish speaking practice; prompts remain in normal flow. */
+.dictionary-practice { margin-top: 12px; }
+.dictionary-practice-choice { min-width: 0; grid-template-columns: minmax(0,1fr); display: grid; gap: 6px; margin-top: 14px; font-size: 13px; }
+.dictionary-practice select { width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); }
+.dictionary-practice .dictionary-practice-target { overflow-wrap: anywhere; font-size: 20px; line-height: 1.4; color: var(--green); }
+.dictionary-practice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dictionary-practice-actions button { min-height: 44px; padding: 10px 12px; border: 1px solid #bad8c6; border-radius: 14px; background: var(--mint); color: var(--green); font-size: 14px; font-weight: 750; }
+.dictionary-practice-mic.listening { background: var(--orange); color: white; }
+.dictionary-practice-response { padding: 12px; border-radius: 12px; background: var(--mint); overflow-wrap: anywhere; }
+.dictionary-practice-response small { font-weight: 750; }
+.dictionary-practice-response p { margin: 8px 0 0; }
+.dictionary-practice .dictionary-practice-status, .dictionary-practice .dictionary-practice-feedback { font-size: 13px; line-height: 1.5; }
+.dictionary-practice .dictionary-practice-limit { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.dictionary-practice { min-width: 0; max-width: 100%; }
+
+.dictionary-practice-progress { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.dictionary-practice-progress span { padding: 4px 7px; border-radius: 8px; font-size: 14px; }
+.dictionary-practice-progress .word-heard { background: #cae5d4; color: #173f35; border-bottom: 2px solid var(--green-2); }
+.dictionary-practice-progress .word-pending { background: #fff5e8; color: #70513a; border-bottom: 2px dashed #ae7545; }
+.dictionary-practice-coach { margin-top: 12px; }
+.dictionary-practice .dictionary-practice-whole { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+/* Long evidence headings must not widen the page or move navigation off-screen. */
+.dictionary-results { grid-template-columns: minmax(0,1fr); }
+.evidence-card, .expression-card { min-width: 0; overflow-wrap: anywhere; }
+.evidence-card header { flex-wrap: wrap; }
+.evidence-card header > div { min-width: 0; max-width: 100%; }

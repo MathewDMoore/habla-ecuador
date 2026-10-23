@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('app.js','utf8');
+const begin=source.indexOf('function dictionaryPracticeText('),end=source.indexOf('function cancelDictionaryPractice(');
+const context={};vm.createContext(context);vm.runInContext(source.slice(begin,end),context);
+const compare=(a,b)=>context.dictionaryPracticeComparison(a,b);
+assert.equal(compare('¡Qué frío!','que frio').exact,true);
+assert.equal(compare('ñaño','nano').exact,false,'ñ is distinct from n');
+assert.equal(compare('camello','camino').exact,false);
+assert.equal(compare('pana','mi pana').exact,false,'extra words do not earn a match');
+assert.equal(compare('no no','no').matched.size,1,'one word cannot match two repeated targets');
+let result=compare('Voy al partido con un pana del trabajo.','Voy al partido con un del trabajo');
+assert.equal(result.focus,'pana del trabajo');assert.equal(result.matched.has(5),false);assert.equal(result.matched.size,7);
+assert.equal(compare('hola pana','pana hola').exact,false,'word order matters');
+assert.equal(compare('camello','').focus,'camello');
+assert.equal(compare('¿Cómo estás?','COMO ESTAS').exact,true);
+assert.equal(compare('pana','<script>pana</script>').exact,false);
+assert.ok(compare('pana '.repeat(300),'pana '.repeat(300)).words.length<=200,'alignment work is bounded');
+console.log('Dictionary practice: accent/ñ, ordered word alignment, repetition, focus, extra words and bounded comparison passed');

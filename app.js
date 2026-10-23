@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.10 · build 109";
+const APP_VERSION = "0.26.0 · build 110";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -406,6 +406,7 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
 }
 
 function openView(id) {
+  if (id !== "dictionary-view") cancelDictionaryPractice();
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
@@ -2722,6 +2723,7 @@ function renderSlangIndex(query="") {
 
 function renderRegionalSlang() {
   const root = $("#regional-slang-results");
+  cancelDictionaryPractice(root);
   if (!root) return;
   const region = $("#regional-slang-region").value;
   const englishLead = region === "en-US" ? "us" : region === "en-GB" ? "uk" : null;
@@ -2753,10 +2755,12 @@ function renderRegionalSlang() {
       </details>
     </article>`;
   }).join("");
+  bindDictionaryPractice(root);
 }
 
 function renderExpressionLibrary(query="") {
   const root = $("#expression-results");
+  cancelDictionaryPractice(root);
   if (!root) return;
   renderSlangIndex(query);
   const visible = culturalExpressions.filter(entry => {
@@ -2913,6 +2917,7 @@ function statusLabel(value) {
 
 function renderDictionary() {
   const root = $("#dictionary-results");
+  cancelDictionaryPractice(root);
   const query = normalize($("#dictionary-search").value);
   renderExpressionLibrary(query);
   if (!root || !evidenceEntries.length) {
@@ -2982,10 +2987,182 @@ function renderEvidenceCard(entry) {
   </article>`;
 }
 
+// Practice uses the card's existing Spanish playback strings, never new dictionary senses.
+let dictionaryPracticeSession = null;
+
+function dictionaryPracticeText(value) {
+  // Ignore written accents/punctuation for word matching, but keep n and ñ distinct.
+  return value.toLocaleLowerCase("es").normalize("NFD").replace(/n\u0303/g,"ñ")
+    .replace(/\p{M}/gu,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
+}
+
+function dictionaryPracticeComparison(expected, heard) {
+  const words = (expected.match(/[\p{L}\p{M}\p{N}]+/gu) || []).slice(0,200);
+  const actual = (heard.match(/[\p{L}\p{M}\p{N}]+/gu) || []).slice(0,200);
+  const a = words.map(dictionaryPracticeText), b = actual.map(dictionaryPracticeText);
+  // Ordered word alignment avoids crediting one repeated word twice.
+  const lengths = Array.from({length:a.length+1},() => new Uint16Array(b.length+1));
+  for (let i=a.length-1;i>=0;i--) for (let j=b.length-1;j>=0;j--) {
+    lengths[i][j] = a[i] === b[j] ? 1+lengths[i+1][j+1] : Math.max(lengths[i+1][j],lengths[i][j+1]);
+  }
+  const matched = new Set();
+  for (let i=0,j=0;i<a.length&&j<b.length;) {
+    if (a[i] === b[j]) { matched.add(i);i++;j++; }
+    else if (lengths[i+1][j] >= lengths[i][j+1]) i++;
+    else j++;
+  }
+  const first = words.findIndex((_,index) => !matched.has(index));
+  const focus = first < 0 ? expected : words.slice(first,first+3).join(" ");
+  return {words,matched,focus,exact:dictionaryPracticeText(expected) === dictionaryPracticeText(heard)};
+}
+
+function cancelDictionaryPractice(root) {
+  const session = dictionaryPracticeSession;
+  if (!session || (root && !root.contains(session.panel))) return;
+  if (activeRecognitionButton === session.mic) cancelListening(false);
+  else session.finish("Practice stopped. Your prompt and heard words are kept.");
+}
+
+function bindDictionaryPractice(root) {
+  if (!root) return;
+  $$(".expression-card, .evidence-card",root).forEach(card => {
+    if (card.querySelector(".dictionary-practice")) return;
+    const prompts = [];
+    $$('[data-dictionary-audio], [data-regional-audio]',card).forEach(button => {
+      const lang = button.dataset.audioLang || "es-EC";
+      if (!lang.startsWith("es-")) return;
+      const text = button.dataset.dictionaryAudio || button.dataset.regionalAudio || "";
+      text.replace(/\s+\((?:noun|verb|literal|vulgar anatomy)\)$/i,"").split(/\s*\/\s*/).filter(part => part.trim()).forEach(part => {
+        const phrase = part.trim();
+        if (!prompts.some(prompt => prompt.text === phrase && prompt.lang === lang)) prompts.push({text:phrase,lang});
+      });
+    });
+    if (!prompts.length) return;
+    const panel = document.createElement("details");
+    panel.className = "compact-info dictionary-practice";
+    panel.innerHTML = `<summary>🎙 Speaking practice</summary>
+      <label class="dictionary-practice-choice">Choose a word or example<select aria-label="Spanish practice prompt">${prompts.map((prompt,index) => `<option value="${index}">${escapeHtml(prompt.text)}</option>`).join("")}</select></label>
+      <p class="dictionary-practice-whole" hidden></p><p class="dictionary-practice-target" lang="${escapeHtml(prompts[0].lang)}"></p>
+      <div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-hear">🔊 Hear model</button><button type="button" class="dictionary-practice-mic push-to-talk" aria-pressed="false">🎙 Start speaking</button></div>
+      <p class="dictionary-practice-status" role="status"></p>
+      <div class="dictionary-practice-response" hidden><small>I heard</small><p class="dictionary-practice-heard" lang="es"></p><p class="dictionary-practice-feedback"></p><p class="dictionary-practice-progress-label"></p><div class="dictionary-practice-progress"></div><div class="dictionary-practice-coach" hidden><p></p><div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-focus-hear">🔊 Hear this part</button><button type="button" class="dictionary-practice-focus-try">Practice this part</button></div></div></div>
+      <p class="dictionary-practice-limit">Word matching checks what recognition heard; it does not grade your accent or individual sounds.</p>`;
+    card.querySelector(".dictionary-audio").after(panel);
+    const select = $("select",panel), target = $(".dictionary-practice-target",panel);
+    const mic = $(".dictionary-practice-mic",panel), hear = $(".dictionary-practice-hear",panel);
+    const status = $(".dictionary-practice-status",panel), response = $(".dictionary-practice-response",panel);
+    const heard = $(".dictionary-practice-heard",panel), feedback = $(".dictionary-practice-feedback",panel);
+    const progress = $(".dictionary-practice-progress",panel), progressLabel = $(".dictionary-practice-progress-label",panel);
+    const coach = $(".dictionary-practice-coach",panel), whole = $(".dictionary-practice-whole",panel);
+    const basePromptCount = prompts.length;
+    let focusText = "";
+    const available = () => Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+    const refresh = () => {
+      cancelDictionaryPractice(panel);
+      const prompt = prompts[Number(select.value) || 0];
+      target.textContent = prompt.text;
+      target.lang = prompt.lang;
+      whole.hidden = !prompt.fullText; whole.textContent = prompt.fullText ? `Full prompt: ${prompt.fullText}` : "";
+      coach.hidden = true; focusText = ""; progress.replaceChildren(); progressLabel.textContent = "";
+      response.hidden = true; heard.textContent = feedback.textContent = "";
+      mic.disabled = !available();
+      status.textContent = available() ? "Hear the model, then tap Start speaking. Tap again to finish." : "Speech recognition is unavailable here. You can still hear the model.";
+    };
+    refresh();
+    select.addEventListener("change",refresh);
+    panel.addEventListener("toggle",() => { if (!panel.open && dictionaryPracticeSession?.panel === panel) cancelDictionaryPractice(panel); });
+    hear.addEventListener("click",() => {
+      cancelDictionaryPractice();
+      const prompt = prompts[Number(select.value) || 0];
+      say(prompt.text,prompt.lang);
+    });
+    $(".dictionary-practice-focus-hear",panel).addEventListener("click",() => {
+      cancelDictionaryPractice();
+      if (focusText) say(focusText,prompts[Number(select.value) || 0].lang);
+    });
+    $(".dictionary-practice-focus-try",panel).addEventListener("click",() => {
+      if (!focusText) return;
+      const prompt = prompts[Number(select.value) || 0];
+      const focus = {text:focusText,lang:prompt.lang,fullText:prompt.fullText || prompt.text};
+      if (prompts.length > basePromptCount) select.lastElementChild.remove();
+      prompts[basePromptCount] = focus;
+      const option = document.createElement("option"); option.value = String(basePromptCount); option.textContent = `Focus: ${focus.text}`;
+      select.append(option); select.value = String(basePromptCount); refresh();
+    });
+    mic.addEventListener("click",() => {
+      if (dictionaryPracticeSession?.panel === panel) return dictionaryPracticeSession.stop();
+      cancelDictionaryPractice();
+      if (!available()) return refresh();
+      const prompt = prompts[Number(select.value) || 0];
+      const session = {panel,mic,error:"",heard:false,finishing:false,timer:null,endTimer:null};
+      const current = () => dictionaryPracticeSession === session && panel.isConnected;
+      session.finish = message => {
+        if (dictionaryPracticeSession !== session) return;
+        clearTimeout(session.timer); clearTimeout(session.endTimer);
+        dictionaryPracticeSession = null;
+        select.disabled = false; mic.disabled = false;
+        setListeningButton(mic,false); mic.textContent = "🎙 Try again";
+        status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "No words captured. Hear the model, then try again.");
+      };
+      session.stop = () => {
+        if (!current() || session.finishing) return;
+        session.finishing = true;
+        mic.textContent = "Finishing…"; mic.disabled = true;
+        status.textContent = "Finishing your response…";
+        // Release the microphone even if a recognition provider never sends end.
+        session.endTimer = setTimeout(() => { if (current()) cancelListening(true); },3000);
+        stopListening();
+      };
+      dictionaryPracticeSession = session;
+      select.disabled = true; response.hidden = true; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
+      status.textContent = "Starting microphone… allow access if asked.";
+      mic.textContent = "■ Stop speaking";
+      session.timer = setTimeout(session.stop,20000);
+      startListening({lang:prompt.lang,button:mic,correctTranscript:false,
+        onStart:() => { if (current() && !session.finishing) status.textContent = "Listening… say the visible words, then tap Stop speaking."; },
+        onText:(text,final,metadata={}) => {
+          if (!current()) return;
+          session.heard = Boolean(text.trim());
+          heard.textContent = text; response.hidden = !session.heard;
+          const comparison = dictionaryPracticeComparison(prompt.text,text);
+          progressLabel.textContent = final && !metadata.provisional ? "Word matches in the recognized text:" : "Tentative word matches — still unconfirmed:";
+          progress.replaceChildren(...comparison.words.map((word,index) => {
+            const chip = document.createElement("span");chip.textContent = word;
+            const matched = comparison.matched.has(index);
+            chip.className = matched ? "word-heard" : "word-pending";
+            chip.setAttribute("aria-label",`${word}: ${matched ? "recognized" : "not matched"}${final && !metadata.provisional ? "" : ", unconfirmed"}`);
+            return chip;
+          }));
+          coach.hidden = !final || Boolean(metadata.provisional) || comparison.exact;
+          if (!coach.hidden) {
+            focusText = comparison.focus;
+            $("p",coach).textContent = `Try this part: ${focusText}. Hear it, say it on its own, then return to the full prompt.`;
+          }
+          feedback.textContent = !final ? "Words heard so far…"
+            : metadata.provisional ? "These words were unconfirmed. Listen to the model and try again."
+            : comparison.exact
+              ? "Recognized words match the prompt. Compare your pronunciation with the model."
+              : "The recognized words differ. Hear the model and try again; recognition can miss regional words.";
+        },
+        onError:error => { if (current() && error !== "aborted") { session.error = recognitionErrorMessage(error); session.stop(); } },
+        onEnd:() => session.finish(),
+        onCancel:() => session.finish(session.error || "Practice stopped. Your prompt and heard words are kept.")
+      });
+    });
+  });
+}
+
 function bindDictionaryAudio() {
-  $$('[data-dictionary-audio]').forEach(button => button.addEventListener("click", () => {
-    say(button.dataset.dictionaryAudio, button.dataset.audioLang || "es-EC");
-  }));
+  $$('[data-dictionary-audio]').forEach(button => {
+    if (button.dataset.audioBound) return;
+    button.dataset.audioBound = "true";
+    button.addEventListener("click", () => {
+      cancelDictionaryPractice();
+      say(button.dataset.dictionaryAudio, button.dataset.audioLang || "es-EC");
+    });
+  });
+  bindDictionaryPractice($("#expression-results"));
+  bindDictionaryPractice($("#dictionary-results"));
 }
 
 function readReviewPackage() {
@@ -3255,7 +3432,7 @@ function init() {
   $("#offline-use")?.addEventListener("change", refreshMusicLiveRoute);
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", translateCapturedMusic);
-  document.addEventListener("visibilitychange", () => { if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelDictionaryPractice(); if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);
@@ -3335,7 +3512,7 @@ function init() {
   $("#regional-slang-target").addEventListener("change", renderRegionalSlang);
   $("#regional-slang-results").addEventListener("click", event => {
     const button = event.target.closest?.("[data-regional-audio]");
-    if (button) say(button.dataset.regionalAudio, button.dataset.audioLang);
+    if (button) { cancelDictionaryPractice(); say(button.dataset.regionalAudio, button.dataset.audioLang); }
   });
   renderRegionalSlang();
   $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
@@ -3368,7 +3545,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=109").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=110").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
