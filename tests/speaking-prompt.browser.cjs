@@ -75,11 +75,25 @@ async function run(browser, native, width=390, height=844) {
   assert.equal(await page.locator('#lesson-next').isDisabled(),true);
   await page.locator('.choice[data-correct="true"]').click();await page.locator('#lesson-next').click();
   assert.equal(await page.locator('.map-card').count(),4);
+  // Every speaker's exact phrase must be written in its own card, not just a related concept.
+  await page.evaluate(()=>{window.testSpoken=[];window.say=(text,lang='es-EC')=>window.testSpoken.push({text,lang});});
+  const cards=page.locator('.map-card');
+  for(let i=0;i<await cards.count();i++) {
+    const card=cards.nth(i), speaker=card.locator('[data-say]');
+    const phrase=await speaker.getAttribute('data-say');
+    assert.ok((await card.locator('p').allTextContents()).some(text=>text.toLowerCase().includes(phrase.toLowerCase())),'spoken phrase written in its own card: '+phrase);
+    assert.equal(await speaker.getAttribute('aria-label'),'Hear: '+phrase);
+    const before=await card.textContent();await speaker.click();
+    assert.deepEqual(await page.evaluate(()=>window.testSpoken.at(-1)),{text:phrase,lang:'es-EC'});
+    assert.equal(await card.textContent(),before,'playback keeps the written words');
+  }
+  const dawn=cards.filter({has:page.locator('h2',{hasText:'Dawn'})});
+  assert.equal(await dawn.locator('p').first().textContent(),'antes de que amanezca · before dawn');
   await page.locator('#lesson-finish').click();
   await page.locator('.bottom-nav [data-open="lesson-view"]').click();
   assert.equal(await page.locator('#lesson-step-count').textContent(),'1/4');
   assert.deepEqual(errors,[]);
-  await context.close();console.log(`${native?'Native bridge JavaScript':'Browser'} ${width}x${height}: prompt retained through pending/start, partial/final, stop, retry/errors; lesson progression passed`);
+  await context.close();console.log(`${native?'Native bridge JavaScript':'Browser'} ${width}x${height}: prompt retained through pending/start, partial/final, stop, retry/errors; written playback phrases and lesson progression passed`);
 }
 (async()=>{
   const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
