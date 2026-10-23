@@ -37,6 +37,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         // Keep the persistent store so validated packs survive app relaunches.
         configuration.limitsNavigationsToAppBoundDomains = true
         configuration.websiteDataStore = .default()
+        // Diagnostic branch only: event metadata, never text or key values.
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: "window.__hablaTypingDiagnostics = true;",
+            injectionTime: .atDocumentStart, forMainFrameOnly: true))
         configuration.userContentController.addUserScript(WKUserScript(
             source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
@@ -63,6 +67,32 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         NotificationCenter.default.addObserver(self, selector: #selector(suspendCapture),
             name: UIApplication.didEnterBackgroundNotification, object: nil)
         webView.load(URLRequest(url: site))
+    }
+
+    private func logTypingEvent(_ body: [String: Any]) {
+        let events = ["focus", "blur", "select", "selectionchange", "paste", "cut",
+                      "keydown", "keyup", "beforeinput", "input", "compositionstart",
+                      "compositionupdate", "compositionend"]
+        guard let event = body["event"] as? String, events.contains(event),
+              let phase = body["phase"] as? String, ["before", "after"].contains(phase) else { return }
+        var record: [String: Any] = ["event": event, "phase": phase]
+        let inputTypes = ["none", "other", "insertText", "insertReplacementText",
+                          "insertCompositionText", "insertFromComposition", "insertFromPaste",
+                          "deleteContentBackward", "deleteCompositionText", "historyUndo", "historyRedo"]
+        if let inputType = body["inputType"] as? String, inputTypes.contains(inputType) {
+            record["inputType"] = inputType
+        }
+        for field in ["sequence", "milliseconds", "textUnits", "selectionStart", "selectionEnd", "dataUnits"] {
+            if let value = body[field] as? Int { record[field] = min(1_000_000, max(-1, value)) }
+        }
+        for field in ["focused", "composing", "cancelable", "defaultPrevented"] {
+            if let value = body[field] as? Bool { record[field] = value }
+        }
+        // Whitelist metadata above rather than printing the supplied bridge body.
+        if let data = try? JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]),
+           let json = String(data: data, encoding: .utf8) {
+            print("HablaTyping \(json)")
+        }
     }
 
     private func emitToWeb(_ message: [String: Any]) {
@@ -119,6 +149,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
         switch action {
+        case "typing-diagnostic": logTypingEvent(body)
         case "share-translation": shareTranslation(id: id, text: body["text"] as? String)
         case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system", retainForReview: body["retainForReview"] as? Bool == true)
         case "identify-song":
