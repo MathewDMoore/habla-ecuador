@@ -588,7 +588,8 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.14 (15) · input diagnostics";
+    summary.textContent = "iPhone speech · native 0.1.15 (16)"
+      + (window.__hablaTypingDiagnostics === true ? " · input diagnostics" : "");
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");

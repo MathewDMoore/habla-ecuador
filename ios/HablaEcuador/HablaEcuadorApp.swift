@@ -25,6 +25,7 @@ private final class WeakSpeechHandler: NSObject, WKScriptMessageHandler {
 final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
+    private let typingDiagnosticsEnabled = ProcessInfo.processInfo.arguments.contains("--habla-typing-diagnostics")
     private var shareRequestID: String?
     private weak var shareController: UIActivityViewController?
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
@@ -37,9 +38,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         // Keep the persistent store so validated packs survive app relaunches.
         configuration.limitsNavigationsToAppBoundDomains = true
         configuration.websiteDataStore = .default()
-        // Diagnostic branch only: event metadata, never text or key values.
+        // Explicit launch opt-in only; ordinary launches install no input logger.
         configuration.userContentController.addUserScript(WKUserScript(
-            source: "window.__hablaTypingDiagnostics = true;",
+            source: "window.__hablaTypingDiagnostics = \(typingDiagnosticsEnabled ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         configuration.userContentController.addUserScript(WKUserScript(
             source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
@@ -70,6 +71,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     }
 
     private func logTypingEvent(_ body: [String: Any]) {
+        guard typingDiagnosticsEnabled else { return }
         let events = ["focus", "blur", "select", "selectionchange", "paste", "cut",
                       "keydown", "keyup", "beforeinput", "input", "compositionstart",
                       "compositionupdate", "compositionend"]
