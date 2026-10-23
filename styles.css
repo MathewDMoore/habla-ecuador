@@ -597,3 +597,28 @@ button:disabled {opacity:.5;}
   button.is-pressed:not(:disabled), button:active:not(:disabled),
   .push-to-talk:active:not(:disabled), .round-action:active:not(:disabled) {transform:none;}
 }
+
+/* Translation reading controls stay in page flow, including inside the native
+   shared editor. Expanded height overrides the companion's later 24svh limit. */
+#natural-result { max-height: 24svh; }
+#natural-result.translation-expanded {
+  height: clamp(220px, 55svh, 620px) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+#natural-result.translation-size-custom { font-size: var(--translation-text-size) !important; }
+.translation-text-tools { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin: 8px 0; }
+.translation-text-tools button, .translation-text-options > summary {
+  min-height: 44px; padding: 9px 12px; border: 1px solid rgba(255,255,255,.28);
+  border-radius: 12px; color: inherit; background: rgba(255,255,255,.08); font: inherit; font-size: 13px; cursor: pointer;
+}
+.translation-text-options { min-width: 0; max-width: 75%; }
+.translation-text-options > summary { display: list-item; list-style-position: inside; }
+.translation-text-option-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.translation-text-tools button:disabled { opacity: .45; cursor: default; }
+@media print {
+  #translation-text-tools { display: none !important; }
+  #natural-result, #native-translation-workspace #natural-result {
+    height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important;
+  }
+}

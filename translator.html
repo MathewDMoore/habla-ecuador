@@ -8,18 +8,18 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=106">
-  <script src="research-reference.js?v=106" defer></script>
-  <script src="document-import.js?v=106" defer></script>
-  <script src="whole-document.js?v=106" defer></script>
-  <script src="saved-paper.js?v=106" defer></script>
-  <script src="offline-device.js?v=106" defer></script>
-  <script src="english-varieties.js?v=106" defer></script>
-  <script src="screenshot-import.js?v=106" defer></script>
-  <script src="spanish-context.js?v=106" defer></script>
-  <script src="bilingual-music.js?v=106" defer></script>
-  <script src="button-feedback.js?v=106" defer></script>
-  <script src="app.js?v=106" defer></script>
+  <link rel="stylesheet" href="styles.css?v=107">
+  <script src="research-reference.js?v=107" defer></script>
+  <script src="document-import.js?v=107" defer></script>
+  <script src="whole-document.js?v=107" defer></script>
+  <script src="saved-paper.js?v=107" defer></script>
+  <script src="offline-device.js?v=107" defer></script>
+  <script src="english-varieties.js?v=107" defer></script>
+  <script src="screenshot-import.js?v=107" defer></script>
+  <script src="spanish-context.js?v=107" defer></script>
+  <script src="bilingual-music.js?v=107" defer></script>
+  <script src="button-feedback.js?v=107" defer></script>
+  <script src="app.js?v=107" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +28,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.25.7 · build 106</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.25.8 · build 107</span></div>
     </header>
 
     <main>
@@ -261,6 +261,18 @@
 
           <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
+            <div id="translation-text-tools" class="translation-text-tools" role="group" aria-label="Translation text controls">
+              <button id="translation-expand" type="button" aria-controls="natural-result" aria-expanded="false">Expand</button>
+              <details class="translation-text-options">
+                <summary>Text options</summary>
+                <div class="translation-text-option-actions">
+                  <button id="translation-text-smaller" type="button" aria-label="Smaller translation text">A−</button>
+                  <button id="translation-text-larger" type="button" aria-label="Larger translation text">A+</button>
+                  <button id="translation-text-reset" type="button" disabled>Default size</button>
+                  <button id="translation-select-all" type="button" disabled>Select all</button>
+                </div>
+              </details>
+            </div>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
 
           <div class="speed-control result-speed-control">
