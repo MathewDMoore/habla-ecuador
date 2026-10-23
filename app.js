@@ -258,6 +258,7 @@ let reviewQueue = new Map();
 let comparisonIndex = new Map();
 let reviewIndex = 0;
 let translationTimer = 0;
+let sourceTextComposing = false;
 let translationRequest = 0;
 let lastCompletedTranslation = null;
 let documentImportActive = false;
@@ -1394,6 +1395,14 @@ function claimSourceTextEdit() {
   else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
 }
 
+function beginSourceTextComposition() {
+  sourceTextComposing = true;
+  clearTimeout(translationTimer);
+  // Also invalidate translations already in flight against the pre-edit value.
+  translationRequest += 1;
+  claimSourceTextEdit();
+}
+
 function startInputMicrophone() {
   const button = $("#input-mic");
   // The native layout moves this same editor into Music. Its microphone must
@@ -1925,6 +1934,7 @@ function applySlangMeaning(choice) {
 }
 
 async function renderTranslation({allowImported=false, allowMusic=false}={}) {
+  if (sourceTextComposing) return;
   if (musicListening || (musicTranscriptReview && !allowMusic)) return;
   if (allowMusic) musicTranscriptReview = false;
   if ($("#compare-english")) $("#compare-english").disabled = true;
@@ -1940,7 +1950,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
   const requestContext = {source:sourceLanguage,target:targetLanguage,purpose:translationPurpose};
-  const current = () => requestId === translationRequest
+  const current = () => !sourceTextComposing && requestId === translationRequest
     && sourceText === $("#translator-input").value.trim()
     && requestContext.source === sourceLanguage && requestContext.target === targetLanguage
     && requestContext.purpose === translationPurpose;
@@ -3139,12 +3149,13 @@ function init() {
     const button=event.target.closest?.('[data-slang-meaning]');
     if(button)applySlangMeaning(button.dataset.slangMeaning);
   });
-  $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
-  $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
-  $("#translator-input").addEventListener("input", () => {
-    wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
-    // An edit owns the input now; late recognition cannot overwrite it.
+  const handleSourceTextInput = event => {
+    // Marked keyboard text belongs to the input method until it commits. Do not
+    // clear the output, run a pending translation or rewrite selection during it.
+    clearTimeout(translationTimer);
     claimSourceTextEdit();
+    if (sourceTextComposing || event?.isComposing) return;
+    wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     if (musicCapturedText && musicCapturedLanguage === sourceLanguage) {
       musicCapturedText = $("#translator-input").value.trim();
       musicCapturedConfirmedText = musicCapturedText;
@@ -3175,7 +3186,15 @@ function init() {
     const local = translationPurpose === "academic" ? null : matchPhrase($("#translator-input").value);
     if (local) renderTranslation();
     else translationTimer = setTimeout(renderTranslation, 550);
+  };
+  $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
+  $("#translator-input").addEventListener("compositionstart", beginSourceTextComposition);
+  $("#translator-input").addEventListener("compositionend", () => {
+    sourceTextComposing = false;
+    // Commit even when the keyboard omits a trailing input event.
+    handleSourceTextInput();
   });
+  $("#translator-input").addEventListener("input", handleSourceTextInput);
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
