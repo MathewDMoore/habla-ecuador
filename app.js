@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.5 · build 104";
+const APP_VERSION = "0.25.6 · build 105";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1387,6 +1387,13 @@ function stopListening() {
   try { recognition.stop(); } catch {}
 }
 
+function claimSourceTextEdit() {
+  // Claim the source before the browser replaces its selected range. Otherwise
+  // an in-flight dictation callback can put the highlighted words back.
+  if (musicListening) cancelMusicListening(false);
+  else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
+}
+
 function startInputMicrophone() {
   const button = $("#input-mic");
   // The native layout moves this same editor into Music. Its microphone must
@@ -1784,12 +1791,13 @@ function setEditableTranslation(source, generated, metadata={}) {
   updateTranslationEditUi();
 }
 
-function saveActiveTranslationEdit() {
+function saveActiveTranslationEdit({allowEmpty=false}={}) {
   if (!activeTranslationEdit) return;
   const result = $("#natural-result");
   const text = result.textContent.trim();
+  if (!text && allowEmpty) return; // selection replacement/IME may briefly delete everything
   if (!text) {
-    result.textContent = activeTranslationEdit.generated;
+    result.textContent = translationEdits[activeTranslationEdit.key]?.text || activeTranslationEdit.generated;
     showToast("A translation cannot be empty.");
   }
   const finalText = result.textContent.trim();
@@ -3131,10 +3139,12 @@ function init() {
     const button=event.target.closest?.('[data-slang-meaning]');
     if(button)applySlangMeaning(button.dataset.slangMeaning);
   });
+  $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
+  $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
     wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
-    if (musicListening) cancelMusicListening(false);
+    claimSourceTextEdit();
     if (musicCapturedText && musicCapturedLanguage === sourceLanguage) {
       musicCapturedText = $("#translator-input").value.trim();
       musicCapturedConfirmedText = musicCapturedText;
@@ -3235,8 +3245,11 @@ function init() {
   updateSpeechPauseControls();
   $("#share-result")?.addEventListener("click", shareTranslation);
   $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
-  $("#natural-result").addEventListener("input", saveActiveTranslationEdit);
-  $("#natural-result").addEventListener("blur", saveActiveTranslationEdit);
+  $("#natural-result").addEventListener("input", event => {
+    if (!event.isComposing) saveActiveTranslationEdit({allowEmpty:true});
+  });
+  $("#natural-result").addEventListener("compositionend", () => saveActiveTranslationEdit({allowEmpty:true}));
+  $("#natural-result").addEventListener("blur", () => saveActiveTranslationEdit());
   $("#restore-translation").addEventListener("click", restoreGeneratedTranslation);
   const suggestions = ["Maybe another time.","Can you say it more slowly?","I'm so fucking tired!","Do you want to go fishing with me?","I miss you.","That's cool!","What time does the sun set?"];
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
@@ -3304,7 +3317,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=104").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=105").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
