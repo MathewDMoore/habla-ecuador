@@ -1,5 +1,6 @@
 import SwiftUI
 import WebKit
+import UIKit
 
 @main
 struct HablaEcuadorApp: App {
@@ -24,6 +25,8 @@ private final class WeakSpeechHandler: NSObject, WKScriptMessageHandler {
 final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
+    private var shareRequestID: String?
+    private weak var shareController: UIActivityViewController?
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
 
     override func viewDidLoad() {
@@ -55,13 +58,52 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         speech = NativeSpeechCapture { [weak self] message in
-            guard let self, let data = try? JSONSerialization.data(withJSONObject: message),
-                  let json = String(data: data, encoding: .utf8) else { return }
-            self.webView.evaluateJavaScript("window.__hablaNativeSpeech?.(\(json))", completionHandler: nil)
+            self?.emitToWeb(message)
         }
         NotificationCenter.default.addObserver(self, selector: #selector(suspendCapture),
             name: UIApplication.didEnterBackgroundNotification, object: nil)
         webView.load(URLRequest(url: site))
+    }
+
+    private func emitToWeb(_ message: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: message),
+              let json = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__hablaNativeSpeech?.(\(json))", completionHandler: nil)
+    }
+
+    private func shareTranslation(id: String, text: String?) {
+        guard !id.isEmpty, id.utf16.count <= 200 else { return }
+        guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              text.utf16.count <= 100_000 else {
+            emitToWeb(["type": "share", "id": id, "status": "error",
+                       "message": "Choose a nonempty translation of at most 100,000 characters."])
+            return
+        }
+        guard shareRequestID == nil, presentedViewController == nil, view.window != nil else {
+            emitToWeb(["type": "share", "id": id, "status": "error",
+                       "message": "Close the current sheet, then try Share again."])
+            return
+        }
+        // Share only the edited translation supplied by the explicit button tap.
+        let sheet = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        if let popover = sheet.popoverPresentationController {
+            popover.sourceView = webView
+            popover.sourceRect = CGRect(x: webView.bounds.midX, y: webView.bounds.midY, width: 1, height: 1)
+            popover.permittedArrowDirections = []
+        }
+        shareRequestID = id
+        shareController = sheet
+        sheet.completionWithItemsHandler = { [weak self] _, completed, _, error in
+            let failed = error != nil
+            Task { @MainActor [weak self] in
+                guard let self, self.shareRequestID == id else { return }
+                self.shareRequestID = nil
+                self.shareController = nil
+                self.emitToWeb(["type": "share", "id": id,
+                    "status": failed ? "error" : (completed ? "completed" : "cancelled")])
+            }
+        }
+        present(sheet, animated: true)
     }
 
     @objc private func suspendCapture() {
@@ -77,6 +119,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
         switch action {
+        case "share-translation": shareTranslation(id: id, text: body["text"] as? String)
         case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system", retainForReview: body["retainForReview"] as? Bool == true)
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
@@ -98,6 +141,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         if trusted {
             // Discard callbacks from the old page before a new document installs its bridge.
             if navigationAction.targetFrame?.isMainFrame != false {
+                shareRequestID = nil
+                shareController?.dismiss(animated: false)
+                shareController = nil
                 speech?.abortActive()
                 speech?.configureMusicReview(enabled: false)
             }

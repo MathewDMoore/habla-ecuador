@@ -16,7 +16,7 @@ const element = selector => {
     textContent:'', value:'', hidden:false, innerHTML:'',
     children:[], replaceChildren(){this.children=[];}, append(child){this.children.push(child);},
     classList:{add(){},remove(){},toggle(){}}, setAttribute(){},removeAttribute(){},
-    lastElementChild:{scrollIntoView(){}}, querySelector(){return null;}
+    lastElementChild:{scrollIntoView(){}}, querySelector(){return null;}, addEventListener(){}
   });
   return elements.get(selector);
 };

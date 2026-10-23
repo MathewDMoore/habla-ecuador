@@ -3,6 +3,51 @@
   if (location.origin !== "https://mathewdmoore.github.io"
       || !location.pathname.startsWith("/habla-ecuador/")
       || !window.webkit?.messageHandlers?.hablaSpeech) return;
+  let shareRequest = null, nextShare = 0, shareButton, shareStatus;
+  // Per-document IDs prevent a dismissed old page's sheet from finishing a new request.
+  const shareDocument = Math.random().toString(36).slice(2);
+  function finishShare(message) {
+    if (!shareRequest || message.id !== shareRequest) return;
+    shareRequest = null;
+    shareButton.removeAttribute("aria-busy");
+    shareButton.textContent = "Share translation";
+    shareStatus.hidden = false;
+    shareStatus.textContent = message.status === "completed" ? "Share action completed."
+      : message.status === "cancelled" ? "Sharing cancelled."
+      : message.message || "Could not share. Close any open sheet and try again.";
+  }
+  function installNativeSharing() {
+    shareButton = document.querySelector("#share-result");
+    shareStatus = document.querySelector("#translation-share-status");
+    if (!shareButton || !shareStatus) return;
+    // Keep Share visible alongside the translation, outside the notes disclosure.
+    const actions = document.createElement("div");
+    actions.className = "native-share-actions";
+    actions.style.cssText = "margin:8px 0";
+    actions.append(shareButton, shareStatus);
+    document.querySelector("#translation-result")?.append(actions);
+    shareButton.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopImmediatePropagation(); // Own this tap; do not also run hosted Copy fallback.
+      if (shareRequest) return;
+      const result = document.querySelector("#translation-result");
+      const target = document.querySelector("#natural-result");
+      const text = (target?.innerText ?? target?.textContent ?? "").trim();
+      if (!result || result.hidden || target?.getAttribute("contenteditable") !== "true" || !text) return;
+      if (text.length > 100000) {
+        shareStatus.hidden = false;
+        shareStatus.textContent = "Choose a translation of at most 100,000 characters.";
+        return;
+      }
+      shareRequest = `share-${shareDocument}-${++nextShare}`;
+      shareButton.textContent = "Sharing…";
+      shareButton.setAttribute("aria-busy", "true");
+      shareStatus.hidden = false;
+      shareStatus.textContent = "Choose Messages, Mail or another app in the share sheet.";
+      try { window.webkit.messageHandlers.hablaSpeech.postMessage({action:"share-translation", id:shareRequest, text}); }
+      catch { finishShare({id:shareRequest, status:"error", message:"Could not open sharing. Try again."}); }
+    }, {capture:true});
+  }
   let reviewEnabled, reviewStatus, reviewPreview, reviewApply, reviewUndo, reviewCancel;
   let reviewRequest = null, reviewTimer, nextReview = 0, reviewText = "", undoText = null;
   function reviewCommand(action, extra = {}) {
@@ -513,7 +558,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.12 (13)";
+    summary.textContent = "iPhone speech · native 0.1.13 (14)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -534,6 +579,7 @@
     installMultilingualReview();
     anchor.parentElement.after(panel);
     installTranslationWorkspace();
+    installNativeSharing();
     installSongIdentification(anchor);
     installMusicWorkspace();
     installCaptureControls(anchor);
@@ -623,6 +669,7 @@
     }
   }
   Object.defineProperty(window, "__hablaNativeSpeech", {value:message => {
+    if (message.type === "share") { finishShare(message); return; }
     if (message.type === "music-review") { receiveReview(message); return; }
     const instance = sessions.get(message.id);
     if (!instance) return;
