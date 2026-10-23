@@ -11,7 +11,7 @@ function harness(origin = "https://mathewdmoore.github.io", path = "/habla-ecuad
     setAttribute(name,value){if(name==="aria-pressed")this.pressed=value;},
     getAttribute(){return this.pressed;}, click(){if (!this.disabled) {this.clicks++;this.onClick?.();}}};
   const playbackSource = {value:sourceValue, children:[], append(option){this.children.push(option);}};
-  const document = {readyState:"complete", querySelector:selector => selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}, addEventListener(){}}),
+  const document = {readyState:"complete", querySelector:selector => ["#share-result", "#translation-share-status"].includes(selector) ? null : selector === "#music-playback-source" ? playbackSource : selector === "#music-listen" ? musicListen : ({parentElement:{after:() => {}}, addEventListener(){}}),
     createElement:tag => {
       const listeners = {};
       const node = {tag, style:{}, children:[], setAttribute:() => {}, append(...children) { this.children.push(...children); },
