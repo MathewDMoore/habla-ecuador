@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.25.7 · build 106";
+const APP_VERSION = "0.25.8 · build 107";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1717,6 +1717,51 @@ function persistTranslationEdits() {
 
 let translationSharePending = false;
 
+function bindTranslationTextTools() {
+  const tools = $("#translation-text-tools"), draft = $("#natural-result");
+  if (!tools || !draft || tools.dataset.bound) return;
+  tools.dataset.bound = "true";
+  // The installed companion puts unknown result children in its notes dropdown.
+  // Move only these new controls back beside the same editable translation.
+  draft.before(tools);
+  const expand = $("#translation-expand"), smaller = $("#translation-text-smaller");
+  const larger = $("#translation-text-larger"), reset = $("#translation-text-reset");
+  const syncSize = () => {
+    const size = parseFloat(getComputedStyle(draft).fontSize);
+    smaller.disabled = size <= 14;
+    larger.disabled = size >= 40;
+    reset.disabled = !draft.classList.contains("translation-size-custom");
+  };
+  const changeSize = step => {
+    const size = Math.min(40, Math.max(14, parseFloat(getComputedStyle(draft).fontSize) + step));
+    draft.style.setProperty("--translation-text-size", `${size}px`);
+    draft.classList.add("translation-size-custom");
+    syncSize();
+  };
+  expand.addEventListener("click", () => {
+    const expanded = draft.classList.toggle("translation-expanded");
+    expand.setAttribute("aria-expanded", String(expanded));
+    expand.textContent = expanded ? "Collapse" : "Expand";
+  });
+  smaller.addEventListener("click", () => changeSize(-2));
+  larger.addEventListener("click", () => changeSize(2));
+  reset.addEventListener("click", () => {
+    draft.classList.remove("translation-size-custom");
+    draft.style.removeProperty("--translation-text-size");
+    syncSize();
+  });
+  $("#translation-select-all").addEventListener("click", () => {
+    if (draft.getAttribute("contenteditable") !== "true") return;
+    draft.focus({preventScroll:true});
+    const range = document.createRange();
+    range.selectNodeContents(draft);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  });
+  syncSize();
+}
+
 async function shareTranslation() {
   if (translationSharePending) return;
   const button = $("#share-result"), status = $("#translation-share-status");
@@ -1757,6 +1802,8 @@ async function shareTranslation() {
 }
 
 function updateTranslationEditUi() {
+  const selectAll = $("#translation-select-all");
+  if (selectAll) selectAll.disabled = !activeTranslationEdit;
   const share = $("#share-result");
   if (share) share.disabled = translationSharePending || !activeTranslationEdit;
   const status = $("#translation-edit-status");
@@ -3093,6 +3140,7 @@ function init() {
   HablaOffline.bind();
   HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText});
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
+  queueMicrotask(bindTranslationTextTools);
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
@@ -3317,7 +3365,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=106").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=107").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
