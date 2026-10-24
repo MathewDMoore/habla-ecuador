@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.5 · build 115";
+const APP_VERSION = "0.26.6 · build 116";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2867,7 +2867,7 @@ function renderRegionalSlang() {
       ${englishLead ? `<p class="regional-gloss"><b>${entry.shared ? "Spanish counterpart · country review pending" : "Spanish"}</b> ${escapeHtml(entry.term)}</p>` : ""}
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
-      <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || entry.category === "literal" || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
+      <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || (entry.category === "literal" && !entry.regionalSenseAttested) || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
       ${entry.usage.cities.length ? `<p class="regional-usage-scope"><b>City evidence:</b> ${escapeHtml(entry.usage.cities.join(" · "))} · not an exclusivity claim</p>` : ""}
       <p class="regional-usage-scope"><b>Meaning by country / region:</b> ${escapeHtml(entry.scope)}</p>
       ${entry.shared ? `<p class="expression-note">Shared Spanish · country review pending</p>` : ""}
@@ -2877,8 +2877,10 @@ function renderRegionalSlang() {
         <button type="button" data-regional-audio="${escapeHtml(entry.us)}" data-audio-lang="en-US">🔊 U.S.</button>
         <button type="button" data-regional-audio="${escapeHtml(entry.uk)}" data-audio-lang="en-GB">🔊 U.K.</button>
       </div>
+      ${entry.exampleEs ? `<div class="expression-example"><p>${escapeHtml(entry.exampleEs)}</p><small>U.S.: ${escapeHtml(entry.exampleUs)}<br>U.K.: ${escapeHtml(entry.exampleUk)}</small><button type="button" data-regional-audio="${escapeHtml(entry.exampleEs)}" data-audio-lang="${voice}">🔊 Example</button></div>` : ""}
       <details class="compact-info"><summary>Context &amp; sources</summary>
         <p>${escapeHtml(entry.scope)}</p><p>${escapeHtml(entry.note)}</p>
+        ${entry.sourceSense ? `<p class="regional-search-help">Source sense: ${escapeHtml(entry.sourceSense)} · checked ${escapeHtml(entry.sourceChecked)}</p>` : ""}
         ${sources.map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
       </details>
     </article>`;
@@ -3742,7 +3744,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=115").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=116").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
