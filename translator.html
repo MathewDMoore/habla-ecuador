@@ -8,19 +8,20 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=112">
-  <script src="research-reference.js?v=112" defer></script>
-  <script src="document-import.js?v=112" defer></script>
-  <script src="whole-document.js?v=112" defer></script>
-  <script src="saved-paper.js?v=112" defer></script>
-  <script src="offline-device.js?v=112" defer></script>
-  <script src="english-varieties.js?v=112" defer></script>
-  <script src="screenshot-import.js?v=112" defer></script>
-  <script src="spanish-context.js?v=112" defer></script>
-  <script src="bilingual-music.js?v=112" defer></script>
-  <script src="button-feedback.js?v=112" defer></script>
-  <script src="regional-practice.js?v=112" defer></script>
-  <script src="app.js?v=112" defer></script>
+  <link rel="stylesheet" href="styles.css?v=113">
+  <script src="research-reference.js?v=113" defer></script>
+  <script src="document-import.js?v=113" defer></script>
+  <script src="whole-document.js?v=113" defer></script>
+  <script src="saved-paper.js?v=113" defer></script>
+  <script src="offline-device.js?v=113" defer></script>
+  <script src="english-varieties.js?v=113" defer></script>
+  <script src="screenshot-import.js?v=113" defer></script>
+  <script src="spanish-context.js?v=113" defer></script>
+  <script src="bilingual-music.js?v=113" defer></script>
+  <script src="button-feedback.js?v=113" defer></script>
+  <script src="regional-practice.js?v=113" defer></script>
+  <script src="slang-contributions.js?v=113" defer></script>
+  <script src="app.js?v=113" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -29,7 +30,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.2 · build 112</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.3 · build 113</span></div>
     </header>
 
     <main>
@@ -512,7 +513,7 @@
           <button data-evidence-filter="research-lead">Needs review</button>
         </div>
         <button class="review-callout" data-open="review-view">
-          <span><strong>Review Ecuadorian usage</strong><small>No login · saved only on this device</small></span>
+          <span><strong>Review usage or suggest slang</strong><small>No login · saved only on this device</small></span>
           <b aria-hidden="true">→</b>
         </button>
         <section class="expression-library" aria-labelledby="expression-title">
@@ -540,9 +541,35 @@
       <section id="review-view" class="view" aria-labelledby="review-title">
         <div class="view-heading">
           <button class="back-button" data-open="dictionary-view" aria-label="Back to dictionary">←</button>
-          <div><p class="eyebrow">Ecuadorian reviewer mode</p><h1 id="review-title">Does this sound natural?</h1></div>
+          <div><p class="eyebrow">Community usage review</p><h1 id="review-title">Does this sound natural?</h1></div>
         </div>
-        <p class="review-intro">An Ecuadorian speaker can review each entry without an account. Reviews stay on this device until they are copied or shared.</p>
+        <p class="review-intro">Suggest regional slang below, or review the Ecuadorian entries. No account is needed. Reports stay on this device until you copy or share them.</p>
+
+        <details id="slang-contributions" class="compact-info slang-contributions">
+          <summary>Suggest or check slang · Sugerir o revisar</summary>
+          <p>Add a missing expression or check an existing meaning. Saved only on this device; nothing is submitted automatically. Contributions remain unverified until source and regional review.</p>
+          <form id="slang-contribution-form">
+            <label>Task · Tarea<select name="task"><option value="addition">Suggest an addition</option><option value="check">Check or correct existing usage</option></select></label>
+            <label>Country / variety · País<select name="region"><option>Ecuador</option><option>Mexico</option><option>Venezuela</option><option>Bolivia</option><option>Peru</option><option>Colombia</option><option>U.S. English</option><option>U.K. English</option><option>Other / uncertain</option></select></label>
+            <label>City / area · Ciudad<input name="city" maxlength="100" placeholder="e.g. Monterrey, Nuevo León / Caracas"></label>
+            <button type="button" id="slang-prompt-next">Give me a suggestion prompt</button>
+            <p id="slang-contribution-prompt" role="status">What do friends say locally that is missing here? / ¿Qué dicen tus amigos que falta aquí?</p>
+            <label>Word or complete expression · Expresión<input name="term" required maxlength="160" autocomplete="off"></label>
+            <label>Meaning in this context · Significado<textarea name="meaning" required maxlength="1000" rows="2"></textarea></label>
+            <label>Your original example sentence · Ejemplo<textarea name="example" required maxlength="1000" rows="2"></textarea></label>
+            <label>Tone / register · Registro<select name="register"><option>Unsure</option><option>Neutral</option><option>Informal / friendly</option><option>Vulgar</option><option>Offensive / insulting</option><option>Literal / clinical</option></select></label>
+            <label>Your usage check · Tu revisión<select name="assessment"><option>Unsure / asking for review</option><option>I use or hear this locally</option><option>Meaning depends on context</option><option>I suggest a correction</option><option>I do not recognize this usage</option></select></label>
+            <label>Evidence and context · Evidencia<textarea name="evidence" maxlength="2000" rows="3" placeholder="Where do you hear it? Who uses it, with whom, and when? Include a source link and the exact sense if available. Personal experience is useful, but is not dictionary verification."></textarea></label>
+            <label>Name / initials · Nombre (optional)<input name="reviewer" maxlength="80" autocomplete="off"></label>
+            <p>Check the exact sense, city, tone and full phrase. One speaker's report does not establish universal usage. Use your own examples; avoid private messages or lyrics.</p>
+            <div class="slang-contribution-actions"><button type="submit">Save contribution</button><button type="button" id="slang-contribution-new">New / clear form</button></div>
+          </form>
+          <p id="slang-contribution-status" role="status"></p>
+          <div id="slang-contribution-list"></div>
+          <label>Selected contribution · ready to copy<textarea id="slang-contribution-export" readonly rows="7" placeholder="Save or select a contribution to review its export."></textarea></label>
+          <div class="slang-contribution-actions"><button id="slang-contribution-copy" type="button" disabled>Copy contribution</button><button id="slang-contribution-share" type="button" disabled>Share contribution</button></div>
+          <p>Sharing sends only the selected contribution through your chosen app. It does not add it to Habla's public dictionary. Browser sharing and storage depend on your device.</p>
+        </details>
         <label class="reviewer-name">Reviewer name <span>(optional)</span><input id="reviewer-name" autocomplete="name" placeholder="Name or initials"></label>
         <div id="review-progress" class="review-progress" aria-live="polite"></div>
         <div id="review-card"></div>

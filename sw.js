@@ -1,5 +1,5 @@
-const CACHE = "habla-ecuador-v112";
-const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=112", "app.js?v=112", "regional-practice.js?v=112", "screenshot-import.js?v=112", "spanish-context.js?v=112", "bilingual-music.js?v=112", "button-feedback.js?v=112", "english-varieties.js?v=112", "offline-device.js?v=112", "offline-worker.js?v=112", "document-import.js?v=112", "whole-document.js?v=112", "saved-paper.js?v=112", "research-reference.js?v=112", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
+const CACHE = "habla-ecuador-v113";
+const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=113", "app.js?v=113", "regional-practice.js?v=113", "slang-contributions.js?v=113", "screenshot-import.js?v=113", "spanish-context.js?v=113", "bilingual-music.js?v=113", "button-feedback.js?v=113", "english-varieties.js?v=113", "offline-device.js?v=113", "offline-worker.js?v=113", "document-import.js?v=113", "whole-document.js?v=113", "saved-paper.js?v=113", "research-reference.js?v=113", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));

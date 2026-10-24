@@ -673,3 +673,15 @@ button:disabled {opacity:.5;}
 .app-sharing .app-sharing-note { font-size: 12px; color: var(--muted); }
 
 .shared-app-context { padding: 12px; border-radius: 12px; color: var(--green); background: var(--mint); font-size: 14px; line-height: 1.5; }
+
+.slang-contributions form { display: grid; gap: 12px; }
+.slang-contributions label { display: grid; gap: 6px; min-width: 0; }
+.slang-contributions input, .slang-contributions select, .slang-contributions textarea { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; font: inherit; }
+.slang-contributions textarea { white-space: pre-wrap; overflow-wrap: anywhere; resize: vertical; }
+.slang-contribution-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.slang-contribution-actions button { max-width: 100%; overflow-wrap: anywhere; }
+.slang-contributions label { color: var(--green); font-size: 14px; font-weight: 750; }
+.slang-contributions input, .slang-contributions select, .slang-contributions textarea { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); font-size: 16px; font-weight: 400; }
+.slang-contributions button { min-height: 44px; padding: 10px 14px; border: 1px solid #bad8c6; border-radius: 12px; background: var(--mint); color: var(--green); font: inherit; font-weight: 750; }
+.slang-contributions button:disabled { opacity: .5; }
+.slang-contributions :is(button,input,select,textarea):focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
