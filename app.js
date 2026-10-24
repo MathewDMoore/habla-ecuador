@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.7 · build 117";
+const APP_VERSION = "0.26.8 · build 118";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -406,6 +406,7 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
 }
 
 function openView(id) {
+  if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   cancelDictionaryPractice();
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
@@ -626,6 +627,7 @@ function toggleSpeechPause() {
 }
 
 function say(text, lang="es-EC") {
+  if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   cancelMusicListening();
   if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
   stopSpeechPlayback();
@@ -691,6 +693,7 @@ function correctSpeechRecognitionTranscript(text, lang="") {
 }
 
 function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onError, continuous=false, correctTranscript=true}={}) {
+  if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
 
@@ -3520,6 +3523,7 @@ function init() {
   bindAppSharing();
   bindRegionalSearchRecovery();
   renderSourcePractice();
+  if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.render();
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
@@ -3761,7 +3765,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=117").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=118").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

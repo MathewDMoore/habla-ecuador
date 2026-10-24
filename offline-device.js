@@ -58,7 +58,7 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=117");
+      worker = new Worker("offline-worker.js?v=118");
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
