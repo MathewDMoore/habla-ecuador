@@ -206,6 +206,8 @@ const HablaSpanishContext = (() => {
       {term:'histerectomía',us:'hysterectomy',note:'Surgery removing the uterus, wholly or partly. Do not infer removal of the ovaries from this word alone.',url:'https://medlineplus.gov/spanish/hysterectomy.html'}
     ].map(entry=>({...entry,uk:entry.us,category:'clinical',regions:sharedRegions,register:'Clinical / neutral',scope:'Shared clinical Spanish terminology; not regional slang.'}))
   ];
+  const vocabularyBatch = typeof HablaRegionalVocabulary !== 'undefined' ? HablaRegionalVocabulary
+    : typeof module !== 'undefined' && typeof require === 'function' ? require('./regional-vocabulary.js') : [];
   const englishVulgarityPairs = [
     {term:'¡Mierda!',us:'Fuck! / Shit! (anger or frustration)',uk:'Fuck! / Shit! (anger or frustration)',aliases:['fuck!','shit!'],requireExclamation:true,url:'https://dle.rae.es/mierda',note:'An angry exclamation, not the sexual verb or a literal reference to excrement. The emotional force varies with the speaker.'},
     {term:'¡Vete a la mierda!',us:'Fuck off!',uk:'Fuck off!',aliases:['fuck off'],url:'https://dle.rae.es/mierda',note:'A forceful, insulting dismissal addressed to one person with informal tú. It is not a friendly instruction to leave.'},
@@ -252,21 +254,21 @@ const HablaSpanishContext = (() => {
     clinical:'Clinical terminology', literal:'Literal meaning', usage:'Contextual usage / expression'
   };
   function usageMetadata(entry) {
-    const type = entry.category === 'clinical' ? 'clinical' : entry.category === 'literal' ? 'literal'
+    const type = entry.usageType || (entry.category === 'clinical' ? 'clinical' : entry.category === 'literal' ? 'literal'
       : fixedExpressions.has(entry.term) ? 'idiom'
       : ['chuta','pucha','¡puta!','¡verga!'].includes(entry.term) ? 'exclamation'
       : entry.register === 'Familiar' ? 'familiar' : entry.term === 'chulla' ? 'culture'
-      : entry.term.replace(/\s*\([^)]*\)/g,'').split(' / ').every(word=>!word.trim().includes(' ')) ? 'vocabulary' : 'usage';
+      : entry.term.replace(/\s*\([^)]*\)/g,'').split(' / ').every(word=>!word.trim().includes(' ')) ? 'vocabulary' : 'usage');
     return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code]),
       cities:Object.entries(cityEvidence).filter(([,terms])=>terms.includes(entry.term)).map(([city])=>({quito:'Quito',monterrey:'Monterrey, Nuevo León','mexico-city':'Mexico City',bogota:'Bogotá'}[city]))};
   }
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries].filter(entry => {
+    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
-      const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,entry.note,entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
+      const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116' ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
       return regionMatches && (usage==='all'||usageMetadata(entry).type===usage) && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
     }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
       const {pattern,aliases,requireExclamation,...publicEntry}=entry;

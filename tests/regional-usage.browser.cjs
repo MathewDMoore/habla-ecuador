@@ -11,7 +11,7 @@ const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
   assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC');
   const cards=page.locator('#regional-slang-results .regional-slang-card');
   await page.locator('#regional-usage-type').selectOption('idiom');assert.ok(await cards.count()>0);
-  assert.match(await cards.first().textContent(),/Idiom \/ fixed expression/);assert.match(await cards.first().textContent(),/Strong vulgarity/);assert.match(await cards.first().textContent(),/Ecuador/);
+  assert.match(await cards.first().textContent(),/Idiom \/ fixed expression/);assert.match(await cards.filter({hasText:'me vale verga'}).first().textContent(),/Strong vulgarity/);assert.match(await cards.first().textContent(),/Ecuador/);
   await page.locator('#regional-slang-region').selectOption('es-VE');assert.equal(await cards.count(),0);assert.match(await page.locator('#regional-slang-count').textContent(),/No entries/);
   await page.locator('#regional-usage-type').selectOption('all');await page.locator('#regional-slang-search').fill('chamo');assert.match(await cards.first().textContent(),/Caracas-specific review pending/);assert.equal(await cards.first().locator('.regional-usage-scope').count(),1);
   await page.locator('#regional-slang-search').fill('');await page.locator('#regional-slang-region').selectOption('monterrey');assert.match(await cards.first().textContent(),/City evidence: Monterrey, Nuevo León/);
