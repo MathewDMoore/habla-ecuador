@@ -28,6 +28,7 @@ final class NativeSpeechCapture {
     private var recognitionLanguage = ""
     private var recognitionMode = ""
     private var systemAudio = false
+    var isCapturing: Bool { activeID != nil }
     var isSystemAudioActive: Bool { activeID != nil && systemAudio }
     static var supportsSystemAudioCapture: Bool {
 #if compiler(>=6.3) && canImport(ScreenCaptureKit)

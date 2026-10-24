@@ -80,6 +80,7 @@
 				<string>000000000000000000000012</string>
 				<string>000000000000000000000013</string>
 				<string>000000000000000000000023</string>
+				<string>000000000000000000000029</string>
 				<string>000000000000000000000025</string>
 			</array>
 			<key>path</key>
@@ -178,6 +179,18 @@
 			<key>fileRef</key>
 			<string>000000000000000000000012</string>
 		</dict>
+		<key>000000000000000000000029</key>
+		<dict>
+			<key>isa</key><string>PBXFileReference</string>
+			<key>lastKnownFileType</key><string>sourcecode.swift</string>
+			<key>path</key><string>NativeRecordingImport.swift</string>
+			<key>sourceTree</key><string>&lt;group&gt;</string>
+		</dict>
+		<key>00000000000000000000002A</key>
+		<dict>
+			<key>isa</key><string>PBXBuildFile</string>
+			<key>fileRef</key><string>000000000000000000000029</string>
+		</dict>
 		<key>000000000000000000000007</key>
 		<dict>
 			<key>isa</key>
@@ -189,6 +202,7 @@
 				<string>000000000000000000000014</string>
 				<string>000000000000000000000015</string>
 				<string>000000000000000000000024</string>
+				<string>00000000000000000000002A</string>
 			</array>
 			<key>runOnlyForDeploymentPostprocessing</key>
 			<string>0</string>
@@ -306,13 +320,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>16</string>
+				<string>17</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.15</string>
+				<string>0.1.16</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -356,13 +370,13 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>16</string>
+				<string>17</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.15</string>
+				<string>0.1.16</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>

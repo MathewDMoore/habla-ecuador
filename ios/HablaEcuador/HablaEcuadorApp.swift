@@ -25,6 +25,7 @@ private final class WeakSpeechHandler: NSObject, WKScriptMessageHandler {
 final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
+    private var recordingImport: NativeRecordingImport!
     private let typingDiagnosticsEnabled = ProcessInfo.processInfo.arguments.contains("--habla-typing-diagnostics")
     private var shareRequestID: String?
     private weak var shareController: UIActivityViewController?
@@ -43,7 +44,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             source: "window.__hablaTypingDiagnostics = \(typingDiagnosticsEnabled ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         configuration.userContentController.addUserScript(WKUserScript(
-            source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
+            source: "window.__hablaRecordingImportSupported = true; window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         if let scriptURL = Bundle.main.url(forResource: "NativeSpeech", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
@@ -65,6 +66,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         speech = NativeSpeechCapture { [weak self] message in
             self?.emitToWeb(message)
         }
+        recordingImport = NativeRecordingImport(host: self) { [weak self] message in self?.emitToWeb(message) }
         NotificationCenter.default.addObserver(self, selector: #selector(suspendCapture),
             name: UIApplication.didEnterBackgroundNotification, object: nil)
         webView.load(URLRequest(url: site))
@@ -139,6 +141,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     }
 
     @objc private func suspendCapture() {
+        recordingImport?.cancel(message: "Recording import stopped because Habla moved to the background. Your text is unchanged.")
         if speech?.isSystemAudioActive != true { speech?.abortActive() }
         speech?.cancelMusicReview()
     }
@@ -153,12 +156,30 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         switch action {
         case "typing-diagnostic": logTypingEvent(body)
         case "share-translation": shareTranslation(id: id, text: body["text"] as? String)
-        case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system", retainForReview: body["retainForReview"] as? Bool == true)
+        case "import-recording":
+            guard speech.isCapturing == false else {
+                emitToWeb(["type":"recording-import", "id":id, "status":"error", "message":"Stop live listening before importing a recording."])
+                return
+            }
+            recordingImport.start(id: id, source: body["source"] as? String ?? "", language: body["lang"] as? String ?? "", startSeconds: body["startSeconds"] as? Double ?? -1)
+        case "cancel-recording-import": recordingImport.cancel(id: id)
+        case "start":
+            guard recordingImport.isActive == false else {
+                emitToWeb(["id":id, "type":"error", "error":"audio-capture", "message":"Finish or cancel recording import before live listening."])
+                emitToWeb(["id":id, "type":"end"])
+                return
+            }
+            speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system", retainForReview: body["retainForReview"] as? Bool == true)
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
         case "configure-music-review": speech.configureMusicReview(enabled: body["enabled"] as? Bool == true)
-        case "retry-music": speech.retryMusic(id: id)
+        case "retry-music":
+            guard recordingImport.isActive == false else {
+                emitToWeb(["type":"music-review", "id":id, "status":"error", "message":"Finish or cancel recording import before retrying live audio."])
+                return
+            }
+            speech.retryMusic(id: id)
         case "cancel-music-review": speech.cancelMusicReview()
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
@@ -174,6 +195,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         if trusted {
             // Discard callbacks from the old page before a new document installs its bridge.
             if navigationAction.targetFrame?.isMainFrame != false {
+                recordingImport?.cancel()
                 shareRequestID = nil
                 shareController?.dismiss(animated: false)
                 shareController = nil

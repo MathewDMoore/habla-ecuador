@@ -32,6 +32,119 @@
       if (document.activeElement === input) report(event, "after");
     });
   }
+  let recordingImportRequest = null, recordingImportUI = null, nextRecordingImport = 0;
+  const recordingDocumentID = globalThis.crypto?.randomUUID?.() || String(Date.now());
+  function cancelRecordingImport(message = "Import cancelled. Existing text is unchanged.") {
+    const id = recordingImportRequest;
+    recordingImportRequest = null;
+    if (id) try { window.webkit.messageHandlers.hablaSpeech.postMessage({action:"cancel-recording-import",id}); } catch {}
+    if (recordingImportUI) {
+      recordingImportUI.busy(false);
+      recordingImportUI.status.textContent = message;
+      recordingImportUI.apply.disabled = true;
+    }
+  }
+  function receiveRecordingImport(message) {
+    if (!recordingImportUI || !recordingImportRequest || message.id !== recordingImportRequest) return;
+    const ui = recordingImportUI;
+    ui.status.textContent = String(message.message || "Processing recording…");
+    if (typeof message.text === "string") { ui.preview.value = message.text.slice(0,100000); ui.preview.hidden = false; }
+    if (message.status === "working") return;
+    recordingImportRequest = null;
+    ui.busy(false);
+    ui.ready = message.status === "done" && Boolean(ui.preview.value.trim());
+    ui.preview.readOnly = !ui.ready;
+    ui.apply.disabled = !ui.ready;
+  }
+  function installRecordingImport() {
+    if (window.__hablaRecordingImportSupported !== true) return;
+    const music = document.querySelector("#music-view");
+    if (!music || document.querySelector("#native-recording-import")) return;
+    const box = document.createElement("details");
+    box.id = "native-recording-import";
+    box.className = "compact-info";
+    box.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
+    box.innerHTML = `<summary>Import a recording · Photos / Files</summary>
+      <p>Choose a video, including a screen recording. Import one segment of up to 60 seconds; change the start time for the next segment. Maximum file size: 500 MB.</p>
+      <label style="display:block">Recognition language<select id="native-recording-language" style="width:100%;font:inherit"><option value="es-MX">Spanish · es-MX recognizer</option><option value="en-US">English · en-US recognizer</option></select></label>
+      <label style="display:block;margin-top:12px">Start at (seconds)<input id="native-recording-offset" type="number" min="0" max="86400" step="1" value="0" style="width:100%;box-sizing:border-box;font:inherit"></label>
+      <p>Choose the dominant language; automatic bilingual recognition is not included. Audio stays on this iPhone. iCloud video downloads may need internet. On-device recognition must be available for the chosen language.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><button id="native-recording-photos" type="button" class="secondary-button">Choose from Photos</button><button id="native-recording-files" type="button" class="secondary-button">Choose from Files</button><button id="native-recording-cancel" type="button" class="secondary-button" hidden>Cancel import</button></div>
+      <p id="native-recording-status" role="status">Ready to import. No microphone or live screen capture is started.</p>
+      <label style="display:block">Recording draft · review and edit<textarea id="native-recording-preview" rows="5" readonly hidden style="width:100%;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit"></textarea></label>
+      <p>Singing, overlap and mixed languages can produce missing or inaccurate words. Applying replaces the source text and translates through your current translation provider; that may send the reviewed text online. The video/audio is never uploaded by this feature.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px"><button id="native-recording-apply" type="button" class="secondary-button" disabled>Replace source &amp; translate</button><button id="native-recording-undo" type="button" class="secondary-button" hidden>Undo source replacement</button></div>`;
+    const style = document.createElement("style");
+    style.textContent = "#native-recording-import label{display:grid;gap:6px;margin:12px 0;font-weight:700}#native-recording-import :is(input,select,textarea){padding:12px;border:1px solid var(--line,#ddd);border-radius:12px;background:white;color:var(--ink,#163a30);font-size:16px!important;min-width:0;max-width:100%;box-sizing:border-box}#native-recording-import button{min-height:44px;padding:10px 12px;max-width:100%;overflow-wrap:anywhere}#native-recording-import textarea{font-weight:400}";
+    box.append(style);
+    music.append(box);
+    const get = suffix => box.querySelector("#native-recording-" + suffix);
+    const ui = recordingImportUI = {status:get("status"),preview:get("preview"),apply:get("apply"),ready:false};
+    let beforeImport = "", draftLanguage = "es-MX", undo = null, armed = null;
+    ui.busy = working => {
+      box.setAttribute("aria-busy", String(working));
+      for (const name of ["photos","files","language","offset"]) get(name).disabled = working;
+      get("cancel").hidden = !working;
+      ui.preview.readOnly = working || !ui.ready;
+    };
+    for (const source of ["photos","files"]) get(source).addEventListener("click", () => {
+      if (recordingImportRequest) return;
+      if (sessions.size || reviewRequest) { ui.status.textContent = "Stop live listening or the recognition retry before importing."; return; }
+      const startSeconds = Number(get("offset").value);
+      if (!Number.isFinite(startSeconds) || !Number.isInteger(startSeconds) || startSeconds < 0 || startSeconds > 86400) { ui.status.textContent = "Enter a whole-number start time between 0 and 86400 seconds."; return; }
+      recordingImportRequest = `recording-${recordingDocumentID}-${++nextRecordingImport}`;
+      beforeImport = document.querySelector("#translator-input")?.value || "";
+      draftLanguage = get("language").value;
+      armed = null; ui.ready = false; ui.apply.disabled = true; ui.apply.textContent = "Replace source & translate";
+      ui.preview.value = ""; ui.preview.hidden = true;
+      ui.busy(true); ui.status.textContent = "Opening video picker…";
+      try { window.webkit.messageHandlers.hablaSpeech.postMessage({action:"import-recording",id:recordingImportRequest,source,lang:draftLanguage,startSeconds}); }
+      catch { cancelRecordingImport("Could not open the importer. Your text is unchanged."); }
+    });
+    get("cancel").addEventListener("click", () => cancelRecordingImport());
+    ui.preview.addEventListener("input", () => { ui.apply.disabled = !ui.ready || !ui.preview.value.trim(); });
+    function replaceSource(text, pair) {
+      // Existing hosted functions own translation state/history; no new provider.
+      cancelReview("Recording import clears the old live-audio retry buffer.");
+      if (reviewEnabled) { reviewEnabled.checked = false; reviewCommand("configure-music-review", {enabled:false}); }
+      window.newMusicSong();
+      sourceLanguage = pair.source;
+      targetLanguage = pair.target;
+      window.syncLanguagePair();
+      const editor = document.querySelector("#translator-input");
+      editor.value = text;
+      editor.dispatchEvent(new Event("input", {bubbles:true}));
+    }
+    ui.apply.addEventListener("click", () => {
+      const editor = document.querySelector("#translator-input"), text = ui.preview.value.trim();
+      if (recordingImportRequest || !ui.ready || !text || sessions.size || !editor) return;
+      if (typeof window.newMusicSong !== "function" || typeof window.syncLanguagePair !== "function" || typeof sourceLanguage === "undefined" || typeof targetLanguage === "undefined") { ui.status.textContent = "Reopen Habla online to load the compatible translator before applying this draft."; return; }
+      if (editor.value !== beforeImport && armed !== editor.value) {
+        armed = editor.value;
+        ui.apply.textContent = "Replace updated source & translate";
+        ui.status.textContent = "Your source changed during import. Review it first; tap again only if you want to replace the newer text.";
+        return;
+      }
+      const oldPair = {source:sourceLanguage,target:targetLanguage};
+      const family = draftLanguage.split("-")[0];
+      const pair = {source:sourceLanguage.startsWith(family) ? sourceLanguage : (family === "es" ? "es-EC" : "en-US"),target:targetLanguage};
+      if (pair.target.startsWith(family)) pair.target = family === "es" ? "en-US" : "es-EC";
+      undo = {before:editor.value,applied:text,pair:oldPair};
+      replaceSource(text,pair);
+      get("undo").hidden = false;
+      ui.apply.disabled = true; ui.ready = false;
+      ui.status.textContent = "Reviewed draft applied. From/To reflects its selected language. Undo restores previous source text and languages, not an earlier capture session.";
+    });
+    get("undo").addEventListener("click", () => {
+      const editor = document.querySelector("#translator-input");
+      if (!undo || !editor || sessions.size || recordingImportRequest) return;
+      if (editor.value !== undo.applied) { ui.status.textContent = "Source text changed after applying. Undo did not overwrite your edits."; return; }
+      replaceSource(undo.before,undo.pair); undo = null; get("undo").hidden = true;
+      ui.status.textContent = "Previous source text and language pair restored.";
+    });
+    window.addEventListener("pagehide", () => { if (recordingImportRequest) cancelRecordingImport(); });
+  }
+
   let shareRequest = null, nextShare = 0, shareButton, shareStatus;
   // Per-document IDs prevent a dismissed old page's sheet from finishing a new request.
   const shareDocument = Math.random().toString(36).slice(2);
@@ -113,6 +226,7 @@
     retry.textContent = "Retry last 30 seconds · download model if needed";
     retry.addEventListener("click", () => {
       if (reviewRequest) return;
+      if (recordingImportRequest) { reviewStatus.textContent = "Finish or cancel recording import before retrying live audio."; return; }
       if (!reviewEnabled.checked) { reviewStatus.textContent = "Enable the retry buffer before starting a new capture."; return; }
       if (sessions.size) { reviewStatus.textContent = "Stop listening first, then retry."; return; }
       reviewRequest = `review-${++nextReview}`;
@@ -588,7 +702,7 @@
       source?.append(option);
     }
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.15 (16)"
+    summary.textContent = "iPhone speech · native 0.1.16 (17)"
       + (window.__hablaTypingDiagnostics === true ? " · input diagnostics" : "");
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
@@ -613,6 +727,7 @@
     installNativeSharing();
     installSongIdentification(anchor);
     installMusicWorkspace();
+    installRecordingImport();
     installCaptureControls(anchor);
     // The build-80 hosted UI has a browser-only error formatter. Adapt that
     // formatter within this native wrapper; leave the website source untouched.
@@ -633,6 +748,7 @@
       this._id = null;
     }
     start() {
+      if (recordingImportRequest) throw new DOMException("Finish or cancel recording import first", "InvalidStateError");
       if (this._id !== null) throw new DOMException("Already listening", "InvalidStateError");
       cancelReview("New capture clears the previous retry audio. Captured text is kept.");
       if (reviewPreview) reviewPreview.hidden = reviewApply.hidden = true;
@@ -700,6 +816,7 @@
     }
   }
   Object.defineProperty(window, "__hablaNativeSpeech", {value:message => {
+    if (message.type === "recording-import") { receiveRecordingImport(message); return; }
     if (message.type === "share") { finishShare(message); return; }
     if (message.type === "music-review") { receiveReview(message); return; }
     const instance = sessions.get(message.id);
