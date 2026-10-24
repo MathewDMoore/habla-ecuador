@@ -689,3 +689,7 @@ button:disabled {opacity:.5;}
 .regional-usage-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
 .regional-usage-meta span { padding: 5px 8px; border-radius: 8px; background: var(--mint); color: var(--green); font-size: 12px; overflow-wrap: anywhere; }
 .regional-usage-scope { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+
+.regional-search-help { font-size: 13px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+.regional-search-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.regional-search-actions button { min-height: 44px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--green); font: inherit; font-weight: 750; overflow-wrap: anywhere; }
