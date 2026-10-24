@@ -8,19 +8,19 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=111">
-  <script src="research-reference.js?v=111" defer></script>
-  <script src="document-import.js?v=111" defer></script>
-  <script src="whole-document.js?v=111" defer></script>
-  <script src="saved-paper.js?v=111" defer></script>
-  <script src="offline-device.js?v=111" defer></script>
-  <script src="english-varieties.js?v=111" defer></script>
-  <script src="screenshot-import.js?v=111" defer></script>
-  <script src="spanish-context.js?v=111" defer></script>
-  <script src="bilingual-music.js?v=111" defer></script>
-  <script src="button-feedback.js?v=111" defer></script>
-  <script src="regional-practice.js?v=111" defer></script>
-  <script src="app.js?v=111" defer></script>
+  <link rel="stylesheet" href="styles.css?v=112">
+  <script src="research-reference.js?v=112" defer></script>
+  <script src="document-import.js?v=112" defer></script>
+  <script src="whole-document.js?v=112" defer></script>
+  <script src="saved-paper.js?v=112" defer></script>
+  <script src="offline-device.js?v=112" defer></script>
+  <script src="english-varieties.js?v=112" defer></script>
+  <script src="screenshot-import.js?v=112" defer></script>
+  <script src="spanish-context.js?v=112" defer></script>
+  <script src="bilingual-music.js?v=112" defer></script>
+  <script src="button-feedback.js?v=112" defer></script>
+  <script src="regional-practice.js?v=112" defer></script>
+  <script src="app.js?v=112" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -29,7 +29,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.1 · build 111</span></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.2 · build 112</span></div>
     </header>
 
     <main>
@@ -37,6 +37,16 @@
         <p class="eyebrow">Today · 8–10 minutes</p>
         <h1 id="home-title">Speak a little.<br><span>Connect a lot.</span></h1>
         <p class="intro">Translate what you need, hear natural Ecuadorian phrasing, and practice speaking it aloud.</p>
+
+        <details class="compact-info app-sharing">
+          <summary>Invite a friend · share Habla</summary>
+          <p>Try the web app in a browser. No account needed. Regional coverage is still growing.</p>
+          <label for="app-share-region">Open the app at<select id="app-share-region"><option value="">Home · Ecuadorian first</option><option value="monterrey">Monterrey, Nuevo León · dictionary</option><option value="es-VE">Venezuela · dictionary</option><option value="caracas">Caracas, Venezuela · country guidance</option></select></label>
+          <div class="app-sharing-actions"><button id="share-app" type="button">Share app</button><button id="copy-app-link" type="button">Copy link</button></div>
+          <label for="app-share-link">Public app link<input id="app-share-link" type="url" readonly value="https://mathewdmoore.github.io/habla-ecuador/index.html"></label>
+          <p id="app-share-status" role="status" aria-live="polite"></p>
+          <p class="app-sharing-note">Share opens your device's sharing options when available; otherwise it copies the link. Some iPhone audio-capture features require the native companion.</p>
+        </details>
 
         <button class="feature-card lesson-card" data-open="lesson-view">
           <span class="card-kicker">A1 speaking lesson</span>
@@ -471,6 +481,7 @@
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
           <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish dictionary</h1></div>
         </div>
+        <p id="shared-app-context" class="shared-app-context" role="status" hidden></p>
         <section class="regional-slang" aria-labelledby="regional-slang-title">
           <p class="eyebrow">Ecuador first · compare regions</p>
           <h2 id="regional-slang-title">Regional dictionary</h2>

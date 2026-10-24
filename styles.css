@@ -664,3 +664,12 @@ button:disabled {opacity:.5;}
 .source-practice .source-practice-model-note { font-size: 12px; color: var(--muted); }
 .source-practice-attribution a { color: var(--green-2); overflow-wrap: anywhere; }
 .dictionary-practice .dictionary-practice-score { padding: 10px; border: 1px solid #bad8c6; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+
+.app-sharing { margin: 0 0 22px; }
+.app-sharing label { display: grid; grid-template-columns: minmax(0,1fr); gap: 6px; margin-top: 12px; font-size: 13px; }
+.app-sharing select, .app-sharing input { width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: white; font: inherit; }
+.app-sharing-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.app-sharing-actions button { min-height: 44px; padding: 10px 14px; border: 1px solid #bad8c6; border-radius: 12px; background: var(--mint); color: var(--green); font-size: 14px; font-weight: 750; }
+.app-sharing .app-sharing-note { font-size: 12px; color: var(--muted); }
+
+.shared-app-context { padding: 12px; border-radius: 12px; color: var(--green); background: var(--mint); font-size: 14px; line-height: 1.5; }
