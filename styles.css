@@ -693,3 +693,9 @@ button:disabled {opacity:.5;}
 .regional-search-help { font-size: 13px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
 .regional-search-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .regional-search-actions button { min-height: 44px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--green); font: inherit; font-weight: 750; overflow-wrap: anywhere; }
+
+/* Regional original recordings stay inside the practice card. */
+#recorded-practice video { display:block; width:100%; max-width:100%; max-height:36svh; margin:12px 0; background:#000; border-radius:12px; }
+#recorded-practice video[hidden] { display:none; }
+#recorded-practice select { width:100%; min-width:0; min-height:44px; padding:8px; border:1px solid var(--line); border-radius:12px; font:inherit; }
+#recorded-practice .expression-card { min-width:0; overflow-wrap:anywhere; }
