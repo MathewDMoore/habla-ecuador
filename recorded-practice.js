@@ -29,10 +29,14 @@
     generation += 1;
     if (player) player.pause();
   }
+  function leave() {
+    pause();
+    if (root.HablaRecordedTranscripts) root.HablaRecordedTranscripts.cancel();
+  }
   function render() {
     const host = document.getElementById('recorded-practice');
     if (!host) return;
-    pause();
+    leave();
     const item = catalog.items.find(i=>i.id === selected) || catalog.items[0];
     const content = document.getElementById('recorded-practice-content');
     const escape = value => root.escapeHtml(value);
@@ -50,7 +54,7 @@
       <details class="compact-info"><summary>Source &amp; assessment limits</summary>
         <p>${escape(catalog.publisher)} · Spanish Proficiency Exercises · ${escape(catalog.license)}.</p>
         <a href="https://www.laits.utexas.edu/spe/vid/${item.clip}.html" target="_blank" rel="noreferrer">Original recording &amp; full transcript</a> · <a href="${catalog.licenseUrl}" target="_blank" rel="license noreferrer">Publisher &amp; license</a>
-        <p>Short Spanish excerpt selected; English meaning and practice cues added by Habla Ecuador. The original recording is unedited. Text and cues can be available offline; the university recording is streamed.</p>
+        <p>Spanish text selected and reproduced with whitespace normalized; English meaning and practice cues added by Habla Ecuador. The original recording is unedited. Text and cues can be available offline; the university recording is streamed.</p>
         <p>Feedback below checks recognized words, not individual sounds, stress or accent. Regional pronunciation scoring and human calibration are not yet implemented. Your practice uses the app's current speech-recognition mode.</p>
       </details>`;
     player = content.querySelector('video');
@@ -82,16 +86,17 @@
     video.addEventListener('ended',()=>{if(current()){idle();status.textContent='Recording finished. Practise the visible phrase or replay the example.';}});
     video.addEventListener('error',()=>{if(current()){generation+=1;idle();status.textContent='Recording unavailable. Open the original recording below or practise the visible text.';}});
     content.querySelector('select').addEventListener('change',event=>{root.cancelDictionaryPractice(host);selected=event.target.value;render();});
+    if (root.HablaRecordedTranscripts) root.HablaRecordedTranscripts.bind(content,item);
     root.bindDictionaryPractice(host);
     const practice = content.querySelector('.dictionary-practice');
     practice.open = true;
     practice.querySelector('.dictionary-practice-hear').textContent='🔊 Hear device voice';
     if (!host.dataset.recordedBound) {
       host.dataset.recordedBound='true';
-      host.addEventListener('toggle',()=>{if(!host.open){pause();root.cancelDictionaryPractice(host);}});
+      host.addEventListener('toggle',()=>{if(!host.open){leave();root.cancelDictionaryPractice(host);}});
     }
   }
-  const api = {catalog,render,pause};
+  const api = {catalog,render,pause,leave};
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.HablaRecordedPractice = api;
