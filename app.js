@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.4 · build 114";
+const APP_VERSION = "0.26.5 · build 115";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2791,6 +2791,49 @@ function renderSlangIndex(query="") {
   }).join("") : `<li class="slang-index-empty">No slang entries match this search.</li>`;
 }
 
+function regionalSearchRecovery(options, entries) {
+  if (entries.length) return {kind:"results"};
+  const cleared = {...options,usage:"all",category:"all",tone:"all"};
+  const local = HablaSpanishContext.dictionary(cleared);
+  if (local.length) return {kind:"filters",count:local.length};
+  let broader = {...cleared,region:options.region === "en-US" || options.region === "en-GB" ? options.region : "all",target:"all"};
+  let matches = HablaSpanishContext.dictionary(broader);
+  if (!matches.length && broader.region !== "all") {
+    broader = {...broader,region:"all"};
+    matches = HablaSpanishContext.dictionary(broader);
+  }
+  return matches.length ? {kind:"region",count:matches.length,region:broader.region} : {kind:"missing"};
+}
+
+function clearRegionalSearchFilters() {
+  for (const selector of ["#regional-usage-type","#regional-dictionary-category","#regional-slang-tone"]) {
+    const element = $(selector); if (element) element.value = "all";
+  }
+}
+
+function bindRegionalSearchRecovery() {
+  $("#regional-clear-filters")?.addEventListener("click", () => { clearRegionalSearchFilters(); renderRegionalSlang(); });
+  $("#regional-broaden-search")?.addEventListener("click", () => {
+    const region = $("#regional-broaden-search").dataset.region;
+    clearRegionalSearchFilters();
+    $("#regional-slang-region").value = region;
+    $("#regional-slang-target").value = "all";
+    renderRegionalSlang();
+  });
+  $("#regional-suggest-entry")?.addEventListener("click", () => {
+    const term = $("#regional-slang-search").value.trim();
+    if (!term) return;
+    const region = $("#regional-slang-region").value;
+    const countries = {"es-EC":"Ecuador","es-MX":"Mexico","es-BO":"Bolivia","es-VE":"Venezuela","es-PE":"Peru","es-CO":"Colombia","en-US":"U.S. English","en-GB":"U.K. English",quito:"Ecuador",monterrey:"Mexico","mexico-city":"Mexico",bogota:"Colombia"};
+    const cities = {quito:"Quito",monterrey:"Monterrey, Nuevo León","mexico-city":"Mexico City",bogota:"Bogotá"};
+    const target = region.startsWith("en-") ? $("#regional-slang-target").selectedOptions[0].textContent : "";
+    openView("review-view");
+    const panel = $("#slang-contributions");
+    if (panel) panel.open = true;
+    document.dispatchEvent(new CustomEvent("habla-suggest-entry",{detail:{term,region:countries[region] || "Other / uncertain",city:cities[region] || "",target}}));
+  });
+}
+
 function renderRegionalSlang() {
   const root = $("#regional-slang-results");
   cancelDictionaryPractice(root);
@@ -2800,16 +2843,28 @@ function renderRegionalSlang() {
   $("#regional-slang-target-label").hidden = !englishLead;
   const directionLabel = englishLead ? `${englishLead === "us" ? "U.S." : "U.K."} English → Spanish` : "U.S. & U.K. English";
   $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Spanish term, English meaning, or city…";
-  const entries = HablaSpanishContext.dictionary({query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,usage:$("#regional-usage-type")?.value || "all",target:englishLead?$("#regional-slang-target").value:"all"});
-  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : "No entries match. Try another region, usage type, category, tone, or search.";
+  const options = {query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,usage:$("#regional-usage-type")?.value || "all",target:englishLead?$("#regional-slang-target").value:"all"};
+  const entries = HablaSpanishContext.dictionary(options);
+  const recovery = regionalSearchRecovery(options,entries);
+  const emptyMessage = recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
+    : recovery.kind === "region" ? `No entries match this regional view. ${recovery.count} indexed matches are available in other regional views.`
+    : "No entries match this search across the current collection, even with filters cleared. Coverage is limited; this does not mean the expression is wrong or unused.";
+  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : emptyMessage;
+  const activeFilters = ["#regional-dictionary-category","#regional-usage-type","#regional-slang-tone"].map(selector => $(selector)).filter(element => element && element.value !== "all");
+  const filterNote = $("#regional-active-filters");
+  if (filterNote) { filterNote.hidden = !activeFilters.length; filterNote.textContent = activeFilters.length ? "Active filters: " + activeFilters.map(element => element.selectedOptions[0].textContent).join(" · ") : ""; }
+  const clear = $("#regional-clear-filters"); if (clear) clear.hidden = !activeFilters.length;
+  const broaden = $("#regional-broaden-search");
+  if (broaden) { broaden.hidden = recovery.kind !== "region"; broaden.dataset.region = recovery.region || "all"; }
+  const suggest = $("#regional-suggest-entry"); if (suggest) suggest.hidden = !options.query.trim();
   root.innerHTML = entries.map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
-    const sources = [{name:entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms", url:entry.url}, ...(entry.references || [])];
+    const sources = [{name:entry.sourceName || (entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms"), url:entry.url}, ...(entry.references || [])];
     return `<article class="expression-card regional-slang-card">
       <header><h3>${escapeHtml(englishLead ? entry[englishLead] : entry.term)}</h3><span class="slang-tone ${caution ? "caution" : ""}">${escapeHtml(entry.register)}</span></header>
-      ${englishLead ? `<p class="regional-gloss"><b>Spanish</b> ${escapeHtml(entry.term)}</p>` : ""}
+      ${englishLead ? `<p class="regional-gloss"><b>${entry.shared ? "Spanish counterpart · country review pending" : "Spanish"}</b> ${escapeHtml(entry.term)}</p>` : ""}
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || entry.category === "literal" || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
@@ -3444,6 +3499,7 @@ function init() {
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   queueMicrotask(bindTranslationTextTools);
   bindAppSharing();
+  bindRegionalSearchRecovery();
   renderSourcePractice();
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
@@ -3686,7 +3742,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=114").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=115").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -9,7 +9,7 @@
     const get = id => document.getElementById('slang-contribution-' + id);
     const status = message => { get('status').textContent = message; };
     const output = get('export');
-    let entries = [], editing = null, promptIndex = 0, pending = false;
+    let entries = [], editing = null, promptIndex = 0, pending = false, dirty = false;
     const clean = item => {
       if (!item || typeof item !== 'object' || typeof item.id !== 'string') return null;
       const copy = {id:item.id.slice(0,100)};
@@ -23,7 +23,7 @@
     } catch { status('Saved contributions could not be read. Your form is still available; saving may require device storage access.'); }
     const exportText = item => ['Habla Ecuador — contribution / aporte','UNVERIFIED USER REPORT · source and regional review pending', ...FIELDS.map(key => key + ': ' + (item[key] || (key === 'usage' ? 'Not specified / unsure' : '')))].join('\n');
     function select(item) {
-      editing = item.id;
+      editing = item.id; dirty = false;
       for (const key of FIELDS) {
         form.elements[key].value = item[key];
         if (form.elements[key].tagName === 'SELECT' && !form.elements[key].value) form.elements[key].selectedIndex = 0;
@@ -36,7 +36,7 @@
       catch { status('Not saved: device storage is unavailable or full. Your form has been kept.'); return false; }
     }
     function reset() {
-      form.reset(); editing = null; output.value = ''; get('copy').disabled = get('share').disabled = true;
+      form.reset(); editing = null; dirty = false; output.value = ''; get('copy').disabled = get('share').disabled = true;
     }
     function render() {
       const list = get('list'); list.replaceChildren();
@@ -53,6 +53,22 @@
         row.append(edit,remove); list.append(row);
       }
     }
+    form.addEventListener('input', () => { dirty = true; });
+    form.addEventListener('change', () => { dirty = true; });
+    document.addEventListener('habla-suggest-entry', event => {
+      if (dirty || pending) { status('Your unsaved contribution or sharing operation is kept. Save or clear the form before starting another suggestion.'); return; }
+      const detail = event.detail;
+      if (!detail || typeof detail.term !== 'string' || !detail.term.trim()) return;
+      reset();
+      form.elements.term.value = detail.term.trim().slice(0,160);
+      form.elements.region.value = detail.region;
+      if (!form.elements.region.value) form.elements.region.selectedIndex = form.elements.region.options.length - 1;
+      form.elements.city.value = typeof detail.city === 'string' ? detail.city.slice(0,100) : '';
+      if (typeof detail.target === 'string' && detail.target) form.elements.evidence.value = 'Requested Spanish counterpart: ' + detail.target + '. Meaning and regional usage still need evidence.';
+      dirty = true;
+      status('Search copied into a new, unsaved suggestion. Add the intended meaning, your original example and evidence. Nothing has been submitted.');
+      form.elements.term.focus();
+    });
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
