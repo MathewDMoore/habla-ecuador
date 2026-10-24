@@ -13,7 +13,7 @@
     <key>WKAppBoundDomains</key><array><string>mathewdmoore.github.io</string></array>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>NSMicrophoneUsageDescription</key><string>Listen to spoken words or music around you for your private translation draft.</string>
-    <key>NSSpeechRecognitionUsageDescription</key><string>Convert microphone audio into editable words. Apple may process speech using its servers.</string>
+    <key>NSSpeechRecognitionUsageDescription</key><string>Convert speech or a selected recording into editable words. Live Apple-service mode may use Apple servers; recording imports require on-device recognition.</string>
     <key>NSScreenCaptureUsageDescription</key><string>Capture audio playing on this iPhone for a private, editable translation. Habla does not save screen images.</string>
     <key>UIBackgroundModes</key><array><string>screen-capture</string></array>
     <key>UILaunchScreen</key><dict/>
