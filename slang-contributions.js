@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const KEY = 'habla-slang-contributions-v1';
-  const FIELDS = ['task','region','city','term','meaning','example','register','assessment','evidence','reviewer'];
+  const FIELDS = ['task','region','city','term','meaning','example','usage','register','assessment','evidence','reviewer'];
   function bind() {
     const form = document.getElementById('slang-contribution-form');
     if (!form) return;
@@ -21,7 +21,7 @@
       if (!Array.isArray(saved)) throw Error('Invalid saved contributions');
       entries = saved.slice(0,50).map(clean).filter(Boolean);
     } catch { status('Saved contributions could not be read. Your form is still available; saving may require device storage access.'); }
-    const exportText = item => ['Habla Ecuador — contribution / aporte','UNVERIFIED USER REPORT · source and regional review pending', ...FIELDS.map(key => key + ': ' + item[key])].join('\n');
+    const exportText = item => ['Habla Ecuador — contribution / aporte','UNVERIFIED USER REPORT · source and regional review pending', ...FIELDS.map(key => key + ': ' + (item[key] || (key === 'usage' ? 'Not specified / unsure' : '')))].join('\n');
     function select(item) {
       editing = item.id;
       for (const key of FIELDS) {

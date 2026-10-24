@@ -685,3 +685,7 @@ button:disabled {opacity:.5;}
 .slang-contributions button { min-height: 44px; padding: 10px 14px; border: 1px solid #bad8c6; border-radius: 12px; background: var(--mint); color: var(--green); font: inherit; font-weight: 750; }
 .slang-contributions button:disabled { opacity: .5; }
 .slang-contributions :is(button,input,select,textarea):focus-visible { outline: 2px solid var(--green-2); outline-offset: 2px; }
+
+.regional-usage-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.regional-usage-meta span { padding: 5px 8px; border-radius: 8px; background: var(--mint); color: var(--green); font-size: 12px; overflow-wrap: anywhere; }
+.regional-usage-scope { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
