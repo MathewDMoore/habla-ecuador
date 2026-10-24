@@ -1,0 +1,16 @@
+# Regional human speech candidates — checked October 24, 2026
+
+This is a source-discovery record, not an audio integration or pronunciation-score validation. No source recording or transcript has been copied into the repository.
+
+| Priority / region | Primary source | Evidence checked | Current use boundary |
+| --- | --- | --- | --- |
+| Ecuador, Quito | University of Texas Spanish Proficiency Exercises: Alejandra Z., Beginning task 5 — https://www.laits.utexas.edu/spe/vid/beg05d.html | Publisher identifies Ecuador, Quito; parent task provides a native-speaker example and video/download controls. | Link to publisher. Embedded redistribution, selected audio intelligibility, clip boundaries and specific pronunciation targets remain unchecked. |
+| Ecuador, Loja | Universitat de València Ameresco: LOJ_001_04_20 — https://corpusameresco.org/conversacion/LOJ_001_04_20 | City/country, speaker age/sex metadata, 15-minute conversation, synchronized transcript, MP3/ELAN/TextGrid links. | Link to source; no reuse license found on inspected pages. Local birthplace/native-language history still requires the technical sheet. Overlap and unintelligible passages make unselected full conversations unsuitable as scoring reference. |
+| Bolivia, La Paz | University of Texas: Mónica V., Advanced task 6 — https://www.laits.utexas.edu/spe/vid/adv06c.html | Publisher labels Bolivia, La Paz; first-person family discussion, Spanish/English transcript. Mixed Bolivian/Mexican family background is explicit; do not generalize one voice to all Bolivia. | Link only pending reuse and playback review. |
+| Bolivia, Santa Cruz | Ameresco VVU_001_02_17 — https://corpusameresco.org/conversacion/VVU_001_02_17 | City/country, two-speaker conversation, audio and aligned transcript listed. | Link only pending licensing, speaker provenance and selection review. |
+| Mexico, Monterrey | Ameresco city collection — https://corpusameresco.org/conversaciones?ciudad=Monterrey | 15 conversations, city metadata, audio and alignment download links. | Link only pending licensing and clean single-speaker excerpt selection. |
+| Caracas / broader regional research | PRESEEA corpus — https://preseea.uah.es/corpus-preseea | Corpus directory includes Caracas, Quito, La Paz, Monterrey, Lima, Bogotá and other teams; directory membership alone does not prove downloadable audio availability. | Publisher specifies research-only use, no commercial use, attribution and CC BY-NC-ND 4.0. Not cleared for cropped/adapted practice audio or app redistribution. |
+
+University of Texas collection description: https://www.laits.utexas.edu/spe/ identifies its collection as clips of native Spanish speakers from Latin America and Spain. Ameresco metadata/source counts: https://corpusameresco.org/corpus . Recording location is not proof of each speaker's lifelong origin or a city-exclusive accent.
+
+For an actual pronunciation lesson, first verify the speaker profile, playback, clear speech, exact transcript and segment alignment, and item-level reuse permission. Then select short single-speaker phrases with no overlap, label the actual regional provenance, retain source/credit/license and keep coached acoustic feedback separate from recognized-word matching. The app's current percentage is still word matching, not phoneme or accent scoring. No outreach or requests have been sent.

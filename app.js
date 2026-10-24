@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.6 · build 116";
+const APP_VERSION = "0.26.7 · build 117";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3351,12 +3351,15 @@ function renderReview() {
     ${entry.exampleEs ? `<div class="evidence-example"><p>${escapeHtml(entry.exampleEs)}</p><small>${escapeHtml(entry.exampleUs || "")}</small></div>` : ""}
     <div class="review-evidence"><b>Existing evidence</b><span>Dictionary ${entry.verification?.dictionaryAttested ? "✓" : "pending"}</span><span>${entry.corpusEvidence?.meaningSupported ? "CORPHA meaning support ✓" : entry.verification?.corpusChecked ? "CORPHA checked; no exact support" : "CORPHA pending"}</span></div>
     <fieldset><legend>How does this wording sound?</legend><div class="review-choices">${choices.map(([value,label]) => `<button type="button" data-review-choice="${value}" class="${saved.rating === value ? "selected" : ""}">${label}</button>`).join("")}</div></fieldset>
+    <button type="button" id="review-clear-rating" ${saved.rating ? "" : "disabled"}>Clear rating</button>
+    <p class="status">Clearing a rating keeps your notes, region and other reviews. Reviews stay on this device unless you share them.</p>
     <label>Region or city <span>(optional)</span><input id="review-region" value="${escapeHtml(saved.region || "")}" placeholder="e.g. Quito, Guayaquil, Cuenca"></label>
     <label>Preferred wording or notes <span>(optional)</span><textarea id="review-notes" rows="3" placeholder="What would you say instead?">${escapeHtml(saved.notes || "")}</textarea></label>
   </article>`;
   $("#review-prev").disabled = reviewIndex === 0;
   $("#review-next").disabled = reviewIndex === entries.length - 1;
   $$('[data-review-choice]').forEach(button => button.addEventListener("click", () => saveCurrentReview({rating:button.dataset.reviewChoice})));
+  $("#review-clear-rating").addEventListener("click", clearCurrentReviewRating);
   $("#review-region").addEventListener("change", event => saveCurrentReview({region:event.target.value}));
   $("#review-notes").addEventListener("change", event => saveCurrentReview({notes:event.target.value}));
 }
@@ -3368,6 +3371,20 @@ function saveCurrentReview(change) {
   pack.reviews[entry.id] = {...(pack.reviews[entry.id] || {}), ...change, reviewedAt:new Date().toISOString()};
   writeReviewPackage(pack);
   renderReview();
+}
+
+function clearCurrentReviewRating() {
+  const entry = reviewEntries()[reviewIndex];
+  if (!entry) return;
+  const pack = readReviewPackage();
+  const saved = pack.reviews[entry.id];
+  if (!saved?.rating) return;
+  pack.reviews[entry.id] = {...saved};
+  delete pack.reviews[entry.id].rating;
+  try { writeReviewPackage(pack); }
+  catch { showToast("Rating could not be cleared. Device storage is unavailable; your review is unchanged."); return; }
+  renderReview();
+  showToast("Rating cleared. This entry is unreviewed; your notes are kept.");
 }
 
 function reviewSummary() {
@@ -3744,7 +3761,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=116").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=117").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
