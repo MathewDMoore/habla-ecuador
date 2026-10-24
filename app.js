@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.1 · build 111";
+const APP_VERSION = "0.26.2 · build 112";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1763,6 +1763,76 @@ function bindTranslationTextTools() {
   syncSize();
 }
 
+const PUBLIC_APP_URL = "https://mathewdmoore.github.io/habla-ecuador/index.html";
+const APP_SHARE_REGIONS = new Set(["monterrey","es-VE"]);
+const APP_SHARE_DESTINATIONS = new Set(["monterrey","es-VE","caracas"]);
+let appSharePending = false;
+
+function publicAppShareUrl(region="") {
+  const url = new URL(PUBLIC_APP_URL);
+  if (APP_SHARE_DESTINATIONS.has(region)) {
+    url.searchParams.set("start","dictionary");
+    url.searchParams.set("region",region === "caracas" ? "es-VE" : region);
+    if (region === "caracas") url.searchParams.set("city","caracas");
+  }
+  return url.href;
+}
+
+function sharedAppRegion(query) {
+  const region = query.get("region");
+  return query.get("start") === "dictionary" && APP_SHARE_REGIONS.has(region) ? region : null;
+}
+
+function bindAppSharing() {
+  const select = $("#app-share-region"), link = $("#app-share-link");
+  if (!select || !link) return;
+  const refresh = () => {
+    link.value = publicAppShareUrl(select.value);
+    $("#app-share-status").textContent = "";
+  };
+  select.addEventListener("change",refresh);
+  $("#share-app").addEventListener("click",() => shareApp());
+  $("#copy-app-link").addEventListener("click",() => shareApp(true));
+  refresh();
+}
+
+async function shareApp(copyOnly=false) {
+  if (appSharePending) return;
+  const button = $("#share-app"), copy = $("#copy-app-link"), select = $("#app-share-region");
+  const link = $("#app-share-link"), status = $("#app-share-status");
+  if (!button || !copy || !select || !link || !status) return;
+  // Build from a fixed public URL and an allowlisted region. Never forward the
+  // current page's parameters, translation text, recordings or local history.
+  const url = publicAppShareUrl(select.value);
+  link.value = url;
+  appSharePending = true;
+  button.disabled = copy.disabled = select.disabled = true;
+  button.textContent = copyOnly ? "Copying link…" : "Opening sharing…";
+  try {
+    if (!copyOnly && typeof navigator.share === "function") {
+      try {
+        // Invoke synchronously within the user's tap, before any other await.
+        await navigator.share({title:"Habla Ecuador",text:"Prueba Habla Ecuador: traducción, diccionario regional y práctica de español.",url});
+        status.textContent = "Share action completed.";
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") { status.textContent = "Sharing cancelled."; return; }
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      status.textContent = "App link copied. Paste it into Messages, WhatsApp or email.";
+    } catch {
+      status.textContent = "Select and copy the public link above, then paste it into your chosen app.";
+      link.focus(); link.select();
+    }
+  } finally {
+    appSharePending = false;
+    button.disabled = copy.disabled = select.disabled = false;
+    button.textContent = "Share app";
+  }
+}
+
 async function shareTranslation() {
   if (translationSharePending) return;
   const button = $("#share-result"), status = $("#translation-share-status");
@@ -3370,6 +3440,7 @@ function init() {
   HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText});
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   queueMicrotask(bindTranslationTextTools);
+  bindAppSharing();
   renderSourcePractice();
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
@@ -3556,7 +3627,11 @@ function init() {
   $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
   $("#dictionary-search").addEventListener("input", renderDictionary);
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
-  $("#regional-slang-region").addEventListener("change", renderRegionalSlang);
+  $("#regional-slang-region").addEventListener("change", () => {
+    const context = $("#shared-app-context");
+    if (context) context.hidden = true;
+    renderRegionalSlang();
+  });
   $("#regional-slang-tone").addEventListener("change", renderRegionalSlang);
   $("#regional-dictionary-category").addEventListener("change", renderRegionalSlang);
   $("#regional-slang-target").addEventListener("change", renderRegionalSlang);
@@ -3591,11 +3666,23 @@ function init() {
   if (standaloneTranslator) {
     document.body.classList.add("standalone-translator");
   }
-  if (standaloneTranslator || launchQuery.get("start") === "translate") {
+  const invitedRegion = sharedAppRegion(launchQuery);
+  if (!standaloneTranslator && invitedRegion) {
+    $("#regional-slang-region").value = invitedRegion;
+    renderRegionalSlang();
+    const context = $("#shared-app-context");
+    if (context) {
+      context.textContent = invitedRegion === "es-VE" && launchQuery.get("city") === "caracas"
+        ? "Invite for Caracas, Venezuela: showing country-attested entries. Caracas-specific review is pending."
+        : invitedRegion === "monterrey" ? "Invite for Monterrey, Nuevo León." : "Invite for Venezuela.";
+      context.hidden = false;
+    }
+    openView("dictionary-view");
+  } else if (standaloneTranslator || launchQuery.get("start") === "translate") {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=111").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=112").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
