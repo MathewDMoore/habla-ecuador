@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.0 · build 110";
+const APP_VERSION = "0.26.1 · build 111";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -406,13 +406,13 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
 }
 
 function openView(id) {
-  if (id !== "dictionary-view") cancelDictionaryPractice();
+  cancelDictionaryPractice();
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
   $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
   window.scrollTo({top:0, behavior:"smooth"});
-  if (id === "lesson-view") renderLesson();
+  if (id === "lesson-view") { renderLesson(); renderSourcePractice(); }
   if (id === "review-view") renderReview();
   if (id === "music-view") renderMusic();
 }
@@ -2997,8 +2997,9 @@ function dictionaryPracticeText(value) {
 }
 
 function dictionaryPracticeComparison(expected, heard) {
-  const words = (expected.match(/[\p{L}\p{M}\p{N}]+/gu) || []).slice(0,200);
-  const actual = (heard.match(/[\p{L}\p{M}\p{N}]+/gu) || []).slice(0,200);
+  const expectedWords = expected.match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  const heardWords = heard.match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  const words = expectedWords.slice(0,200), actual = heardWords.slice(0,200);
   const a = words.map(dictionaryPracticeText), b = actual.map(dictionaryPracticeText);
   // Ordered word alignment avoids crediting one repeated word twice.
   const lengths = Array.from({length:a.length+1},() => new Uint16Array(b.length+1));
@@ -3013,7 +3014,10 @@ function dictionaryPracticeComparison(expected, heard) {
   }
   const first = words.findIndex((_,index) => !matched.has(index));
   const focus = first < 0 ? expected : words.slice(first,first+3).join(" ");
-  return {words,matched,focus,exact:dictionaryPracticeText(expected) === dictionaryPracticeText(heard)};
+  const expectedCount = expectedWords.length, heardCount = heardWords.length;
+  const wordScore = expectedCount && expectedCount <= 200 && heardCount <= 200
+    ? Math.round(100*matched.size/Math.max(expectedCount,heardCount,1)) : null;
+  return {words,matched,focus,wordScore,expectedCount,heardCount,exact:dictionaryPracticeText(expected) === dictionaryPracticeText(heard)};
 }
 
 function cancelDictionaryPractice(root) {
@@ -3028,6 +3032,7 @@ function bindDictionaryPractice(root) {
   $$(".expression-card, .evidence-card",root).forEach(card => {
     if (card.querySelector(".dictionary-practice")) return;
     const prompts = [];
+    if (card.dataset.practiceText) prompts.push({text:card.dataset.practiceText,lang:card.dataset.practiceLang || "es-EC"});
     $$('[data-dictionary-audio], [data-regional-audio]',card).forEach(button => {
       const lang = button.dataset.audioLang || "es-EC";
       if (!lang.startsWith("es-")) return;
@@ -3045,13 +3050,16 @@ function bindDictionaryPractice(root) {
       <p class="dictionary-practice-whole" hidden></p><p class="dictionary-practice-target" lang="${escapeHtml(prompts[0].lang)}"></p>
       <div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-hear">🔊 Hear model</button><button type="button" class="dictionary-practice-mic push-to-talk" aria-pressed="false">🎙 Start speaking</button></div>
       <p class="dictionary-practice-status" role="status"></p>
-      <div class="dictionary-practice-response" hidden><small>I heard</small><p class="dictionary-practice-heard" lang="es"></p><p class="dictionary-practice-feedback"></p><p class="dictionary-practice-progress-label"></p><div class="dictionary-practice-progress"></div><div class="dictionary-practice-coach" hidden><p></p><div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-focus-hear">🔊 Hear this part</button><button type="button" class="dictionary-practice-focus-try">Practice this part</button></div></div></div>
-      <p class="dictionary-practice-limit">Word matching checks what recognition heard; it does not grade your accent or individual sounds.</p>`;
-    card.querySelector(".dictionary-audio").after(panel);
+      <div class="dictionary-practice-response" hidden><small>I heard</small><p class="dictionary-practice-heard" lang="es"></p><p class="dictionary-practice-feedback"></p><p class="dictionary-practice-score" aria-live="polite" hidden></p><p class="dictionary-practice-progress-label"></p><div class="dictionary-practice-progress"></div><div class="dictionary-practice-coach" hidden><p></p><div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-focus-hear">🔊 Hear this part</button><button type="button" class="dictionary-practice-focus-try">Practice this part</button></div></div></div>
+      <p class="dictionary-practice-limit">Word scoring checks recognized words, including order, omissions and extras; it does not grade accent or individual sounds.</p>`;
+    const audioControls = card.querySelector(".dictionary-audio");
+    if (audioControls) audioControls.after(panel);
+    else card.append(panel);
     const select = $("select",panel), target = $(".dictionary-practice-target",panel);
     const mic = $(".dictionary-practice-mic",panel), hear = $(".dictionary-practice-hear",panel);
     const status = $(".dictionary-practice-status",panel), response = $(".dictionary-practice-response",panel);
     const heard = $(".dictionary-practice-heard",panel), feedback = $(".dictionary-practice-feedback",panel);
+    const score = $(".dictionary-practice-score",panel);
     const progress = $(".dictionary-practice-progress",panel), progressLabel = $(".dictionary-practice-progress-label",panel);
     const coach = $(".dictionary-practice-coach",panel), whole = $(".dictionary-practice-whole",panel);
     const basePromptCount = prompts.length;
@@ -3060,11 +3068,12 @@ function bindDictionaryPractice(root) {
     const refresh = () => {
       cancelDictionaryPractice(panel);
       const prompt = prompts[Number(select.value) || 0];
+      $(".dictionary-practice-choice",panel).hidden = Boolean(card.dataset.practiceText && prompts.length === 1);
       target.textContent = prompt.text;
       target.lang = prompt.lang;
       whole.hidden = !prompt.fullText; whole.textContent = prompt.fullText ? `Full prompt: ${prompt.fullText}` : "";
       coach.hidden = true; focusText = ""; progress.replaceChildren(); progressLabel.textContent = "";
-      response.hidden = true; heard.textContent = feedback.textContent = "";
+      response.hidden = true; score.hidden = true; score.textContent = ""; heard.textContent = feedback.textContent = "";
       mic.disabled = !available();
       status.textContent = available() ? "Hear the model, then tap Start speaking. Tap again to finish." : "Speech recognition is unavailable here. You can still hear the model.";
     };
@@ -3114,7 +3123,7 @@ function bindDictionaryPractice(root) {
         stopListening();
       };
       dictionaryPracticeSession = session;
-      select.disabled = true; response.hidden = true; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
+      select.disabled = true; response.hidden = true; score.hidden = true; score.textContent = ""; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
       status.textContent = "Starting microphone… allow access if asked.";
       mic.textContent = "■ Stop speaking";
       session.timer = setTimeout(session.stop,20000);
@@ -3125,6 +3134,8 @@ function bindDictionaryPractice(root) {
           session.heard = Boolean(text.trim());
           heard.textContent = text; response.hidden = !session.heard;
           const comparison = dictionaryPracticeComparison(prompt.text,text);
+          score.hidden = !final || Boolean(metadata.provisional) || comparison.wordScore === null;
+          score.textContent = score.hidden ? "" : `Recognized-word score: ${comparison.wordScore}% · ${comparison.matched.size} matched, ${comparison.expectedCount} expected, ${comparison.heardCount} heard. This is not a pronunciation score.`;
           progressLabel.textContent = final && !metadata.provisional ? "Word matches in the recognized text:" : "Tentative word matches — still unconfirmed:";
           progress.replaceChildren(...comparison.words.map((word,index) => {
             const chip = document.createElement("span");chip.textContent = word;
@@ -3262,6 +3273,44 @@ async function shareReviewSummary() {
   }
 }
 
+let sourcePracticeIndex = 0;
+
+function renderSourcePractice() {
+  const root = $("#source-practice");
+  if (!root || typeof HablaRegionalPractice === "undefined") return;
+  cancelDictionaryPractice(root);
+  const lesson = HablaRegionalPractice, source = lesson.source;
+  const index = Math.max(0,Math.min(sourcePracticeIndex,lesson.items.length-1));
+  sourcePracticeIndex = index;
+  const item = lesson.items[index];
+  const meaning = englishVariant === "uk" ? item.uk : item.us;
+  root.hidden = false;
+  $("#source-practice-content").innerHTML = `
+    <p>${escapeHtml(lesson.description)}</p>
+    <p class="source-practice-count">Phrase ${index+1} of ${lesson.items.length}</p>
+    <article class="expression-card source-practice-card" data-practice-text="${escapeHtml(item.spanish)}" data-practice-lang="${escapeHtml(item.locale)}">
+      <h3>${escapeHtml(item.title)}</h3>
+      <p class="source-practice-meaning">${escapeHtml(meaning)}</p>
+      <p class="source-practice-cue"><strong>Pronunciation focus</strong><br>${escapeHtml(item.coaching)}</p>
+      <details class="compact-info"><summary>Meaning &amp; regional context</summary><p>${escapeHtml(item.register)}</p><p>${escapeHtml(item.context)}</p><p>${escapeHtml(item.role)}</p>${item.adapted ? "<p>Adapted from a longer line in the script.</p>" : ""}</details>
+    </article>
+    <div class="source-practice-navigation"><button type="button" id="source-practice-previous" ${index===0?"disabled":""}>← Previous phrase</button><button type="button" id="source-practice-next" ${index===lesson.items.length-1?"disabled":""}>Next phrase →</button></div>
+    <p class="source-practice-model-note">Hear model uses your device's available Spanish voice. The original actors' audio is available through the source, when its host is working.</p>
+    <details class="compact-info source-practice-attribution"><summary>Source &amp; learning notes</summary>
+      <p>${escapeHtml(source.credit)}</p><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.title)} · original script &amp; audio link</a>
+      <p>${escapeHtml(source.changes)}</p><a href="${escapeHtml(source.licenseUrl)}" target="_blank" rel="license noreferrer">${escapeHtml(source.license)}</a>
+      <p>${escapeHtml(source.limits)}</p><a href="${escapeHtml(source.pronunciationSource)}" target="_blank" rel="noreferrer">Stress guidance: RAE–ASALE</a>
+    </details>`;
+  bindDictionaryPractice(root);
+  $(".dictionary-practice",root).open = true;
+  $("#source-practice-previous").addEventListener("click",() => { sourcePracticeIndex -= 1; renderSourcePractice(); });
+  $("#source-practice-next").addEventListener("click",() => { sourcePracticeIndex += 1; renderSourcePractice(); });
+  if (!root.dataset.bound) {
+    root.dataset.bound = "true";
+    root.addEventListener("toggle",() => { if (!root.open) cancelDictionaryPractice(root); });
+  }
+}
+
 function renderLesson() {
   const content = $("#lesson-content");
   $("#lesson-step-count").textContent = `${lessonStep}/4`;
@@ -3321,6 +3370,7 @@ function init() {
   HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText});
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   queueMicrotask(bindTranslationTextTools);
+  renderSourcePractice();
   if ("speechSynthesis" in window) {
     refreshSpeechVoices();
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
@@ -3545,7 +3595,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=110").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=111").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

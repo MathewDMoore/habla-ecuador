@@ -653,3 +653,14 @@ button:disabled {opacity:.5;}
 .evidence-card, .expression-card { min-width: 0; overflow-wrap: anywhere; }
 .evidence-card header { flex-wrap: wrap; }
 .evidence-card header > div { min-width: 0; max-width: 100%; }
+
+.source-practice { margin: 14px 0 22px; }
+.source-practice .source-practice-count { color: var(--green-2); font-size: 13px; font-weight: 750; }
+.source-practice-card h3 { margin: 0 0 10px; font-size: 20px; color: var(--green); }
+.source-practice .source-practice-meaning { font-size: 16px; }
+.source-practice-cue { padding: 12px; border-radius: 12px; background: #fff3e1; font-size: 14px; line-height: 1.5; }
+.source-practice-navigation { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.source-practice-navigation button { flex: 1; min-height: 44px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; color: var(--green); background: white; font-size: 13px; }
+.source-practice .source-practice-model-note { font-size: 12px; color: var(--muted); }
+.source-practice-attribution a { color: var(--green-2); overflow-wrap: anywhere; }
+.dictionary-practice .dictionary-practice-score { padding: 10px; border: 1px solid #bad8c6; border-radius: 10px; font-size: 13px; line-height: 1.5; }
