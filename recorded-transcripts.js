@@ -44,7 +44,7 @@
     const section = document.createElement('details');
     section.id='recorded-transcript';section.className='compact-info recorded-transcript';
     section.innerHTML=`<summary>Spanish transcript &amp; Habla translation</summary>
-      <p>Full transcript · not synchronized captions. Exit fullscreen to read both languages here.</p>
+      <p>Full Spanish transcript and editable English draft. Spanish video subtitles are separate; the English draft is not synchronized. Exit fullscreen to read both languages here.</p>
       <label>Translate into<select id="recorded-transcript-target"><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
       <p id="recorded-transcript-route"></p>
       <div class="recorded-transcript-actions"><button type="button" id="recorded-transcript-translate" class="secondary-button">Translate with Habla</button><button type="button" id="recorded-transcript-cancel" class="secondary-button" hidden>Stop translation</button></div>

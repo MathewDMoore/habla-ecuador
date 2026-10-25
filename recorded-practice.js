@@ -24,7 +24,7 @@
        cue:'Listen for HO-jas and VER-des. This phrase occurs later in the full example; use the player controls to replay it.'}
     ]
   };
-  let selected = catalog.items[0].id, player = null, generation = 0;
+  let selected = catalog.items[0].id, player = null, generation = 0, spanishSubtitles = true;
   function pause() {
     generation += 1;
     if (player) player.pause();
@@ -47,7 +47,9 @@
       <article class="expression-card" data-practice-text="${escape(item.spanish)}" data-practice-lang="${item.locale}">
         <h3>Listen, then practise this phrase</h3><p lang="es">${escape(item.spanish)}</p><p>${escape(meaning)}</p>
         <button type="button" id="recorded-practice-play" class="secondary-button" aria-pressed="false">▶ Play native recording</button>
-        <video id="recorded-practice-video" controls playsinline preload="none" hidden aria-label="${escape(item.speaker)} · full original recording"></video>
+        <button type="button" id="recorded-spanish-subtitles" class="secondary-button" aria-pressed="${spanishSubtitles}">Spanish subtitles: ${spanishSubtitles?'on':'off'}</button>
+        <video id="recorded-practice-video" lang="es" controls playsinline preload="none" hidden aria-label="${escape(item.speaker)} · full original recording"><track kind="subtitles" label="Español (tiempos automáticos)" srclang="es" src="captions/${item.clip}.es.vtt?v=120" default></video>
+        <p id="recorded-subtitle-status" class="status">Spanish text from the publisher · automatic timing, pending human review.</p>
         <p id="recorded-practice-status" role="status">Full original example · streams from the university when you tap Play. Internet required; no automatic download.</p>
         <p>${escape(item.cue)}</p>
       </article>
@@ -60,6 +62,21 @@
     player = content.querySelector('video');
     const video = player, button = content.querySelector('#recorded-practice-play'), status = content.querySelector('#recorded-practice-status');
     const current = () => player === video && video.isConnected;
+    const subtitle = video.querySelector('track'), subtitleButton = content.querySelector('#recorded-spanish-subtitles'), subtitleStatus = content.querySelector('#recorded-subtitle-status');
+    const syncSubtitles = () => {
+      if (!current()) return;
+      spanishSubtitles = subtitle.track.mode === 'showing';
+      subtitleButton.setAttribute('aria-pressed',String(spanishSubtitles));
+      subtitleButton.textContent = 'Spanish subtitles: '+(spanishSubtitles?'on':'off');
+    };
+    subtitle.track.mode = spanishSubtitles?'showing':'disabled';
+    subtitleButton.addEventListener('click',() => {
+      subtitle.track.mode = subtitle.track.mode === 'showing'?'disabled':'showing';
+      syncSubtitles();
+    });
+    video.textTracks.addEventListener?.('change',syncSubtitles);
+    subtitle.addEventListener('load',() => {if(current())subtitleStatus.textContent='Spanish subtitles ready · automatically timed from this recording; corrections may be needed.';});
+    subtitle.addEventListener('error',() => {if(current())subtitleStatus.textContent='Spanish subtitles could not load. The full Spanish transcript remains available below.';});
     const visible = () => host.open && host.closest('.view')?.classList.contains('active') && !document.hidden;
     const idle = () => {button.setAttribute('aria-pressed','false');button.textContent = '▶ Play native recording';};
     let pending = false;
@@ -72,7 +89,7 @@
       const token = ++generation; pending = true;
       button.textContent = 'Loading recording…';status.textContent = 'Loading the full native-speaker example…';
       try {await video.play();if (!current() || token !== generation || !visible()) video.pause();}
-      catch {if(current() && token === generation){idle();status.textContent='Recording could not play. Check your connection or open the original recording below. Your practice text is kept.';}}
+      catch (error) {if(error?.name === 'AbortError') return; if(current() && token === generation){idle();status.textContent='Recording could not play. Check your connection or open the original recording below. Your practice text is kept.';}}
       finally {pending = false;}
     });
     video.addEventListener('play',() => {
