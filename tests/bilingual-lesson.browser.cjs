@@ -7,6 +7,7 @@ async function run(browser,width,native){
  // Real service-worker update behavior has its own HTTP-based browser suite.
  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('crash',()=>console.error(`Lesson page crashed: ${width}px ${native?'native bridge':'browser'}`));
  await page.route('**/*',r=>{const u=new URL(r.request().url()),f=path.join(root,u.pathname.replace('/habla-ecuador/',''));return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?r.fulfill({path:f}):r.abort();});
  await page.addInitScript(()=>{
   window.testMessages=[];window.webkit={messageHandlers:{hablaSpeech:{postMessage:m=>testMessages.push(m)}}};
@@ -60,4 +61,11 @@ async function run(browser,width,native){
  if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`english-lesson-${width}.png`)});
  assert.deepEqual(errors,[]);await context.close();console.log(`${native?'Native bridge':'Browser'} ${width}px: English learning in Spanish UI, all four steps, US/UK playback/recognition, protected learning text, goal persistence, automatic/manual switching and capture cleanup passed`);
 }
-(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium',browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});try{await run(browser,320);await run(browser,390);if(process.env.HABLA_NATIVE_SCRIPT)await run(browser,390,process.env.HABLA_NATIVE_SCRIPT);}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
+ // Start a clean browser process for each mobile/native configuration as well
+ // as a new context, so media/process state cannot leak between scenarios.
+ for(const [width,native] of [[390,null],[320,null],...(process.env.HABLA_NATIVE_SCRIPT?[[390,process.env.HABLA_NATIVE_SCRIPT]]:[])]){
+  const browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
+  try{await run(browser,width,native);}finally{await browser.close();}
+ }
+})().catch(e=>{console.error(e);process.exitCode=1;});
