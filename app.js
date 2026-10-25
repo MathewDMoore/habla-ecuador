@@ -1861,7 +1861,7 @@ function clearTranslationCopyFallback() {
   const field=$("#translation-copy-text"),fallback=$("#translation-copy-fallback");
   // Dismiss iOS textarea selection before hiding its field; otherwise selection
   // handles can remain attached to an invisible, horizontally scrolled editor.
-  if(field){if(document.activeElement===field)field.blur();field.setSelectionRange(0,0);field.value='';}
+  if(field){if(document.activeElement===field){field.setSelectionRange(0,0);field.blur();}field.value='';}
   if(fallback)fallback.hidden=true;
 }
 
