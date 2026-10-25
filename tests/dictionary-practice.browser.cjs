@@ -29,35 +29,63 @@ async function run(browser,native,width=390){
   if(message.type==='result'){const result=[{transcript:message.text}];result.isFinal=Boolean(message.final);r.onresult({results:[result]});}
   else r['on'+message.type]?.(message);
  },{message,native:Boolean(native)});}
- await mic.click();assert.equal(await mic.getAttribute('aria-pressed'),'true');
+ // Actual pointer hold/release: release requests stop, and a late final result
+ // is retained without the trailing click starting another session.
+ await mic.scrollIntoViewIfNeeded();
+ const box=await mic.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+ await send({type:'start'});if(!native)await send({type:'audiostart'});
+ await send({type:'result',text:'came',final:false});
+ const starts=await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length);
+ await page.mouse.up();assert.equal(await mic.isDisabled(),true);
+ await send({type:'result',text:'camello',final:true});await send({type:'end'});
+ assert.equal(await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length),starts);
+ assert.match(await panel.locator('.dictionary-practice-score').textContent(),/100%/);
+ await mic.focus();await page.keyboard.down('Space');await send({type:'start'});if(!native)await send({type:'audiostart'});
+ await page.keyboard.up('Space');assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'stop');await send({type:'end'});
+ await mic.evaluate(el=>el.click());assert.equal(await mic.getAttribute('aria-pressed'),'true');
  assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Starting microphone/);
  assert.equal(await panel.locator('select').isDisabled(),true);
- await send({type:'start'});await send({type:'result',text:'came',final:false});
+ await send({type:'start'});
+ if(!native){
+  assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Waiting for the microphone/);
+  assert.equal(await mic.textContent(),'Starting…','service start must not tell the learner to speak before audio starts');
+  await send({type:'audiostart'});
+ }
+ assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Microphone ready/);
+ await send({type:'speechstart'});
+ if(!native)assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Speech detected/);
+ await send({type:'result',text:'came',final:false});
  assert.equal(await panel.locator('.dictionary-practice-target').textContent(),'camello');
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/so far/);
  assert.match(await panel.locator('.dictionary-practice-progress-label').textContent(),/Tentative/);
  assert.equal(await panel.locator('.dictionary-practice-progress .word-pending').count(),1);
- await mic.click();assert.equal(await mic.isDisabled(),true);
+ await mic.evaluate(el=>el.click());assert.equal(await mic.isDisabled(),true);
  await send({type:'result',text:'¡Camello!',final:true});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/words match/);
  assert.equal(await panel.locator('.dictionary-practice-progress .word-heard').count(),1);
  assert.equal(await mic.getAttribute('aria-pressed'),'false');assert.equal(await panel.locator('select').isDisabled(),false);
- await mic.click();await send({type:'start'});await send({type:'result',text:'camino',final:true});await send({type:'end'});
+ await mic.evaluate(el=>el.click());await send({type:'start'});await send({type:'result',text:'camino',final:true});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/differ/);
  assert.equal(await panel.locator('.dictionary-practice-coach').isVisible(),true);
  await panel.locator('.dictionary-practice-focus-hear').click();
  assert.equal(await page.evaluate(()=>window.spoken.at(-1).text),'camello');
- await mic.click();await send({type:'result',text:'camello',final:false});await send({type:'end'});
+ await mic.evaluate(el=>el.click());await send({type:'result',text:'camello',final:false});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/unconfirmed/,'provisional words do not earn a confirmed match');
- await mic.click();await send({type:'error',error:'not-allowed'});await send({type:'end'});
+ await mic.evaluate(el=>el.click());await send({type:'error',error:'not-allowed'});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-status').textContent(),/blocked/);
- await mic.click();await send({type:'error',error:'no-speech'});await send({type:'end'});
- assert.match(await panel.locator('.dictionary-practice-status').textContent(),/No speech/);
+ await mic.evaluate(el=>el.click());await send({type:'error',error:'no-speech'});await send({type:'end'});
+ assert.match(await panel.locator('.dictionary-practice-status').textContent(),/no transcript.*not scored/);
+ assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false);
+ // Speech can be detected even when the provider returns no recognized words.
+ await mic.evaluate(el=>el.click());await send({type:'start'});if(!native){await send({type:'audiostart'});await send({type:'speechstart'});}
+ await send({type:'end'});
+ assert.match(await panel.locator('.dictionary-practice-status').textContent(),/speech service returned no transcript.*not scored/);
+ assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false);
  // Playback stops the practice mic before it can transcribe the model.
- await mic.click();await panel.locator('.dictionary-practice-hear').click();
+ await mic.evaluate(el=>el.click());await panel.locator('.dictionary-practice-hear').click();
  assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'abort');
  assert.equal(await mic.getAttribute('aria-pressed'),'false');
- await mic.click();await panel.locator('summary').click();
+ await mic.evaluate(el=>el.click());await panel.locator('summary').click();
  await page.waitForFunction(()=>dictionaryPracticeSession===null);
  assert.equal(await mic.getAttribute('aria-pressed'),'false');
  // Every card family in the supplied recording gets the same in-place practice.
@@ -71,44 +99,60 @@ async function run(browser,native,width=390){
  assert.equal(await learnerPanel.locator('.dictionary-practice-target').textContent(),example);
  await learnerPanel.locator('.dictionary-practice-hear').click();
  assert.equal(await page.evaluate(()=>window.spoken.at(-1).text),example);
- await learnerPanel.locator('.dictionary-practice-mic').click();
+ await learnerPanel.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await send({type:'result',text:'Voy al partido con un del trabajo',final:true});await send({type:'end'});
  assert.match(await learnerPanel.locator('.dictionary-practice-coach').textContent(),/pana del trabajo/);
  await learnerPanel.locator('.dictionary-practice-focus-try').click();
  assert.equal(await learnerPanel.locator('.dictionary-practice-target').textContent(),'pana del trabajo');
  assert.equal(await learnerPanel.locator('.dictionary-practice-whole').textContent(),'Full prompt: '+example);
- await learnerPanel.locator('.dictionary-practice-mic').click();
+ await learnerPanel.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await page.locator('.bottom-nav [data-open="translator-view"]').click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'tab change releases practice microphone');
  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
- await panel.locator('summary').click();await mic.click();
+ await panel.locator('summary').click();await mic.evaluate(el=>el.click());
  await page.locator('#regional-slang-search').fill('chiro');
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'filter replacement cancels old capture');
  const variants=page.locator('#regional-slang-results .dictionary-practice').first();await variants.locator('summary').click();
  assert.deepEqual(await variants.locator('option').allTextContents(),['chiro','chira']);
  await variants.locator('select').selectOption({label:'chira'});
  assert.equal(await variants.locator('.dictionary-practice-target').textContent(),'chira');
- await variants.locator('.dictionary-practice-mic').click();
+ await variants.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  const other=page.locator('#regional-slang-results .dictionary-practice').nth(1);
- if(await other.count()){await other.locator('summary').click();await other.locator('.dictionary-practice-mic').click();assert.equal(await variants.locator('.dictionary-practice-mic').getAttribute('aria-pressed'),'false');}
+ if(await other.count()){await other.locator('summary').click();await other.locator('.dictionary-practice-mic').evaluate(el=>el.click());assert.equal(await variants.locator('.dictionary-practice-mic').getAttribute('aria-pressed'),'false');}
  await page.evaluate(()=>cancelDictionaryPractice());
  // Existing region-specific locale and English playback stay intact.
  await page.locator('#regional-slang-search').fill('');await page.locator('#regional-slang-region').selectOption('monterrey');
- const mexico=page.locator('#regional-slang-results .dictionary-practice').first();await mexico.locator('summary').click();await mexico.locator('.dictionary-practice-mic').click();
+ const mexico=page.locator('#regional-slang-results .dictionary-practice').first();await mexico.locator('summary').click();await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  assert.equal(await page.evaluate(()=>window.testMessages.findLast(m=>m.action==='start').lang),'es-MX');
  await page.locator('#regional-slang-results [data-audio-lang="en-GB"]').first().click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null);
  assert.equal(await page.evaluate(()=>window.spoken.at(-1).lang),'en-GB');
  // Failed startup and backgrounding must release ownership and restore controls.
- await page.evaluate(()=>window.failStart=true);await mexico.locator('.dictionary-practice-mic').click();
+ await page.evaluate(()=>window.failStart=true);await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null);
  assert.equal(await mexico.locator('.dictionary-practice-mic').isDisabled(),false);
- await page.evaluate(()=>window.failStart=false);await mexico.locator('.dictionary-practice-mic').click();
+ await page.evaluate(()=>window.failStart=false);await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));Object.defineProperty(document,'hidden',{configurable:true,value:false});});
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'backgrounding releases dictionary microphone');
  // A silent/broken provider cannot leave the microphone owned indefinitely.
- await page.clock.install();await mexico.locator('.dictionary-practice-mic').click();
- await page.clock.fastForward(20000);
+ await page.clock.install();
+ if(!native){
+  await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());await send({type:'start'});
+  await page.clock.fastForward(8000);
+  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'service start without audio must time out without inviting speech');
+  assert.match(await mexico.locator('.dictionary-practice-status').textContent(),/did not become ready.*not scored/);
+  await send({type:'audiostart'});
+  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'late readiness cannot reopen a timed-out session');
+  await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());await send({type:'start'});
+  await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
+  assert.match(await mexico.locator('.dictionary-practice-status').textContent(),/still starting.*not scored/);
+  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'Cancel during startup releases microphone');
+ }
+ await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());await send({type:'start'});
+ if(!native){await page.clock.fastForward(6000);await send({type:'audiostart'});}
+ await page.clock.fastForward(19999);
+ assert.notEqual(await page.evaluate(()=>dictionaryPracticeSession),null,'full speaking window begins when audio is ready');
+ await page.clock.fastForward(1);
  assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'stop');
  await page.clock.fastForward(3000);
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'provider end timeout releases practice');

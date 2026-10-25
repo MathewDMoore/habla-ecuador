@@ -634,6 +634,8 @@ button:disabled {opacity:.5;}
 .dictionary-practice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .dictionary-practice-actions button { min-height: 44px; padding: 10px 12px; border: 1px solid #bad8c6; border-radius: 14px; background: var(--mint); color: var(--green); font-size: 14px; font-weight: 750; }
 .dictionary-practice-mic.listening { background: var(--orange); color: white; }
+.dictionary-practice-mic { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dictionary-practice-mic.listening[data-capture-ready="false"] { background: #f3ce69; color: var(--green); }
 .dictionary-practice-response { padding: 12px; border-radius: 12px; background: var(--mint); overflow-wrap: anywhere; }
 .dictionary-practice-response small { font-weight: 750; }
 .dictionary-practice-response p { margin: 8px 0 0; }
