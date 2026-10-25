@@ -1160,5 +1160,13 @@
   "Original English video & learning resources": "Video original en inglés y recursos de aprendizaje",
   "Video could not play. Open the original English video below. Your practice phrase is kept.": "No se pudo reproducir el video. Abre el video original en inglés abajo. Se conserva tu frase de práctica.",
   "Listen, pause, then practise the English phrase below.": "Escucha, pausa y practica la frase en inglés de abajo.",
-  "Use the video controls to pause. If the player is unavailable, open the original English video below.": "Usa los controles del video para pausar. Si el reproductor no está disponible, abre el video original en inglés abajo."
+  "Use the video controls to pause. If the player is unavailable, open the original English video below.": "Usa los controles del video para pausar. Si el reproductor no está disponible, abre el video original en inglés abajo.",
+  "Choose a short lesson": "Elige una lección corta",
+  "Short video + Spanish study guide": "Video corto + guía de estudio en español",
+  "Before watching · Spanish guide": "Antes de mirar · guía en español",
+  "Watch short video": "Ver video corto",
+  "The video opens in your browser. Return here for speaking practice.": "El video se abre en tu navegador. Vuelve aquí para practicar en voz alta.",
+  "Your turn · say it aloud": "Tu turno · dilo en voz alta",
+  "Habla's study guide and speaking prompt are separate from the creator's video. These phrases are useful in both English varieties; the selected variety controls the device voice and microphone.": "La guía y la frase de práctica de Habla son independientes del video del creador. Estas frases sirven en ambas variedades del inglés; la variedad elegida controla la voz del dispositivo y el micrófono.",
+  "Watch the short video, stop playback, then practise below. If it cannot play, open the original video link.": "Mira el video corto, detén la reproducción y practica abajo. Si no se reproduce, abre el enlace al video original."
 };if(typeof module==="object"&&module.exports)module.exports=strings;else root.HablaInterfaceSpanish=strings;})(typeof window==="object"?window:globalThis);
