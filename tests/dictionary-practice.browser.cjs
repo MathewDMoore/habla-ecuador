@@ -1,6 +1,6 @@
 // Browser DOM + real companion JavaScript; recognition messages are synthetic.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {chromium}=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
+const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,native,width=390){
  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
@@ -32,8 +32,18 @@ async function run(browser,native,width=390){
  // Actual pointer hold/release: release requests stop, and a late final result
  // is retained without the trailing click starting another session.
  await mic.scrollIntoViewIfNeeded();
+ const layout=()=>mic.evaluate(el=>({x:el.offsetLeft,y:el.offsetTop,width:el.offsetWidth,height:el.offsetHeight}));
+ const beforeHold=await layout(),idleLabel=await mic.textContent();
  const box=await mic.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
+ assert.deepEqual(await layout(),beforeHold,'pending microphone cannot move the hold target');
+ assert.equal(await mic.textContent(),idleLabel);
+ assert.equal(await panel.evaluate(el=>{const style=getComputedStyle(el.querySelector('.dictionary-practice-status'));return style.userSelect||style.webkitUserSelect;}),'none','long press cannot select status text while holding');
  await send({type:'start'});if(!native)await send({type:'audiostart'});
+ assert.deepEqual(await layout(),beforeHold,'ready microphone cannot wrap to another row');
+ if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`held-practice-${native?'native':'browser'}-${width}.png`)});
+ assert.equal(await page.evaluate(()=>window.testMessages.findLast(m=>m.action==='start').continuous),true);
+ await send({type:'result',text:'came',final:true});
+ assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false,'final passage does not finish the held attempt');
  await send({type:'result',text:'came',final:false});
  const starts=await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length);
  await page.mouse.up();assert.equal(await mic.isDisabled(),true);
@@ -48,7 +58,7 @@ async function run(browser,native,width=390){
  await send({type:'start'});
  if(!native){
   assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Waiting for the microphone/);
-  assert.equal(await mic.textContent(),'Starting…','service start must not tell the learner to speak before audio starts');
+  assert.equal(await mic.textContent(),idleLabel,'service start keeps a stable hold target');
   await send({type:'audiostart'});
  }
  assert.match(await panel.locator('.dictionary-practice-status').textContent(),/Microphone ready/);
@@ -168,4 +178,4 @@ async function run(browser,native,width=390){
  assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width,width),'no horizontal overflow');
  assert.deepEqual(errors,[]);await context.close();console.log(`${native?'Native bridge':'Browser'} ${width}px: three card families, word/example/variant, locale, matching, errors and lifecycle passed`);
 }
-(async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';const b=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

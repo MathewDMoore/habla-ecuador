@@ -631,10 +631,11 @@ button:disabled {opacity:.5;}
 .dictionary-practice-choice { min-width: 0; grid-template-columns: minmax(0,1fr); display: grid; gap: 6px; margin-top: 14px; font-size: 13px; }
 .dictionary-practice select { width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); }
 .dictionary-practice .dictionary-practice-target { overflow-wrap: anywhere; font-size: 20px; line-height: 1.4; color: var(--green); }
-.dictionary-practice-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.dictionary-practice-actions button { min-height: 44px; padding: 10px 12px; border: 1px solid #bad8c6; border-radius: 14px; background: var(--mint); color: var(--green); font-size: 14px; font-weight: 750; }
+.dictionary-practice-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.dictionary-practice-actions button { min-width: 0; min-height: 58px; padding: 10px 8px; border: 1px solid #bad8c6; border-radius: 14px; background: var(--mint); color: var(--green); font-size: 14px; font-weight: 750; }
 .dictionary-practice-mic.listening { background: var(--orange); color: white; }
 .dictionary-practice-mic { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dictionary-practice.practice-held, .dictionary-practice.practice-held * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .dictionary-practice-mic.listening[data-capture-ready="false"] { background: #f3ce69; color: var(--green); }
 .dictionary-practice-response { padding: 12px; border-radius: 12px; background: var(--mint); overflow-wrap: anywhere; }
 .dictionary-practice-response small { font-weight: 750; }

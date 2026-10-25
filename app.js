@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.14 · build 124";
+const APP_VERSION = "0.26.15 · build 125";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -692,7 +692,7 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, correctTranscript=true}={}) {
+function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true}={}) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -713,12 +713,14 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.continuous = continuous;
   instance.maxAlternatives = 1;
   let latestText = "";
+  let latestFinal = false;
   let latestMetadata = {};
   let committed = false;
   instance.cancelTranscript = onCancel;
   instance.commitTranscript = (provisional=false) => {
     if (recognition !== instance || committed || !latestText) return;
     committed = true;
+    if (commitOnEnd && latestFinal) provisional = false;
     onText?.(latestText, true, {...latestMetadata, provisional});
     if (provisional && !continuous) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
   };
@@ -731,12 +733,13 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     const results = Array.from(event.results);
     const rawText = results.map(result => result[0].transcript).join(" ").trim();
     const isFinal = results.every(result => result.isFinal);
+    latestFinal = isFinal;
     const correction = correctTranscript ? correctSpeechRecognitionTranscript(rawText, instance.lang) : {text:rawText};
     latestText = correction.text;
     latestMetadata = typeof event.confirmedText === "string"
       ? {confirmedText:event.confirmedText, tentativeText:event.tentativeText || ""} : {};
     if (isFinal && correction.corrected) showToast(correction.reason);
-    if (isFinal && !continuous) instance.commitTranscript();
+    if (isFinal && !continuous && !commitOnEnd) instance.commitTranscript();
     else if (latestText || typeof latestMetadata.confirmedText === "string") onText?.(latestText, false, latestMetadata);
   };
   instance.onerror = event => {
@@ -2726,6 +2729,9 @@ function clearConversation() {
 
 async function loadEvidence() {
   const status = $("#dictionary-status");
+  if (!status) return;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(),10000);
   try {
     const paths = [
       "data/learner-entries-v1.json",
@@ -2735,7 +2741,7 @@ async function loadEvidence() {
       "data/review-queue.json",
       "data/ecuador-bolivia-comparisons-v1.json"
     ];
-    const responses = await Promise.all(paths.map(path => fetch(path, {cache:"no-cache"})));
+    const responses = await Promise.all(paths.map(path => fetch(path, {cache:"no-cache",signal:controller.signal})));
     if (responses.some(response => !response.ok)) throw new Error("source file unavailable");
     const [learner, vocabulary, candidates, sources, queue, comparisons] = await Promise.all(responses.map(response => response.json()));
     evidenceSources = new Map(sources.map(source => [source.id, source]));
@@ -2762,8 +2768,31 @@ async function loadEvidence() {
     renderDictionary();
   } catch (error) {
     status.hidden = false;
-    status.textContent = "The evidence files could not be loaded. The translator still works, but no verification claims are being shown.";
+    status.textContent = "Source files could not load. Ecuadorian expressions are available; learner entries and additional evidence are unavailable. Reload to retry.";
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+function initDictionary() {
+  const root = $("#dictionary-view");
+  if (!root || root.dataset.dictionaryBound) return;
+  root.dataset.dictionaryBound = "true";
+  $("#dictionary-search")?.addEventListener("input",renderDictionary);
+  $$('[data-expression-filter]').forEach(button => button.addEventListener("click",() => {
+    expressionFilter = button.dataset.expressionFilter;
+    $$('[data-expression-filter]').forEach(item => item.classList.toggle("active",item === button));
+    renderDictionary();
+  }));
+  $$('[data-evidence-filter]').forEach(button => button.addEventListener("click",() => {
+    evidenceFilter = button.dataset.evidenceFilter;
+    $$('[data-evidence-filter]').forEach(item => item.classList.toggle("active",item === button));
+    renderDictionary();
+  }));
+  // These expressions are bundled in app.js. They must not wait on optional
+  // media setup or the separately fetched learner/source JSON files.
+  renderDictionary();
+  loadEvidence();
 }
 
 function expressionCategoryLabel(category) {
@@ -2784,8 +2813,11 @@ function expressionVerificationLabel(entry) {
 function renderSlangIndex(query="") {
   const root = $("#slang-index-list");
   if (!root) return;
+  const index = root.closest(".slang-index");
+  if (index) index.hidden = !["all","slang","idiom"].includes(expressionFilter);
   const entries = culturalExpressions.filter(entry => {
     if (!["slang", "idiom"].includes(entry.category)) return false;
+    if (expressionFilter !== "all" && entry.category !== expressionFilter) return false;
     const searchable = normalize([entry.spanish, entry.literalUs, entry.literalUk, entry.us, entry.uk, entry.note, entry.register].filter(Boolean).join(" "));
     return !query || searchable.includes(query);
   });
@@ -3168,10 +3200,18 @@ function cancelDictionaryPractice(root) {
 
 function bindPracticeHold(button, {start, stop, cancel}) {
   let held = null;
+  const panel = button.closest?.(".dictionary-practice");
+  const begin = () => {
+    panel?.classList.add("practice-held");
+    const selection = window.getSelection?.();
+    if (selection && !selection.isCollapsed && panel?.contains(selection.anchorNode)) selection.removeAllRanges();
+    start();
+  };
   const release = (cancelled=false) => {
     const previous = held;
     if (!previous) return;
     held = null;
+    panel?.classList.remove("practice-held");
     if (previous.type === "pointer") {
       try { button.releasePointerCapture(previous.id); } catch {}
     }
@@ -3183,7 +3223,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
     event.preventDefault();
     held = {type:"pointer",id:event.pointerId};
     try { button.setPointerCapture(event.pointerId); } catch {}
-    start();
+    begin();
   });
   button.addEventListener("pointerup",event => {
     if (held?.type === "pointer" && held.id === event.pointerId) release();
@@ -3192,12 +3232,16 @@ function bindPracticeHold(button, {start, stop, cancel}) {
     if (held?.type === "pointer" && held.id === event.pointerId) release(true);
   });
   button.addEventListener("contextmenu",event => event.preventDefault());
+  // iOS may begin native text selection despite cancelling pointerdown. Keep
+  // the touch default and selection disabled for this held practice panel.
+  button.addEventListener("touchstart",event => event.preventDefault(),{passive:false});
+  panel?.addEventListener("selectstart",event => { if (held) event.preventDefault(); });
   button.addEventListener("keydown",event => {
     if (event.code !== "Space" || button.disabled) return;
     event.preventDefault();
     if (held || event.repeat) return;
     held = {type:"keyboard"};
-    start();
+    begin();
   });
   button.addEventListener("keyup",event => {
     if (event.code !== "Space") return;
@@ -3309,7 +3353,7 @@ function bindDictionaryPractice(root) {
           session.error ||= "The microphone was still starting. This attempt was not scored.";
           return cancelListening(false);
         }
-        mic.textContent = "Finishing…"; mic.disabled = true;
+        mic.disabled = true;
         status.textContent = "Finishing your response…";
         // Release the microphone even if a recognition provider never sends end.
         session.endTimer = setTimeout(() => { if (current()) cancelListening(true); },3000);
@@ -3321,13 +3365,12 @@ function bindDictionaryPractice(root) {
         clearTimeout(session.startTimer);
         session.timer = setTimeout(session.stop,20000);
         mic.dataset.captureReady = "true";
-        mic.textContent = "🎙 Release to finish";
         status.textContent = "Microphone ready. Speak now; release to finish.";
       };
       dictionaryPracticeSession = session;
       select.disabled = true; response.hidden = true; score.hidden = true; score.textContent = ""; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
       status.textContent = "Starting microphone… allow access if asked.";
-      mic.textContent = "Starting…"; mic.dataset.captureReady = "false";
+      mic.dataset.captureReady = "false";
       // A service 'start' event is not proof that the browser is capturing audio.
       // Give the learner the full speaking window only after capture is ready.
       session.startTimer = setTimeout(() => {
@@ -3336,7 +3379,7 @@ function bindDictionaryPractice(root) {
         cancelListening(false);
       },8000);
       const practiceError = error => error === "no-speech" ? "The speech service returned no transcript. This attempt was not scored." : recognitionErrorMessage(error);
-      startListening({lang:prompt.lang,button:mic,correctTranscript:false,formatError:practiceError,
+      startListening({lang:prompt.lang,button:mic,correctTranscript:false,formatError:practiceError,continuous:true,commitOnEnd:true,
         onStart:() => {
           if (!current() || session.finishing) return;
           // The installed native bridge has one ready event, rather than the
@@ -3607,6 +3650,17 @@ function escapeHtml(value) {
   return span.innerHTML;
 }
 
+function initializeOptionalFeature(name, setup) {
+  const failed = error => {
+    console.warn("Could not initialize " + name,error);
+    showToast("Some features could not start. Reload to retry.");
+  };
+  try {
+    const result = setup();
+    result?.catch?.(failed);
+  } catch (error) { failed(error); }
+}
+
 function init() {
   const launchQuery = new URLSearchParams(location.search);
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || launchQuery.get("standalone") === "translator";
@@ -3620,16 +3674,20 @@ function init() {
     location.replace(fullApp.href);
     return;
   }
-  HablaOffline.bind();
-  HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText});
+  // Navigation must work even if an optional import/media module fails setup.
+  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  $("#home-button").addEventListener("click", () => openView("home-view"));
+  $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
+  initializeOptionalFeature("offline tools",() => HablaOffline.bind());
+  initializeOptionalFeature("image import",() => HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText}));
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
   queueMicrotask(bindTranslationTextTools);
   bindAppSharing();
   bindRegionalSearchRecovery();
-  renderSourcePractice();
-  if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.render();
+  initializeOptionalFeature("source practice",renderSourcePractice);
+  if (typeof HablaRecordedPractice !== "undefined") initializeOptionalFeature("recorded practice",() => HablaRecordedPractice.render());
   if ("speechSynthesis" in window) {
-    refreshSpeechVoices();
+    initializeOptionalFeature("speech voices",refreshSpeechVoices);
     speechSynthesis.addEventListener?.("voiceschanged", refreshSpeechVoices);
   }
   [["#spanish-voice-select","es"],["#english-voice-select","en"]].forEach(([selector,language]) => {
@@ -3641,15 +3699,12 @@ function init() {
     });
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
-  bindDocumentTools();
-  bindWholeDocumentTools();
-  window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause});
+  initializeOptionalFeature("document import",bindDocumentTools);
+  initializeOptionalFeature("document translation",bindWholeDocumentTools);
+  initializeOptionalFeature("saved papers",() => window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause}));
   $("#retry-translation")?.addEventListener("click", retryTranslation);
   syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
-  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
-  $("#home-button").addEventListener("click", () => openView("home-view"));
-  $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   $("#swap-button").addEventListener("click", swapDirection);
   $("#source-language-select")?.addEventListener("change", event => {
     cancelMusicListening();
@@ -3811,7 +3866,6 @@ function init() {
   for(const role of ['english','spanish'])$('#conversation-'+role+'-language').addEventListener('change',event=>setConversationLocale(role,event.target.value));
   $("#conversation-text-form").addEventListener("submit",event=>{event.preventDefault();submitConversationText();});
   $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
-  $("#dictionary-search").addEventListener("input", renderDictionary);
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
   $("#regional-slang-region").addEventListener("change", () => {
     const context = $("#shared-app-context");
@@ -3827,16 +3881,6 @@ function init() {
     if (button) { cancelDictionaryPractice(); say(button.dataset.regionalAudio, button.dataset.audioLang); }
   });
   renderRegionalSlang();
-  $$('[data-expression-filter]').forEach(button => button.addEventListener("click", () => {
-    expressionFilter = button.dataset.expressionFilter;
-    $$('[data-expression-filter]').forEach(item => item.classList.toggle("active", item === button));
-    renderDictionary();
-  }));
-  $$("[data-evidence-filter]").forEach(button => button.addEventListener("click", () => {
-    evidenceFilter = button.dataset.evidenceFilter;
-    $$("[data-evidence-filter]").forEach(item => item.classList.toggle("active", item === button));
-    renderDictionary();
-  }));
   $("#reviewer-name").addEventListener("change", event => {
     const pack = readReviewPackage();
     pack.reviewer = event.target.value.trim();
@@ -3849,7 +3893,6 @@ function init() {
   renderTranslation();
   renderLesson();
   renderMusic();
-  loadEvidence();
   if (standaloneTranslator) {
     document.body.classList.add("standalone-translator");
   }
@@ -3869,7 +3912,8 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=124").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=125").catch(() => {});
 }
 
+document.addEventListener("DOMContentLoaded", initDictionary);
 document.addEventListener("DOMContentLoaded", init);

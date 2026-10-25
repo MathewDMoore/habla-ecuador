@@ -2,9 +2,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const source=fs.readFileSync('app.js','utf8');
 const slice=(start,end)=>source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));
 function node(){
- const handlers={},attributes={};
+ const handlers={},attributes={},classes=new Set();
  return {handlers,attributes,dataset:{},disabled:false,hidden:false,textContent:'',isConnected:true,value:'0',
   addEventListener(type,fn){(handlers[type] ||= []).push(fn);},
+  classList:{add:name=>classes.add(name),remove:name=>classes.delete(name),contains:name=>classes.has(name)},
   emit(type,extra={}){const event={detail:0,button:0,isPrimary:true,pointerId:1,preventDefault(){this.prevented=true;},...extra};for(const fn of handlers[type]||[])fn(event);return event;},
   setAttribute(key,value){attributes[key]=value;},setPointerCapture(id){this.capture=id;},releasePointerCapture(id){if(this.capture===id)this.capture=null;},
   replaceChildren(...children){this.children=children;},contains(other){return other===this;}
@@ -13,7 +14,7 @@ function node(){
 function harness(native=false){
  const timers=new Map(),recordings=[],toasts=[];let timerID=0,now=0;
  const elements={};for(const name of ['mic','select','status','response','score','coach','heard','feedback','progress','progressLabel','target','whole'])elements[name]=node();
- const {mic}=elements,panel=node();
+ const {mic}=elements,panel=node();mic.closest=()=>panel;mic.textContent='🎙 Hold to speak';
  class Recognition {
   start(){recordings.push(this);}
   stop(){this.stops=(this.stops||0)+1;}
@@ -41,13 +42,25 @@ function harness(native=false){
 for(const native of [false,true]){
  const h=harness(native),{mic,status,score}=h;
  mic.emit('pointerdown');assert.equal(h.recordings.length,1);
- assert.equal(mic.textContent,'Starting…');
+ assert.equal(mic.textContent,'🎙 Hold to speak','hold target label never changes');
+ assert.equal(h.current().continuous,true,'practice stays open across phrases until release');
+ assert.equal(h.panel.classList.contains('practice-held'),true);
+ assert.equal(h.panel.emit('selectstart').prevented,true,'held panel blocks native text selection');
+ assert.equal(mic.emit('touchstart').prevented,true,'touch default is prevented on the microphone');
  h.current().send('start');
  if(!native){assert.match(status.textContent,/Waiting for the microphone/);h.advance(6000);h.current().send('audiostart');}
  assert.match(status.textContent,/Microphone ready/);assert.equal(mic.dataset.captureReady,'true');
+ assert.equal(mic.textContent,'🎙 Hold to speak');
  h.advance(19999);assert.equal(h.current().stops,undefined,'startup time does not shorten the speaking window');
  h.current().result('me vale',false);
+ h.current().result('me vale',true);
+ assert.equal(h.context.dictionaryPracticeSession.heard,true);
+ assert.equal(score.hidden,true,'a finalized passage cannot end/score a held attempt');
+ h.current().result('me vale verga',true);
+ assert.equal(score.hidden,true,'new confirmed words remain available until release');
  mic.emit('pointerup');assert.equal(h.current().stops,1,'finger release requests a graceful stop');
+ assert.equal(h.panel.classList.contains('practice-held'),false);
+ assert.equal(h.panel.emit('selectstart').prevented,undefined,'ordinary text selection is restored after release');
  mic.emit('click',{detail:1});assert.equal(h.recordings.length,1,'release click cannot reopen the microphone');
  h.current().result('me vale verga',true);h.current().send('end');
  assert.match(score.textContent,/100%/,'final words delivered after release are scored');
@@ -80,4 +93,4 @@ for(const native of [false,true]){
  assert.equal(h.context.dictionaryPracticeSession,null);assert.equal(h.mic.capture,null);
  h.mic.disabled=true;const n=h.recordings.length;h.mic.emit('pointerdown');h.mic.emit('click');assert.equal(h.recordings.length,n);
 }
-console.log('Practice microphone: hold/release, touch cancel, startup/audio readiness, late final words, no-transcript/no-score, keyboard/assistive toggle, stale events, timer and retry cleanup passed. Audio capture is synthetic.');
+console.log('Practice microphone: stable target/label, touch-selection suppression, continuous hold, deferred final scoring, hold/release, startup/audio readiness, late final words, cancellation, keyboard/assistive toggle, stale events, timer and retry cleanup passed. Audio capture is synthetic.');

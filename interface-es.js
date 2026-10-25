@@ -492,6 +492,8 @@
   "Finishing your response…": "Terminando tu respuesta…",
   "Starting microphone… allow access if asked.": "Iniciando micrófono… autoriza el acceso si se solicita.",
   "Hold to speak": "Mantén pulsado para hablar",
+  "Some features could not start. Reload to retry.": "No se pudieron iniciar algunas funciones. Recarga para reintentar.",
+  "Source files could not load. Ecuadorian expressions are available; learner entries and additional evidence are unavailable. Reload to retry.": "No se pudieron cargar los archivos de fuentes. Las expresiones ecuatorianas están disponibles; las entradas para estudiantes y las pruebas adicionales no están disponibles. Recarga para reintentar.",
   "Release to finish": "Suelta para terminar",
   "Starting…": "Iniciando…",
   "Hold to speak; release to finish. Enter or screen reader: start or stop.": "Mantén pulsado para hablar; suelta para terminar. Intro o lector de pantalla: iniciar o detener.",
