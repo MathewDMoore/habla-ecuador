@@ -777,3 +777,5 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .english-mini-dialogue .english-mini-reply { background:#eaf4ef; }
 #recorded-practice-content [data-mini-panel]>.primary-button { margin-top:14px; width:100%; }
 #recorded-practice-content [data-mini-panel][hidden] { display:none; }
+.english-mini-steps button,.english-mini-chunks button { min-height:44px; border:1px solid #d9cfbd; border-radius:12px; background:#fffdf8; color:#19483d; font-family:inherit; }
+.english-mini-chunks button { padding:10px 14px; font-size:1rem; }
