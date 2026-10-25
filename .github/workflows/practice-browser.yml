@@ -29,7 +29,7 @@ jobs:
           node-version: '24'
       - run: node --test tests/*.test.cjs
       - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
-      - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps ${{ matrix.engine }}
+      - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
       - run: node tests/dictionary-practice.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
