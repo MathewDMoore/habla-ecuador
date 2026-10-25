@@ -64,7 +64,7 @@ async function run(browser,width,file,nativeLayout){
  assert.equal(await page.locator('#translation-copy-fallback').isVisible(),true);
  await page.evaluate(()=>setEditableTranslation('Another original','Another completed translation.'));
  assert.equal(await page.locator('#translation-copy-fallback').isVisible(),false);assert.equal(await page.locator('#translation-copy-text').inputValue(),'');
- const layout=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth,zoom:visualViewport?.scale,wide:[...document.querySelectorAll('body *')].filter(el=>!el.hidden&&el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({id:el.id,tag:el.tagName,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}))}));
+ const layout=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth,zoom:visualViewport?.scale,wide:[...document.querySelectorAll('body *')].filter(el=>!el.hidden&&el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({id:el.id,tag:el.tagName,text:el.textContent?.slice(0,60),right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}))}));
  assert.equal(layout.scroll<=layout.inner,true,JSON.stringify(layout));
  assert.deepEqual(errors,[]);
  if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`translation-copy-${width}${nativeLayout?'-native':''}-${file}.png`)});

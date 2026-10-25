@@ -1744,7 +1744,7 @@ function bindTranslationTextTools() {
   tools.after($("#translation-copy-status"),$("#translation-copy-fallback"));
   $("#copy-result").addEventListener("click",()=>copyTranslation());
   $("#translation-copy-retry").addEventListener("click",()=>copyTranslation({legacyFirst:true}));
-  $("#translation-copy-close").addEventListener("click",()=>{$("#translation-copy-fallback").hidden=true;$("#translation-copy-text").value="";});
+  $("#translation-copy-close").addEventListener("click",clearTranslationCopyFallback);
   const expand = $("#translation-expand"), smaller = $("#translation-text-smaller");
   const larger = $("#translation-text-larger"), reset = $("#translation-text-reset");
   const syncSize = () => {
@@ -1857,6 +1857,14 @@ async function shareApp(copyOnly=false) {
   }
 }
 
+function clearTranslationCopyFallback() {
+  const field=$("#translation-copy-text"),fallback=$("#translation-copy-fallback");
+  // Dismiss iOS textarea selection before hiding its field; otherwise selection
+  // handles can remain attached to an invisible, horizontally scrolled editor.
+  if(field){if(document.activeElement===field)field.blur();field.setSelectionRange(0,0);field.value='';}
+  if(fallback)fallback.hidden=true;
+}
+
 function renderedTranslationText() {
   const draft=$("#natural-result");
   return (draft?.innerText ?? draft?.textContent ?? "").trim();
@@ -1894,7 +1902,7 @@ async function copyTranslation({legacyFirst=false}={}) {
     }
     if(!copied && !legacyFirst)copied=legacyCopyTranslation(text);
     if(!current()){report('Translation changed. Tap Copy again for the current text.');return;}
-    if(copied){fallback.hidden=true;field.value='';report('Translation copied. Paste it into your chosen app.');return;}
+    if(copied){clearTranslationCopyFallback();report('Translation copied. Paste it into your chosen app.');return;}
     field.value=text;fallback.hidden=false;
     report('Clipboard access is unavailable. Select and copy the translation below.');
     field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);
@@ -1943,7 +1951,7 @@ async function shareTranslation() {
 function updateTranslationEditUi() {
   const copy=$("#copy-result");if(copy)copy.disabled=translationCopyPending || !activeTranslationEdit;
   const copyFallback=$("#translation-copy-fallback"),copyField=$("#translation-copy-text");
-  if(copyFallback && !copyFallback.hidden && copyField.value!==renderedTranslationText()){copyFallback.hidden=true;copyField.value='';}
+  if(copyFallback && !copyFallback.hidden && copyField.value!==renderedTranslationText())clearTranslationCopyFallback();
 
   const selectAll = $("#translation-select-all");
   if (selectAll) selectAll.disabled = !activeTranslationEdit;
@@ -1969,8 +1977,7 @@ function updateTranslationEditUi() {
 
 function setEditableTranslation(source, generated, metadata={}) {
   if($("#translation-copy-status"))$("#translation-copy-status").hidden=true;
-  if($("#translation-copy-fallback"))$("#translation-copy-fallback").hidden=true;
-  if($("#translation-copy-text"))$("#translation-copy-text").value='';
+  clearTranslationCopyFallback();
   if ($("#translation-share-status")) $("#translation-share-status").hidden = true;
   const result = $("#natural-result");
   const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);

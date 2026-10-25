@@ -790,3 +790,9 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .translation-copy-fallback[hidden],#translation-copy-status[hidden] { display:none; }
 #translation-text-tools,#translation-copy-status,#translation-copy-fallback { min-width:0; max-width:100%; overflow-wrap:anywhere; }
 .translation-copy-fallback textarea { min-width:0; max-width:100%; }
+@media (max-width:360px) {
+  .bottom-nav { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .bottom-nav button { min-width:0; padding-inline:3px; font-size:clamp(9px,2.8vw,11px); }
+  .speed-slider-row { grid-template-columns:auto minmax(0,1fr) auto; }
+  .speed-slider-row input[type="range"] { min-width:0; }
+}
