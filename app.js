@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.13 · build 123";
+const APP_VERSION = "0.26.14 · build 124";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -692,7 +692,7 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onError, continuous=false, correctTranscript=true}={}) {
+function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, correctTranscript=true}={}) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -724,7 +724,8 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   };
 
   instance.onstart = () => { if (recognition === instance) { setListeningButton(button, true); onStart?.(); } };
-  instance.onspeechstart = instance.onstart;
+  instance.onaudiostart = () => { if (recognition === instance) onAudioStart?.(); };
+  instance.onspeechstart = () => { if (recognition === instance) onSpeechStart?.(); };
   instance.onresult = event => {
     if (recognition !== instance || committed || !event.results.length) return;
     const results = Array.from(event.results);
@@ -741,7 +742,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.onerror = event => {
     if (recognition !== instance) return;
     onError?.(event.error);
-    if (event.error !== "aborted") showToast(recognitionErrorMessage(event.error));
+    if (event.error !== "aborted") showToast(formatError(event.error));
   };
   instance.onend = () => {
     if (recognition !== instance) return;
@@ -3165,6 +3166,53 @@ function cancelDictionaryPractice(root) {
   else session.finish("Practice stopped. Your prompt and heard words are kept.");
 }
 
+function bindPracticeHold(button, {start, stop, cancel}) {
+  let held = null;
+  const release = (cancelled=false) => {
+    const previous = held;
+    if (!previous) return;
+    held = null;
+    if (previous.type === "pointer") {
+      try { button.releasePointerCapture(previous.id); } catch {}
+    }
+    if (cancelled) cancel();
+    else stop();
+  };
+  button.addEventListener("pointerdown",event => {
+    if (event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
+    event.preventDefault();
+    held = {type:"pointer",id:event.pointerId};
+    try { button.setPointerCapture(event.pointerId); } catch {}
+    start();
+  });
+  button.addEventListener("pointerup",event => {
+    if (held?.type === "pointer" && held.id === event.pointerId) release();
+  });
+  for (const type of ["pointercancel","lostpointercapture"]) button.addEventListener(type,event => {
+    if (held?.type === "pointer" && held.id === event.pointerId) release(true);
+  });
+  button.addEventListener("contextmenu",event => event.preventDefault());
+  button.addEventListener("keydown",event => {
+    if (event.code !== "Space" || button.disabled) return;
+    event.preventDefault();
+    if (held || event.repeat) return;
+    held = {type:"keyboard"};
+    start();
+  });
+  button.addEventListener("keyup",event => {
+    if (event.code !== "Space") return;
+    event.preventDefault();
+    if (held?.type === "keyboard") release();
+  });
+  button.addEventListener("blur",() => release(true));
+  // Enter and assistive activation retain a start/stop toggle. A pointer's
+  // trailing click must never start a second recording after finger release.
+  button.addEventListener("click",event => {
+    if (event.detail === 0 && !held && !button.disabled) start();
+  });
+  return () => release(true);
+}
+
 function bindDictionaryPractice(root) {
   if (!root) return;
   $$(".expression-card, .evidence-card",root).forEach(card => {
@@ -3186,7 +3234,7 @@ function bindDictionaryPractice(root) {
     panel.innerHTML = `<summary>🎙 Speaking practice</summary>
       <label class="dictionary-practice-choice">Choose a word or example<select aria-label="Spanish practice prompt">${prompts.map((prompt,index) => `<option value="${index}">${escapeHtml(prompt.text)}</option>`).join("")}</select></label>
       <p class="dictionary-practice-whole" hidden></p><p class="dictionary-practice-target" lang="${escapeHtml(prompts[0].lang)}"></p>
-      <div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-hear">🔊 Hear model</button><button type="button" class="dictionary-practice-mic push-to-talk" aria-pressed="false">🎙 Start speaking</button></div>
+      <div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-hear">🔊 Hear model</button><button type="button" class="dictionary-practice-mic push-to-talk" aria-pressed="false" aria-keyshortcuts="Space Enter" aria-label="Hold to speak; release to finish. Enter or screen reader: start or stop.">🎙 Hold to speak</button></div>
       <p class="dictionary-practice-status" role="status"></p>
       <div class="dictionary-practice-response" hidden><small>I heard</small><p class="dictionary-practice-heard" lang="es"></p><p class="dictionary-practice-feedback"></p><p class="dictionary-practice-score" aria-live="polite" hidden></p><p class="dictionary-practice-progress-label"></p><div class="dictionary-practice-progress"></div><div class="dictionary-practice-coach" hidden><p></p><div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-focus-hear">🔊 Hear this part</button><button type="button" class="dictionary-practice-focus-try">Practice this part</button></div></div></div>
       <p class="dictionary-practice-limit">Word scoring checks recognized words, including order, omissions and extras; it does not grade accent or individual sounds.</p>`;
@@ -3213,7 +3261,7 @@ function bindDictionaryPractice(root) {
       coach.hidden = true; focusText = ""; progress.replaceChildren(); progressLabel.textContent = "";
       response.hidden = true; score.hidden = true; score.textContent = ""; heard.textContent = feedback.textContent = "";
       mic.disabled = !available();
-      status.textContent = available() ? "Hear the model, then tap Start speaking. Tap again to finish." : "Speech recognition is unavailable here. You can still hear the model.";
+      status.textContent = available() ? "Hold to speak; release to finish. Wait for Microphone ready before speaking." : "Speech recognition is unavailable here. You can still hear the model.";
     };
     refresh();
     select.addEventListener("change",refresh);
@@ -3236,40 +3284,76 @@ function bindDictionaryPractice(root) {
       const option = document.createElement("option"); option.value = String(basePromptCount); option.textContent = `Focus: ${focus.text}`;
       select.append(option); select.value = String(basePromptCount); refresh();
     });
-    mic.addEventListener("click",() => {
+    let releaseHold = () => {};
+    const togglePractice = () => {
       if (dictionaryPracticeSession?.panel === panel) return dictionaryPracticeSession.stop();
       cancelDictionaryPractice();
       if (!available()) return refresh();
       const prompt = prompts[Number(select.value) || 0];
-      const session = {panel,mic,error:"",heard:false,finishing:false,timer:null,endTimer:null};
+      const session = {panel,mic,error:"",heard:false,ready:false,finishing:false,startTimer:null,timer:null,endTimer:null};
       const current = () => dictionaryPracticeSession === session && panel.isConnected;
       session.finish = message => {
         if (dictionaryPracticeSession !== session) return;
-        clearTimeout(session.timer); clearTimeout(session.endTimer);
+        clearTimeout(session.startTimer); clearTimeout(session.timer); clearTimeout(session.endTimer);
         dictionaryPracticeSession = null;
+        releaseHold();
         select.disabled = false; mic.disabled = false;
-        setListeningButton(mic,false); mic.textContent = "🎙 Try again";
-        status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "No words captured. Hear the model, then try again.");
+        setListeningButton(mic,false); mic.textContent = "🎙 Hold to speak"; delete mic.dataset.captureReady;
+        status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");
       };
       session.stop = () => {
         if (!current() || session.finishing) return;
         session.finishing = true;
+        clearTimeout(session.startTimer);
+        if (!session.ready) {
+          session.error ||= "The microphone was still starting. This attempt was not scored.";
+          return cancelListening(false);
+        }
         mic.textContent = "Finishing…"; mic.disabled = true;
         status.textContent = "Finishing your response…";
         // Release the microphone even if a recognition provider never sends end.
         session.endTimer = setTimeout(() => { if (current()) cancelListening(true); },3000);
         stopListening();
       };
+      const microphoneReady = () => {
+        if (!current() || session.finishing || session.ready) return;
+        session.ready = true;
+        clearTimeout(session.startTimer);
+        session.timer = setTimeout(session.stop,20000);
+        mic.dataset.captureReady = "true";
+        mic.textContent = "🎙 Release to finish";
+        status.textContent = "Microphone ready. Speak now; release to finish.";
+      };
       dictionaryPracticeSession = session;
       select.disabled = true; response.hidden = true; score.hidden = true; score.textContent = ""; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
       status.textContent = "Starting microphone… allow access if asked.";
-      mic.textContent = "■ Stop speaking";
-      session.timer = setTimeout(session.stop,20000);
-      startListening({lang:prompt.lang,button:mic,correctTranscript:false,
-        onStart:() => { if (current() && !session.finishing) status.textContent = "Listening… say the visible words, then tap Stop speaking."; },
+      mic.textContent = "Starting…"; mic.dataset.captureReady = "false";
+      // A service 'start' event is not proof that the browser is capturing audio.
+      // Give the learner the full speaking window only after capture is ready.
+      session.startTimer = setTimeout(() => {
+        if (!current() || session.ready) return;
+        session.error = "The microphone did not become ready. This attempt was not scored.";
+        cancelListening(false);
+      },8000);
+      const practiceError = error => error === "no-speech" ? "The speech service returned no transcript. This attempt was not scored." : recognitionErrorMessage(error);
+      startListening({lang:prompt.lang,button:mic,correctTranscript:false,formatError:practiceError,
+        onStart:() => {
+          if (!current() || session.finishing) return;
+          // The installed native bridge has one ready event, rather than the
+          // browser's separate service-start and audio-start events.
+          if (typeof window.__hablaNativeSpeech === "function") microphoneReady();
+          else if (!session.ready) status.textContent = "Speech service started. Waiting for the microphone…";
+        },
+        onAudioStart:microphoneReady,
+        onSpeechStart:() => {
+          microphoneReady();
+          if (current() && !session.finishing && !session.heard) status.textContent = "Speech detected. Waiting for recognized words…";
+        },
         onText:(text,final,metadata={}) => {
           if (!current()) return;
+          microphoneReady();
           session.heard = Boolean(text.trim());
+          if (session.heard && !session.finishing) status.textContent = "Words received. Release when you finish speaking.";
           heard.textContent = text; response.hidden = !session.heard;
           const comparison = dictionaryPracticeComparison(prompt.text,text);
           score.hidden = !final || Boolean(metadata.provisional) || comparison.wordScore === null;
@@ -3293,10 +3377,15 @@ function bindDictionaryPractice(root) {
               ? "Recognized words match the prompt. Compare your pronunciation with the model."
               : "The recognized words differ. Hear the model and try again; recognition can miss regional words.";
         },
-        onError:error => { if (current() && error !== "aborted") { session.error = recognitionErrorMessage(error); session.stop(); } },
+        onError:error => { if (current() && error !== "aborted") { session.error = practiceError(error); session.stop(); } },
         onEnd:() => session.finish(),
         onCancel:() => session.finish(session.error || "Practice stopped. Your prompt and heard words are kept.")
       });
+    };
+    releaseHold = bindPracticeHold(mic,{
+      start:togglePractice,
+      stop:() => { if (dictionaryPracticeSession?.panel === panel) dictionaryPracticeSession.stop(); },
+      cancel:() => cancelDictionaryPractice(panel)
     });
   });
 }
@@ -3780,7 +3869,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=123").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=124").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

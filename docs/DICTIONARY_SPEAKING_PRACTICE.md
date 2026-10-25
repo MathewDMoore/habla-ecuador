@@ -1,4 +1,16 @@
-# Dictionary speaking practice — build 110
+# Dictionary speaking practice
+
+## Hold to speak and microphone readiness — build 124
+
+Hosted v0.26.14/build 124 changes dictionary, learner, cultural and regional-source practice to press and hold the microphone, then release to finish. Space follows the same hold/release behavior; Enter and assistive activation retain a start/stop toggle. The finishing state waits for the recognizer's result/end callbacks, preserving words delivered after finger release. A trailing pointer click cannot open a second capture. Pointer cancellation, lost capture, blur, automatic session end, view changes and timeouts release the hold. Touch scrolling and the long-press context menu are suppressed only on the practice microphone.
+
+The supplied phone recording showed the panel claiming to listen and subsequently returning no words. Service startup previously triggered the listening instruction before the browser reported audio capture. Browser practice now waits for audio-start (or a speech/result event that also establishes readiness) before inviting speech and starting the 20-second speaking window. The existing native bridge's start event retains its ready meaning. Pending capture is gold and says Starting; ready capture uses the existing orange recording style. A startup failure releases the mic after eight seconds; an early release cancels that attempt. The three-second result-drain timeout remains.
+
+An empty transcript or no-speech provider error is reported as a speech-service result without attributing silence or pronunciation failure to the learner. No word score appears without recognized words. Speech detection and word transcription have distinct statuses. All new learner-facing instructions have Spanish equivalents. No automatic microphone retry, provider switch, guessed transcript, new recording/upload endpoint, native rebuild or acoustic scoring is introduced.
+
+Validation: the new `tests/practice-microphone.test.cjs` exercises the real hold and recognition/session handlers with synthetic events, covering browser/native readiness, a delayed-ready full speaking window, release plus late final words, touch cancellation, keyboard/assistive controls, silent startup, no-transcript errors, stale events, timeout and retry cleanup. The existing browser regressions retain assistive activation and add explicit readiness cases. This environment has no browser executable; the Playwright browser download returned an invalid archive, so the updated browser suites were not executed here. Physical iPhone/WebKit capture, microphone routing and recognition accuracy remain unverified. The observed missing-transcript cause is not established by the screen recording.
+
+## Initial implementation — build 110
 
 Hosted v0.26.0/build 110 adds a collapsed Speaking practice section beside the existing audio on regional dictionary, cultural expression and evidence/learner cards. It reuses each card's Spanish audio text and locale, with separate choices for slash-separated forms and available Spanish examples. Known terminal grammatical labels such as “(noun)” are excluded from practice prompts. Dictionary entries, sources, register/context/uncertainty metadata and translation safeguards are unchanged.
 

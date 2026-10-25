@@ -28,7 +28,7 @@ async function run(browser,native,width=390){
  assert.equal(await target.textContent(),lesson.items[0].spanish);assert.equal(await panel.isVisible(),true);
  assert.match(await source.locator('.source-practice-cue').textContent(),/ca-me-LLAR/);
  assert.equal(await source.locator('#source-practice-previous').isDisabled(),true);
- await panel.locator('.dictionary-practice-mic').click();await send({type:'start'});
+ await panel.locator('.dictionary-practice-mic').evaluate(el=>el.click());await send({type:'start'});
  await send({type:'result',text:lesson.items[0].spanish.split(' ')[0],final:false});
  assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false,'provisional speech has no percentage');
  assert.equal(await target.textContent(),lesson.items[0].spanish,'mic keeps target visible');
@@ -39,7 +39,7 @@ async function run(browser,native,width=390){
  assert.equal(await panel.locator('.dictionary-practice-whole').textContent(),'Full prompt: '+lesson.items[0].spanish);
  assert.equal(await panel.locator('select').isVisible(),true,'full prompt remains selectable after focus');
  await panel.locator('select').selectOption('0');
- await panel.locator('.dictionary-practice-mic').click();
+ await panel.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await page.locator('#source-practice-next').click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'changing phrase releases the mic');
  for(let i=1;i<lesson.items.length;i++){
@@ -47,7 +47,7 @@ async function run(browser,native,width=390){
   assert.equal(await panel.locator('.dictionary-practice-target').textContent(),lesson.items[i].spanish);
   await panel.locator('.dictionary-practice-hear').click();
   assert.deepEqual(await page.evaluate(()=>window.spoken.at(-1)),{text:lesson.items[i].spanish,lang:lesson.items[i].locale});
-  await panel.locator('.dictionary-practice-mic').click();await send({type:'start'});
+  await panel.locator('.dictionary-practice-mic').evaluate(el=>el.click());await send({type:'start'});
   assert.equal(await page.evaluate(()=>window.testMessages.findLast(m=>m.action==='start').lang),lesson.items[i].locale);
   await send({type:'result',text:lesson.items[i].spanish,final:true});await send({type:'end'});
   assert.match(await panel.locator('.dictionary-practice-score').textContent(),/100%/);
@@ -60,11 +60,11 @@ async function run(browser,native,width=390){
  const credit=source.locator('.source-practice-attribution');await credit.locator('summary').click();
  assert.equal(await credit.locator('[rel="license noreferrer"]').getAttribute('href'),lesson.source.licenseUrl);
  assert.match(await credit.textContent(),/Radialistas/);assert.match(await credit.textContent(),/have not been verified/);
- await panel.locator('.dictionary-practice-mic').click();
+ await panel.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'source practice stops when entering dictionary');
  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
- panel=source.locator('.dictionary-practice');await panel.locator('.dictionary-practice-mic').click();
+ panel=source.locator('.dictionary-practice');await panel.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  await source.locator(':scope > summary').click();await page.waitForFunction(()=>dictionaryPracticeSession===null);
  // Existing sunset lesson remains available independently.
  await page.locator('#lesson-next').click();assert.equal(await page.locator('#lesson-speaking-prompt').isVisible(),true);

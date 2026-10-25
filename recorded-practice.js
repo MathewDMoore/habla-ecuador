@@ -99,7 +99,7 @@
       button.setAttribute('aria-pressed','true');button.textContent='Ⅱ Pause native recording';
       status.textContent='Playing the full original example. Listen, pause, then practise the visible phrase.';
     });
-    video.addEventListener('pause',()=>{if(current()){idle();status.textContent='Recording paused. Your phrase stays visible; tap Start speaking to practise.';}});
+    video.addEventListener('pause',()=>{if(current()){idle();status.textContent='Recording paused. Your phrase stays visible; hold the microphone to practise.';}});
     video.addEventListener('ended',()=>{if(current()){idle();status.textContent='Recording finished. Practise the visible phrase or replay the example.';}});
     video.addEventListener('error',()=>{if(current()){generation+=1;idle();status.textContent='Recording unavailable. Open the original recording below or practise the visible text.';}});
     content.querySelector('select').addEventListener('change',event=>{root.cancelDictionaryPractice(host);selected=event.target.value;render();});

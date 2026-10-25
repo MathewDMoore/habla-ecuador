@@ -27,7 +27,7 @@ const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io',
    try {await page.waitForFunction(()=>{const v=document.querySelector('#recorded-practice-video');return v.readyState>=2&&!v.paused},{},{timeout:8000});} catch(error) { console.log(await host.locator('video').evaluate(v=>({src:v.src,error:v.error?.message,paused:v.paused,ready:v.readyState,support:v.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')})),await host.locator('#recorded-practice-status').textContent(),mediaRequests,errors);throw error;}
    assert.equal(await host.locator('#recorded-practice-play').getAttribute('aria-pressed'),'true');
    assert.equal(await host.locator('video').evaluate(v=>v.duration>30),true,'publisher content decoded via WebM test fixture');
-   await host.locator('.dictionary-practice-mic').click();
+   await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
    assert.equal(await host.locator('video').evaluate(v=>v.paused),true,'mic pauses native recording');
    assert.equal(await target.textContent(),item.spanish,'mic keeps phrase visible');
    await page.evaluate(({text,native})=>{
