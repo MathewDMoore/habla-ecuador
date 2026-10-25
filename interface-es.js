@@ -1130,5 +1130,19 @@
   "A new version is downloading. Your work stays open.": "Se está descargando una versión nueva. Tu trabajo permanece abierto.",
   "An update is available. Download could not finish; Habla will retry while online.": "Hay una actualización disponible. La descarga no terminó; Habla lo intentará de nuevo con conexión.",
   "Update check could not finish. Your current app and work are kept; Habla will retry while online.": "No se pudo terminar la comprobación. Se conservan la app actual y tu trabajo; Habla lo intentará de nuevo con conexión.",
-  "Mathew": "Mateo"
+  "Mathew": "Mateo",
+  "I want to learn": "Quiero aprender",
+  "Follow app language": "Según el idioma de la app",
+  "A1 English speaking lesson": "Lección oral de inglés A1",
+  "Learn English with Spanish meanings.": "Aprende inglés con los significados en español.",
+  "Learn Ecuadorian Spanish with English meanings.": "Aprende español ecuatoriano con los significados en inglés.",
+  "Hear the English phrase": "Escuchar la frase en inglés",
+  "Hear the English question, then practise it aloud. The Spanish meaning stays underneath.": "Escucha la pregunta en inglés y practícala en voz alta. El significado en español permanece debajo.",
+  "Practise the English question. Listen for the key words time, sun and set.": "Practica la pregunta en inglés. Presta atención a las palabras clave time, sun y set.",
+  "Choose the most natural everyday English question about sunset.": "Elige la pregunta más natural en inglés cotidiano sobre la puesta del sol.",
+  "English model playback uses the variety you selected for this lesson.": "El modelo de voz en inglés usa la variedad que elegiste para esta lección.",
+  "Try again and make time, sun and set clear.": "Inténtalo otra vez y pronuncia con claridad time, sun y set.",
+  "Natural everyday English.": "Inglés cotidiano natural.",
+  "Understandable, but less natural for everyday conversation.": "Se entiende, pero suena menos natural en una conversación cotidiana.",
+  "Tap the microphone to start. Tap again when finished.": "Toca el micrófono para empezar. Vuelve a tocarlo cuando termines."
 };if(typeof module==="object"&&module.exports)module.exports=strings;else root.HablaInterfaceSpanish=strings;})(typeof window==="object"?window:globalThis);

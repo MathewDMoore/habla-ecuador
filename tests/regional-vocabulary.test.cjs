@@ -27,7 +27,7 @@ assert.match(byId('chingon-quality').scope,/ASALE/);assert.match(byId('chingon-s
 for(const word of ['hangover','beer','work','cash','cool','definitely','avocado','naked'])assert.ok(context.dictionary({region:'en-US',query:word}).some(e=>e.batch==='regional-vocabulary-116'),'useful ordinary English counterpart lookup: '+word);
 for(const query of ['unrelated-invented-item','que ya','lluchoxyz','atatayxyz'])assert.equal(ids({region:'all',query}).length,0);
 assert.equal(context.translateEnglishVulgarity('horny'),null);assert.equal(context.translateEnglishVulgarity('badass'),null);
-for(const page of ['index.html','translator.html'])assert.match(fs.readFileSync(page,'utf8'),/regional-vocabulary\.js\?v=126/);assert.match(fs.readFileSync('sw.js','utf8'),/regional-vocabulary\.js\?v=126/);
+for(const page of ['index.html','translator.html'])assert.match(fs.readFileSync(page,'utf8'),/regional-vocabulary\.js\?v=127/);assert.match(fs.readFileSync('sw.js','utf8'),/regional-vocabulary\.js\?v=127/);
 console.log('Regional vocabulary: 30 senses/22 headwords; 79 total; every entry/source/example/region/type/tone, English counterparts, cross-country false friends, contrast-note exclusion, negatives and offline asset passed');
 
 const crypto=require('node:crypto'),preserved=[];
