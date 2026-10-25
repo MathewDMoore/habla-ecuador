@@ -45,7 +45,7 @@
       <label>Regional example<select id="recorded-practice-region" aria-label="Regional native-speaker example">${catalog.items.map(i=>`<option value="${i.id}" ${i.id === item.id?'selected':''}>${escape(i.region)} · ${escape(i.speaker)}</option>`).join('')}</select></label>
       <p>${escape(item.speaker)} · ${escape(item.region)}<br><small>Region as identified by the source. One speaker is an example, not a standard for an entire region.</small></p>
       <article class="expression-card" data-practice-text="${escape(item.spanish)}" data-practice-lang="${item.locale}">
-        <h3>Listen, then practise this phrase</h3><p lang="es">${escape(item.spanish)}</p><p>${escape(meaning)}</p>
+        <h3>Listen, then practise this phrase</h3><p lang="es" data-ui-content>${escape(item.spanish)}</p><p data-ui-content>${escape(meaning)}</p>
         <button type="button" id="recorded-practice-play" class="secondary-button" aria-pressed="false">▶ Play native recording</button>
         <button type="button" id="recorded-spanish-subtitles" class="secondary-button" aria-pressed="${spanishSubtitles}">Spanish subtitles: ${spanishSubtitles?'on':'off'}</button>
         <video id="recorded-practice-video" lang="es" controls playsinline preload="none" hidden aria-label="${escape(item.speaker)} · full original recording"><track kind="subtitles" label="Español (tiempos automáticos)" srclang="es" src="captions/${item.clip}.es.vtt?v=120" default></video>

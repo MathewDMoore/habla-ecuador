@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.10 · build 120";
+const APP_VERSION = "0.26.11 · build 121";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1771,13 +1771,14 @@ const APP_SHARE_REGIONS = new Set(["monterrey","es-VE"]);
 const APP_SHARE_DESTINATIONS = new Set(["monterrey","es-VE","caracas"]);
 let appSharePending = false;
 
-function publicAppShareUrl(region="") {
+function publicAppShareUrl(region="", ui="es") {
   const url = new URL(PUBLIC_APP_URL);
   if (APP_SHARE_DESTINATIONS.has(region)) {
     url.searchParams.set("start","dictionary");
     url.searchParams.set("region",region === "caracas" ? "es-VE" : region);
     if (region === "caracas") url.searchParams.set("city","caracas");
   }
+  url.searchParams.set("ui",ui === "en" ? "en" : "es");
   return url.href;
 }
 
@@ -1790,10 +1791,11 @@ function bindAppSharing() {
   const select = $("#app-share-region"), link = $("#app-share-link");
   if (!select || !link) return;
   const refresh = () => {
-    link.value = publicAppShareUrl(select.value);
+    link.value = publicAppShareUrl(select.value,$("#app-share-language")?.value);
     $("#app-share-status").textContent = "";
   };
   select.addEventListener("change",refresh);
+  $("#app-share-language")?.addEventListener("change",refresh);
   $("#share-app").addEventListener("click",() => shareApp());
   $("#copy-app-link").addEventListener("click",() => shareApp(true));
   refresh();
@@ -1806,10 +1808,11 @@ async function shareApp(copyOnly=false) {
   if (!button || !copy || !select || !link || !status) return;
   // Build from a fixed public URL and an allowlisted region. Never forward the
   // current page's parameters, translation text, recordings or local history.
-  const url = publicAppShareUrl(select.value);
+  const url = publicAppShareUrl(select.value,$("#app-share-language")?.value);
   link.value = url;
   appSharePending = true;
   button.disabled = copy.disabled = select.disabled = true;
+  if($("#app-share-language")) $("#app-share-language").disabled=true;
   button.textContent = copyOnly ? "Copying link…" : "Opening sharing…";
   try {
     if (!copyOnly && typeof navigator.share === "function") {
@@ -1832,6 +1835,7 @@ async function shareApp(copyOnly=false) {
   } finally {
     appSharePending = false;
     button.disabled = copy.disabled = select.disabled = false;
+    if($("#app-share-language")) $("#app-share-language").disabled=false;
     button.textContent = "Share app";
   }
 }
@@ -2604,7 +2608,7 @@ async function submitConversationText() {
 function renderTurns() {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
-  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small>${escapeHtml(turn.speaker)} · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
+  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
   box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
@@ -3392,14 +3396,15 @@ function clearCurrentReviewRating() {
 
 function reviewSummary() {
   const pack = readReviewPackage();
+  const ui=text=>typeof HablaUI!=="undefined"?HablaUI.t(text):text;
   const labels = {natural:"Natural in Ecuador",awkward:"Understandable but awkward",regional:"Regional / depends where",correction:"Needs correction"};
-  const lines = ["Habla Ecuador — Ecuadorian usage review", `Reviewer: ${pack.reviewer || "Not provided"}`, `Exported: ${new Date().toISOString()}`, ""];
+  const lines = [ui("Habla Ecuador — Ecuadorian usage review"), `${ui("Reviewer:")} ${pack.reviewer || ui("Not provided")}`, `${ui("Exported:")} ${new Date().toISOString()}`, ""];
   reviewEntries().forEach(entry => {
     const item = pack.reviews[entry.id];
     if (!item?.rating) return;
-    lines.push(`${entry.spanish} — ${labels[item.rating] || item.rating}`);
-    if (item.region) lines.push(`Region/city: ${item.region}`);
-    if (item.notes) lines.push(`Notes: ${item.notes}`);
+    lines.push(`${entry.spanish} — ${ui(labels[item.rating] || item.rating)}`);
+    if (item.region) lines.push(`${ui("Region/city:")} ${item.region}`);
+    if (item.notes) lines.push(`${ui("Notes:")} ${item.notes}`);
     lines.push("");
   });
   return lines.join("\n").trim();
@@ -3520,6 +3525,8 @@ function init() {
   if (standaloneTranslator && typeof window.__hablaNativeSpeech === "function") {
     const fullApp = new URL("index.html", location.href);
     fullApp.searchParams.set("start", "translate");
+    const interfaceChoice=new URLSearchParams(location.search).get("ui");
+    if(["en","es"].includes(interfaceChoice)) fullApp.searchParams.set("ui",interfaceChoice);
     location.replace(fullApp.href);
     return;
   }
@@ -3772,7 +3779,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=120").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=121").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);

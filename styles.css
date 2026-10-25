@@ -705,3 +705,8 @@ button:disabled {opacity:.5;}
 .recorded-transcript-pair textarea { box-sizing:border-box; width:100%; max-width:100%; min-width:0; height:clamp(150px,24svh,300px); padding:10px; font:inherit; border:1px solid var(--line); border-radius:12px; white-space:pre-wrap; overflow-wrap:anywhere; overflow-x:hidden; overflow-y:auto; resize:vertical; }
 .recorded-transcript-actions { display:flex; flex-wrap:wrap; gap:8px; }
 @media (max-width:600px) { .recorded-transcript-pair { grid-template-columns:minmax(0,1fr); } }
+
+.interface-language-control { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+.interface-language-control select { min-height:36px; max-width:90px; border:1px solid var(--line); border-radius:10px; padding:4px; background:white; color:var(--green); font:inherit; }
+html[lang="es"] .bottom-nav button { font-size:clamp(9px,2.4vw,11px); padding-inline:3px; min-width:0; white-space:nowrap; }
+html[lang="es"] button, html[lang="es"] summary { overflow-wrap:anywhere; }
