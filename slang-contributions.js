@@ -21,7 +21,18 @@
       if (!Array.isArray(saved)) throw Error('Invalid saved contributions');
       entries = saved.slice(0,50).map(clean).filter(Boolean);
     } catch { status('Saved contributions could not be read. Your form is still available; saving may require device storage access.'); }
-    const exportText = item => ['Habla Ecuador — contribution / aporte','UNVERIFIED USER REPORT · source and regional review pending', ...FIELDS.map(key => key + ': ' + (item[key] || (key === 'usage' ? 'Not specified / unsure' : '')))].join('\n');
+    const ui=text=>typeof HablaUI!=='undefined'?HablaUI.t(text):text;
+    const fieldNames={task:'Task',region:'Country / variety',city:'City / area',term:'Word or expression',meaning:'Meaning',example:'Original example',usage:'Usage type',register:'Tone / register',assessment:'Usage check',evidence:'Evidence and context',reviewer:'Reviewer'};
+    function exportText(item) {
+      const spanish=typeof HablaUI!=='undefined'&&HablaUI.language==='es';
+      const value=key=>{
+        const raw=item[key] || (key==='usage'?'Not specified / unsure':'');
+        if(!spanish||!['task','region','usage','register','assessment'].includes(key))return raw;
+        const option=Array.from(form.elements[key].options).find(option=>option.value===raw);
+        return ui(option?.textContent || raw);
+      };
+      return [ui('Habla Ecuador — contribution / aporte'),ui('UNVERIFIED USER REPORT · source and regional review pending'),...FIELDS.map(key=>(spanish?ui(fieldNames[key]):key)+': '+value(key))].join('\n');
+    }
     function select(item) {
       editing = item.id; dirty = false;
       for (const key of FIELDS) {
@@ -43,7 +54,12 @@
       const heading = document.createElement('p'); heading.textContent = entries.length + ' saved contributions · all pending verification'; list.append(heading);
       for (const item of entries) {
         const row = document.createElement('div'); row.className = 'slang-contribution-actions';
-        const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = item.term + ' · ' + item.region + (item.city ? ' / ' + item.city : '') + ' · Review / edit';
+        const edit = document.createElement('button'); edit.type = 'button';
+        const identity=document.createElement('span');identity.setAttribute('translate','no');identity.textContent=item.term;
+        const region=document.createElement('span');region.textContent=item.region;
+        edit.append(identity,document.createTextNode(' · '),region);
+        if(item.city){const city=document.createElement('span');city.setAttribute('translate','no');city.textContent=item.city;edit.append(document.createTextNode(' / '),city);}
+        edit.append(document.createTextNode(' · Review / edit'));
         edit.addEventListener('click', () => { select(item); status('Loaded for review. Save to keep changes; exports use the last saved version.'); });
         const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Delete'; remove.setAttribute('aria-label','Delete contribution: ' + item.term);
         remove.addEventListener('click', () => {
@@ -84,7 +100,8 @@
     document.getElementById('slang-prompt-next').addEventListener('click', () => {
       const prompts = ['What do friends say for something excellent? / ¿Cómo dicen que algo es muy bueno?', 'What do you say when tired or frustrated? Is it vulgar? / ¿Qué dices al cansarte o frustrarte?', 'Which word changes meaning with the sentence? Give two contexts. / ¿Qué palabra cambia según el contexto?', 'What would you correct in the dictionary? Give the complete phrase. / ¿Qué corregirías? Escribe la frase completa.'];
       const place = [form.elements.region.value,form.elements.city.value.trim()].filter(Boolean).join(' · ');
-      get('prompt').textContent = place + ': ' + prompts[promptIndex++ % prompts.length];
+      const prompt=prompts[promptIndex++ % prompts.length];
+      get('prompt').textContent = place + ': ' + (typeof HablaUI!=='undefined'&&HablaUI.language==='es'?prompt.split(' / ')[1]:prompt);
     });
     async function copy() {
       try { await navigator.clipboard.writeText(output.value); status('Selected contribution copied.'); }
@@ -102,6 +119,7 @@
     }
     get('copy').addEventListener('click', () => send(false));
     get('share').addEventListener('click', () => send(true));
+    document.addEventListener('habla-ui-language-change',()=>{const saved=entries.find(item=>item.id===editing);if(saved)output.value=exportText(saved);});
     render();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
