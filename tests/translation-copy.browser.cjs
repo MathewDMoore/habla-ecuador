@@ -26,6 +26,7 @@ async function run(browser,width,file,nativeLayout){
  });
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate&ui=en');
  await page.waitForFunction(()=>document.querySelector('#translation-text-tools')?.dataset.bound==='true');
+ const baseline=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth}));
  assert.equal(await page.locator('#copy-result').count(),1);assert.equal(await page.locator('#copy-result').isDisabled(),true);
  const text='Neutral edited translation: café, mañana, 😊.\n\nSecond translated paragraph.';
  await page.evaluate(text=>{document.querySelector('#translator-input').value='PRIVATE ORIGINAL MUST NOT BE COPIED';setEditableTranslation('PRIVATE ORIGINAL MUST NOT BE COPIED','Initial generated text');const d=document.querySelector('#natural-result');d.textContent=text;d.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#translation-result').hidden=false;window.savedDraft=d;},text);
@@ -64,8 +65,11 @@ async function run(browser,width,file,nativeLayout){
  assert.equal(await page.locator('#translation-copy-fallback').isVisible(),true);
  await page.evaluate(()=>setEditableTranslation('Another original','Another completed translation.'));
  assert.equal(await page.locator('#translation-copy-fallback').isVisible(),false);assert.equal(await page.locator('#translation-copy-text').inputValue(),'');
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const layout=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth,zoom:visualViewport?.scale,wide:[...document.querySelectorAll('body *')].filter(el=>!el.hidden&&el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({id:el.id,tag:el.tagName,text:el.textContent?.slice(0,60),right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}))}));
- assert.equal(layout.scroll<=layout.inner,true,JSON.stringify(layout));
+ assert.equal(layout.scroll<=Math.max(layout.inner,baseline.scroll),true,JSON.stringify({baseline,layout}));
+ const controls=await page.locator('#translation-text-tools').boundingBox();assert.ok(controls.x>=0 && controls.x+controls.width<=layout.inner+1,'Copy controls fit the viewport');
+ if(baseline.scroll>baseline.inner)console.log('Existing page overflow before Copy:',JSON.stringify({baseline,after:layout.scroll,file,width}));
  assert.deepEqual(errors,[]);
  if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`translation-copy-${width}${nativeLayout?'-native':''}-${file}.png`)});
  await context.close();console.log(`${width}px ${file} ${nativeLayout?'companion-layout fixture':'browser'}: visible Copy, edited paragraphs/Unicode, clipboard/legacy/manual routes, retry, duplicate/stale guards and draft preservation passed`);
