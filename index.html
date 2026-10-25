@@ -8,25 +8,25 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=121">
-  <script src="interface-es.js?v=121" defer></script>
-  <script src="interface-language.js?v=121" defer></script>
-  <script src="research-reference.js?v=121" defer></script>
-  <script src="document-import.js?v=121" defer></script>
-  <script src="whole-document.js?v=121" defer></script>
-  <script src="saved-paper.js?v=121" defer></script>
-  <script src="offline-device.js?v=121" defer></script>
-  <script src="english-varieties.js?v=121" defer></script>
-  <script src="screenshot-import.js?v=121" defer></script>
-  <script src="regional-vocabulary.js?v=121" defer></script>
-  <script src="spanish-context.js?v=121" defer></script>
-  <script src="bilingual-music.js?v=121" defer></script>
-  <script src="button-feedback.js?v=121" defer></script>
-  <script src="regional-practice.js?v=121" defer></script>
-  <script src="recorded-transcripts.js?v=121" defer></script>
-  <script src="recorded-practice.js?v=121" defer></script>
-  <script src="slang-contributions.js?v=121" defer></script>
-  <script src="app.js?v=121" defer></script>
+  <link rel="stylesheet" href="styles.css?v=122">
+  <script src="interface-es.js?v=122" defer></script>
+  <script src="interface-language.js?v=122" defer></script>
+  <script src="research-reference.js?v=122" defer></script>
+  <script src="document-import.js?v=122" defer></script>
+  <script src="whole-document.js?v=122" defer></script>
+  <script src="saved-paper.js?v=122" defer></script>
+  <script src="offline-device.js?v=122" defer></script>
+  <script src="english-varieties.js?v=122" defer></script>
+  <script src="screenshot-import.js?v=122" defer></script>
+  <script src="regional-vocabulary.js?v=122" defer></script>
+  <script src="spanish-context.js?v=122" defer></script>
+  <script src="bilingual-music.js?v=122" defer></script>
+  <script src="button-feedback.js?v=122" defer></script>
+  <script src="regional-practice.js?v=122" defer></script>
+  <script src="recorded-transcripts.js?v=122" defer></script>
+  <script src="recorded-practice.js?v=122" defer></script>
+  <script src="slang-contributions.js?v=122" defer></script>
+  <script src="app.js?v=122" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -35,7 +35,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.11 · build 121</span><label class="interface-language-control" for="interface-language">Language<select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.12 · build 122</span><label class="interface-language-control" for="interface-language">Language<select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div>
     </header>
 
     <main>
@@ -143,6 +143,64 @@
             <button id="swap-button" aria-label="Swap languages">⇄</button>
             <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="es-VE">Venezuelan Spanish</option><option value="es-PE">Peruvian Spanish</option><option value="es-CO">Colombian Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
           </div>
+          <section id="shared-translation-workspace" aria-label="Source and translation">
+          <label class="input-card">
+            <span class="sr-only">Text to translate</span>
+            <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
+          </label>
+            <section id="translation-empty-target" class="result-card" aria-label="Translation"><p class="result-label">Translation</p><p class="empty-translation-hint">Your translation will appear here.</p></section>
+<section id="translation-result" class="result-card" aria-live="polite">
+            <p class="result-label">Natural Ecuadorian Spanish</p>
+            <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
+            <div id="translation-text-tools" class="translation-text-tools" role="group" aria-label="Translation text controls">
+              <button id="translation-expand" type="button" aria-controls="natural-result" aria-expanded="false">Expand</button>
+              <details class="translation-text-options">
+                <summary>Text options</summary>
+                <div class="translation-text-option-actions">
+                  <button id="translation-text-smaller" type="button" aria-label="Smaller translation text">A−</button>
+                  <button id="translation-text-larger" type="button" aria-label="Larger translation text">A+</button>
+                  <button id="translation-text-reset" type="button" disabled>Default size</button>
+                  <button id="translation-select-all" type="button" disabled>Select all</button>
+                </div>
+              </details>
+            </div>
+
+
+          <div class="speed-control result-speed-control">
+            <div class="speed-control-heading">
+              <label for="voice-rate-slider">Playback speed</label>
+              <output id="voice-rate-value" for="voice-rate-slider">Natural · 0.95×</output>
+            </div>
+            <div class="speed-slider-row">
+              <span>Slower</span>
+              <input id="voice-rate-slider" type="range" min="0.55" max="1.20" step="0.05" value="0.95" aria-label="Translation playback speed">
+              <span>Faster</span>
+            </div>
+          </div>
+            <div class="result-actions">
+              <button id="hear-result">🔊 Hear it</button>
+              <button id="pause-result" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
+              <button id="copy-result">Copy</button>
+              <button id="share-result" type="button" disabled>Share translation</button>
+              <button id="restore-translation" hidden>Restore generated</button>
+            </div>
+            <p id="translation-share-status" class="translation-edit-status" role="status" hidden></p>
+            <p id="translation-edit-status" class="translation-edit-status">Tap the draft to edit. Edits stay on this device.</p>
+            <details class="result-notes compact-info"><summary>Translation &amp; playback notes</summary>
+            <p id="literal-result" class="literal-text"></p>
+            <p class="speech-resume-note">Resume may repeat the current sentence if your device does not report word positions.</p>
+            <div id="usage-note" class="usage-note"></div>
+            </details>
+          </section>
+<section id="music-live-preview" class="music-live-preview" aria-label="Latest translated music passage" hidden>
+              <p id="music-live-label" class="result-label">Latest passage draft</p>
+              <p class="music-source-label">Captured words · check against the song</p><p id="music-live-source"></p>
+              <label class="sr-only" for="music-live-draft">Latest translated passage; editable after stopping capture</label>
+              <textarea id="music-live-draft" rows="3" readonly></textarea>
+            </section>
+          </section>
+          <details id="translation-setup" class="compact-info"><summary>Translation setup &amp; import</summary>
           <details class="compact-info"><summary>Language &amp; variety help</summary><p class="language-pair-note">Choose either side independently. Research respects the source variety and discipline; conversational regional adaptations are labeled separately.</p><p>Choose the source country you know. Context notes recognize selected slang and vulgarity, with meaning, tone and sources. City evidence includes chulla in Quito; huerco in Monterrey, Nuevo León; güey/no mames in Mexico City; and selected youth address in Bogotá, Colombia. Caracas, Venezuela and Lima, Peru currently use country-attested guidance; city-specific review is pending. Evidence does not make a word exclusive to a city, guarantee a city accent or identify where a speaker is from. Local meaning notes remain available if the translation service fails.</p></details>
 
           <section class="translation-purpose" aria-labelledby="translation-purpose-title">
@@ -229,11 +287,7 @@
             <details class="compact-info"><summary>How imported text is handled</summary><p>Files and screenshot reading stay on your device. Online translation sends selected text to MyMemory; on-device translation keeps it here. Word/PDF formatting and images are not retained.</p></details>
           </section>
 
-          <label class="input-card">
-            <span class="sr-only">Text to translate</span>
-            <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
-            <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Tap to start speaking; tap again to finish">🎙</button>
-          </label>
+          </details>
           <section class="music-capture document-tools" aria-label="Music listening">
             <label class="music-capture-length" for="music-playback-source">Music playback
               <select id="music-playback-source"><option value="external" selected>Another phone, speaker or computer</option><option value="phone-bluetooth">This phone → Bluetooth speaker</option></select>
@@ -254,12 +308,7 @@
             <p id="music-live-status" class="import-status" role="status" aria-live="polite"></p>
             <button id="music-live-retry" class="secondary-button" type="button" hidden>Retry live translation</button>
             <p id="music-live-pending" class="music-live-pending" hidden></p>
-            <section id="music-live-preview" class="music-live-preview" aria-label="Latest translated music passage" hidden>
-              <p id="music-live-label" class="result-label">Latest passage draft</p>
-              <p class="music-source-label">Captured words · check against the song</p><p id="music-live-source"></p>
-              <label class="sr-only" for="music-live-draft">Latest translated passage; editable after stopping capture</label>
-              <textarea id="music-live-draft" rows="3" readonly></textarea>
-            </section>
+
             <details id="music-review" class="compact-info music-review" hidden>
               <summary id="music-review-heading">Review captured passages</summary>
               <p id="music-review-pair" class="result-label"></p>
@@ -326,48 +375,7 @@
             </div>
           </section>
 
-          <section id="translation-result" class="result-card" aria-live="polite">
-            <p class="result-label">Natural Ecuadorian Spanish</p>
-            <div id="translation-text-tools" class="translation-text-tools" role="group" aria-label="Translation text controls">
-              <button id="translation-expand" type="button" aria-controls="natural-result" aria-expanded="false">Expand</button>
-              <details class="translation-text-options">
-                <summary>Text options</summary>
-                <div class="translation-text-option-actions">
-                  <button id="translation-text-smaller" type="button" aria-label="Smaller translation text">A−</button>
-                  <button id="translation-text-larger" type="button" aria-label="Larger translation text">A+</button>
-                  <button id="translation-text-reset" type="button" disabled>Default size</button>
-                  <button id="translation-select-all" type="button" disabled>Select all</button>
-                </div>
-              </details>
-            </div>
-            <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
 
-          <div class="speed-control result-speed-control">
-            <div class="speed-control-heading">
-              <label for="voice-rate-slider">Playback speed</label>
-              <output id="voice-rate-value" for="voice-rate-slider">Natural · 0.95×</output>
-            </div>
-            <div class="speed-slider-row">
-              <span>Slower</span>
-              <input id="voice-rate-slider" type="range" min="0.55" max="1.20" step="0.05" value="0.95" aria-label="Translation playback speed">
-              <span>Faster</span>
-            </div>
-          </div>
-            <div class="result-actions">
-              <button id="hear-result">🔊 Hear it</button>
-              <button id="pause-result" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
-              <button id="copy-result">Copy</button>
-              <button id="share-result" type="button" disabled>Share translation</button>
-              <button id="restore-translation" hidden>Restore generated</button>
-            </div>
-            <p id="translation-share-status" class="translation-edit-status" role="status" hidden></p>
-            <p id="translation-edit-status" class="translation-edit-status">Tap the draft to edit. Edits stay on this device.</p>
-            <details class="result-notes compact-info"><summary>Translation &amp; playback notes</summary>
-            <p id="literal-result" class="literal-text"></p>
-            <p class="speech-resume-note">Resume may repeat the current sentence if your device does not report word positions.</p>
-            <div id="usage-note" class="usage-note"></div>
-            </details>
-          </section>
 
             <details id="spanish-context" class="result-card result-notes compact-info" hidden><summary>Context &amp; regional expressions</summary><div id="spanish-context-notes" class="usage-note"></div></details>
 
