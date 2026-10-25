@@ -6,6 +6,7 @@ const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,mode,width){
  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+ page.on('crash',()=>console.error(`Dictionary startup page crashed: ${mode} ${width}px`));
  let release;const gate=new Promise(resolve=>release=resolve);
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url()),file=path.join(root,url.pathname.replace('/habla-ecuador/',''));
@@ -63,4 +64,11 @@ async function run(browser,mode,width){
  assert.deepEqual(errors,[],'optional failures must not escape or strand unrelated controls');
  await context.close();console.log('Dictionary startup '+mode+' '+width+'px: bundled categories/search/index work independently of evidence and optional media');
 }
-(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium',browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});try{for(const width of [320,390])for(const mode of ['delayed','failure','optional-error'])await run(browser,mode,width);}finally{await browser.close();}})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
+ // Isolate every failure/recovery scenario as well as its browser context.
+ // WebKit media/process state must not leak from a prior closed context.
+ for(const width of [320,390])for(const mode of ['delayed','failure','optional-error']){
+  const browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
+  try{await run(browser,mode,width);}finally{await browser.close();}
+ }
+})().catch(error=>{console.error(error);process.exitCode=1;});

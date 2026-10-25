@@ -1144,5 +1144,21 @@
   "Try again and make time, sun and set clear.": "Inténtalo otra vez y pronuncia con claridad time, sun y set.",
   "Natural everyday English.": "Inglés cotidiano natural.",
   "Understandable, but less natural for everyday conversation.": "Se entiende, pero suena menos natural en una conversación cotidiana.",
-  "Tap the microphone to start. Tap again when finished.": "Toca el micrófono para empezar. Vuelve a tocarlo cuando termines."
+  "Tap the microphone to start. Tap again when finished.": "Toca el micrófono para empezar. Vuelve a tocarlo cuando termines.",
+  "English video lessons": "Videolecciones de inglés",
+  "Beginner English · introductions and meeting people.": "Inglés para principiantes · presentaciones y conocer gente.",
+  "Documentary listening · Cambridge, U.K., with local hosts and international learners. Several accents; not a single accent model.": "Comprensión de un documental · Cambridge, Reino Unido, con familias locales y estudiantes internacionales. Varios acentos; no es un modelo de un solo acento.",
+  "Play English video": "Reproducir video en inglés",
+  "Pause English video": "Pausar video en inglés",
+  "Stop English video": "Detener video en inglés",
+  "Loading English video…": "Cargando video en inglés…",
+  "Video loads only when you tap Play. Internet required.": "El video se carga al tocar Reproducir. Se necesita internet.",
+  "Use the player's available English captions. Spanish meanings below are study notes, not timed subtitles.": "Usa los subtítulos en inglés disponibles en el reproductor. Los significados en español de abajo son notas de estudio, no subtítulos sincronizados.",
+  "Related speaking practice": "Práctica oral relacionada",
+  "Listen for the greeting, pause the video, then practise the phrase below.": "Escucha el saludo, pausa el video y practica la frase de abajo.",
+  "Watch a short part, pause, then try this related practice sentence. It is a study prompt, not a quoted transcript.": "Mira un fragmento, pausa y prueba esta frase de práctica relacionada. Es una frase para estudiar, no una cita de la transcripción.",
+  "Original English video & learning resources": "Video original en inglés y recursos de aprendizaje",
+  "Video could not play. Open the original English video below. Your practice phrase is kept.": "No se pudo reproducir el video. Abre el video original en inglés abajo. Se conserva tu frase de práctica.",
+  "Listen, pause, then practise the English phrase below.": "Escucha, pausa y practica la frase en inglés de abajo.",
+  "Use the video controls to pause. If the player is unavailable, open the original English video below.": "Usa los controles del video para pausar. Si el reproductor no está disponible, abre el video original en inglés abajo."
 };if(typeof module==="object"&&module.exports)module.exports=strings;else root.HablaInterfaceSpanish=strings;})(typeof window==="object"?window:globalThis);

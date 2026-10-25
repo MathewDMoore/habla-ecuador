@@ -26,7 +26,7 @@ async function run(browser,width,native){
  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
  assert.equal(await page.locator('#lesson-content').getAttribute('data-target-language'),'en-US');
  assert.match(await page.locator('#lesson-learning-goal').textContent(),/Aprende inglés/);
- assert.equal(await page.locator('#recorded-practice').isVisible(),false);assert.equal(await page.locator('#source-practice').isVisible(),false);
+ assert.equal(await page.locator('#recorded-practice').isVisible(),true);assert.equal(await page.locator('#recorded-practice').getAttribute('data-learning-language'),'en-US');assert.equal(await page.locator('#source-practice').isVisible(),false);
  assert.equal(await page.locator('.lesson-target').textContent(),phrase);assert.equal(await page.locator('.lesson-meaning').textContent(),spanish);
  await page.locator('#lesson-play').click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:phrase,lang:'en-US'});
  await page.locator('#lesson-next').click();

@@ -88,3 +88,10 @@ Permission and collaboration requests are prepared for:
 - Living Tongues Institute / Living Dictionaries
 
 The approved request text is stored in `docs/permissions/outreach-kit.md`. A speaker permission form and machine-readable audio source manifest schema were also added. No external audio has been ingested.
+
+## Build 128 English video learning
+
+| Item | Source and permitted use | Runtime handling |
+| --- | --- | --- |
+| VOA Learning English, “Welcome!” | Official lesson https://learningenglish.voanews.com/a/lets-learn-english-lesson-one/3111026.html supplies a direct video. VOA terms https://learningenglish.voanews.com/p/6021.html identify exclusively VOA-produced material as public domain and request credit; third-party materials are excluded. | Original publisher-hosted stream after Play, visible VOA attribution/source link; short greeting and Habla Spanish study meaning. No file rehosting or blanket VOA-content license claim. |
+| EnglishClub / Daniel Emmerson, “Encounters in the UK” | Official film page https://www.englishclub.com/esl-videos/encounters-in-the-uk/ supplies the YouTube embed. Project page https://www.englishclub.com/learning-english-video/about.php explicitly encourages webmasters to embed the films. | Publisher's embedded player after Play, visible attribution/source link. No download, modification, or reproduced transcript. Related study sentence is independently supplied and identified as such. |
