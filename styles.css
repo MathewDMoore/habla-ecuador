@@ -771,3 +771,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 /* Publisher video players fit the same phone-width lesson card. */
 #english-video-player video, #english-video-player iframe { display:block; width:100%; max-width:100%; aspect-ratio:16/9; border:0; border-radius:12px; }
 #english-video-player video[hidden] { display:none; }
+
+#english-video-player.short-video-player iframe { aspect-ratio:9/16; max-height:65vh; background:#111; }
+#english-video-play { display:inline-flex; align-items:center; text-decoration:none; }
+#english-video-guide p { line-height:1.55; }

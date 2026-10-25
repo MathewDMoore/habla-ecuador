@@ -14,3 +14,7 @@ No English player requests its provider until Play. VOA streams its original vid
 ## Validation
 
 `tests/video-lesson.browser.cjs` uses the real DOM at 320px/390px plus the companion JavaScript bridge. Provider playback and speech boundaries are simulated. It checks automatic/explicit learning goals, lazy players, U.S./U.K. microphone locales, video/capture exclusion, source fallback, navigation/close cleanup, preserved Spanish regional choices, and no horizontal overflow. The existing bilingual lesson regression now expects English video availability. Chromium and WebKit CI run both suites. Physical iPhone playback, YouTube availability, real speech recognition, and provider caption availability remain device checks; simulated playback does not establish media decoding.
+
+## Superseded English selections in build 129
+
+The long EnglishClub film and English-only VOA lesson above describe build 128. Build 129 replaces them with four short clips (27–56 seconds), Spanish study guides and a clip selector; see [Short bilingual videos](SHORT_BILINGUAL_VIDEOS.md) for the current catalog, selection evidence and signed-companion playback behavior.
