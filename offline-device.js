@@ -58,7 +58,7 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=125");
+      worker = new Worker("offline-worker.js?v=126");
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
@@ -166,5 +166,5 @@ const HablaOffline = (() => {
       } else status("Pack files downloaded. Tap Validate offline pack to check both directions and offline app files.");
     } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
-  return {bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
+  return {get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();

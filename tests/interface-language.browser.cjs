@@ -16,6 +16,7 @@ const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io',
  await page.waitForFunction(()=>document.querySelector('.bottom-nav').textContent.includes('Diccionario'));
  assert.equal(await page.locator('html').getAttribute('lang'),'es');assert.equal(await page.locator('#interface-language').getAttribute('aria-label'),'Idioma de la interfaz');assert.equal(await page.locator('#regional-slang-region').inputValue(),'monterrey');
  assert.equal(await page.locator('#target-language-select').inputValue(),'es-EC');
+ assert.equal(await page.locator('#feedback-share').textContent(),'Compartir con Mateo');assert.equal(await page.locator('[data-speaker-label=english]').textContent(),'Mateo');assert.equal(await page.locator('#english-speaker-name').inputValue(),'Mathew');
  assert.equal(await page.evaluate(()=>localStorage.getItem('habla-ui-language-v1')),'es');
  assert.deepEqual(await page.locator('select[id], #slang-contribution-form select').evaluateAll(els=>els.map(el=>[el.id,Array.from(el.options).map(o=>o.value)])),original,'UI translation preserves every canonical option value');
  await page.evaluate(()=>{openView('review-view');document.querySelector('#slang-contributions').open=true;});

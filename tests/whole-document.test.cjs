@@ -155,7 +155,7 @@ async function main(){
   }
   const cacheVersion=fs.readFileSync('sw.js','utf8').match(/habla-ecuador-v(\d+)/)[1];
   assert.ok(fs.readFileSync('sw.js','utf8').includes(`whole-document.js?v=${cacheVersion}`));
-  assert.ok(fs.readFileSync('app.js','utf8').includes(`register("sw.js?v=${cacheVersion}")`));
+  assert.ok(fs.readFileSync('app.js','utf8').includes(`register("sw.js?v=${cacheVersion}"`));
   console.log('Whole-document checks passed: sequential processing, pause/resume, reload persistence, segment retries, complete-only export, multiple papers, language preservation, edits, privacy, storage errors and safe printable output.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
