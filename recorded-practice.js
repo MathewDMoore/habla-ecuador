@@ -24,41 +24,80 @@
        cue:'Listen for HO-jas and VER-des. This phrase occurs later in the full example; use the player controls to replay it.'}
     ]
   };
-  // Curated short lessons, with an independent Spanish study guide.
-  // Publisher video lengths and embed availability checked 2026-10-25.
-  const englishCatalog = {
-    'en-US': [
-      {id:'us-clarify',title:'Pedir que te repitan',publisher:'Inglés con el Güero',videoId:'tvK67-n34C8',seconds:54,
-       phrase:"I didn't catch that.",meaning:'No alcancé a entender lo que dijiste.',
-       guide:'Si no entendiste lo que alguien dijo, puedes pedir que lo repita. “I didn’t catch that” se refiere a no haber captado el mensaje; no es atrapar algo con las manos.',
-       task:'Escucha la explicación en español y el modelo en inglés. Después pausa y practica la frase de abajo.'},
-      {id:'us-polite-request',title:'Pedir ayuda con cortesía',publisher:'Inglés con el Güero',videoId:'sXOmujeV3LI',seconds:56,
-       phrase:'I was wondering if you could help me.',meaning:'Quería saber si me podrías ayudar.',
-       guide:'“I was wondering if…” permite suavizar una petición. Aunque empieza en pasado, aquí puede introducir algo que quieres pedir ahora.',
-       task:'Escucha cómo empieza la petición. Después practica la frase completa, sin traducir cada palabra por separado.'}
+  // Original Habla teaching content; device voices and existing recognition.
+  const originalEnglishLessons = [
+  {
+    "id": "introductions",
+    "title": "Conocer a alguien",
+    "scene": "Conoces a una persona nueva en el trabajo. Quieres responder con amabilidad.",
+    "explanation": "Después de conocer a alguien, esta frase expresa que te da gusto conocerlo. Aprende la expresión completa y escucha cómo se unen las palabras.",
+    "context": "Hi, I'm Ana.",
+    "contextMeaning": "Hola, soy Ana.",
+    "phrase": "Nice to meet you.",
+    "meaning": "Mucho gusto.",
+    "chunks": [
+      "Nice",
+      "to meet you"
     ],
-    'en-GB': [
-      {id:'uk-repeat',title:'Pedir que repitan algo',publisher:'Amigos Ingleses · Phillip e Isabel',videoId:'aDZPOgdF_8Y',seconds:44,
-       phrase:'Could you repeat that, please?',meaning:'¿Podrías repetir eso, por favor?',
-       guide:'Para pedir que repitan lo que dijeron, usa “repeat that” o “say that again”. No traduzcas literalmente “¿me repites?” como “repeat me”.',
-       task:'Mira la corrección en el video. Después practica esta petición cortés relacionada con el mismo tema.'},
-      {id:'uk-hungry',title:'Decir que tienes hambre',publisher:'Amigos Ingleses · Phillip e Isabel',videoId:'T0be2na0mOM',seconds:27,
-       phrase:"I'm hungry.",meaning:'Tengo hambre.',
-       guide:'En español dices “tengo hambre”; en inglés usas “I am hungry”. “I’m” es la forma corta y cotidiana de “I am”.',
-       task:'Escucha el ejemplo corto. Después di “I’m hungry” y fíjate en la diferencia entre “hungry” y “angry” (enojado).'}
-    ]
-  };
-  let learningLocale = 'es-EC', embeddedPlayer = null;
+    "task": "Ana se acaba de presentar. Responde que te da gusto conocerla."
+  },
+  {
+    "id": "repeat",
+    "title": "Pedir que repitan",
+    "scene": "Una persona habla muy rápido y no alcanzas a entender. Quieres escuchar el mensaje otra vez.",
+    "explanation": "Puedes pedir que la otra persona repita usando una pregunta cortés. Al final, agrega por favor. No necesitas disculparte por estar aprendiendo.",
+    "context": "The meeting starts at nine.",
+    "contextMeaning": "La reunión empieza a las nueve.",
+    "phrase": "Could you say that again, please?",
+    "meaning": "¿Podrías repetir eso, por favor?",
+    "chunks": [
+      "Could you",
+      "say that again",
+      "please"
+    ],
+    "task": "No entendiste bien la hora de la reunión. Pide que repitan el mensaje."
+  },
+  {
+    "id": "coffee",
+    "title": "Pedir un café",
+    "scene": "Estás en una cafetería y te preguntan qué deseas. Pide un café de forma cortés.",
+    "explanation": "Esta expresión sirve para pedir algo que te gustaría recibir. Apréndela como un bloque y cambia el producto cuando lo necesites. La palabra final añade cortesía.",
+    "context": "What would you like?",
+    "contextMeaning": "¿Qué te gustaría pedir?",
+    "phrase": "I'd like a coffee, please.",
+    "meaning": "Quisiera un café, por favor.",
+    "chunks": [
+      "I'd like",
+      "a coffee",
+      "please"
+    ],
+    "task": "La persona que atiende espera tu pedido. Pide un café y di por favor."
+  },
+  {
+    "id": "hungry",
+    "title": "Decir que tienes hambre",
+    "scene": "Estás caminando con una amistad y quieres parar para comer. Explica cómo te sientes.",
+    "explanation": "En español dices que tienes hambre. En inglés describes cómo estás, usando el verbo ser o estar y un adjetivo. Escucha la forma corta que se usa en la conversación cotidiana.",
+    "context": "Would you like to stop for lunch?",
+    "contextMeaning": "¿Te gustaría parar para almorzar?",
+    "phrase": "I'm hungry.",
+    "meaning": "Tengo hambre.",
+    "chunks": [
+      "I'm",
+      "hungry"
+    ],
+    "task": "Tu amistad propone parar para almorzar. Di que tienes hambre."
+  }
+];
+  const englishCatalog = {'en-US':originalEnglishLessons,'en-GB':originalEnglishLessons};
+  let learningLocale = 'es-EC', englishStage = 1;
   const selectedEnglish = {};
   let selected = catalog.items[0].id, player = null, generation = 0, spanishSubtitles = true;
   function pause() {
     generation += 1;
     if (player) player.pause();
-    if (embeddedPlayer) {
-      embeddedPlayer.remove(); embeddedPlayer = null;
-      const button = document.getElementById('english-video-play');
-      if (button) { button.textContent = '▶ Play English video'; button.setAttribute('aria-pressed','false'); }
-    }
+    if (learningLocale !== 'es-EC') root.stopSpeechPlayback();
+
   }
   function leave() {
     pause();
@@ -75,46 +114,58 @@
   function renderEnglish(host) {
     const items=englishCatalog[learningLocale], locale=learningLocale;
     const item=items.find(i=>i.id===selectedEnglish[locale]) || items[0];
-    selectedEnglish[locale]=item.id;
+    selectedEnglish[locale]=item.id;englishStage=1;player=null;
     const content=document.getElementById('recorded-practice-content'), escape=value=>root.escapeHtml(value);
-    const native=typeof root.__hablaNativeSpeech === 'function';
-    const source='https://www.youtube.com/watch?v='+item.videoId;
-    player=null;
     content.innerHTML=`
-      <label>Choose a short lesson<select id="english-video-select">${items.map(i=>`<option value="${i.id}" ${i.id===item.id?'selected':''}>${escape(i.title)} · ${i.seconds} s</option>`).join('')}</select></label>
-      <h3 data-ui-content>${escape(item.title)}</h3>
-      <p id="english-video-duration">${item.seconds} s · <span>Short video + Spanish study guide</span></p>
-      <details id="english-video-guide" class="compact-info" open><summary>Before watching · Spanish guide</summary><p lang="es" data-ui-content>${escape(item.guide)}</p></details>
-      ${native?`<a id="english-video-play" class="secondary-button" href="${source}" target="_blank" rel="noreferrer">▶ Watch short video</a>`:`<button type="button" id="english-video-play" class="secondary-button" aria-pressed="false">▶ Play English video</button>`}
-      <div id="english-video-player" class="short-video-player"></div>
-      <p id="english-video-status" role="status">${native?'The video opens in your browser. Return here for speaking practice.':'Video loads only when you tap Play. Internet required.'}</p>
-      <article class="expression-card" data-practice-text="${escape(item.phrase)}" data-practice-lang="${locale}">
-        <h3>Your turn · say it aloud</h3><p lang="${locale}" data-ui-content>${escape(item.phrase)}</p><p lang="es" data-ui-content>${escape(item.meaning)}</p><p lang="es" data-ui-content>${escape(item.task)}</p>
-      </article>
-      <p data-ui-content>${escape(item.publisher)}</p>
-      <p>Habla's study guide and speaking prompt are separate from the creator's video. These phrases are useful in both English varieties; the selected variety controls the device voice and microphone.</p>
-      <a href="${source}" target="_blank" rel="noreferrer">Original English video &amp; learning resources</a>`;
-    const container=content.querySelector('#english-video-player'), button=content.querySelector('#english-video-play'), status=content.querySelector('#english-video-status');
-    const visible=()=>button.isConnected && locale===learningLocale && host.open && host.closest('.view')?.classList.contains('active') && !document.hidden;
-    button.addEventListener('click',()=>{
-      if(!visible())return;
-      if(embeddedPlayer){pause();return;}
-      root.cancelListening(false);root.cancelDictionaryPractice();root.cancelMusicListening();root.stopSpeechPlayback();
-      document.querySelectorAll('audio,video').forEach(other=>other.pause());
-      if(native)return; // The signed companion opens external links; do not create a blocked subframe.
-      const iframe=document.createElement('iframe');iframe.title=item.title;
-      iframe.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';iframe.allowFullscreen=true;
-      iframe.referrerPolicy='strict-origin-when-cross-origin';
-      iframe.src='https://www.youtube.com/embed/'+item.videoId+'?rel=0&playsinline=1&cc_load_policy=1&autoplay=1';
-      container.append(iframe);embeddedPlayer=iframe;
-      button.textContent='■ Stop English video';button.setAttribute('aria-pressed','true');
-      status.textContent='Watch the short video, stop playback, then practise below. If it cannot play, open the original video link.';
+      <label>Choose a speaking lesson<select id="english-lesson-select">${items.map(i=>`<option value="${i.id}" ${i.id===item.id?'selected':''}>${escape(i.title)}</option>`).join('')}</select></label>
+      <h3 lang="es" data-ui-content>${escape(item.title)}</h3>
+      <p>Understand, listen, then speak.</p>
+      <div class="english-mini-steps" role="group" aria-label="Mini lesson steps"><button type="button" data-mini-step="1">1 · Understand</button><button type="button" data-mini-step="2">2 · Listen</button><button type="button" data-mini-step="3">3 · Speak</button></div>
+      <section id="english-mini-understand" data-mini-panel="1">
+        <p class="english-mini-scene" lang="es" data-ui-content>${escape(item.scene)}</p>
+        <p lang="es" data-ui-content>${escape(item.explanation)}</p>
+        <button type="button" id="english-explanation-hear" class="secondary-button">🔊 Hear Spanish explanation</button>
+        <button type="button" class="primary-button" data-mini-next="2">Hear the English example →</button>
+      </section>
+      <section id="english-mini-listen" data-mini-panel="2" hidden>
+        <div class="english-mini-dialogue">
+          <p><small>The other person</small><br><span lang="${locale}" data-ui-content>${escape(item.context)}</span><br><span lang="es" data-ui-content>${escape(item.contextMeaning)}</span></p>
+          <button type="button" id="english-context-hear" class="secondary-button">🔊 Hear the other person</button>
+          <p class="english-mini-reply"><small>You</small><br><strong lang="${locale}" data-ui-content>${escape(item.phrase)}</strong><br><span lang="es" data-ui-content>${escape(item.meaning)}</span></p>
+        </div>
+        <button type="button" id="english-model-hear" class="secondary-button">🔊 Hear your reply</button>
+        <p>Listen to each part, then hear the whole reply again.</p>
+        <div class="english-mini-chunks">${item.chunks.map(chunk=>`<button type="button" data-english-chunk="${escape(chunk)}" lang="${locale}" data-ui-content>🔊 ${escape(chunk)}</button>`).join('')}</div>
+        <button type="button" class="primary-button" data-mini-next="3">Now practise speaking →</button>
+      </section>
+      <section id="english-mini-speak" data-mini-panel="3" hidden>
+        <p lang="es" data-ui-content>${escape(item.task)}</p>
+        <article class="expression-card" data-practice-text="${escape(item.phrase)}" data-practice-lang="${locale}">
+          <h3>Your reply</h3><p lang="${locale}" data-ui-content>${escape(item.phrase)}</p><p lang="es" data-ui-content>${escape(item.meaning)}</p>
+        </article>
+        <button type="button" id="english-mini-finish" class="primary-button">Done practising</button>
+      </section>
+      <p id="english-mini-status" role="status"></p>
+      <p>Device voices provide the model. Available voices depend on your device; recognized-word feedback is not an accent score.</p>`;
+    const stage = next => {
+      root.cancelDictionaryPractice(host);root.stopSpeechPlayback();englishStage=next;
+      content.querySelectorAll('[data-mini-panel]').forEach(el=>{el.hidden=Number(el.dataset.miniPanel)!==next;});
+      content.querySelectorAll('[data-mini-step]').forEach(el=>{el.setAttribute('aria-pressed',String(Number(el.dataset.miniStep)===next));});
+      content.dataset.stage=String(next);
+    };
+    content.querySelectorAll('[data-mini-step],[data-mini-next]').forEach(button=>button.addEventListener('click',()=>stage(Number(button.dataset.miniStep||button.dataset.miniNext))));
+    content.querySelector('#english-explanation-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.explanation,'es-EC');});
+    content.querySelector('#english-context-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.context,locale);});
+    content.querySelector('#english-model-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.phrase,locale);});
+    content.querySelectorAll('[data-english-chunk]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(button.dataset.englishChunk,locale);}));
+    content.querySelector('#english-lesson-select').addEventListener('change',event=>{
+      root.cancelDictionaryPractice(host);leave();selectedEnglish[locale]=event.target.value;renderEnglish(host);
     });
-    content.querySelector('#english-video-select').addEventListener('change',event=>{
-      root.cancelDictionaryPractice(host);root.stopSpeechPlayback();leave();selectedEnglish[locale]=event.target.value;renderEnglish(host);
+    content.querySelector('#english-mini-finish').addEventListener('click',()=>{
+      root.cancelDictionaryPractice(host);root.stopSpeechPlayback();englishStage=1;
+      content.querySelector('#english-mini-status').textContent='Practice finished. Repeat this lesson or choose another situation.';
     });
-    root.bindDictionaryPractice(host);
-    content.querySelector('.dictionary-practice').open=true;
+    root.bindDictionaryPractice(host);content.querySelector('.dictionary-practice').open=true;stage(1);
   }
   function render() {
     const host = document.getElementById('recorded-practice');
@@ -122,7 +173,7 @@
     leave();
     host.hidden = false;
     host.dataset.learningLanguage = learningLocale;
-    host.querySelector(':scope > summary').textContent = learningLocale === 'es-EC' ? 'Native voices · regional speaking pilot' : 'English video lessons';
+    host.querySelector(':scope > summary').textContent = learningLocale === 'es-EC' ? 'Native voices · regional speaking pilot' : 'English lessons · listen and speak';
     if (!host.dataset.recordedBound) {
       host.dataset.recordedBound='true';
       host.addEventListener('toggle',()=>{if(!host.open){leave();root.cancelDictionaryPractice(host);}});
@@ -200,7 +251,7 @@
     practice.open = true;
     practice.querySelector('.dictionary-practice-hear').textContent='🔊 Hear device voice';
   }
-  const api = {catalog,englishCatalog,render,setLearningLanguage,pause,leave,isPlaying:()=>Boolean(embeddedPlayer || (player && !player.paused))};
+  const api = {catalog,englishCatalog,render,setLearningLanguage,pause,leave,isPlaying:()=>Boolean(player && !player.paused),isProtected:()=>Boolean(learningLocale!=='es-EC' && englishStage>1 && document.getElementById('recorded-practice')?.open && document.getElementById('recorded-practice')?.closest('.view')?.classList.contains('active'))};
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.HablaRecordedPractice = api;

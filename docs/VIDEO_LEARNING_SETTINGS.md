@@ -18,3 +18,7 @@ No English player requests its provider until Play. VOA streams its original vid
 ## Superseded English selections in build 129
 
 The long EnglishClub film and English-only VOA lesson above describe build 128. Build 129 replaces them with four short clips (27–56 seconds), Spanish study guides and a clip selector; see [Short bilingual videos](SHORT_BILINGUAL_VIDEOS.md) for the current catalog, selection evidence and signed-companion playback behavior.
+
+## Current English lessons: build 130
+
+External English videos are retired following Mathew's feedback about promotion. English learning now stays inside Habla with original Spanish explanations, English models/chunks and speaking practice: [Original English lessons](ORIGINAL_ENGLISH_LESSONS.md). The earlier video catalogs in this document are historical.

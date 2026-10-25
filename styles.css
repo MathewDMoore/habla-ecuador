@@ -768,10 +768,15 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #feedback-share {width:100%;}
 #app-feedback .feedback-heading {position:sticky;top:-18px;z-index:1;padding:8px 0;background:var(--cream,#fff9ef);}
 
-/* Publisher video players fit the same phone-width lesson card. */
-#english-video-player video, #english-video-player iframe { display:block; width:100%; max-width:100%; aspect-ratio:16/9; border:0; border-radius:12px; }
-#english-video-player video[hidden] { display:none; }
-
-#english-video-player.short-video-player iframe { aspect-ratio:9/16; max-height:65vh; background:#111; }
-#english-video-play { display:inline-flex; align-items:center; text-decoration:none; }
-#english-video-guide p { line-height:1.55; }
+/* Original, phone-sized speaking lessons. */
+.english-mini-steps,.english-mini-chunks { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0; }
+.english-mini-steps button { flex:1; min-width:0; padding:10px 6px; font-size:.85rem; }
+.english-mini-steps button[aria-pressed="true"] { background:var(--green,#19483d); color:white; }
+.english-mini-scene { padding:16px; background:#f8ead4; border-radius:14px; line-height:1.6; }
+.english-mini-dialogue p { padding:14px; border:1px solid #e4d9c5; border-radius:12px; line-height:1.6; }
+.english-mini-dialogue .english-mini-reply { background:#eaf4ef; }
+#recorded-practice-content [data-mini-panel]>.primary-button { margin-top:14px; width:100%; }
+#recorded-practice-content [data-mini-panel][hidden] { display:none; }
+.english-mini-steps button,.english-mini-chunks button { min-height:44px; border:1px solid #d9cfbd; border-radius:12px; background:#fffdf8; color:#19483d; font-family:inherit; }
+.english-mini-chunks button { padding:10px 14px; font-size:1rem; }
+.english-mini-steps button { padding:10px 2px; font-size:.78rem; overflow-wrap:normal; word-break:normal; }
