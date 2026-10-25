@@ -1,5 +1,5 @@
-const CACHE = "habla-ecuador-v125";
-const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=125", "app.js?v=125", "app-feedback.js?v=125", "interface-es.js?v=125", "interface-language.js?v=125", "regional-practice.js?v=125", "recorded-practice.js?v=125", "recorded-transcripts.js?v=125", "captions/beg05d.es.vtt?v=125", "captions/adv06c.es.vtt?v=125", "captions/beg05a.es.vtt?v=125", "captions/beg03c.es.vtt?v=125", "slang-contributions.js?v=125", "screenshot-import.js?v=125", "spanish-context.js?v=125", "regional-vocabulary.js?v=125", "bilingual-music.js?v=125", "button-feedback.js?v=125", "english-varieties.js?v=125", "offline-device.js?v=125", "offline-worker.js?v=125", "document-import.js?v=125", "whole-document.js?v=125", "saved-paper.js?v=125", "research-reference.js?v=125", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
+const CACHE = "habla-ecuador-v126";
+const ASSETS = ["./", "index.html", "translator.html", "styles.css?v=126", "app.js?v=126", "app-updates.js?v=126", "app-feedback.js?v=126", "interface-es.js?v=126", "interface-language.js?v=126", "regional-practice.js?v=126", "recorded-practice.js?v=126", "recorded-transcripts.js?v=126", "captions/beg05d.es.vtt?v=126", "captions/adv06c.es.vtt?v=126", "captions/beg05a.es.vtt?v=126", "captions/beg03c.es.vtt?v=126", "slang-contributions.js?v=126", "screenshot-import.js?v=126", "spanish-context.js?v=126", "regional-vocabulary.js?v=126", "bilingual-music.js?v=126", "button-feedback.js?v=126", "english-varieties.js?v=126", "offline-device.js?v=126", "offline-worker.js?v=126", "document-import.js?v=126", "whole-document.js?v=126", "saved-paper.js?v=126", "research-reference.js?v=126", "manifest.webmanifest", "translator.webmanifest", "app-icon.svg", "data/learner-entries-v1.json", "data/vocabulary.json", "data/candidate-lexicon.json", "data/sources.json", "data/review-queue.json", "data/ecuador-bolivia-comparisons-v1.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
@@ -21,6 +21,8 @@ self.addEventListener("message", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+  // Release checks must reach the server; an offline cache is not freshness evidence.
+  if (new URL(event.request.url).origin === self.location.origin && new URL(event.request.url).pathname.endsWith("/app-version.json")) return;
   const runtimeBase = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/";
   const runtimeUrls = ["transformers.min.js", "ort-wasm-simd.wasm", "ort-wasm.wasm"].map(file => runtimeBase + file);
   if (runtimeUrls.includes(event.request.url)) {

@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.15 · build 125";
+const APP_VERSION = "0.26.16 · build 126";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3912,7 +3912,16 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=125").catch(() => {});
+  const updateRegistration = "serviceWorker" in navigator
+    ? navigator.serviceWorker.register("sw.js?v=126", {updateViaCache:"none"}).catch(() => null)
+    : Promise.resolve(null);
+  if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
+    recognition || activeRecognitionButton || dictionaryPracticeSession || musicListening || musicCapturedText || musicPassages.length
+    || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
+    || documentImportActive || documentLoading || importedDocument || wholeDocumentTools?.runner?.busy
+    || musicReviewBusy || translationSharePending || appSharePending || activeSpeechPlayback
+    || (typeof HablaOffline!=="undefined" && HablaOffline.busy)
+  )});
 }
 
 document.addEventListener("DOMContentLoaded", initDictionary);

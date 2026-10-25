@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {buildNumber,release}=require('../app-updates.js'),{metadata}=require('../scripts/write-release.cjs');
+assert.equal(buildNumber('0.26.16 · build 126'),126);assert.equal(buildNumber('invalid'),0);
+for(const bad of [null,{}, {version:'bad',build:127},{version:'0.26.17',build:'127'},{version:'0.26.17',build:-1}])assert.equal(release(bad),null);
+assert.deepEqual(release({version:'0.26.17',build:127,other:'ignored'}),{version:'0.26.17',build:127});
+assert.deepEqual(metadata(require('node:path').resolve(__dirname,'..')),{version:'0.26.16',build:126});
+assert.ok(fs.readFileSync('.github/workflows/deploy-pages.yml','utf8').includes('node scripts/write-release.cjs'));
+for(const f of ['index.html','translator.html','sw.js'])assert.ok(fs.readFileSync(f,'utf8').includes('app-updates.js?v=126'));
+const app=fs.readFileSync('app.js','utf8');for(const flag of ['dictionaryPracticeSession','musicListening','importedDocument','HablaOffline.busy','turns.length'])assert.ok(app.includes(flag));
+const sw=fs.readFileSync('sw.js','utf8');assert.ok(sw.indexOf('app-version.json')<sw.indexOf('event.respondWith'));
+console.log('Automatic updates: release schema, generated build metadata, deployment wiring, offline shell and work protection hooks passed');
