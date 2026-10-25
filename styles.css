@@ -788,3 +788,5 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .translation-copy-fallback textarea { display:block; box-sizing:border-box; width:100%; min-height:120px; margin:8px 0; padding:12px; color:#173e34; background:#fff; border:1px solid #b9d2c3; border-radius:10px; font:inherit; font-size:16px; user-select:text; -webkit-user-select:text; -webkit-touch-callout:default; }
 .translation-copy-fallback button { min-height:44px; margin:4px; padding:9px 12px; border-radius:10px; }
 .translation-copy-fallback[hidden],#translation-copy-status[hidden] { display:none; }
+#translation-text-tools,#translation-copy-status,#translation-copy-fallback { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.translation-copy-fallback textarea { min-width:0; max-width:100%; }

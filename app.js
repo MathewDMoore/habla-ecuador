@@ -1867,7 +1867,7 @@ function legacyCopyTranslation(text) {
   const ranges=selection ? Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange()) : [];
   const caret=active && typeof active.selectionStart==='number' ? [active.selectionStart,active.selectionEnd,active.selectionDirection] : null;
   const field=document.createElement('textarea');field.value=text;field.readOnly=true;
-  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:-10000px;top:0;opacity:0;pointer-events:none';
+  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:-10000px;top:0;opacity:0;pointer-events:none;font-size:16px';
   document.body.append(field);
   try{field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);return document.execCommand?.('copy')===true;}
   catch{return false;}
