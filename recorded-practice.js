@@ -24,19 +24,116 @@
        cue:'Listen for HO-jas and VER-des. This phrase occurs later in the full example; use the player controls to replay it.'}
     ]
   };
+  // These are English-learning videos, not translated Spanish recordings.
+  const englishCatalog = {
+    'en-US': {title:'Welcome! · meeting people', publisher:'VOA Learning English',
+      source:'https://learningenglish.voanews.com/a/lets-learn-english-lesson-one/3111026.html',
+      media:'https://voa-video-ns.akamaized.net/pangeavideo/2021/02/5/5f/5f00c78a-0f84-41e6-949d-bd808bcadf50.mp4',
+      phrase:'Nice to meet you.', meaning:'Mucho gusto.',
+      note:'Beginner English · introductions and meeting people.',
+      cue:'Listen for the greeting, pause the video, then practise the phrase below.'},
+    'en-GB': {title:'Encounters in the UK · learning abroad', publisher:'EnglishClub · Daniel Emmerson',
+      source:'https://www.englishclub.com/esl-videos/encounters-in-the-uk/',
+      embed:'https://www.youtube.com/embed/3lzLacwh8Xc?rel=0&playsinline=1&cc_load_policy=1&cc_lang_pref=en&autoplay=1',
+      phrase:"I'm learning English.", meaning:'Estoy aprendiendo inglés.',
+      note:'Documentary listening · Cambridge, U.K., with local hosts and international learners. Several accents; not a single accent model.',
+      cue:'Watch a short part, pause, then try this related practice sentence. It is a study prompt, not a quoted transcript.'}
+  };
+  let learningLocale = 'es-EC', embeddedPlayer = null, englishPending = false;
   let selected = catalog.items[0].id, player = null, generation = 0, spanishSubtitles = true;
   function pause() {
     generation += 1;
     if (player) player.pause();
+    if (embeddedPlayer) {
+      embeddedPlayer.remove(); embeddedPlayer = null;
+      const button = document.getElementById('english-video-play');
+      if (button) { button.textContent = '▶ Play English video'; button.setAttribute('aria-pressed','false'); }
+    }
   }
   function leave() {
     pause();
     if (root.HablaRecordedTranscripts) root.HablaRecordedTranscripts.cancel();
   }
+  function setLearningLanguage(locale) {
+    const next = englishCatalog[locale] ? locale : 'es-EC';
+    const host = document.getElementById('recorded-practice');
+    if (!host || (next === learningLocale && host.dataset.learningLanguage === next)) return;
+    root.cancelDictionaryPractice(host);
+    learningLocale = next;
+    render();
+  }
+  function renderEnglish(host) {
+    const item = englishCatalog[learningLocale], locale = learningLocale;
+    const content = document.getElementById('recorded-practice-content'), escape = value => root.escapeHtml(value);
+    player = null; englishPending = false;
+    content.innerHTML = `
+      <h3 data-ui-content>${escape(item.title)}</h3>
+      <p>${escape(item.note)}</p>
+      <button type="button" id="english-video-play" class="secondary-button" aria-pressed="false">▶ Play English video</button>
+      <div id="english-video-player"></div>
+      <p id="english-video-status" role="status">Video loads only when you tap Play. Internet required.</p>
+      <p>Use the player's available English captions. Spanish meanings below are study notes, not timed subtitles.</p>
+      <article class="expression-card" data-practice-text="${escape(item.phrase)}" data-practice-lang="${locale}">
+        <h3>Related speaking practice</h3><p lang="${locale}" data-ui-content>${escape(item.phrase)}</p><p lang="es-EC" data-ui-content>${escape(item.meaning)}</p><p>${escape(item.cue)}</p>
+      </article>
+      <p data-ui-content>${escape(item.publisher)}</p>
+      <a href="${item.source}" target="_blank" rel="noreferrer">Original English video &amp; learning resources</a>`;
+    const container = content.querySelector('#english-video-player'), button = content.querySelector('#english-video-play'), status = content.querySelector('#english-video-status');
+    const current = () => button.isConnected && locale === learningLocale && host.dataset.learningLanguage === locale;
+    const visible = () => current() && host.open && host.closest('.view')?.classList.contains('active') && !document.hidden;
+    const idle = () => {button.textContent='▶ Play English video';button.setAttribute('aria-pressed','false');};
+    const preparePlayback = () => {
+      root.cancelListening(false);
+      root.cancelDictionaryPractice();root.cancelMusicListening();root.stopSpeechPlayback();
+      document.querySelectorAll('audio,video').forEach(other=>{if(other!==player)other.pause();});
+    };
+    if (item.media) {
+      container.innerHTML = `<video id="english-practice-video" lang="${locale}" controls playsinline preload="none" hidden aria-label="${escape(item.title)}"></video>`;
+      const video = player = container.querySelector('video');
+      button.addEventListener('click',async () => {
+        if (englishPending || !visible()) return;
+        if (!video.paused) {pause();return;}
+        preparePlayback();video.hidden=false;
+        if (!video.getAttribute('src')) video.src=item.media;
+        const token=++generation;englishPending=true;button.textContent='Loading English video…';
+        try {await video.play();if(!current() || token!==generation || !visible())video.pause();}
+        catch(error){if(current() && token===generation && error?.name!=='AbortError'){idle();status.textContent='Video could not play. Open the original English video below. Your practice phrase is kept.';}}
+        finally {if(current())englishPending=false;}
+      });
+      video.addEventListener('play',()=>{
+        if(!visible()){video.pause();return;}preparePlayback();
+        button.textContent='Ⅱ Pause English video';button.setAttribute('aria-pressed','true');status.textContent='Listen, pause, then practise the English phrase below.';
+      });
+      video.addEventListener('pause',idle);video.addEventListener('ended',idle);
+      video.addEventListener('error',()=>{if(current()){idle();status.textContent='Video could not play. Open the original English video below. Your practice phrase is kept.';}});
+    } else {
+      button.addEventListener('click',()=>{
+        if (!visible()) return;
+        if (embeddedPlayer) {pause();return;}
+        preparePlayback();
+        const iframe = document.createElement('iframe');iframe.title=item.title;
+        iframe.allow='autoplay; encrypted-media; fullscreen; picture-in-picture';iframe.allowFullscreen=true;
+        iframe.referrerPolicy='strict-origin-when-cross-origin';iframe.src=item.embed;
+        container.append(iframe);embeddedPlayer=iframe;
+        button.textContent='■ Stop English video';button.setAttribute('aria-pressed','true');
+        status.textContent='Use the video controls to pause. If the player is unavailable, open the original English video below.';
+      });
+    }
+    root.bindDictionaryPractice(host);
+    content.querySelector('.dictionary-practice').open=true;
+  }
   function render() {
     const host = document.getElementById('recorded-practice');
     if (!host) return;
     leave();
+    host.hidden = false;
+    host.dataset.learningLanguage = learningLocale;
+    host.querySelector(':scope > summary').textContent = learningLocale === 'es-EC' ? 'Native voices · regional speaking pilot' : 'English video lessons';
+    if (!host.dataset.recordedBound) {
+      host.dataset.recordedBound='true';
+      host.addEventListener('toggle',()=>{if(!host.open){leave();root.cancelDictionaryPractice(host);}});
+    }
+    if (learningLocale !== 'es-EC') { renderEnglish(host); return; }
     const item = catalog.items.find(i=>i.id === selected) || catalog.items[0];
     const content = document.getElementById('recorded-practice-content');
     const escape = value => root.escapeHtml(value);
@@ -108,12 +205,8 @@
     const practice = content.querySelector('.dictionary-practice');
     practice.open = true;
     practice.querySelector('.dictionary-practice-hear').textContent='🔊 Hear device voice';
-    if (!host.dataset.recordedBound) {
-      host.dataset.recordedBound='true';
-      host.addEventListener('toggle',()=>{if(!host.open){leave();root.cancelDictionaryPractice(host);}});
-    }
   }
-  const api = {catalog,render,pause,leave};
+  const api = {catalog,englishCatalog,render,setLearningLanguage,pause,leave,isPlaying:()=>Boolean(englishPending || embeddedPlayer || (player && !player.paused))};
   if (typeof module === 'object' && module.exports) module.exports = api;
   else {
     root.HablaRecordedPractice = api;
