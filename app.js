@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.20 · build 130";
+const APP_VERSION = "0.26.21 · build 131";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1731,6 +1731,7 @@ function persistTranslationEdits() {
 }
 
 let translationSharePending = false;
+let translationCopyPending = false;
 
 function bindTranslationTextTools() {
   const tools = $("#translation-text-tools"), draft = $("#natural-result");
@@ -1739,6 +1740,11 @@ function bindTranslationTextTools() {
   // The installed companion puts unknown result children in its notes dropdown.
   // Move only these new controls back beside the same editable translation.
   draft.before(tools);
+  // Recover hosted controls from the installed companion's collapsed notes.
+  tools.after($("#translation-copy-status"),$("#translation-copy-fallback"));
+  $("#copy-result").addEventListener("click",()=>copyTranslation());
+  $("#translation-copy-retry").addEventListener("click",()=>copyTranslation({legacyFirst:true}));
+  $("#translation-copy-close").addEventListener("click",clearTranslationCopyFallback);
   const expand = $("#translation-expand"), smaller = $("#translation-text-smaller");
   const larger = $("#translation-text-larger"), reset = $("#translation-text-reset");
   const syncSize = () => {
@@ -1851,6 +1857,58 @@ async function shareApp(copyOnly=false) {
   }
 }
 
+function clearTranslationCopyFallback() {
+  const field=$("#translation-copy-text"),fallback=$("#translation-copy-fallback");
+  // Dismiss iOS textarea selection before hiding its field; otherwise selection
+  // handles can remain attached to an invisible, horizontally scrolled editor.
+  if(field){if(document.activeElement===field){field.setSelectionRange(0,0);field.blur();}field.value='';}
+  if(fallback)fallback.hidden=true;
+}
+
+function renderedTranslationText() {
+  const draft=$("#natural-result");
+  return (draft?.innerText ?? draft?.textContent ?? "").trim();
+}
+
+function legacyCopyTranslation(text) {
+  const active=document.activeElement, selection=window.getSelection();
+  const ranges=selection ? Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange()) : [];
+  const caret=active && typeof active.selectionStart==='number' ? [active.selectionStart,active.selectionEnd,active.selectionDirection] : null;
+  const field=document.createElement('textarea');field.value=text;field.readOnly=true;
+  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:-10000px;top:0;opacity:0;pointer-events:none;font-size:16px';
+  document.body.append(field);
+  try{field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);return document.execCommand?.('copy')===true;}
+  catch{return false;}
+  finally{
+    field.remove();
+    try{if(active?.isConnected)active.focus({preventScroll:true});if(caret)active.setSelectionRange(...caret);
+      if(selection){selection.removeAllRanges();for(const range of ranges)if(range.commonAncestorContainer.isConnected)selection.addRange(range);}
+    }catch{}
+  }
+}
+
+async function copyTranslation({legacyFirst=false}={}) {
+  if(translationCopyPending)return;
+  const draft=$("#natural-result"),button=$("#copy-result"),status=$("#translation-copy-status"),fallback=$("#translation-copy-fallback"),field=$("#translation-copy-text");
+  const text=renderedTranslationText(),edit=activeTranslationEdit;
+  const report=message=>{status.textContent=message;status.hidden=false;};
+  if(!edit || $("#translation-result")?.hidden || draft?.getAttribute('contenteditable')!=='true' || !text){report('Translate some text first, then copy the completed draft.');return;}
+  translationCopyPending=true;button.disabled=true;button.textContent='Copying…';
+  const current=()=>activeTranslationEdit===edit && renderedTranslationText()===text && !$("#translation-result").hidden;
+  try{
+    let copied=legacyFirst && legacyCopyTranslation(text);
+    if(!copied && typeof navigator.clipboard?.writeText==='function'){
+      try{await navigator.clipboard.writeText(text);copied=true;}catch{}
+    }
+    if(!copied && !legacyFirst)copied=legacyCopyTranslation(text);
+    if(!current()){report('Translation changed. Tap Copy again for the current text.');return;}
+    if(copied){clearTranslationCopyFallback();report('Translation copied. Paste it into your chosen app.');return;}
+    field.value=text;fallback.hidden=false;
+    report('Clipboard access is unavailable. Select and copy the translation below.');
+    field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);
+  }finally{translationCopyPending=false;button.textContent='Copy';button.disabled=!activeTranslationEdit;}
+}
+
 async function shareTranslation() {
   if (translationSharePending) return;
   const button = $("#share-result"), status = $("#translation-share-status");
@@ -1891,6 +1949,10 @@ async function shareTranslation() {
 }
 
 function updateTranslationEditUi() {
+  const copy=$("#copy-result");if(copy)copy.disabled=translationCopyPending || !activeTranslationEdit;
+  const copyFallback=$("#translation-copy-fallback"),copyField=$("#translation-copy-text");
+  if(copyFallback && !copyFallback.hidden && copyField.value!==renderedTranslationText())clearTranslationCopyFallback();
+
   const selectAll = $("#translation-select-all");
   if (selectAll) selectAll.disabled = !activeTranslationEdit;
   const share = $("#share-result");
@@ -1914,6 +1976,8 @@ function updateTranslationEditUi() {
 }
 
 function setEditableTranslation(source, generated, metadata={}) {
+  if($("#translation-copy-status"))$("#translation-copy-status").hidden=true;
+  clearTranslationCopyFallback();
   if ($("#translation-share-status")) $("#translation-share-status").hidden = true;
   const result = $("#natural-result");
   const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);
@@ -3875,7 +3939,6 @@ function init() {
   $("#pause-conversation")?.addEventListener("click", toggleSpeechPause);
   updateSpeechPauseControls();
   $("#share-result")?.addEventListener("click", shareTranslation);
-  $("#copy-result").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#natural-result").textContent); showToast("Translation copied."); } catch { showToast("Press and hold the translation to copy it."); } });
   $("#natural-result").addEventListener("input", event => {
     if (!event.isComposing) saveActiveTranslationEdit({allowEmpty:true});
   });
@@ -3966,13 +4029,13 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=130", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=131", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
     || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
     || documentImportActive || documentLoading || importedDocument || wholeDocumentTools?.runner?.busy
-    || musicReviewBusy || translationSharePending || appSharePending || activeSpeechPlayback
+    || musicReviewBusy || translationSharePending || translationCopyPending || appSharePending || activeSpeechPlayback
     || (typeof HablaRecordedPractice!=="undefined" && (HablaRecordedPractice.isPlaying() || HablaRecordedPractice.isProtected()))
     || (typeof HablaOffline!=="undefined" && HablaOffline.busy)
   )});
