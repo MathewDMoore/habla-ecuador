@@ -1,0 +1,67 @@
+{
+  "sourceCredit": "Orlando Kelm / COERLL / The University of Texas at Austin, Spanish Proficiency Exercises",
+  "sourceLicense": "CC BY (as listed by publisher)",
+  "licenseSource": "https://coerll.utexas.edu/coerll/oer/spanish-proficiency-exercises/",
+  "method": "faster-whisper 1.2.1; multilingual base int8 CPU; Spanish word timestamps; ordered transcript anchors",
+  "model": "Systran/faster-whisper-base",
+  "modelRevision": "ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66",
+  "reviewStatus": "automatic-timing-human-review-pending",
+  "videos": {
+    "beg05d": {
+      "source": "https://www.laits.utexas.edu/spe/vid/beg05d.html",
+      "sourceTextSha256": "131a3967432aa4cbc8c4f30b3b1b1552f94aa0d3d28430ac964aff44d7a4033d",
+      "mediaSha256": "4d1117963ec85c9562921237bfaaf9bfe560cf1ea9ab705142f6fdb23a958d16",
+      "duration": 75.209433,
+      "sourceWords": 186,
+      "matchedAnchors": 184,
+      "anchorCoverage": 0.989247311827957,
+      "interpolatedWords": 2,
+      "cues": 21,
+      "firstCue": 0,
+      "lastCue": 75.209433,
+      "timingOutputSha256": "4d2aab4d966e8de9e4a619adf8678551df8129efa23177486ff022c01e5d426e"
+    },
+    "adv06c": {
+      "source": "https://www.laits.utexas.edu/spe/vid/adv06c.html",
+      "sourceTextSha256": "4f466b5410dcaec28de0c3a78121fd54944f33fe50c43e5798a4f4602776c04b",
+      "mediaSha256": "7c17b974617f9ec61fa2238fb39aca3ed54d2fd21803535af522e96b2997734b",
+      "duration": 66.107211,
+      "sourceWords": 115,
+      "matchedAnchors": 111,
+      "anchorCoverage": 0.9652173913043478,
+      "interpolatedWords": 4,
+      "cues": 11,
+      "firstCue": 0,
+      "lastCue": 65.82,
+      "timingOutputSha256": "9e725e63f8f7a4a0e5a138d3ab78ae06187d5b8215f49a4b973ca04c7a5f69c9"
+    },
+    "beg05a": {
+      "source": "https://www.laits.utexas.edu/spe/vid/beg05a.html",
+      "sourceTextSha256": "0486ec9c07c9f68df2d79ed8c63a8c5f46d42a511cc996d2b2989238ab8e6df0",
+      "mediaSha256": "a8373f3b7bb1d1502389939c32e6234f06b4bc65d4e18cbb483a83a8369b0f1e",
+      "duration": 39.079184,
+      "sourceWords": 87,
+      "matchedAnchors": 87,
+      "anchorCoverage": 1.0,
+      "interpolatedWords": 0,
+      "cues": 10,
+      "firstCue": 0,
+      "lastCue": 38.26,
+      "timingOutputSha256": "b11f83978c27aec69223f5a25c10de7302a92eacfaa4f0d53128032ae6d1ece0"
+    },
+    "beg03c": {
+      "source": "https://www.laits.utexas.edu/spe/vid/beg03c.html",
+      "sourceTextSha256": "5418b2bdf45b3a5cbbeefb60409f2454c55cfaa07ec35c0e1b5d55e46aa203c4",
+      "mediaSha256": "e04e445230fa65c8827a4a8683aea1c287bf5682d8af012d891a5dda0f324507",
+      "duration": 49.481723,
+      "sourceWords": 59,
+      "matchedAnchors": 57,
+      "anchorCoverage": 0.9661016949152542,
+      "interpolatedWords": 2,
+      "cues": 8,
+      "firstCue": 0,
+      "lastCue": 47.5,
+      "timingOutputSha256": "963c461634030453ff78af330fc19b066e4b4744d2003d937f529690d6d1a9ac"
+    }
+  }
+}
