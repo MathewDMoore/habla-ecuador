@@ -1,5 +1,6 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Translation setup & import": "Configuración e importación",
   "Habla Ecuador home": "Inicio de Habla Ecuador",
   "🇪🇨 Ecuadorian first": "🇪🇨 Ecuador primero",
   "Today · 8–10 minutes": "Hoy · 8–10 minutos",

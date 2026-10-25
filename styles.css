@@ -710,3 +710,24 @@ button:disabled {opacity:.5;}
 .interface-language-control select { min-height:36px; max-width:90px; border:1px solid var(--line); border-radius:10px; padding:4px; background:white; color:var(--green); font:inherit; }
 html[lang="es"] .bottom-nav button { font-size:clamp(9px,2.4vw,11px); padding-inline:3px; min-width:0; white-space:nowrap; }
 html[lang="es"] button, html[lang="es"] summary { overflow-wrap:anywhere; }
+
+/* The shared web pages keep the same source/target pair as the companion app.
+   Setup and capture controls stay outside this pair in every interface language. */
+#shared-translation-workspace {margin:12px 0;min-width:0;border:1px solid var(--line);border-radius:20px;background:white;overflow:hidden;}
+#shared-translation-workspace > .input-card {margin:0;border:0;border-radius:0;box-shadow:none;padding:12px 14px 42px;}
+#shared-translation-workspace > .input-card textarea {display:block;box-sizing:border-box;height:clamp(80px,14svh,140px);min-height:80px;max-height:22svh;font-size:18px;}
+#shared-translation-workspace > .result-card {margin:0;border-radius:0;padding:12px 14px;}
+#translation-empty-target {min-height:18svh;}
+.empty-translation-hint {font-size:18px;line-height:1.4;opacity:.8;}
+#shared-translation-workspace:has(#translation-result:not([hidden])) > #translation-empty-target,
+#shared-translation-workspace:has(#music-live-preview:not([hidden])) > #translation-empty-target,
+#shared-translation-workspace:has(#native-translation-workspace) > #translation-empty-target {display:none;}
+#shared-translation-workspace > #music-live-preview {margin:0;border:0;border-radius:0;padding:12px 14px;}
+#shared-translation-workspace > #translation-result > #natural-result {max-height:24svh;font-size:20px;}
+#translation-setup > .document-tools {margin:0;border:0;}
+#translation-setup > .translation-purpose {margin-top:10px;}
+/* The installed companion owns relocation; leave no empty outer shell behind. */
+#shared-translation-workspace:has(> #native-translation-workspace) {margin:0;border:0;border-radius:0;background:transparent;overflow:visible;}
+#shared-translation-workspace:empty {display:none;}
+
+body:has(#native-translation-workspace) #shared-translation-workspace > #translation-empty-target {display:none;}
