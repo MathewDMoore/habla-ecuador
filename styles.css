@@ -779,3 +779,4 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #recorded-practice-content [data-mini-panel][hidden] { display:none; }
 .english-mini-steps button,.english-mini-chunks button { min-height:44px; border:1px solid #d9cfbd; border-radius:12px; background:#fffdf8; color:#19483d; font-family:inherit; }
 .english-mini-chunks button { padding:10px 14px; font-size:1rem; }
+.english-mini-steps button { padding:10px 2px; font-size:.78rem; overflow-wrap:normal; word-break:normal; }
