@@ -36,10 +36,14 @@ async function run(browser,native,width=390){
  const beforeHold=await layout(),idleLabel=await mic.textContent();
  const box=await mic.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
  assert.deepEqual(await layout(),beforeHold,'pending microphone cannot move the hold target');
+ const micBackground=()=>mic.evaluate(el=>getComputedStyle(el).backgroundColor);
+ const startingBackground=await micBackground();
+ assert.notEqual(startingBackground,'rgb(243, 206, 105)','gold must not invite speech before capture is ready');
  assert.equal(await mic.textContent(),idleLabel);
  assert.equal(await panel.evaluate(el=>{const style=getComputedStyle(el.querySelector('.dictionary-practice-status'));return style.userSelect||style.webkitUserSelect;}),'none','long press cannot select status text while holding');
  await send({type:'start'});if(!native)await send({type:'audiostart'});
  assert.deepEqual(await layout(),beforeHold,'ready microphone cannot wrap to another row');
+ assert.equal(await micBackground(),'rgb(243, 206, 105)','gold means the microphone is ready for speech');
  if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`held-practice-${native?'native':'browser'}-${width}.png`)});
  assert.equal(await page.evaluate(()=>window.testMessages.findLast(m=>m.action==='start').continuous),true);
  await send({type:'result',text:'came',final:true});
@@ -47,9 +51,32 @@ async function run(browser,native,width=390){
  await send({type:'result',text:'came',final:false});
  const starts=await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length);
  await page.mouse.up();assert.equal(await mic.isDisabled(),true);
+ assert.notEqual(await micBackground(),'rgb(243, 206, 105)','releasing the microphone clears the gold speak cue');
  await send({type:'result',text:'camello',final:true});await send({type:'end'});
  assert.equal(await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length),starts);
  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/100%/);
+ // Mobile touch input has a different default-event sequence from a mouse.
+ // A quick tap during startup must cancel without a trailing click reopening it.
+ await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
+ assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'quick touch release during startup cancels capture');
+ assert.equal(await mic.getAttribute('aria-pressed'),'false');
+ assert.equal(await mic.isEnabled(),true);
+ if((process.env.HABLA_BROWSER_ENGINE||'chromium')==='chromium'){
+  const touch=await context.newCDPSession(page),target=await mic.boundingBox();
+  const point={x:target.x+target.width/2,y:target.y+target.height/2};
+  await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...point,id:1}]});
+  await send({type:'start'});if(!native)await send({type:'audiostart'});
+  await send({type:'result',text:'came',final:false});
+  await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x,y:point.y-14,id:1}]});
+  assert.notEqual(await page.evaluate(()=>dictionaryPracticeSession),null,'finger drift does not turn a held microphone into page scrolling');
+  await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'stop','real touch release stops capture');
+  const touchStarts=await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length);
+  await send({type:'result',text:'camello',final:true});await send({type:'end'});
+  assert.equal(await page.evaluate(()=>window.testMessages.filter(m=>m.action==='start').length),touchStarts,'touch release never restarts capture');
+  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/100%/);
+  await touch.detach();
+ }
  await mic.focus();await page.keyboard.down('Space');await send({type:'start'});if(!native)await send({type:'audiostart'});
  await page.keyboard.up('Space');assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'stop');await send({type:'end'});
  await mic.evaluate(el=>el.click());assert.equal(await mic.getAttribute('aria-pressed'),'true');

@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.16 · build 126";
+const APP_VERSION = "0.26.17 · build 127";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -235,6 +235,12 @@ let translationPurpose = localStorage.getItem(TRANSLATION_PURPOSE_STORAGE_KEY) =
 let voiceRate = readVoiceRate();
 let lessonStep = 1;
 let selectedChoice = "";
+let lessonLanguagePreference = "";
+try { lessonLanguagePreference = localStorage.getItem("habla-lesson-language-v1") || ""; } catch {}
+
+function lessonTargetLocale(preference=lessonLanguagePreference, ui=window.HablaUI?.language || "en") {
+  return ["es-EC","en-US","en-GB"].includes(preference) ? preference : ui === "es" ? "en-US" : "es-EC";
+}
 let turns = [];
 let liveConversationTurn = null;
 let conversationGeneration = 0;
@@ -408,6 +414,7 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
 function openView(id) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
   cancelDictionaryPractice();
+  if (activeRecognitionButton?.id === "lesson-mic" && id !== "lesson-view") cancelListening(false);
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
@@ -3574,6 +3581,7 @@ function renderSourcePractice() {
   const root = $("#source-practice");
   if (!root || typeof HablaRegionalPractice === "undefined") return;
   cancelDictionaryPractice(root);
+  if (lessonTargetLocale() !== "es-EC") { root.hidden = true; return; }
   const lesson = HablaRegionalPractice, source = lesson.source;
   const index = Math.max(0,Math.min(sourcePracticeIndex,lesson.items.length-1));
   sourcePracticeIndex = index;
@@ -3607,9 +3615,22 @@ function renderSourcePractice() {
 }
 
 function renderLesson() {
+  if (activeRecognitionButton?.id === "lesson-mic") cancelListening(false);
   const content = $("#lesson-content");
+  const locale = lessonTargetLocale(), english = locale !== "es-EC";
+  content.dataset.targetLanguage = locale;
+  if ($("#lesson-language")) $("#lesson-language").value = ["es-EC","en-US","en-GB"].includes(lessonLanguagePreference) ? lessonLanguagePreference : "";
+  $$(".lesson-card .card-kicker").forEach(el => { el.textContent = english ? "A1 English speaking lesson" : "A1 speaking lesson"; });
+  if ($("#lesson-learning-goal")) $("#lesson-learning-goal").textContent = english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
+  const recorded = $("#recorded-practice");
+  if (recorded) {
+    recorded.hidden = english;
+    if (english) { cancelDictionaryPractice(recorded); if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave(); }
+  }
+  if ($("#source-practice")) $("#source-practice").hidden = english;
   $("#lesson-step-count").textContent = `${lessonStep}/4`;
   $("#lesson-progress-bar").style.width = `${lessonStep * 25}%`;
+  if (english) { renderEnglishLesson(content,locale); bindLesson(); return; }
   if (lessonStep === 1) content.innerHTML = `
     <div class="lesson-stage"><p class="eyebrow">Scene first</p><h1 id="lesson-title">Make a plan before sunset.</h1><p class="lead">You want to meet someone while there is still daylight. Hear the natural question before you say it.</p><div class="scene" aria-label="Sunset over Ecuador">🌄</div><div class="phrase-card"><button class="play-button" id="lesson-play" aria-label="Hear the Spanish phrase">▶</button><p class="spanish">¿A qué hora se pone el sol?</p><p class="english">What time does the sun set?</p></div><button class="primary-button" id="lesson-next">Now say it</button></div>`;
   if (lessonStep === 2) content.innerHTML = `
@@ -3621,25 +3642,48 @@ function renderLesson() {
   bindLesson();
 }
 
+function renderEnglishLesson(content,locale) {
+  const phrase = `<p class="english lesson-target" lang="${locale}" data-ui-content>What time does the sun set?</p><p class="spanish lesson-meaning" lang="es-EC" data-ui-content>¿A qué hora se pone el sol?</p>`;
+  if (lessonStep === 1) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Scene first</p><h1 id="lesson-title">Make a plan before sunset.</h1><p class="lead">Hear the English question, then practise it aloud. The Spanish meaning stays underneath.</p><div class="scene" aria-label="Sunset over Ecuador">🌄</div><div class="phrase-card"><button class="play-button" id="lesson-play" aria-label="Hear the English phrase">▶</button>${phrase}</div><button class="primary-button" id="lesson-next">Now say it</button></div>`;
+  if (lessonStep === 2) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Guided speaking</p><h1 id="lesson-title">Ask the question aloud.</h1><p class="lead">Practise the English question. Listen for the key words time, sun and set.</p><div class="mic-practice"><div id="lesson-speaking-prompt">${phrase}</div><button id="lesson-mic" class="push-to-talk" aria-label="Start or stop speaking" aria-describedby="lesson-speaking-prompt lesson-mic-instructions">🎙️</button><p id="lesson-mic-instructions">Tap the microphone to start. Tap again when finished.</p><div id="lesson-heard" aria-live="polite"></div></div><button class="primary-button" id="lesson-next">Continue</button></div>`;
+  if (lessonStep === 3) content.innerHTML = `
+    <div class="lesson-stage"><p class="eyebrow">Naturalness check</p><h1 id="lesson-title">What would you say in conversation?</h1><p class="lead">Choose the most natural everyday English question about sunset.</p><div class="choice-list"><button class="choice" data-correct="true"><span lang="${locale}" data-ui-content>What time does the sun set?</span></button><button class="choice"><span lang="${locale}" data-ui-content>At what hour does the sun set?</span></button><button class="choice"><span lang="${locale}" data-ui-content>What is the hour of solar setting?</span></button></div><button class="primary-button" id="lesson-next" disabled>See the language map</button></div>`;
+  if (lessonStep === 4) {
+    const forms = [
+      ["Sunset · conversational","The sun sets","El sol se pone"],
+      ["Sunset · noun","sunset","puesta del sol"],
+      ["Sunrise · conversational","The sun rises","El sol sale"],
+      ["Dawn","before dawn","antes de que amanezca"]
+    ];
+    content.innerHTML = `<div class="lesson-stage"><p class="eyebrow">Language map</p><h1 id="lesson-title">One idea, several useful forms.</h1><div class="language-map">${forms.map(([title,en,es])=>`<article class="map-card"><header><h2>${title}</h2><button data-say="${en}" data-say-lang="${locale}">🔊</button></header><p><span lang="${locale}" data-ui-content>${en}</span> · <span lang="es-EC" data-ui-content>${es}</span></p></article>`).join("")}</div><p class="lead">English model playback uses the variety you selected for this lesson.</p><button class="primary-button orange" id="lesson-finish">Finish lesson</button></div>`;
+  }
+}
+
 function bindLesson() {
-  $("#lesson-play")?.addEventListener("click", () => say("¿A qué hora se pone el sol?"));
+  const locale = lessonTargetLocale(), english = locale !== "es-EC";
+  $("#lesson-play")?.addEventListener("click", () => say(english ? "What time does the sun set?" : "¿A qué hora se pone el sol?",locale));
   $("#lesson-next")?.addEventListener("click", () => { if (lessonStep < 4) { lessonStep += 1; renderLesson(); } });
-  bindPushToTalk($("#lesson-mic"), button => ({way:"ec-en",button,onText:text => {
+  bindPushToTalk($("#lesson-mic"), button => ({lang:locale,button,onText:text => {
     const heard = normalize(text);
-    const understood = ["hora","pone","sol"].filter(word => heard.includes(word)).length >= 2;
-    $("#lesson-heard").innerHTML = `<div class="heard"><small>I heard</small><p>${escapeHtml(text)}</p><p>${understood ? "✓ Understood — your key words came through." : "Try again and make hora, pone, and sol clear."}</p></div>`;
+    const words = new Set(heard.match(/[\p{L}\p{N}]+/gu) || []);
+    const understood = (english ? ["time","sun","set"] : ["hora","pone","sol"]).filter(word => words.has(word)).length >= 2;
+    const feedback = understood ? "✓ Understood — your key words came through." : english ? "Try again and make time, sun and set clear." : "Try again and make hora, pone, and sol clear.";
+    const host = $("#lesson-heard");
+    if (host) host.innerHTML = `<div class="heard"><small>I heard</small><p lang="${locale}" data-ui-content>${escapeHtml(text)}</p><p>${feedback}</p></div>`;
   }}));
   $$(".choice").forEach(button => button.addEventListener("click", () => {
     selectedChoice = button.textContent;
     $$(".choice").forEach(item => { item.classList.toggle("selected", item === button); const old = $("small", item); if (old) old.remove(); });
     const note = document.createElement("small");
-    note.textContent = button.dataset.correct ? "✓ Natural and conversational in Ecuador." : "Correct Spanish, but not the ordinary conversational choice.";
+    note.textContent = english ? button.dataset.correct ? "✓ Natural everyday English." : "Understandable, but less natural for everyday conversation." : button.dataset.correct ? "✓ Natural and conversational in Ecuador." : "Correct Spanish, but not the ordinary conversational choice.";
     button.append(note);
     $("#lesson-next").disabled = false;
   }));
   $$('[data-say]').forEach(button => {
     button.setAttribute("aria-label", `Hear: ${button.dataset.say}`);
-    button.addEventListener("click", () => say(button.dataset.say));
+    button.addEventListener("click", () => say(button.dataset.say,button.dataset.sayLang || locale));
   });
   $("#lesson-finish")?.addEventListener("click", () => { lessonStep = 1; selectedChoice = ""; openView("home-view"); showToast("Lesson complete — ¡bien hecho!"); });
 }
@@ -3892,6 +3936,18 @@ function init() {
   $("#share-review").addEventListener("click", shareReviewSummary);
   renderTranslation();
   renderLesson();
+  const updateLessonLanguage = () => {
+    if ($("#lesson-content")?.dataset.targetLanguage === lessonTargetLocale()) return;
+    lessonStep = 1; selectedChoice = "";
+    stopSpeechPlayback();
+    renderLesson(); renderSourcePractice();
+  };
+  $("#lesson-language")?.addEventListener("change",event => {
+    lessonLanguagePreference = event.target.value;
+    try { localStorage.setItem("habla-lesson-language-v1",lessonLanguagePreference); } catch {}
+    updateLessonLanguage();
+  });
+  document.addEventListener("habla-ui-language-change",updateLessonLanguage);
   renderMusic();
   if (standaloneTranslator) {
     document.body.classList.add("standalone-translator");
@@ -3913,10 +3969,10 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=126", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=127", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
-    recognition || activeRecognitionButton || dictionaryPracticeSession || musicListening || musicCapturedText || musicPassages.length
+    recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
     || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
     || documentImportActive || documentLoading || importedDocument || wholeDocumentTools?.runner?.busy
     || musicReviewBusy || translationSharePending || appSharePending || activeSpeechPlayback

@@ -1,5 +1,11 @@
 # Dictionary speaking practice
 
+## Gold capture-ready cue — build 127
+
+The practice microphone now turns gold when capture is ready for speech. Startup and finishing use the neutral background, so the gold cue no longer appears before audio capture is available. Hold/release, late-final transcript handling, and microphone timeouts retain their existing behavior.
+
+The browser regression now also uses actual touchscreen taps and Chromium touch start/move/end input. It checks early release during startup, finger drift, graceful stop, late final words, and prevention of a trailing touch click restarting capture. Speech events remain synthetic; these checks do not validate the physical iPhone microphone or the browser provider's transcription.
+
 ## Stable hold target and independent dictionary startup — build 125
 
 The follow-up phone recordings show the ready button wrapping onto a new row and iOS text-selection handles/magnifier appearing during a hold. Most attempts return no words; one Safari attempt briefly retains an unconfirmed fragment. Build 124 therefore did not establish reliable physical-phone capture.
