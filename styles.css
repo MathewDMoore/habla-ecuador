@@ -780,3 +780,11 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .english-mini-steps button,.english-mini-chunks button { min-height:44px; border:1px solid #d9cfbd; border-radius:12px; background:#fffdf8; color:#19483d; font-family:inherit; }
 .english-mini-chunks button { padding:10px 14px; font-size:1rem; }
 .english-mini-steps button { padding:10px 2px; font-size:.78rem; overflow-wrap:normal; word-break:normal; }
+
+.translation-text-tools { flex-wrap:wrap; justify-content:flex-start; }
+.translation-text-options { margin-left:auto; }
+#copy-result { min-height:44px; font-weight:800; }
+.translation-copy-fallback { margin:10px 0; padding:12px; border:1px solid rgba(255,255,255,.35); border-radius:12px; }
+.translation-copy-fallback textarea { display:block; box-sizing:border-box; width:100%; min-height:120px; margin:8px 0; padding:12px; color:#173e34; background:#fff; border:1px solid #b9d2c3; border-radius:10px; font:inherit; font-size:16px; user-select:text; -webkit-user-select:text; -webkit-touch-callout:default; }
+.translation-copy-fallback button { min-height:44px; margin:4px; padding:9px 12px; border-radius:10px; }
+.translation-copy-fallback[hidden],#translation-copy-status[hidden] { display:none; }

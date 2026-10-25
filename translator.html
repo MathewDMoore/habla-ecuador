@@ -8,27 +8,27 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=130">
-  <script src="interface-es.js?v=130" defer></script>
-  <script src="interface-language.js?v=130" defer></script>
-  <script src="research-reference.js?v=130" defer></script>
-  <script src="document-import.js?v=130" defer></script>
-  <script src="whole-document.js?v=130" defer></script>
-  <script src="saved-paper.js?v=130" defer></script>
-  <script src="offline-device.js?v=130" defer></script>
-  <script src="english-varieties.js?v=130" defer></script>
-  <script src="screenshot-import.js?v=130" defer></script>
-  <script src="regional-vocabulary.js?v=130" defer></script>
-  <script src="spanish-context.js?v=130" defer></script>
-  <script src="bilingual-music.js?v=130" defer></script>
-  <script src="button-feedback.js?v=130" defer></script>
-  <script src="regional-practice.js?v=130" defer></script>
-  <script src="recorded-transcripts.js?v=130" defer></script>
-  <script src="recorded-practice.js?v=130" defer></script>
-  <script src="slang-contributions.js?v=130" defer></script>
-  <script src="app-feedback.js?v=130" defer></script>
-  <script src="app-updates.js?v=130" defer></script>
-  <script src="app.js?v=130" defer></script>
+  <link rel="stylesheet" href="styles.css?v=131">
+  <script src="interface-es.js?v=131" defer></script>
+  <script src="interface-language.js?v=131" defer></script>
+  <script src="research-reference.js?v=131" defer></script>
+  <script src="document-import.js?v=131" defer></script>
+  <script src="whole-document.js?v=131" defer></script>
+  <script src="saved-paper.js?v=131" defer></script>
+  <script src="offline-device.js?v=131" defer></script>
+  <script src="english-varieties.js?v=131" defer></script>
+  <script src="screenshot-import.js?v=131" defer></script>
+  <script src="regional-vocabulary.js?v=131" defer></script>
+  <script src="spanish-context.js?v=131" defer></script>
+  <script src="bilingual-music.js?v=131" defer></script>
+  <script src="button-feedback.js?v=131" defer></script>
+  <script src="regional-practice.js?v=131" defer></script>
+  <script src="recorded-transcripts.js?v=131" defer></script>
+  <script src="recorded-practice.js?v=131" defer></script>
+  <script src="slang-contributions.js?v=131" defer></script>
+  <script src="app-feedback.js?v=131" defer></script>
+  <script src="app-updates.js?v=131" defer></script>
+  <script src="app.js?v=131" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -37,7 +37,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.20 · build 130</span><div class="interface-controls"><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.21 · build 131</span><div class="interface-controls"><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -108,6 +108,7 @@
             <p class="result-label">Natural Ecuadorian Spanish</p>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
             <div id="translation-text-tools" class="translation-text-tools" role="group" aria-label="Translation text controls">
+              <button id="copy-result" type="button" disabled>Copy</button>
               <button id="translation-expand" type="button" aria-controls="natural-result" aria-expanded="false">Expand</button>
               <details class="translation-text-options">
                 <summary>Text options</summary>
@@ -119,7 +120,14 @@
                 </div>
               </details>
             </div>
-
+            <p id="translation-copy-status" class="translation-edit-status" role="status" hidden></p>
+            <section id="translation-copy-fallback" class="translation-copy-fallback" hidden>
+              <label for="translation-copy-text">Translation to copy</label>
+              <textarea id="translation-copy-text" rows="4" readonly spellcheck="false"></textarea>
+              <p>Press and hold the text above to choose Copy, or try copying again.</p>
+              <button id="translation-copy-retry" type="button">Try copy again</button>
+              <button id="translation-copy-close" type="button">Close</button>
+            </section>
 
           <div class="speed-control result-speed-control">
             <div class="speed-control-heading">
@@ -135,7 +143,6 @@
             <div class="result-actions">
               <button id="hear-result">🔊 Hear it</button>
               <button id="pause-result" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
-              <button id="copy-result">Copy</button>
               <button id="share-result" type="button" disabled>Share translation</button>
               <button id="restore-translation" hidden>Restore generated</button>
             </div>

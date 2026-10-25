@@ -1187,5 +1187,13 @@
   "Your reply": "Tu respuesta",
   "Done practising": "Terminé de practicar",
   "Practice finished. Repeat this lesson or choose another situation.": "Práctica terminada. Repite la lección o elige otra situación.",
-  "Device voices provide the model. Available voices depend on your device; recognized-word feedback is not an accent score.": "El modelo usa las voces disponibles en tu dispositivo. La evaluación de palabras reconocidas no califica el acento."
+  "Device voices provide the model. Available voices depend on your device; recognized-word feedback is not an accent score.": "El modelo usa las voces disponibles en tu dispositivo. La evaluación de palabras reconocidas no califica el acento.",
+  "Translation to copy": "Traducción para copiar",
+  "Press and hold the text above to choose Copy, or try copying again.": "Mantén pulsado el texto de arriba y elige Copiar, o vuelve a intentar copiar.",
+  "Try copy again": "Volver a intentar copiar",
+  "Copying…": "Copiando…",
+  "Translate some text first, then copy the completed draft.": "Traduce un texto primero y luego copia el borrador completo.",
+  "Translation changed. Tap Copy again for the current text.": "La traducción cambió. Toca Copiar otra vez para copiar el texto actual.",
+  "Translation copied. Paste it into your chosen app.": "Traducción copiada. Pégala en la aplicación que quieras.",
+  "Clipboard access is unavailable. Select and copy the translation below.": "No se pudo acceder al portapapeles. Selecciona y copia la traducción de abajo."
 };if(typeof module==="object"&&module.exports)module.exports=strings;else root.HablaInterfaceSpanish=strings;})(typeof window==="object"?window:globalThis);
