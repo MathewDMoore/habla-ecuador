@@ -49,6 +49,8 @@ function launch(path, native) {
     URL, URLSearchParams,
     location:{href:url.href, pathname:url.pathname, search:url.search, replace:target => redirects.push(target)},
     window:native ? {__hablaNativeSpeech:() => {}} : {},
+    initializeOptionalFeature:(_,setup)=>setup(),
+    $$:()=>[], $:()=>({addEventListener(){}}),
     HablaOffline:{bind:() => bindings++}, HablaScreenshot:{bind:() => bindings++},
     beginScreenshotImport:() => {}, previewScreenshotText:() => {}
   });
