@@ -28,3 +28,7 @@ The currently signed iPhone companion allows same-site navigation and opens exte
 ## Validation
 
 All 32 JavaScript suites pass locally. The video regression checks all four clips at 320/390px and with the native JavaScript bridge: selected phrase/Spanish guide/duration, en-US/en-GB capture locale, no autoplay, player cleanup, clip-change capture cancellation, retained per-variety choices, native source links, preserved Spanish regional choices and no horizontal overflow. Provider playback/recognition are mocked; actual human audio quality and physical iPhone playback still require device review. Existing bilingual lesson checks and Chromium/WebKit CI also run before release.
+
+## Retired in build 130
+
+Mathew found the replacement clip promotional as well. Build 130 removes all four English creator clips from the learning interface and replaces them with original in-app guided speaking lessons. See [Original English lessons](ORIGINAL_ENGLISH_LESSONS.md). The catalog above is historical and no longer used by the app.

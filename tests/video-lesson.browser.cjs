@@ -1,4 +1,4 @@
-// Real lesson DOM, synthetic recognition and publisher-player boundaries.
+// Original lesson DOM; device speech and recognition boundaries are simulated.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
@@ -12,8 +12,7 @@ const {englishCatalog}=require('../recorded-practice.js');
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),f=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   if(u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3'))return route.fulfill({path:f});
-  external.push(u.href);if(u.hostname==='www.youtube.com')return route.fulfill({body:'<!doctype html><title>Publisher player fixture</title>',contentType:'text/html'});
-  return route.abort();
+  external.push(u.href);return route.abort();
  });
  await page.addInitScript(()=>{
   window.testMessages=[];window.webkit={messageHandlers:{hablaSpeech:{postMessage:m=>testMessages.push(m)}}};
@@ -22,67 +21,66 @@ const {englishCatalog}=require('../recorded-practice.js');
  });
  if(native)await page.addInitScript({path:native});
  await page.goto(origin+'/habla-ecuador/index.html?ui=es');
+ await page.evaluate(()=>{window.spoken=[];window.say=(text,lang)=>{HablaRecordedPractice.pause();spoken.push({text,lang});};});
  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
  const host=page.locator('#recorded-practice');await host.locator(':scope > summary').click();
- assert.match(await host.locator(':scope > summary').textContent(),/Videolecciones de inglés/);
- assert.equal(external.some(u=>/youtube/.test(u)),false,'no provider request before Play');
+ assert.match(await host.locator(':scope > summary').textContent(),/Lecciones de inglés · escucha y habla/);
  for(const locale of ['en-US','en-GB']){
   await page.locator('#lesson-language').selectOption(locale);
   assert.equal(await host.getAttribute('data-learning-language'),locale);
-  assert.equal(await host.locator('#english-video-select option').count(),2);
+  assert.equal(await host.locator('#english-lesson-select option').count(),4);
   for(const item of englishCatalog[locale]){
-   await host.locator('#english-video-select').selectOption(item.id);
-   assert.equal(await host.locator('.dictionary-practice-target').textContent(),item.phrase);
-   assert.match(await host.locator('#english-video-duration').textContent(),new RegExp(item.seconds+' s'));
-   assert.equal(await host.locator('#english-video-guide [lang="es"]').textContent(),item.guide);
-   assert.equal(await host.locator('iframe').count(),0,'clip selection never autoplays');
-   if(native){
-    assert.match(await host.locator('#english-video-play').getAttribute('href'),new RegExp(item.videoId));
-    assert.match(await host.locator('#english-video-status').textContent(),/navegador/);
-   }else{
-    await host.locator('#english-video-play').click();
-    assert.match(await host.locator('iframe').getAttribute('src'),new RegExp('/embed/'+item.videoId));
-    assert.equal(await page.evaluate(()=>HablaRecordedPractice.isPlaying()),true);
-    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'portrait player fits phone');
+   await host.locator('#english-lesson-select').selectOption(item.id);
+   assert.equal(await host.locator('#recorded-practice-content').getAttribute('data-stage'),'1');
+   assert.equal(await host.locator('#english-mini-understand').isVisible(),true);
+   assert.equal(await host.locator('#english-mini-speak').isVisible(),false);
+   assert.match(await host.locator('#english-mini-understand').textContent(),new RegExp(item.scene.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+   await host.locator('#english-explanation-hear').click();
+   assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.explanation,lang:'es-EC'});
+   await host.locator('[data-mini-next="2"]').click();
+   assert.equal(await page.evaluate(()=>HablaRecordedPractice.isProtected()),true);
+   await host.locator('#english-context-hear').click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.context,lang:locale});
+   await host.locator('#english-model-hear').click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.phrase,lang:locale});
+   for(const button of await host.locator('[data-english-chunk]').all()){
+    const text=await button.getAttribute('data-english-chunk');await button.click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text,lang:locale});
    }
+   await host.locator('[data-mini-next="3"]').click();
+   assert.equal(await host.locator('.dictionary-practice-target').textContent(),item.phrase);
    await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
    assert.equal(await page.evaluate(()=>testMessages.findLast(m=>m.action==='start').lang),locale);
-   assert.equal(await host.locator('iframe').count(),0,'microphone stops publisher audio');
+   await page.evaluate(({text,native})=>{
+    if(native){const id=testMessages.findLast(m=>m.action==='start').id;__hablaNativeSpeech({id,type:'result',text,final:true});__hablaNativeSpeech({id,type:'end'});}
+    else{const result=[{transcript:text}];result.isFinal=true;testRecognition.onresult({results:[result]});testRecognition.onend?.();}
+   },{text:item.phrase,native:Boolean(native)});
+   assert.match(await host.locator('.dictionary-practice-score').textContent(),/100%/);
+   await host.locator('#english-mini-finish').click();
+   assert.equal(await page.evaluate(()=>recognition),null);
+   assert.equal(await page.evaluate(()=>HablaRecordedPractice.isProtected()),false);
+   assert.match(await host.locator('#english-mini-status').textContent(),/Práctica terminada/);
   }
  }
- // A different clip cancels old recognition and uses its own prompt.
- await host.locator('#english-video-select').selectOption(englishCatalog['en-GB'][0].id);
- assert.equal(await page.evaluate(()=>recognition),null);
- if(!native){
-  await host.locator('#english-video-play').click();
-  await page.locator('#interface-language').selectOption('en');
-  assert.equal(await host.getAttribute('data-learning-language'),'en-GB');
-  assert.equal(await host.locator('iframe').count(),1,'interface-only changes preserve current player');
-  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
-  assert.equal(await host.locator('iframe').count(),0,'navigation stops embedded video');
-  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
-  await host.locator('#english-video-play').click();await host.locator(':scope > summary').click();
-  await page.waitForFunction(()=>!document.querySelector('#english-video-player iframe'));
-  await host.locator(':scope > summary').click();
- }
+ await host.locator('[data-mini-step="3"]').click();await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
+ await host.locator('[data-mini-step="1"]').click();assert.equal(await page.evaluate(()=>recognition),null,'step changes stop prior capture');
+ await host.locator('[data-mini-step="3"]').click();await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
+ await host.locator('#english-lesson-select').selectOption('repeat');assert.equal(await page.evaluate(()=>recognition),null,'topic changes stop prior capture');
+ await page.locator('#interface-language').selectOption('en');assert.equal(await host.getAttribute('data-learning-language'),'en-GB');
+ await host.locator('[data-mini-step="2"]').click();await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
+ assert.equal(await page.evaluate(()=>HablaRecordedPractice.isProtected()),false,'inactive lesson does not block idle updates');
+ await page.locator('.bottom-nav [data-open="lesson-view"]').click();
  await page.locator('#lesson-language').selectOption('es-EC');
- assert.equal(await host.locator('#recorded-practice-region').inputValue(),'quito-interests');
  await host.locator('#recorded-practice-region').selectOption('lapaz-family');
- await page.locator('#lesson-language').selectOption('en-US');
- assert.equal(await host.locator('#english-video-select').inputValue(),englishCatalog['en-US'][1].id,'English choice retained independently');
- await page.locator('#lesson-language').selectOption('es-EC');
- assert.equal(await host.locator('#recorded-practice-region').inputValue(),'lapaz-family');
- await page.locator('#interface-language').selectOption('en');
- await page.locator('#lesson-language').selectOption('');
- assert.equal(await host.getAttribute('data-learning-language'),'es-EC');
- await page.locator('#interface-language').selectOption('es');
- assert.equal(await host.getAttribute('data-learning-language'),'en-US');
+ await page.locator('#lesson-language').selectOption('en-GB');assert.equal(await host.locator('#english-lesson-select').inputValue(),'repeat');
+ await page.locator('#lesson-language').selectOption('es-EC');assert.equal(await host.locator('#recorded-practice-region').inputValue(),'lapaz-family');
+ await page.locator('#lesson-language').selectOption('');await page.locator('#interface-language').selectOption('es');
  await page.reload();await page.locator('.bottom-nav [data-open="lesson-view"]').click();
- assert.equal(await host.getAttribute('data-learning-language'),'en-US','saved automatic choice survives reload');
+ assert.equal(await host.getAttribute('data-learning-language'),'en-US');
+ await host.locator(':scope > summary').click();await host.locator('[data-mini-next="2"]').click();
+ assert.equal(await host.locator('iframe,video,a[href]').count(),0,'English lessons contain no provider player or external course link');
+ assert.equal(external.some(url=>/youtube|akamaized|inglesconelguero|amigosingleses/.test(url)),false);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  assert.deepEqual(errors,[]);
- if(process.env.HABLA_SCREENSHOT_DIR){await host.locator(':scope > summary').click();await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`short-video-lesson-${width}${native?'-native':''}.png`)});}
- console.log(`${process.env.HABLA_BROWSER_ENGINE||'chromium'} ${width}px ${native?'native bridge':'browser'}: four short lessons, Spanish guides, durations, capture locales, lazy players/native source links, cleanup and retained choices passed`);
+ if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`original-english-lesson-${width}${native?'-native':''}.png`)});
+ console.log(`${process.env.HABLA_BROWSER_ENGINE||'chromium'} ${width}px ${native?'native bridge':'browser'}: four original lessons, all three steps, Spanish/English audio routes, eight locale/prompt capture paths, feedback, completion, cleanup, update protection and no external course content passed`);
  await context.close();
  }finally{await browser.close();}
  }
