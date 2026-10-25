@@ -8,25 +8,26 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=122">
-  <script src="interface-es.js?v=122" defer></script>
-  <script src="interface-language.js?v=122" defer></script>
-  <script src="research-reference.js?v=122" defer></script>
-  <script src="document-import.js?v=122" defer></script>
-  <script src="whole-document.js?v=122" defer></script>
-  <script src="saved-paper.js?v=122" defer></script>
-  <script src="offline-device.js?v=122" defer></script>
-  <script src="english-varieties.js?v=122" defer></script>
-  <script src="screenshot-import.js?v=122" defer></script>
-  <script src="regional-vocabulary.js?v=122" defer></script>
-  <script src="spanish-context.js?v=122" defer></script>
-  <script src="bilingual-music.js?v=122" defer></script>
-  <script src="button-feedback.js?v=122" defer></script>
-  <script src="regional-practice.js?v=122" defer></script>
-  <script src="recorded-transcripts.js?v=122" defer></script>
-  <script src="recorded-practice.js?v=122" defer></script>
-  <script src="slang-contributions.js?v=122" defer></script>
-  <script src="app.js?v=122" defer></script>
+  <link rel="stylesheet" href="styles.css?v=123">
+  <script src="interface-es.js?v=123" defer></script>
+  <script src="interface-language.js?v=123" defer></script>
+  <script src="research-reference.js?v=123" defer></script>
+  <script src="document-import.js?v=123" defer></script>
+  <script src="whole-document.js?v=123" defer></script>
+  <script src="saved-paper.js?v=123" defer></script>
+  <script src="offline-device.js?v=123" defer></script>
+  <script src="english-varieties.js?v=123" defer></script>
+  <script src="screenshot-import.js?v=123" defer></script>
+  <script src="regional-vocabulary.js?v=123" defer></script>
+  <script src="spanish-context.js?v=123" defer></script>
+  <script src="bilingual-music.js?v=123" defer></script>
+  <script src="button-feedback.js?v=123" defer></script>
+  <script src="regional-practice.js?v=123" defer></script>
+  <script src="recorded-transcripts.js?v=123" defer></script>
+  <script src="recorded-practice.js?v=123" defer></script>
+  <script src="slang-contributions.js?v=123" defer></script>
+  <script src="app-feedback.js?v=123" defer></script>
+  <script src="app.js?v=123" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -35,7 +36,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.12 · build 122</span><label class="interface-language-control" for="interface-language">Language<select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.13 · build 123</span><div class="interface-controls"><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -625,6 +626,7 @@
           <div id="expression-results" class="expression-results"></div>
         </section>
         <p id="dictionary-status" class="status">Loading the project’s source files…</p>
+        <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="dictionary">Report a problem or suggest a correction</button>
         <div id="dictionary-results" class="dictionary-results"></div>
       </section>
 
@@ -633,6 +635,7 @@
           <button class="back-button" data-open="dictionary-view" aria-label="Back to dictionary">←</button>
           <div><p class="eyebrow">Community usage review</p><h1 id="review-title">Does this sound natural?</h1></div>
         </div>
+        <button type="button" class="feedback-link" data-feedback-open>Report a problem or suggest a correction</button>
         <p class="review-intro">Suggest regional slang below, or review the Ecuadorian entries. No account is needed. Reports stay on this device until you copy or share them.</p>
 
         <details id="slang-contributions" class="compact-info slang-contributions">
@@ -695,6 +698,35 @@
       <button data-open="lesson-view"><span>◉</span>Practice</button>
     </nav>
   </div>
+
+
+  <dialog id="app-feedback" aria-labelledby="feedback-title" aria-describedby="feedback-intro">
+    <header class="feedback-heading"><h2 id="feedback-title">Suggest a correction</h2><button id="feedback-close" type="button" aria-label="Close feedback">×</button></header>
+    <p id="feedback-intro">Tell Mathew what you would change. Type or use your keyboard’s microphone.</p>
+    <form id="app-feedback-form">
+      <fieldset id="feedback-fields">
+        <label>What would you change?<textarea name="problem" required maxlength="4000" rows="4" placeholder="A word, a translation or anything that does not seem right…"></textarea></label>
+        <details id="feedback-details" class="compact-info"><summary>Add details (optional)</summary>
+        <label>Topic<select name="topic"><option value="other">Something else</option><option value="translation">Translation</option><option value="regional">Regional meaning or usage</option><option value="dictionary">Dictionary entry</option><option value="pronunciation">Pronunciation or speaking practice</option><option value="lesson">Lesson or subtitles</option><option value="interface">App behavior or layout</option></select></label>
+        <label>Country / variety<select name="region"><option value="es-EC">Ecuador</option><option value="es-MX">Mexico</option><option value="es-VE">Venezuela</option><option value="es-BO">Bolivia</option><option value="es-PE">Peru</option><option value="es-CO">Colombia</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="other">Other / uncertain</option></select></label>
+        <label>City / area<input name="city" maxlength="100" placeholder="e.g. Monterrey, Nuevo León / Caracas"></label>
+        <label>Word, sentence or feature<input name="reference" maxlength="500"></label>
+        <label>Suggested correction<textarea name="correction" maxlength="2000" rows="2"></textarea></label>
+        <label>Example or evidence<textarea name="example" maxlength="2000" rows="2" placeholder="A full sentence, where you hear it or a source link. It is OK to be unsure."></textarea></label>
+        <label>Name / initials <span>(optional)</span><input name="reviewer" maxlength="80" autocomplete="off"></label>
+        <label class="feedback-opt-in"><input id="feedback-include-text" type="checkbox">Include the current source and translation text</label>
+        <small>Off by default. If selected, up to 3000 characters from each translation box are added to the preview. Check for private text before sharing.</small>
+        </details>
+      </fieldset>
+    </form>
+    <div class="feedback-actions feedback-primary"><button id="feedback-share" type="button">Share with Mathew</button></div>
+    <p id="feedback-status" role="status" aria-live="polite">Choose Mathew in your messaging or email app. Nothing is sent automatically.</p>
+    <details id="feedback-review" class="compact-info"><summary>Preview, copy or save</summary>
+      <label>Report preview<textarea id="feedback-preview" readonly rows="7"></textarea></label>
+      <div class="feedback-actions"><button id="feedback-copy" type="button">Copy report</button><button id="feedback-save" type="button">Save draft</button><button id="feedback-clear" type="button">Clear draft</button></div>
+    </details>
+    <p class="feedback-note">Reports go to Mathew through the app you choose. Corrections are reviewed before changing Habla.</p>
+  </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <article id="saved-paper-print" aria-label="Printable saved paper"></article>

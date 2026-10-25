@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.12 · build 122";
+const APP_VERSION = "0.26.13 · build 123";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1818,7 +1818,7 @@ async function shareApp(copyOnly=false) {
     if (!copyOnly && typeof navigator.share === "function") {
       try {
         // Invoke synchronously within the user's tap, before any other await.
-        await navigator.share({title:"Habla Ecuador",text:"Prueba Habla Ecuador: traducción, diccionario regional y práctica de español.",url});
+        await navigator.share({title:"Habla Ecuador",text:new URL(url).searchParams.get("ui")==="en" ? "Try Habla Ecuador: translation, regional vocabulary and speaking practice. Tap 💬 in the app to suggest a correction." : "Prueba Habla Ecuador: traducción, diccionario regional y práctica oral. Toca 💬 en la app para sugerir una corrección.",url});
         status.textContent = "Share action completed.";
         return;
       } catch (error) {
@@ -2890,6 +2890,7 @@ function renderRegionalSlang() {
         ${entry.sourceSense ? `<p class="regional-search-help">Source sense: ${escapeHtml(entry.sourceSense)} · checked ${escapeHtml(entry.sourceChecked)}</p>` : ""}
         ${sources.map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
       </details>
+      <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">Report this entry</button>
     </article>`;
   }).join("");
   bindDictionaryPractice(root);
@@ -3779,7 +3780,7 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=122").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=123").catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", init);
