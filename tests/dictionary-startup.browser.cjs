@@ -14,7 +14,8 @@ async function run(browser,mode,width){
    if(mode==='failure')return route.abort();
    if(mode==='delayed')await gate;
   }
-  return route.fulfill({path:file});
+  // A timed-out fetch may already have been cancelled when its test gate opens.
+  return route.fulfill({path:file}).catch(error=>{if(!route.request().failure())throw error;});
  });
  if(mode==='optional-error')await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{
   window.HablaRecordedPractice.render=()=>{throw Error('Injected optional recording widget failure');};
@@ -27,6 +28,13 @@ async function run(browser,mode,width){
  await page.locator('#dictionary-view .review-callout').click();
  assert.equal(await page.locator('#review-view').evaluate(el=>el.classList.contains('active')),true,'review/suggest button remains operational');
  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
+ if(mode==='delayed'){
+  assert.match(await page.locator('#dictionary-status').textContent(),/Loading/);
+  assert.ok(await page.locator('#expression-results .expression-card').count()>0,'bundled cards render before evidence arrives');
+  // Release the source gate after checking pending startup. Keeping it closed
+  // through every slow mobile click can intentionally exceed the app timeout.
+  release();
+ }
  const counts=await page.evaluate(()=>Object.fromEntries(['all','idiom','slang','culture','personal'].map(category=>[category,culturalExpressions.filter(entry=>category==='all'||entry.category===category).length])));
  for(const category of Object.keys(counts)){
   await page.locator('[data-expression-filter="'+category+'"]').click();
@@ -47,8 +55,8 @@ async function run(browser,mode,width){
  assert.deepEqual(await page.evaluate(()=>testSpoken),[{text:expectedAudio,lang:'es-EC'}],'bundled expression audio button is bound independently');
  if(mode==='failure')await page.waitForFunction(()=>document.querySelector('#dictionary-status').textContent.startsWith('Source files could not load.'));
  else{
-  if(mode==='delayed'){assert.match(await page.locator('#dictionary-status').textContent(),/Loading/);release();}
-  await page.waitForSelector('#dictionary-results .evidence-card');
+  await page.waitForFunction(()=>document.querySelector('#dictionary-results .evidence-card')||document.querySelector('#dictionary-status').textContent.startsWith('Source files could not load.'));
+  assert.ok(await page.locator('#dictionary-results .evidence-card').count()>0,mode+': '+await page.locator('#dictionary-status').textContent());
  }
  assert.equal(await page.locator('#expression-results .expression-card').count(),counts.all);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
