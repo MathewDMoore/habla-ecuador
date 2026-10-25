@@ -3,7 +3,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,width,native){
- const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true}),page=await context.newPage(),errors=[];
+ // This suite serves checkout files through routing, including on reload.
+ // Real service-worker update behavior has its own HTTP-based browser suite.
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>{const u=new URL(r.request().url()),f=path.join(root,u.pathname.replace('/habla-ecuador/',''));return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?r.fulfill({path:f}):r.abort();});
  await page.addInitScript(()=>{

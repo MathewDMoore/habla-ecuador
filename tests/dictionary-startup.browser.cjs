@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,mode,width){
- const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
  let release;const gate=new Promise(resolve=>release=resolve);
  await page.route('**/*',async route=>{

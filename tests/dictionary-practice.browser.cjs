@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,native,width=390){
- const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
