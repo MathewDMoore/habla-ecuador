@@ -129,12 +129,17 @@
       </section>
       <section id="english-mini-listen" data-mini-panel="2" hidden>
         <div class="english-mini-dialogue">
-          <p><small>The other person</small><br><span lang="${locale}" data-ui-content>${escape(item.context)}</span><br><span lang="es" data-ui-content>${escape(item.contextMeaning)}</span></p>
+          <p><small>The other person</small><br><span lang="${locale}" data-ui-content>${escape(item.context)}</span><br><span id="english-context-meaning" lang="es" data-ui-content>${escape(item.contextMeaning)}</span></p>
           <button type="button" id="english-context-hear" class="secondary-button">🔊 Hear the other person</button>
+          <div class="english-think-first">
+            <p>⚡ Think in English. Listen to the other person and try answering aloud before reading the model.</p>
+            <button type="button" id="english-think-first" class="secondary-button" aria-pressed="false">Try without reading</button>
+            <p id="english-think-status" role="status" aria-live="polite"></p>
+          </div>
           <p class="english-mini-reply"><small>You</small><br><strong lang="${locale}" data-ui-content>${escape(item.phrase)}</strong><br><span lang="es" data-ui-content>${escape(item.meaning)}</span></p>
         </div>
         <button type="button" id="english-model-hear" class="secondary-button">🔊 Hear your reply</button>
-        <p>Listen to each part, then hear the whole reply again.</p>
+        <p id="english-mini-parts-tip">Listen to each part, then hear the whole reply again.</p>
         <div class="english-mini-chunks">${item.chunks.map(chunk=>`<button type="button" data-english-chunk="${escape(chunk)}" lang="${locale}" data-ui-content>🔊 ${escape(chunk)}</button>`).join('')}</div>
         <button type="button" class="primary-button" data-mini-next="3">Now practise speaking →</button>
       </section>
@@ -156,6 +161,18 @@
     content.querySelectorAll('[data-mini-step],[data-mini-next]').forEach(button=>button.addEventListener('click',()=>stage(Number(button.dataset.miniStep||button.dataset.miniNext))));
     content.querySelector('#english-explanation-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.explanation,'es-EC');});
     content.querySelector('#english-context-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.context,locale);});
+    const think=content.querySelector('#english-think-first');
+    const modelParts=['#english-context-meaning','.english-mini-reply','#english-model-hear','#english-mini-parts-tip','.english-mini-chunks'].map(selector=>content.querySelector(selector));
+    think.addEventListener('click',()=>{
+      root.cancelDictionaryPractice(host);root.stopSpeechPlayback();
+      const thinking=think.getAttribute('aria-pressed')!=='true';
+      modelParts.forEach(node=>{node.hidden=thinking;});
+      think.setAttribute('aria-pressed',String(thinking));
+      think.textContent=thinking?'Show the natural reply':'Try without reading';
+      content.querySelector('#english-think-status').textContent=thinking
+        ?'Listen and answer in English, then reveal the model when ready.'
+        :'Compare your reply with the model. Listen and say it again.';
+    });
     content.querySelector('#english-model-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.phrase,locale);});
     content.querySelectorAll('[data-english-chunk]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(button.dataset.englishChunk,locale);}));
     content.querySelector('#english-lesson-select').addEventListener('change',event=>{
