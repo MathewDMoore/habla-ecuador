@@ -1409,12 +1409,14 @@ function claimSourceTextEdit() {
   else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
 }
 
-function setTranslatorMicFeedback(message="",needsConfirmation=false) {
-  const box=$("#translator-mic-feedback"),status=$("#translator-mic-status"),confirm=$("#translator-mic-confirm");
-  if (!box || !status || !confirm) return;
+function setTranslatorMicFeedback(message="",needsConfirmation=false,keyboardOption=false) {
+  const box=$("#translator-mic-feedback"),status=$("#translator-mic-status");
+  const confirm=$("#translator-mic-confirm"),keyboard=$("#translator-mic-keyboard");
+  if (!box || !status || !confirm || !keyboard) return;
   box.hidden=!message;
   status.textContent=message;
   confirm.hidden=!needsConfirmation;
+  keyboard.hidden=!keyboardOption;
 }
 
 function startInputMicrophone() {
@@ -1443,10 +1445,10 @@ function startInputMicrophone() {
     onError:error=>{
       if (error === "aborted") return;
       failed=true;
-      setTranslatorMicFeedback(recognitionErrorMessage(error));
+      setTranslatorMicFeedback(recognitionErrorMessage(error),false,true);
     },
     onEnd:()=>{
-      if (!receivedWords && !failed) setTranslatorMicFeedback("No words recognized. Try again and allow time for speech to register.");
+      if (!receivedWords && !failed) setTranslatorMicFeedback("No words recognized. Try again or use your phone's keyboard microphone.",false,true);
     },
     onText:(text,final,metadata={})=>{
       musicFullTranslation = null;
@@ -1467,7 +1469,7 @@ function startInputMicrophone() {
         const result=$("#translation-result"),empty=$("#translation-empty-target");
         if (result) result.hidden=true;
         if (empty) empty.hidden=false;
-        setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true);
+        setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true,true);
       } else {
         setTranslatorMicFeedback("Recognized words received. Check the transcription.");
         renderTranslation();
@@ -3928,6 +3930,12 @@ function init() {
     if (!$("#translator-input")?.value.trim()) return;
     setTranslatorMicFeedback("Draft accepted. Translating…");
     renderTranslation();
+  });
+  $("#translator-mic-keyboard")?.addEventListener("click",()=>{
+    // Browsers cannot press the system keyboard's dictation key. Focus only;
+    // the learner chooses Apple's keyboard microphone and language themselves.
+    setTranslatorMicFeedback("Tap your keyboard microphone, if available. Check the keyboard language.");
+    $("#translator-input")?.focus();
   });
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
