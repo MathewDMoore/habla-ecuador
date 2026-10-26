@@ -34,7 +34,14 @@ async function run(browser,file,width,native){
   'the editor has its own label, and the microphone is an independent button');
  await page.evaluate(()=>{window.editorClickCount=0;document.querySelector('#translator-input').addEventListener('click',()=>editorClickCount++);});
  await page.locator('#source-language-select').selectOption('en-US');
+ const relativeMicTop=()=>page.evaluate(()=>{
+   const button=document.querySelector('#input-mic'),card=button.closest('.input-card');
+   return button.getBoundingClientRect().top-card.getBoundingClientRect().top;
+ });
+ const micBefore=await relativeMicTop();
  await page.locator('#input-mic').click();
+ const micAfter=await relativeMicTop();
+ assert.ok(Math.abs(micAfter-micBefore)<4,'start status cannot move microphone within its card');
  let messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
  assert.equal(messages.length,1,'touch activates exactly one session');
  assert.equal(messages[0].lang,'en-US','dictation listens in source language');
@@ -59,9 +66,50 @@ async function run(browser,file,width,native){
  messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
  assert.equal(messages.length,2,'tap works again after prior session ends');
  assert.equal(messages[1].lang,'es-EC','dictation follows the changed source language');
+ // Safari may report only 'Sí' when the actual sentence was '¿Cómo estás?'.
+ // A non-final fragment must NEVER be translated as a trustworthy result.
+ await page.evaluate(()=>{window.translationsStarted=0;renderTranslation=()=>{window.translationsStarted++;};});
+ const spanishMicTop=await relativeMicTop();
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'result',text:'Sí',final:false});
+  else{const result=[{transcript:'Sí'}];result.isFinal=false;testRecognition.onresult({results:[result]});}
+ },{native,id:messages[1].id});
+ assert.equal(await page.locator('#translator-input').inputValue(),'Sí');
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Partial words heard|palabras parciales)/i);
+ assert.ok(Math.abs((await relativeMicTop())-spanishMicTop)<4,
+  'interim transcript cannot move the microphone within its card');
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
+ assert.equal(await page.evaluate(()=>translationsStarted),0,'partial Spanish output must not auto-translate');
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),true,'unconfirmed transcript remains pending review');
+ assert.equal(await page.locator('#translator-mic-confirm').isVisible(),true,'review action shown for unconfirmed fragment');
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Only a partial transcript|transcripción parcial)/i);
+ assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden');
+ await page.locator('#translator-mic-confirm').click();
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'manual acceptance unlocks translation');
+ assert.equal(await page.evaluate(()=>translationsStarted),1,'manual approval requests translation');
+ assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false);
+ // An empty English recognition must explain the failure, not erase the draft.
+ await page.locator('#source-language-select').selectOption('en-US');
+ const beforeSilence=await page.evaluate(()=>translationsStarted);
+ await page.locator('#input-mic').click();
+ messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
+ assert.equal(messages.length,3);
+ assert.equal(messages[2].lang,'en-US');
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'start'});else testRecognition.onstart?.();
+ },{native,id:messages[2].id});
+ await page.locator('#input-mic').click();
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
+ },{native,id:messages[2].id});
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(No words recognized|No se reconocieron palabras)/i);
+ assert.equal(await page.locator('#translator-mic-keyboard').isVisible(),true,'keyboard fallback offered');
+ await page.locator('#translator-mic-keyboard').click();
+ assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
+ assert.equal(await page.locator('#translator-input').inputValue(),'Sí','failed capture retains previous words');
+ assert.equal(await page.evaluate(()=>translationsStarted),beforeSilence,'failed capture never translates');
  assert.deepEqual(errors,[],'no page JS errors during tap and recognition flow');
  await context.close();
  console.log(`${file} ${width}px ${native?'native bridge':'web'}: independent mic target, exact one-tap start, locale, transcription and retry passed`);

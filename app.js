@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.23 · build 133";
+const APP_VERSION = "0.26.24 · build 134";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1409,21 +1409,77 @@ function claimSourceTextEdit() {
   else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
 }
 
+let translatorDictationNeedsReview = false;
+
+function setTranslatorMicFeedback(message="",needsConfirmation=false,keyboardOption=false) {
+  const box=$("#translator-mic-feedback"),status=$("#translator-mic-status");
+  const confirm=$("#translator-mic-confirm"),keyboard=$("#translator-mic-keyboard");
+  if (!box || !status || !confirm || !keyboard) return;
+  box.hidden=!message;
+  status.textContent=message;
+  confirm.hidden=!needsConfirmation;
+  keyboard.hidden=!keyboardOption;
+}
+
 function startInputMicrophone() {
   const button = $("#input-mic");
   // The native layout moves this same editor into Music. Its microphone must
   // use the live capture pipeline rather than waiting for dictation to end.
   if (musicListening || button?.closest?.(".view")?.id === "music-view") return startMusicListening();
-  startListening({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => {
-    musicFullTranslation = null;
-    musicTranscriptReview = false;
-    musicCapturedText = "";
-    updateMusicListenLabel();
-    $("#translate-music").disabled = true;
-    preservedCulturalContext = null;
-    $("#translator-input").value = text;
-    if (final) renderTranslation();
-  }});
+  if (recognition && activeRecognitionButton === button) {
+    setTranslatorMicFeedback("Finishing speech recognition…");
+    return stopListening();
+  }
+  // Prevent an older translation timer/request from translating an unfinished
+  // new dictation. User edits and manual confirmation remain independent.
+  clearTimeout(translationTimer);
+  translationRequest += 1;
+  // Keep observed recognizer events visible: orange means the browser started
+  // a capture attempt, NOT proof that the speech engine decoded the words.
+  const locale=sourceSpeechLocale();
+  const label=languageLabel(sourceLanguage);
+  let receivedWords=false,failed=false;
+  setTranslatorMicFeedback("Starting microphone… " + label);
+  startListening({way:direction,lang:locale,button,
+    onStart:()=>setTranslatorMicFeedback("Microphone started. Speak clearly, then tap again to finish."),
+    onAudioStart:()=>setTranslatorMicFeedback("Microphone audio ready. Speak now."),
+    onSpeechStart:()=>setTranslatorMicFeedback("Speech detected. Continue speaking."),
+    onError:error=>{
+      if (error === "aborted") return;
+      failed=true;
+      setTranslatorMicFeedback(recognitionErrorMessage(error),false,true);
+    },
+    onEnd:()=>{
+      if (!receivedWords && !failed) setTranslatorMicFeedback("No words recognized. Try again or use your phone's keyboard microphone.",false,true);
+    },
+    onText:(text,final,metadata={})=>{
+      musicFullTranslation = null;
+      musicTranscriptReview = false;
+      musicCapturedText = "";
+      updateMusicListenLabel();
+      $("#translate-music").disabled = true;
+      preservedCulturalContext = null;
+      if (!text.trim()) return;
+      receivedWords=true;
+      $("#translator-input").value = text;
+      if (!final) {
+        setTranslatorMicFeedback("Partial words heard. Checking the final transcript…");
+      } else if (metadata.provisional) {
+        // iOS/Safari can end with only an unconfirmed fragment ("Sí" instead
+        // of "¿Cómo estás?"). Keep it editable, but never translate it as fact.
+        translationRequest += 1;
+        translatorDictationNeedsReview = true;
+        const result=$("#translation-result"),empty=$("#translation-empty-target");
+        if (result) result.hidden=true;
+        if (empty) empty.hidden=false;
+        setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true,true);
+      } else {
+        translatorDictationNeedsReview = false;
+        setTranslatorMicFeedback("Recognized words received. Check the transcription.");
+        renderTranslation();
+      }
+    }
+  });
 }
 
 function bindPushToTalk(button, getOptions) {
@@ -2125,6 +2181,7 @@ function applySlangMeaning(choice) {
 }
 
 async function renderTranslation({allowImported=false, allowMusic=false}={}) {
+  if (translatorDictationNeedsReview && !allowImported && !allowMusic) return;
   if (musicListening || (musicTranscriptReview && !allowMusic)) return;
   if (allowMusic) musicTranscriptReview = false;
   if ($("#compare-english")) $("#compare-english").disabled = true;
@@ -3837,6 +3894,9 @@ function init() {
   $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
+    // Editing the words is an explicit review of an uncertain dictated draft.
+    translatorDictationNeedsReview = false;
+    setTranslatorMicFeedback("");
     wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
     claimSourceTextEdit();
@@ -3872,6 +3932,18 @@ function init() {
     else translationTimer = setTimeout(renderTranslation, 550);
   });
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
+  $("#translator-mic-confirm")?.addEventListener("click",()=>{
+    if (!$("#translator-input")?.value.trim()) return;
+    translatorDictationNeedsReview = false;
+    setTranslatorMicFeedback("Draft accepted. Translating…");
+    renderTranslation();
+  });
+  $("#translator-mic-keyboard")?.addEventListener("click",()=>{
+    // Browsers cannot press the system keyboard's dictation key. Focus only;
+    // the learner chooses Apple's keyboard microphone and language themselves.
+    setTranslatorMicFeedback("Tap your keyboard microphone, if available. Check the keyboard language.");
+    $("#translator-input")?.focus();
+  });
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
@@ -4029,7 +4101,7 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=133", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=134", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
