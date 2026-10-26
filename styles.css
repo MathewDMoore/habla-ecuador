@@ -86,7 +86,7 @@ h1 span { color: var(--orange); }
 textarea { width: 100%; min-height: 82px; resize: vertical; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 20px; line-height: 1.45; }
 textarea::placeholder { color: #9ca39f; }
 .round-action { position: absolute; right: 16px; bottom: 14px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--mint); color: var(--green); font-size: 20px; }
-.round-action.listening { background: var(--orange); color: white; animation: microphone-glow 1s infinite alternate; }
+.round-action.listening { background: var(--orange); color: white; box-shadow:0 0 0 5px rgba(237,120,64,.24); }
 .translator-mic-feedback { margin:10px 54px 0 0; padding:8px 10px; border-left:3px solid var(--orange); border-radius:8px; background:#fff5e9; color:#633e27; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
 .translator-mic-feedback p { margin:0 0 6px; }
 .translator-mic-feedback p:last-child { margin-bottom:0; }
@@ -94,6 +94,10 @@ textarea::placeholder { color: #9ca39f; }
    partial-result warning must never shift the microphone under a user's finger. */
 .input-card:has(#input-mic) { padding-bottom:14px; }
 .input-card #input-mic { position:relative; right:auto; bottom:auto; display:block; margin:10px 0 0 auto; }
+/* Speech button position must never animate, including brief generic
+   is-pressed / :active feedback. Orange fill and outline show capture state. */
+#input-mic, #input-mic.is-pressed, #input-mic:active { transform:none !important; transition:none !important; animation:none !important; }
+
 .input-card #translator-mic-feedback { margin:10px 0 0; }
 #translator-mic-confirm, #translator-mic-keyboard { display:block; min-height:44px; padding:8px 11px; margin-top:8px; border:1px solid var(--orange); border-radius:11px; background:white; color:var(--green); font-weight:800; }
 
