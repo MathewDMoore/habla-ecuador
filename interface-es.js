@@ -1,5 +1,14 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Starting audio…": "Iniciando audio…",
+  "Playing audio.": "Reproduciendo audio.",
+  "Audio finished.": "Audio finalizado.",
+  "Audio paused.": "Audio en pausa.",
+  "Audio stopped.": "Audio detenido.",
+  "Audio stopped. Tap Hear again to retry.": "Audio detenido. Toca Escuchar para volver a intentarlo.",
+  "Audio could not start. Tap Hear again to retry.": "El audio no pudo iniciarse. Toca Escuchar para volver a intentarlo.",
+  "Audio did not start. Tap Hear again to retry.": "El audio no se inició. Toca Escuchar para volver a intentarlo.",
+
   "Short lessons · one useful idea": "Lecciones cortas · una idea útil",
   "Choose a short lesson": "Elige una lección corta",
   "🔊 Hear explanation": "🔊 Escuchar explicación",
