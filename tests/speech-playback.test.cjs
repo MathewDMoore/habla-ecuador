@@ -14,9 +14,11 @@ const synth = {
   // Deliberately stale flag: the old implementation lost its Resume label.
   pause(){this.paused=false;},resume(){this.resumes++;this.paused=false;},
   getVoices:()=>[{name:'Google US English',lang:'en-US',voiceURI:'en',localService:true}],
-  speak(u){this.last=u;spoken.push(u);u.onstart?.();}
+  speak(u){this.last=u;spoken.push(u);this.modeAtSpeak=audioSession.type;u.onstart?.();}
 };
-const context=vm.createContext({console,setTimeout:(fn,ms)=>{const id=++timerID;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
+const routeChanges=[];
+const audioSession={_type:'auto',get type(){return this._type;},set type(value){this._type=value;routeChanges.push(value);}};
+const context=vm.createContext({console,navigator:{audioSession},setTimeout:(fn,ms)=>{const id=++timerID;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
  localStorage:{getItem:()=>null,setItem(){}},window:{speechSynthesis:synth},speechSynthesis:synth,
  SpeechSynthesisUtterance:class {constructor(text){this.text=text;}},
  document:{querySelector:element,addEventListener(){},documentElement:{dataset:{}}}
@@ -32,12 +34,15 @@ run('updateSpeechPauseControls()');assert.ok(controls.every(b=>b.disabled));
 run('stopSpeechPlayback();stopSpeechPlayback()');
 assert.equal(synth.cancels,0,'idle cleanup must not claim the speech audio session');
 assert.equal(synth.resumes,0,'idle cleanup must not resume speech while another app plays music');
+assert.deepEqual(routeChanges,[],'startup/idle cleanup must not claim media audio');
 
 run('say("First translation.","en-US");toggleSpeechPause();');drain();
 assert.equal(spoken.length,1,'first speech starts in the tap before any timer');paused();
+assert.equal(synth.modeAtSpeak,'playback','request media playback before speech');
+assert.equal(audioSession.type,'auto','pause releases exclusive playback mode');
 assert.equal(synth.cancels,1,'pause cancels the immediately started utterance');
 assert.equal(synth.resumes,1,'the direct tap activates speech once');
-run('toggleSpeechPause()');drain();playing();assert.equal(spoken.length,2);
+run('toggleSpeechPause()');drain();playing();assert.equal(spoken.length,2);assert.equal(audioSession.type,'playback','resume reacquires playback mode');
 const first=spoken.at(-1);
 first.onboundary({charIndex:6});
 run('toggleSpeechPause()');paused();
@@ -47,7 +52,7 @@ paused();assert.equal(synth.paused,false,'Resume label must ignore the unreliabl
 run('toggleSpeechPause()');drain();
 assert.equal(spoken.at(-1).text,'translation.','resume starts at remembered word instead of restarting whole text');
 playing();
-spoken.at(-1).onend();drain();assert.ok(controls.every(b=>b.disabled));
+spoken.at(-1).onend();drain();assert.ok(controls.every(b=>b.disabled));assert.equal(audioSession.type,'auto','completion restores mode');
 
 // No word-boundary events: replay only the current sentence, preserving the rest.
 run('say("One sentence. Second sentence. Last sentence.","en-US")');drain();
@@ -78,7 +83,15 @@ synth.getVoices=getVoices;run('stopSpeechPlayback()');
 synth.speak=function(u){this.last=u;spoken.push(u);};
 run('say("Silent provider.","en-US")');
 const watchdog=[...timers].find(([,t])=>t.ms===6000);assert.ok(watchdog);timers.delete(watchdog[0]);watchdog[1].fn();
-assert.equal(run('activeSpeechPlayback'),null);
+assert.equal(run('activeSpeechPlayback'),null);assert.equal(audioSession.type,'auto','silent-provider watchdog releases mode');
+// Never overwrite a newer microphone/media owner, including late callbacks.
+synth.speak=function(u){this.last=u;spoken.push(u);u.onstart?.();};
+run('say("Route owner test.","en-US")');audioSession.type='play-and-record';
+run('stopSpeechPlayback()');assert.equal(audioSession.type,'play-and-record');
+audioSession.type='auto';
+// Unsupported/throwing API cannot break ordinary speech.
+Object.defineProperty(context.navigator,'audioSession',{configurable:true,get(){throw Error('unsupported');}});
+const beforeUnsupported=spoken.length;run('say("Safe fallback.","en-US")');assert.equal(spoken.length,beforeUnsupported+1);run('stopSpeechPlayback()');
 context.decimals='The value is 1.5 mg. Dr. Smith reports 0.05 units.';
 assert.equal(run('splitSpeechPlaybackText(decimals).join(" ")'),context.decimals,'scientific numbers and punctuation survive speech segmentation');
 for(const name of ['index.html','translator.html']){

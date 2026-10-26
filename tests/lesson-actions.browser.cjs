@@ -16,7 +16,7 @@ try{
   document.addEventListener('click',()=>window.tapActive=false);
   const synth={getVoices:()=>emptyVoices?[]:[{name:'English',lang:'en-US',voiceURI:'en-US',localService:true},{name:'English UK',lang:'en-GB',voiceURI:'en-GB',localService:true},{name:'Spanish',lang:'es-EC',voiceURI:'es-EC',localService:true}],
    cancel(){speechCalls.push({action:'cancel'});},resume(){},addEventListener(){},
-   speak(u){speechCalls.push({action:'speak',text:u.text,lang:u.lang,voice:u.voice?.lang,trustedTap:tapActive});window.lastUtterance=u;
+   speak(u){speechCalls.push({action:'speak',text:u.text,lang:u.lang,voice:u.voice?.lang,trustedTap:tapActive,audioMode:navigator.audioSession?.type||'unsupported'});window.lastUtterance=u;
     if(!tapActive){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='error'){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='throw')throw Error('provider failed');
@@ -28,6 +28,7 @@ try{
   window.SpeechRecognition=class{start(){recognitionCalls.push({action:'start',lang:this.lang});window.lastRecognition=this;}stop(){recognitionCalls.push({action:'stop'});}abort(){recognitionCalls.push({action:'abort'});}};
  },{emptyVoices});
  await page.goto(origin+'/habla-ecuador/index.html?ui=en');
+ console.log(`${width}px browser AudioSession support: ${await page.evaluate(()=>navigator.audioSession?.type||'unsupported')}`);
  await page.locator('.bottom-nav [data-open="lesson-view"]').tap();
  const host=page.locator('#quick-lessons');await host.locator(':scope > summary').tap();
  // Pressed styling must keep the touch target fixed, including its edges.
@@ -45,6 +46,7 @@ try{
   await host.locator('#quick-explanation-hear').tap();
   let calls=await spoken();assert.equal(calls.at(-1)?.trustedTap,true,'explanation must reach speech API in the trusted tap, without timers');
   assert.equal(calls.at(-1).lang,locale==='es-EC'?'en-US':'es-EC');
+  if(calls.at(-1).audioMode!=='unsupported')assert.equal(calls.at(-1).audioMode,'playback','real browser AudioSession must request playback before speaking');
   await host.locator('[data-quick-hear]').first().tap();
   calls=await spoken();assert.equal(calls.at(-1).trustedTap,true);assert.equal(calls.at(-1).lang,locale);
   await host.locator('.dictionary-practice-hear').tap();
@@ -52,6 +54,7 @@ try{
   assert.match(await host.locator('.dictionary-practice > .speech-action-status').textContent(),/Playing audio/);
   await page.evaluate(()=>lastUtterance.onend());
   await page.waitForFunction(()=>document.querySelector('#quick-lessons .dictionary-practice > .speech-action-status').textContent==='Audio finished.');
+  assert.equal(await page.evaluate(()=>!navigator.audioSession||navigator.audioSession.type!=='playback'),true,'speech completion releases media playback mode');
  }
  // These must visibly change the page, not just show pointer deformation.
  await host.locator('#quick-recall').tap();assert.equal(await host.locator('#quick-lesson-model').isVisible(),false);
