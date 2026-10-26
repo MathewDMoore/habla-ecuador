@@ -835,3 +835,42 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
   filter:none !important;
   transition:box-shadow .1s ease;
 }
+
+
+/* Bilingual onboarding. Always optional; never traps the user on first load. */
+.tutorial-open { width:36px;height:36px;flex:0 0 36px;border:1px solid var(--line);border-radius:12px;background:#e7f3eb;color:var(--green);font-size:19px;font-weight:900; }
+.tutorial-invitation { margin:0 0 20px;padding:16px;border-radius:20px;border:1px solid #b7d4c4;background:#edf7f0;color:var(--ink);box-shadow:0 7px 20px #173f3510; }
+.tutorial-invitation h2 { margin:0 0 7px;color:var(--green);font-size:18px; }
+.tutorial-invitation p { margin:7px 0;font-size:14px;line-height:1.45; }
+.tutorial-invitation-actions { display:flex;flex-wrap:wrap;gap:9px;margin-top:12px; }
+.tutorial-invitation button { min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid #a1c9b1;background:white;color:var(--green);font-size:13px;font-weight:800; }
+#tutorial-invite-start { background:var(--green);color:white; }
+#tutorial-overlay[hidden], .tutorial-panel [hidden] { display:none !important; }
+#tutorial-overlay { position:fixed;inset:0;z-index:250;pointer-events:none; }
+.tutorial-shade { position:fixed;background:rgba(11,28,24,.70);pointer-events:auto; }
+#tutorial-spotlight { position:fixed;box-sizing:border-box;border:3px solid #ffc35a;border-radius:12px;box-shadow:0 0 0 2px #173f35,0 0 20px 5px rgba(255,184,73,.38);pointer-events:auto; }
+.tutorial-panel { position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:max(10px,calc((100vw - 510px)/2));width:min(calc(100vw - 20px),510px);max-height:min(56svh,480px);overflow:auto;overscroll-behavior:contain;padding:16px 18px 18px;border:1px solid #c5e0d0;border-radius:24px;background:#fffdf8;color:var(--ink);box-shadow:0 16px 55px rgba(0,0,0,.32);pointer-events:auto; }
+.tutorial-panel-top { display:flex;align-items:center;justify-content:space-between;gap:10px; }
+#tutorial-progress {font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:800; }
+#tutorial-close {width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:white;color:var(--green);font-size:28px;line-height:1; }
+#tutorial-symbol {font-size:30px;line-height:1.1;margin:2px 0 8px;}
+.tutorial-panel h2 {margin:0;color:var(--green);font-size:21px;line-height:1.22;}
+.tutorial-panel h3 {margin:0;color:var(--green);font-size:17px;line-height:1.25;}
+.tutorial-panel p {margin:7px 0 0;font-size:14px;line-height:1.48;overflow-wrap:anywhere;}
+.tutorial-divider {height:1px;background:var(--line);margin:12px 0;}
+.tutorial-panel .tutorial-step-note {font-size:11px;color:var(--muted);margin:12px 0;}
+.tutorial-controls {display:flex;gap:8px;align-items:center;justify-content:flex-end;}
+.tutorial-controls button {min-height:44px;border-radius:12px;border:1px solid var(--line);padding:8px 12px;background:white;color:var(--green);font-size:13px;font-weight:850;}
+#tutorial-next {background:var(--green);color:white;border-color:var(--green);margin-left:auto;}
+.tutorial-controls button:disabled {opacity:.4;}
+.tutorial-controls button:focus-visible,.tutorial-open:focus-visible,.tutorial-invitation button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
+@media(max-width:360px){
+ .tutorial-panel{padding:12px 13px;max-height:60svh;}
+ .tutorial-panel h2{font-size:19px;}
+ .tutorial-panel p{font-size:13px;}
+ .tutorial-controls button{padding:8px;font-size:12px;}
+ .tutorial-open{width:32px;flex-basis:32px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .tutorial-panel,.tutorial-shade,#tutorial-spotlight {animation:none!important;transition:none!important;}
+}
