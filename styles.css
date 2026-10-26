@@ -86,7 +86,10 @@ h1 span { color: var(--orange); }
 textarea { width: 100%; min-height: 82px; resize: vertical; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 20px; line-height: 1.45; }
 textarea::placeholder { color: #9ca39f; }
 .round-action { position: absolute; right: 16px; bottom: 14px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--mint); color: var(--green); font-size: 20px; }
-.round-action.listening { background: var(--orange); color: white; animation: pulse 1s infinite alternate; }
+.round-action.listening { background: var(--orange); color: white; animation: microphone-glow 1s infinite alternate; }
+/* Keep the active microphone hit area fixed. A scaling pulse makes a moving
+   button harder to tap again on touch devices and unstable in browser tests. */
+@keyframes microphone-glow { to { box-shadow: 0 0 0 6px rgba(237,120,64,.24); } }
 .translation-privacy { margin: 8px 7px 2px; color: var(--muted); font-size: 10px; line-height: 1.45; }
 @keyframes pulse { to { transform: scale(1.08); } }
 .speed-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 2px; color: var(--muted); font-size: 13px; font-weight: 800; }
