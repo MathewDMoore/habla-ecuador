@@ -741,7 +741,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     activeRecognitionButton = null;
     onEnd?.();
   };
-  instance._hablaArmFinishDeadline = (delay=3000) => {
+  instance._hablaArmFinishDeadline = (delay=3000, reportStall=true) => {
     if (recognition !== instance || finalized) return;
     clearTimeout(finishDeadline);
     finishDeadline = setTimeout(() => {
@@ -749,7 +749,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
       // Abort the stalled backend before freeing the UI. A late native/web
       // event from this instance is ignored by the identity check above.
       try { instance.abort(); } catch {}
-      onError?.("session-timeout");
+      if (reportStall) onError?.("session-timeout");
       instance._hablaFinish();
     }, delay);
   };
@@ -789,7 +789,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     onError?.(event.error);
     if (event.error !== "aborted") {
       showToast(formatError(event.error));
-      instance._hablaArmFinishDeadline(1600);
+      instance._hablaArmFinishDeadline(1600, false);
     }
   };
   instance.onend = instance._hablaFinish;
