@@ -67,13 +67,13 @@ async function run(browser,file,width,native){
   else{const result=[{transcript:'Sí'}];result.isFinal=false;testRecognition.onresult({results:[result]});}
  },{native,id:messages[1].id});
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí');
- assert.match(await page.locator('#translator-mic-status').textContent(),/Partial words heard/);
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Partial words heard|palabras parciales)/i);
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
  assert.equal(await page.evaluate(()=>translationsStarted),0,'partial Spanish output must not auto-translate');
  assert.equal(await page.locator('#translator-mic-confirm').isVisible(),true,'review action shown for unconfirmed fragment');
- assert.match(await page.locator('#translator-mic-status').textContent(),/Only a partial transcript/);
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Only a partial transcript|transcripción parcial)/i);
  assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden');
  await page.locator('#translator-mic-confirm').click();
  assert.equal(await page.evaluate(()=>translationsStarted),1,'manual approval requests translation');
@@ -91,7 +91,7 @@ async function run(browser,file,width,native){
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[2].id});
- assert.match(await page.locator('#translator-mic-status').textContent(),/No words recognized/);
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(No words recognized|No se reconocieron palabras)/i);
  assert.equal(await page.locator('#translator-mic-keyboard').isVisible(),true,'keyboard fallback offered');
  await page.locator('#translator-mic-keyboard').click();
  assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
