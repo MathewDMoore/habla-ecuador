@@ -18,7 +18,9 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#tutorial-overlay').count(),0,'tour never automatically blocks the app');
  assert.equal(await page.locator('[data-tutorial-open]').count(),1,'reopenable Help icon');
  assert.equal(await page.locator('#tutorial-invite-start').isVisible(),true,'first-visit invitation');
- if(file==='index.html') await page.locator('.bottom-nav [data-open="translator-view"]').click();
+ if(file==='index.html') // Standalone translator already lands on Translate and hides bottom navigation.
+ if(await page.locator('#translator-view').evaluate(el=>!el.classList.contains('active')))
+  await page.locator('.bottom-nav [data-open="translator-view"]').click();
  else assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true,
   'standalone starts on Translate with its bottom navigation intentionally hidden');
  await page.locator('#translator-input').fill('Keep this phrase intact.');
