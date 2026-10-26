@@ -603,6 +603,7 @@
   "Partial words heard. Checking the final transcript…": "Se captaron palabras parciales. Comprobando la transcripción final…",
   "Only a partial transcript was received. Check the words before translating.": "Solo se recibió una transcripción parcial. Comprueba las palabras antes de traducir.",
   "No words recognized. Try again or use your phone's keyboard microphone.": "No se reconocieron palabras. Inténtalo de nuevo o usa el micrófono del teclado del teléfono.",
+  "Speech recognition stalled and was reset. Tap the microphone to retry or use keyboard dictation.": "El reconocimiento de voz se bloqueó y se reinició. Toca el micrófono para intentar de nuevo o usa el dictado del teclado.",
   "Use keyboard dictation": "Usar el dictado del teclado",
   "Tap your keyboard microphone, if available. Check the keyboard language.": "Toca el micrófono del teclado, si está disponible. Comprueba el idioma del teclado.",
   "Recognized words received. Check the transcription.": "Se recibieron palabras reconocidas. Revisa la transcripción.",

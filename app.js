@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.25 · build 135";
+const APP_VERSION = "0.26.26 · build 136";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -686,6 +686,7 @@ function recognitionErrorMessage(error) {
   if (error === "audio-capture") return "No microphone was available to the browser.";
   if (error === "no-speech") return "No speech was detected. Tap the microphone, start speaking, then tap again when finished.";
   if (error === "network") return "Speech recognition could not reach the free browser service. Please try again.";
+  if (error === "session-timeout") return "Speech recognition stalled and was reset. Tap the microphone to retry or use keyboard dictation.";
   return "Speech recognition stopped unexpectedly. Please tap the microphone and try again.";
 }
 
@@ -724,6 +725,39 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   let latestFinal = false;
   let latestMetadata = {};
   let committed = false;
+  let finalized = false;
+  let finishDeadline = null;
+  // WebKit can deliver start/audiostart but never send end after stop/error.
+  // Keep deadlines strictly tied to this recognizer; stale callbacks must not
+  // clear a newer recording or overwrite a learner's existing words.
+  instance._hablaFinish = () => {
+    if (recognition !== instance || finalized) return;
+    finalized = true;
+    clearTimeout(finishDeadline);
+    finishDeadline = null;
+    instance.commitTranscript(true);
+    setListeningButton(button, false);
+    recognition = null;
+    activeRecognitionButton = null;
+    onEnd?.();
+  };
+  instance._hablaArmFinishDeadline = (delay=3000, reportStall=true) => {
+    if (recognition !== instance || finalized) return;
+    clearTimeout(finishDeadline);
+    finishDeadline = setTimeout(() => {
+      if (recognition !== instance || finalized) return;
+      // Abort the stalled backend before freeing the UI. A late native/web
+      // event from this instance is ignored by the identity check above.
+      try { instance.abort(); } catch {}
+      if (reportStall) onError?.("session-timeout");
+      instance._hablaFinish();
+    }, delay);
+  };
+  instance._hablaClearFinishDeadline = () => {
+    finalized = true;
+    clearTimeout(finishDeadline);
+    finishDeadline = null;
+  };
   instance.cancelTranscript = onCancel;
   instance.commitTranscript = (provisional=false) => {
     if (recognition !== instance || committed || !latestText) return;
@@ -753,21 +787,18 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.onerror = event => {
     if (recognition !== instance) return;
     onError?.(event.error);
-    if (event.error !== "aborted") showToast(formatError(event.error));
+    if (event.error !== "aborted") {
+      showToast(formatError(event.error));
+      instance._hablaArmFinishDeadline(1600, false);
+    }
   };
-  instance.onend = () => {
-    if (recognition !== instance) return;
-    instance.commitTranscript(true);
-    setListeningButton(button, false);
-    recognition = null;
-    activeRecognitionButton = null;
-    onEnd?.();
-  };
+  instance.onend = instance._hablaFinish;
 
   try {
     instance.start();
     setListeningButton(button, true);
   } catch {
+    instance._hablaClearFinishDeadline();
     setListeningButton(button, false);
     recognition = null;
     activeRecognitionButton = null;
@@ -781,6 +812,7 @@ function cancelListening(preserveTranscript=false) {
   if (!recognition) return;
   const instance = recognition;
   if (preserveTranscript) instance.commitTranscript?.(true);
+  instance._hablaClearFinishDeadline?.();
   recognition = null;
   setListeningButton(activeRecognitionButton, false);
   activeRecognitionButton = null;
@@ -1398,9 +1430,17 @@ function startMusicSegment(session) {
 }
 
 function stopListening() {
-  if (!recognition) return;
+  const instance = recognition;
+  if (!instance || instance._hablaStopping) return;
+  instance._hablaStopping = true;
   setListeningButton(activeRecognitionButton, true, true);
-  try { recognition.stop(); } catch {}
+  try {
+    instance.stop();
+    instance._hablaArmFinishDeadline?.(3000);
+  } catch {
+    try { instance.abort(); } catch {}
+    instance._hablaFinish?.();
+  }
 }
 
 function claimSourceTextEdit() {
@@ -4103,7 +4143,7 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=135", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=136", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

@@ -76,7 +76,18 @@
       }
     }
     stop() { this._command("stop"); }
-    abort() { this._command("abort"); }
+    abort() {
+      if (this._id === null) return;
+      const id = this._id;
+      try { this._command("abort"); }
+      finally {
+        // WKWebView may never deliver the native end event after an aborted
+        // capture. Release the JS session now so the next tap can start fresh.
+        sessions.delete(id);
+        this._id = null;
+        if (modeSelect && !sessions.size) modeSelect.disabled = false;
+      }
+    }
     _command(action) {
       if (this._id !== null) window.webkit.messageHandlers.hablaSpeech.postMessage({action, id:this._id});
     }
