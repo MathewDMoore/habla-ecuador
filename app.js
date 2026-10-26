@@ -1422,6 +1422,14 @@ function startInputMicrophone() {
   // The native layout moves this same editor into Music. Its microphone must
   // use the live capture pipeline rather than waiting for dictation to end.
   if (musicListening || button?.closest?.(".view")?.id === "music-view") return startMusicListening();
+  if (recognition && activeRecognitionButton === button) {
+    setTranslatorMicFeedback("Finishing speech recognition…");
+    return stopListening();
+  }
+  // Prevent an older translation timer/request from translating an unfinished
+  // new dictation. User edits and manual confirmation remain independent.
+  clearTimeout(translationTimer);
+  translationRequest += 1;
   // Keep observed recognizer events visible: orange means the browser started
   // a capture attempt, NOT proof that the speech engine decoded the words.
   const locale=sourceSpeechLocale();
