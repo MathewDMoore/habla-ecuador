@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'app.js'
+      - 'quick-lessons.js'
       - 'styles.css'
       - 'index.html'
       - 'translator.html'
@@ -59,6 +60,10 @@ jobs:
           DEBUG: pw:browser
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_NATIVE_SCRIPT: ${{ github.workspace }}/ios/HablaEcuador/NativeSpeech.js
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node tests/quick-lesson.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/video-lesson.browser.cjs
         env:

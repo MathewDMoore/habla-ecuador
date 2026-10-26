@@ -1,5 +1,15 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Short lessons · one useful idea": "Lecciones cortas · una idea útil",
+  "Choose a short lesson": "Elige una lección corta",
+  "🔊 Hear explanation": "🔊 Escuchar explicación",
+  "🔊 Hear example": "🔊 Escuchar ejemplo",
+  "Use it in a situation": "Úsalo en una situación",
+  "Show me the phrase": "Mostrarme la frase",
+  "Try another situation →": "Probar otra situación →",
+  "Different replies can work. Speaking feedback below compares recognized words with this model; it does not judge whether another reply communicates your meaning.": "Puede haber varias respuestas válidas. La práctica compara las palabras reconocidas con este modelo; no evalúa si otra respuesta comunica tu intención.",
+  "Original Habla lesson · device voices": "Lección original de Habla · voces del dispositivo",
+
   "Translation setup & import": "Configuración e importación",
   "Habla Ecuador home": "Inicio de Habla Ecuador",
   "🇪🇨 Ecuadorian first": "🇪🇨 Ecuador primero",

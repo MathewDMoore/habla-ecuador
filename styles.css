@@ -818,3 +818,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
   .speed-slider-row { grid-template-columns:auto minmax(0,1fr) auto; }
   .speed-slider-row input[type="range"] { min-width:0; }
 }
+
+/* Short comparisons stay readable on a phone. */
+.quick-lesson-examples { display:grid; gap:12px; margin:16px 0; }
+.quick-lesson-examples > div { padding:12px; border:1px solid var(--line, #ddd); border-radius:12px; }
+#quick-lessons-content select { width:100%; min-width:0; }
+#quick-lessons-content { overflow-wrap:anywhere; }
+#quick-lessons-content button { max-width:100%; white-space:normal; }
