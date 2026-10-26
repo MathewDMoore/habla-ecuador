@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.28 · build 138";
+const APP_VERSION = "0.26.29 · build 139";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1824,6 +1824,14 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
   }
+  // Isolated Spanish-language community terms must not depend on a general
+  // machine translator guessing "Spanish" as nationality or language name.
+  const languageCommunityTerm=typeof HablaLanguageCommunity!=="undefined"
+    ? HablaLanguageCommunity.lookup(text,{source,target}) : null;
+  if(languageCommunityTerm!==null){
+    if(!isCurrent())throw translationFailure("superseded");
+    return languageCommunityTerm;
+  }
   if (text.length > 8000) throw translationFailure("research_limit");
   const localIndifference = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.translateIndifferenceExpression(text,{source,target}) : null;
   if(localIndifference) {
@@ -1863,7 +1871,10 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const combined = protectedDocument.restore(joined);
   const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
   if (languageFamily(target) === "en") return convertEnglishVariety(refined,target,{source:text,purpose});
-  return languageFamily(source) === "en" && languageFamily(target) === "es" ? refineSpanishOrthography(refined,text) : refined;
+  const corrected = languageFamily(source) === "en" && languageFamily(target) === "es"
+    ? refineSpanishOrthography(refined,text) : refined;
+  return typeof HablaLanguageCommunity!=="undefined"
+    ? HablaLanguageCommunity.refine(corrected,text,{source,target}) : corrected;
 }
 
 
@@ -2376,6 +2387,16 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
             : `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
+      // “Spanish-speaking” concerns language ability. The valid Ecuadorian
+      // options hispanohablante and hispanoparlante must not be confused with
+      // “español”, which can name the language or refer to Spain.
+      const communityTerm=typeof HablaLanguageCommunity!=="undefined"
+        ? HablaLanguageCommunity.lookup(sourceText,{source:sourceLanguage,target:targetLanguage}) : null;
+      if(communityTerm!==null){
+        $("#translation-result .result-label").textContent=`${languageLabel(targetLanguage)} · language community`;
+        $("#literal-result").textContent="Language spoken · not nationality";
+        $("#usage-note").innerHTML='<strong>Meaning preserved</strong><span>Preferred: hispanohablante. Also valid: hispanoparlante. In country/community contexts: de habla hispana. “Español” alone does not reliably mean “Spanish-speaking.”</span>';
+      }
       if(inputType==='image'&&translationPurpose!=='academic')$("#usage-note").innerHTML+='<p>Image paragraphs are retained while screen line wraps are joined. Counting, dancing and volume wording can be clarified from context; figurative lyrics still need review.</p>';
       const embeddedEntry = embeddedSlang.entries[0];
       if (embeddedEntry && translationPurpose !== "academic") {
@@ -4213,7 +4234,7 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=138", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=139", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
