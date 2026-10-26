@@ -28,6 +28,10 @@ async function run(browser,file){
  assert.match(await page.locator('#usage-note').textContent(),/hispanoparlante/,'related alternative shown');
  assert.match(await page.locator('#usage-note').textContent(),/de habla hispana/,'country/community variant shown');
  await check('Spanish-speaking countries','países hispanohablantes');
+ // Changing the direction with old English text still present intentionally
+ // asks the app to retranslate it as Spanish. Clear the editor first so the
+ // service-call assertion covers only the glossary phrases under test.
+ await page.locator('#translator-input').fill('');
  await page.locator('#source-language-select').selectOption('es-EC');
  await page.locator('#target-language-select').selectOption('en-US');
  await check('hispanoparlante','Spanish-speaking');
