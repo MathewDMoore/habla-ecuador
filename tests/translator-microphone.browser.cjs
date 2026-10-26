@@ -92,6 +92,9 @@ async function run(browser,file,width,native){
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[2].id});
  assert.match(await page.locator('#translator-mic-status').textContent(),/No words recognized/);
+ assert.equal(await page.locator('#translator-mic-keyboard').isVisible(),true,'keyboard fallback offered');
+ await page.locator('#translator-mic-keyboard').click();
+ assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí','failed capture retains previous words');
  assert.equal(await page.evaluate(()=>translationsStarted),1,'failed capture never translates');
  assert.deepEqual(errors,[],'no page JS errors during tap and recognition flow');
