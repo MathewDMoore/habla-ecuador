@@ -39,6 +39,18 @@ const {englishCatalog}=require('../recorded-practice.js');
    assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.explanation,lang:'es-EC'});
    await host.locator('[data-mini-next="2"]').click();
    assert.equal(await page.evaluate(()=>HablaRecordedPractice.isProtected()),true);
+   await host.locator('#english-think-first').click();
+   assert.equal(await host.locator('#english-think-first').getAttribute('aria-pressed'),'true');
+   assert.equal(await host.locator('#english-context-meaning').isVisible(),false,'challenge hides Spanish gloss');
+   assert.equal(await host.locator('.english-mini-reply').isVisible(),false,'challenge hides the model reply');
+   assert.equal(await host.locator('#english-model-hear').isVisible(),false,'no answer audio before reveal');
+   assert.equal(await host.locator('.english-mini-chunks').isVisible(),false,'no answer chunks before reveal');
+   await host.locator('#english-context-hear').click();
+   assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.context,lang:locale},'context remains audible in the chosen variety');
+   await host.locator('#english-think-first').click();
+   assert.equal(await host.locator('#english-think-first').getAttribute('aria-pressed'),'false');
+   assert.equal(await host.locator('#english-context-meaning').isVisible(),true);
+   assert.equal(await host.locator('.english-mini-reply').isVisible(),true);
    await host.locator('#english-context-hear').click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.context,lang:locale});
    await host.locator('#english-model-hear').click();assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:item.phrase,lang:locale});
    for(const button of await host.locator('[data-english-chunk]').all()){
