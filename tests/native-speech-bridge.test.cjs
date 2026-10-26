@@ -95,9 +95,15 @@ assert.deepEqual(events, ["start", ["hola", false], ["hola de nuevo", true], "en
 recognition.start();
 recognition.abort();
 assert.deepEqual(messages.at(-1), {action:"abort", id:"2"});
+assert.equal(modeSelect.disabled, false, "abort unlocks recognition mode without waiting for a missing native end");
+assert.equal(recognition._id, null, "the aborted session releases its bridge identity immediately");
+const beforeLateEvents = events.length;
 receive({id:"2", type:"error", error:"aborted"});
+receive({id:"2", type:"result", text:"stale", final:true});
 receive({id:"2", type:"end"});
-assert.deepEqual(events.slice(-2), ["aborted", "end"]);
+assert.equal(events.length, beforeLateEvents, "late events from an aborted session are ignored");
+// The next separately created recognizer may reuse the bridge without any
+// terminal callback from the canceled instance.
 const finalOnly = new window.webkitSpeechRecognition();
 let results = 0;
 let listenerEnds = 0;
