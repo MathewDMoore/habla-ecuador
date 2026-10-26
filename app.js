@@ -1409,21 +1409,63 @@ function claimSourceTextEdit() {
   else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
 }
 
+function setTranslatorMicFeedback(message="",needsConfirmation=false) {
+  const box=$("#translator-mic-feedback"),status=$("#translator-mic-status"),confirm=$("#translator-mic-confirm");
+  if (!box || !status || !confirm) return;
+  box.hidden=!message;
+  status.textContent=message;
+  confirm.hidden=!needsConfirmation;
+}
+
 function startInputMicrophone() {
   const button = $("#input-mic");
   // The native layout moves this same editor into Music. Its microphone must
   // use the live capture pipeline rather than waiting for dictation to end.
   if (musicListening || button?.closest?.(".view")?.id === "music-view") return startMusicListening();
-  startListening({way:direction,lang:sourceSpeechLocale(),button,onText:(text, final) => {
-    musicFullTranslation = null;
-    musicTranscriptReview = false;
-    musicCapturedText = "";
-    updateMusicListenLabel();
-    $("#translate-music").disabled = true;
-    preservedCulturalContext = null;
-    $("#translator-input").value = text;
-    if (final) renderTranslation();
-  }});
+  // Keep observed recognizer events visible: orange means the browser started
+  // a capture attempt, NOT proof that the speech engine decoded the words.
+  const locale=sourceSpeechLocale();
+  const label=languageLabel(sourceLanguage);
+  let receivedWords=false,failed=false;
+  setTranslatorMicFeedback("Starting microphone… " + label);
+  startListening({way:direction,lang:locale,button,
+    onStart:()=>setTranslatorMicFeedback("Microphone started. Speak clearly, then tap again to finish."),
+    onAudioStart:()=>setTranslatorMicFeedback("Microphone audio ready. Speak now."),
+    onSpeechStart:()=>setTranslatorMicFeedback("Speech detected. Continue speaking."),
+    onError:error=>{
+      if (error === "aborted") return;
+      failed=true;
+      setTranslatorMicFeedback(recognitionErrorMessage(error));
+    },
+    onEnd:()=>{
+      if (!receivedWords && !failed) setTranslatorMicFeedback("No words recognized. Try again and allow time for speech to register.");
+    },
+    onText:(text,final,metadata={})=>{
+      musicFullTranslation = null;
+      musicTranscriptReview = false;
+      musicCapturedText = "";
+      updateMusicListenLabel();
+      $("#translate-music").disabled = true;
+      preservedCulturalContext = null;
+      if (!text.trim()) return;
+      receivedWords=true;
+      $("#translator-input").value = text;
+      if (!final) {
+        setTranslatorMicFeedback("Partial words heard. Checking the final transcript…");
+      } else if (metadata.provisional) {
+        // iOS/Safari can end with only an unconfirmed fragment ("Sí" instead
+        // of "¿Cómo estás?"). Keep it editable, but never translate it as fact.
+        translationRequest += 1;
+        const result=$("#translation-result"),empty=$("#translation-empty-target");
+        if (result) result.hidden=true;
+        if (empty) empty.hidden=false;
+        setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true);
+      } else {
+        setTranslatorMicFeedback("Recognized words received. Check the transcription.");
+        renderTranslation();
+      }
+    }
+  });
 }
 
 function bindPushToTalk(button, getOptions) {
@@ -3837,6 +3879,8 @@ function init() {
   $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
+    // Editing the words is an explicit review of an uncertain dictated draft.
+    setTranslatorMicFeedback("");
     wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
     claimSourceTextEdit();
@@ -3872,6 +3916,11 @@ function init() {
     else translationTimer = setTimeout(renderTranslation, 550);
   });
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
+  $("#translator-mic-confirm")?.addEventListener("click",()=>{
+    if (!$("#translator-input")?.value.trim()) return;
+    setTranslatorMicFeedback("Draft accepted. Translating…");
+    renderTranslation();
+  });
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
