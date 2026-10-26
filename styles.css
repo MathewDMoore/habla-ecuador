@@ -87,6 +87,11 @@ textarea { width: 100%; min-height: 82px; resize: vertical; border: 0; outline: 
 textarea::placeholder { color: #9ca39f; }
 .round-action { position: absolute; right: 16px; bottom: 14px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--mint); color: var(--green); font-size: 20px; }
 .round-action.listening { background: var(--orange); color: white; animation: microphone-glow 1s infinite alternate; }
+.translator-mic-feedback { margin:10px 54px 0 0; padding:8px 10px; border-left:3px solid var(--orange); border-radius:8px; background:#fff5e9; color:#633e27; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.translator-mic-feedback p { margin:0 0 6px; }
+.translator-mic-feedback p:last-child { margin-bottom:0; }
+#translator-mic-confirm { display:block; min-height:44px; padding:8px 11px; margin-top:8px; border:1px solid var(--orange); border-radius:11px; background:white; color:var(--green); font-weight:800; }
+
 /* Keep the active microphone hit area fixed. A scaling pulse makes a moving
    button harder to tap again on touch devices and unstable in browser tests. */
 @keyframes microphone-glow { to { box-shadow: 0 0 0 6px rgba(237,120,64,.24); } }
