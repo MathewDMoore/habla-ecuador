@@ -1824,6 +1824,14 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     const reference = findAcademicReference(text);
     if (reference !== null) return convertEnglishVariety(reference.text,target,{source:text,purpose});
   }
+  // Isolated Spanish-language community terms must not depend on a general
+  // machine translator guessing "Spanish" as nationality or language name.
+  const languageCommunityTerm=typeof HablaLanguageCommunity!=="undefined"
+    ? HablaLanguageCommunity.lookup(text,{source,target}) : null;
+  if(languageCommunityTerm!==null){
+    if(!isCurrent())throw translationFailure("superseded");
+    return languageCommunityTerm;
+  }
   if (text.length > 8000) throw translationFailure("research_limit");
   const localIndifference = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.translateIndifferenceExpression(text,{source,target}) : null;
   if(localIndifference) {
@@ -1863,7 +1871,10 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const combined = protectedDocument.restore(joined);
   const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
   if (languageFamily(target) === "en") return convertEnglishVariety(refined,target,{source:text,purpose});
-  return languageFamily(source) === "en" && languageFamily(target) === "es" ? refineSpanishOrthography(refined,text) : refined;
+  const corrected = languageFamily(source) === "en" && languageFamily(target) === "es"
+    ? refineSpanishOrthography(refined,text) : refined;
+  return typeof HablaLanguageCommunity!=="undefined"
+    ? HablaLanguageCommunity.refine(corrected,text,{source,target}) : corrected;
 }
 
 
@@ -2376,6 +2387,16 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
             : `<strong>Mexican Spanish research reference · expert review pending</strong><span>Escalante (2017), northern Mexico. Editorial wording uses requests, politeness, and head act; both groups of 30 and all four measures are retained. This matched abstract stays local and is analysed in its Mexican context, independently of Ecuadorian or Bolivian conversational rules.</span>`
           : `<strong>Academic machine draft · ${languageLabel(sourceLanguage)} source</strong><span>Headings, paragraph breaks, citations, DOI/URLs, and numbers are protected where possible. Specialist terminology follows the research context; conversational regional rewrites are not applied. Check terminology and claims before publication.</span>`
         : `<strong>General machine translation · regional review pending</strong><span>This works for text outside the local phrase library. The label names the requested variety without pretending the free engine guarantees that dialect.</span>`;
+      // “Spanish-speaking” concerns language ability. The valid Ecuadorian
+      // options hispanohablante and hispanoparlante must not be confused with
+      // “español”, which can name the language or refer to Spain.
+      const communityTerm=typeof HablaLanguageCommunity!=="undefined"
+        ? HablaLanguageCommunity.lookup(sourceText,{source:sourceLanguage,target:targetLanguage}) : null;
+      if(communityTerm!==null){
+        $("#translation-result .result-label").textContent=`${languageLabel(targetLanguage)} · language community`;
+        $("#literal-result").textContent="Language spoken · not nationality";
+        $("#usage-note").innerHTML='<strong>Meaning preserved</strong><span>Preferred: hispanohablante. Also valid: hispanoparlante. In country/community contexts: de habla hispana. “Español” alone does not reliably mean “Spanish-speaking.”</span>';
+      }
       if(inputType==='image'&&translationPurpose!=='academic')$("#usage-note").innerHTML+='<p>Image paragraphs are retained while screen line wraps are joined. Counting, dancing and volume wording can be clarified from context; figurative lyrics still need review.</p>';
       const embeddedEntry = embeddedSlang.entries[0];
       if (embeddedEntry && translationPurpose !== "academic") {
