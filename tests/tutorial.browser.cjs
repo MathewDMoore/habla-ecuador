@@ -40,7 +40,7 @@ async function run(browser,file,width){
  await page.locator('#tutorial-next').click();
  assert.equal(await page.locator('#tutorial-title').textContent(),'Speak and check what was heard');
  assert.match(await page.locator('#tutorial-english').textContent(),/keyboard microphone/);
- assert.equal(await page.locator('#input-mic').getAttribute('aria-pressed'),'false','tour never activates microphone');
+ assert.equal(await page.locator('#input-mic').evaluate(el=>el.classList.contains('listening')),false,'tour never activates microphone');
  await page.locator('#tutorial-next').click();
  assert.equal(await page.locator('#tutorial-title').textContent(),'Explore regional meanings');
  assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
