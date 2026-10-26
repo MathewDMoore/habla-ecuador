@@ -3,19 +3,20 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const root = path.join(__dirname, '..');
-const elements = new Map(), timers = [], spoken = [];
+const elements = new Map(), timers = new Map(), spoken = [];
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {dataset:{},textContent:'',disabled:false,attrs:{},setAttribute(n,v){this.attrs[n]=v;}});
   return elements.get(selector);
 };
+let timerID=0;
 const synth = {
   paused:false,cancels:0,resumes:0,cancel(){this.cancels++;this.last?.onerror?.({error:'interrupted'});},
   // Deliberately stale flag: the old implementation lost its Resume label.
   pause(){this.paused=false;},resume(){this.resumes++;this.paused=false;},
   getVoices:()=>[{name:'Google US English',lang:'en-US',voiceURI:'en',localService:true}],
-  speak(u){this.last=u;spoken.push(u);}
+  speak(u){this.last=u;spoken.push(u);u.onstart?.();}
 };
-const context=vm.createContext({console,setTimeout:fn=>timers.push(fn),clearTimeout(){},
+const context=vm.createContext({console,setTimeout:(fn,ms)=>{const id=++timerID;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),
  localStorage:{getItem:()=>null,setItem(){}},window:{speechSynthesis:synth},speechSynthesis:synth,
  SpeechSynthesisUtterance:class {constructor(text){this.text=text;}},
  document:{querySelector:element,addEventListener(){},documentElement:{dataset:{}}}
@@ -23,7 +24,7 @@ const context=vm.createContext({console,setTimeout:fn=>timers.push(fn),clearTime
 vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context);
 const run=code=>vm.runInContext(code,context);
 run('populateVoiceSelectors=()=>{};showToast=()=>{};');
-const drain=()=>{while(timers.length) timers.shift()();};
+const drain=()=>{let entry;while((entry=[...timers].find(([,t])=>t.ms<1000))){timers.delete(entry[0]);entry[1].fn();}};
 const controls=['#pause-result','#pause-conversation'].map(element);
 const paused=()=>assert.ok(controls.every(b=>b.textContent==='▶ Resume' && !b.disabled && b.attrs['aria-pressed']==='true'));
 const playing=()=>assert.ok(controls.every(b=>b.textContent==='⏸ Pause' && !b.disabled));
@@ -33,10 +34,10 @@ assert.equal(synth.cancels,0,'idle cleanup must not claim the speech audio sessi
 assert.equal(synth.resumes,0,'idle cleanup must not resume speech while another app plays music');
 
 run('say("First translation.","en-US");toggleSpeechPause();');drain();
-assert.equal(spoken.length,0,'paused during loading must not enqueue audio');paused();
-assert.equal(synth.cancels,0,'pausing before a voice starts does not cancel an idle synthesizer');
-assert.equal(synth.resumes,0,'pausing before a voice starts does not activate speech audio');
-run('toggleSpeechPause()');drain();playing();assert.equal(spoken.length,1);
+assert.equal(spoken.length,1,'first speech starts in the tap before any timer');paused();
+assert.equal(synth.cancels,1,'pause cancels the immediately started utterance');
+assert.equal(synth.resumes,1,'the direct tap activates speech once');
+run('toggleSpeechPause()');drain();playing();assert.equal(spoken.length,2);
 const first=spoken.at(-1);
 first.onboundary({charIndex:6});
 run('toggleSpeechPause()');paused();
@@ -65,9 +66,19 @@ assert.equal(spoken.at(-1).text,'New playback.');
 run('toggleSpeechPause();toggleSpeechPause();toggleSpeechPause();');
 const before=spoken.length;drain();assert.equal(spoken.length,before);paused();
 run('stopSpeechPlayback()');drain();assert.ok(controls.every(b=>b.disabled));
-run('say("Never start.","en-US");stopSpeechPlayback();');drain();assert.equal(spoken.length,before);
+run('say("Start then cancel.","en-US");stopSpeechPlayback();');const afterCancel=spoken.length;drain();assert.equal(spoken.length,afterCancel,'cancel cannot enqueue another utterance');
 run('say("Error example.","en-US")');drain();spoken.at(-1).onerror({error:'audio-busy'});
 assert.ok(controls.every(b=>b.disabled));
+// Empty enumeration still submits the requested locale synchronously.
+const getVoices=synth.getVoices;synth.getVoices=()=>[];
+const beforeEmpty=spoken.length;run('say("Ya terminé.","es-EC")');
+assert.equal(spoken.length,beforeEmpty+1);assert.equal(spoken.at(-1).lang,'es-EC');
+synth.getVoices=getVoices;run('stopSpeechPlayback()');
+// A missing browser start/error event must clear busy state with actionable feedback.
+synth.speak=function(u){this.last=u;spoken.push(u);};
+run('say("Silent provider.","en-US")');
+const watchdog=[...timers].find(([,t])=>t.ms===6000);assert.ok(watchdog);timers.delete(watchdog[0]);watchdog[1].fn();
+assert.equal(run('activeSpeechPlayback'),null);
 context.decimals='The value is 1.5 mg. Dr. Smith reports 0.05 units.';
 assert.equal(run('splitSpeechPlaybackText(decimals).join(" ")'),context.decimals,'scientific numbers and punctuation survive speech segmentation');
 for(const name of ['index.html','translator.html']){

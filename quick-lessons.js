@@ -57,8 +57,8 @@ function render(){
  <button type="button" id="quick-next" class="primary-button">Try another situation →</button>
  <p>Original Habla lesson · device voices</p>`;
  content.querySelector('#quick-lesson-select').addEventListener('change',event=>{leave();selected[locale]=event.target.value;situation=0;recall=false;render();});
- content.querySelector('#quick-explanation-hear').addEventListener('click',()=>{root.cancelDictionaryPractice();root.say(item.explanation,support==='en'?(typeof englishVariant!=='undefined'&&englishVariant==='uk'?'en-GB':'en-US'):support);});
- content.querySelectorAll('[data-quick-hear]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice();root.say(button.dataset.quickHear,locale);}));
+ content.querySelector('#quick-explanation-hear').addEventListener('click',event=>{root.cancelDictionaryPractice();root.say(item.explanation,support==='en'?(typeof englishVariant!=='undefined'&&englishVariant==='uk'?'en-GB':'en-US'):support,event.currentTarget);});
+ content.querySelectorAll('[data-quick-hear]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice();root.say(button.dataset.quickHear,locale,button);}));
  content.querySelector('#quick-recall').addEventListener('click',()=>{
   leave();recall=!recall;
   content.querySelector('#quick-lesson-model').hidden=recall;

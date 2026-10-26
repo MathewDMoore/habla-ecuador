@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.26 · build 136";
+const APP_VERSION = "0.26.27 · build 137";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -541,8 +541,26 @@ function updateSpeechPauseControls() {
   }
 }
 
+function speechPlaybackFeedback(session, message, busy=false) {
+  const button = session?.button;
+  if (!button?.isConnected) return;
+  button.setAttribute("aria-busy",String(busy));
+  const host = button.closest(".dictionary-practice") || button.parentElement;
+  if (!host) return;
+  let status = host.querySelector(":scope > .speech-action-status");
+  if (!status) {
+    status = document.createElement("p");
+    status.className = "speech-action-status status";
+    status.setAttribute("role","status");
+    host.append(status);
+  }
+  status.textContent = message;
+}
+
 function stopSpeechPlayback() {
   const hadUtterance = Boolean(activeSpeechPlayback?.utterance);
+  clearTimeout(activeSpeechPlayback?.startTimer);
+  speechPlaybackFeedback(activeSpeechPlayback,"Audio stopped.");
   speechRequestId += 1;
   activeSpeechPlayback = null;
   if (hadUtterance && "speechSynthesis" in window) {
@@ -578,6 +596,7 @@ function startSpeechSegment(session) {
   }
   if (session.index >= session.chunks.length) {
     activeSpeechPlayback = null;
+    speechPlaybackFeedback(session,"Audio finished.");
     updateSpeechPauseControls();
     return;
   }
@@ -585,12 +604,17 @@ function startSpeechSegment(session) {
   const token = ++session.token;
   const utterance = new SpeechSynthesisUtterance(session.chunks[session.index].slice(baseOffset));
   session.utterance = utterance;
-  utterance.voice = session.voice;
-  utterance.lang = session.voice.lang;
+  if (session.voice) utterance.voice = session.voice;
+  utterance.lang = session.voice?.lang || session.lang;
   utterance.rate = session.profile.rate;
   utterance.pitch = session.profile.pitch;
   utterance.volume = session.profile.volume;
   const current = () => activeSpeechPlayback === session && session.token === token;
+  utterance.onstart = () => {
+    if (!current()) return;
+    clearTimeout(session.startTimer);
+    speechPlaybackFeedback(session,"Playing audio.",true);
+  };
   utterance.onboundary = event => {
     if (!current() || session.paused || !Number.isInteger(event.charIndex)) return;
     let position = Math.min(session.chunks[session.index].length, baseOffset + Math.max(0,event.charIndex));
@@ -601,6 +625,7 @@ function startSpeechSegment(session) {
   };
   utterance.onend = () => {
     if (!current() || session.paused) return;
+    clearTimeout(session.startTimer);
     session.utterance = null;
     session.index += 1;
     session.offset = 0;
@@ -608,13 +633,31 @@ function startSpeechSegment(session) {
   };
   utterance.onerror = event => {
     if (!current()) return;
+    clearTimeout(session.startTimer);
     activeSpeechPlayback = null;
     updateSpeechPauseControls();
-    if (!["canceled", "interrupted"].includes(event.error)) showToast("That voice could not play. Please try again.");
+    const message = ["canceled","interrupted"].includes(event.error)
+      ? "Audio stopped. Tap Hear again to retry."
+      : "Audio could not start. Tap Hear again to retry.";
+    speechPlaybackFeedback(session,message);
+    if (!["canceled", "interrupted"].includes(event.error)) showToast(message);
   };
-  document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(session.voice.lang);
-  speechSynthesis.resume?.();
-  speechSynthesis.speak(utterance);
+  document.documentElement.dataset.activeSpeechLanguage = normalizedLocale(utterance.lang);
+  // Some Safari failures emit neither start nor error. Never leave a silent
+  // button with no explanation, and never retry outside a fresh user gesture.
+  session.startTimer = setTimeout(() => {
+    if (!current()) return;
+    activeSpeechPlayback = null;
+    speechSynthesis.cancel();
+    updateSpeechPauseControls();
+    speechPlaybackFeedback(session,"Audio did not start. Tap Hear again to retry.");
+  },6000);
+  try {
+    speechSynthesis.resume?.();
+    speechSynthesis.speak(utterance);
+  } catch {
+    utterance.onerror({error:"synthesis-failed"});
+  }
 }
 
 function toggleSpeechPause() {
@@ -625,43 +668,40 @@ function toggleSpeechPause() {
   // must never overwrite the user's choice or discard the remembered position.
   updateSpeechPauseControls();
   if (session.paused) {
+    clearTimeout(session.startTimer);
+    speechPlaybackFeedback(session,"Audio paused.");
     const hadUtterance = Boolean(session.utterance);
     session.token += 1;
     session.utterance = null;
     if(hadUtterance)speechSynthesis.cancel();
   } else {
-    setTimeout(() => startSpeechSegment(session),160);
+    startSpeechSegment(session);
   }
 }
 
-function say(text, lang="es-EC") {
+function say(text, lang="es-EC", button=null) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   cancelMusicListening();
-  if (!text || !("speechSynthesis" in window)) return showToast("Speech playback is unavailable in this browser.");
   stopSpeechPlayback();
-  const session = {requestId:speechRequestId, paused:false, token:0, index:0, offset:0, utterance:null};
+  const session = {requestId:speechRequestId, paused:false, token:0, index:0, offset:0,
+    utterance:null, startTimer:null, lang, button};
+  const unavailable = message => { speechPlaybackFeedback(session,message); showToast(message); };
+  if (!text || !("speechSynthesis" in window)) return unavailable("Speech playback is unavailable in this browser.");
+  refreshSpeechVoices();
+  session.voice = voiceForLanguage(lang);
+  if (speechVoices.length && !session.voice) {
+    const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
+    return unavailable(`${label} speech is unavailable on this device.`);
+  }
+  // An empty getVoices() list can be temporary. Submit the requested language
+  // now rather than waiting for enumeration and losing the tap's activation.
+  session.profile = speechProfile(text,lang);
+  session.chunks = splitSpeechPlaybackText(session.profile.text);
   activeSpeechPlayback = session;
+  speechPlaybackFeedback(session,"Starting audio…",true);
   updateSpeechPauseControls();
-  const speakWithFreshVoice = (attempt=0) => {
-    if (activeSpeechPlayback !== session) return;
-    refreshSpeechVoices();
-    if (!speechVoices.length && attempt < 8) {
-      setTimeout(() => speakWithFreshVoice(attempt + 1),125);
-      return;
-    }
-    session.voice = voiceForLanguage(lang);
-    if (!session.voice) {
-      activeSpeechPlayback = null;
-      updateSpeechPauseControls();
-      const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
-      showToast(`${label} speech is unavailable on this device.`);
-      return;
-    }
-    session.profile = speechProfile(text,lang);
-    session.chunks = splitSpeechPlaybackText(session.profile.text);
-    setTimeout(() => startSpeechSegment(session),160);
-  };
-  setTimeout(() => speakWithFreshVoice(),160);
+  // The first speak() must remain inside the button's trusted activation.
+  startSpeechSegment(session);
 }
 
 let activeRecognitionButton = null;
@@ -3482,7 +3522,7 @@ function bindDictionaryPractice(root) {
     hear.addEventListener("click",() => {
       cancelDictionaryPractice();
       const prompt = prompts[Number(select.value) || 0];
-      say(prompt.text,prompt.lang);
+      say(prompt.text,prompt.lang,hear);
     });
     $(".dictionary-practice-focus-hear",panel).addEventListener("click",() => {
       cancelDictionaryPractice();
@@ -4143,7 +4183,7 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=136", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=137", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
