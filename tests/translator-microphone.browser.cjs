@@ -34,7 +34,10 @@ async function run(browser,file,width,native){
   'the editor has its own label, and the microphone is an independent button');
  await page.evaluate(()=>{window.editorClickCount=0;document.querySelector('#translator-input').addEventListener('click',()=>editorClickCount++);});
  await page.locator('#source-language-select').selectOption('en-US');
+ const micBefore=await page.locator('#input-mic').boundingBox();
  await page.locator('#input-mic').click();
+ const micAfter=await page.locator('#input-mic').boundingBox();
+ assert.ok(Math.abs(micAfter.y-micBefore.y)<2,'start status cannot move microphone vertically');
  let messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
  assert.equal(messages.length,1,'touch activates exactly one session');
  assert.equal(messages[0].lang,'en-US','dictation listens in source language');
@@ -62,12 +65,15 @@ async function run(browser,file,width,native){
  // Safari may report only 'Sí' when the actual sentence was '¿Cómo estás?'.
  // A non-final fragment must NEVER be translated as a trustworthy result.
  await page.evaluate(()=>{window.translationsStarted=0;renderTranslation=()=>{window.translationsStarted++;};});
+ const spanishMicTop=(await page.locator('#input-mic').boundingBox()).y;
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'result',text:'Sí',final:false});
   else{const result=[{transcript:'Sí'}];result.isFinal=false;testRecognition.onresult({results:[result]});}
  },{native,id:messages[1].id});
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí');
  assert.match(await page.locator('#translator-mic-status').textContent(),/(Partial words heard|palabras parciales)/i);
+ assert.ok(Math.abs((await page.locator('#input-mic').boundingBox()).y-spanishMicTop)<2,
+  'interim transcript cannot move the microphone');
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
