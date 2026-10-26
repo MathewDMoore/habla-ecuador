@@ -28,6 +28,7 @@ try{
   window.SpeechRecognition=class{start(){recognitionCalls.push({action:'start',lang:this.lang});window.lastRecognition=this;}stop(){recognitionCalls.push({action:'stop'});}abort(){recognitionCalls.push({action:'abort'});}};
  },{emptyVoices});
  await page.goto(origin+'/habla-ecuador/index.html?ui=en');
+ console.log(`${width}px browser AudioSession support: ${await page.evaluate(()=>navigator.audioSession?.type||'unsupported')}`);
  await page.locator('.bottom-nav [data-open="lesson-view"]').tap();
  const host=page.locator('#quick-lessons');await host.locator(':scope > summary').tap();
  // Pressed styling must keep the touch target fixed, including its edges.
