@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.27 · build 137";
+const APP_VERSION = "0.26.28 · build 138";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -541,6 +541,29 @@ function updateSpeechPauseControls() {
   }
 }
 
+// Request the media-playback route for a spoken lesson, not an inherited ambient
+// or recording route. Feature-detect this newer Safari API; never activate at boot.
+function claimSpeechAudioSession(session) {
+  if (session.audioRoute) return;
+  try {
+    const audio = typeof navigator !== "undefined" ? navigator.audioSession : null;
+    if (!audio || typeof audio.type !== "string") return;
+    const previous = audio.type;
+    audio.type = "playback";
+    session.audioRoute = {audio,previous};
+  } catch { /* Older browsers and restricted contexts keep their normal route. */ }
+}
+
+function releaseSpeechAudioSession(session) {
+  const route = session?.audioRoute;
+  if (!route) return;
+  session.audioRoute = null;
+  try {
+    // A microphone or another media owner may already have changed the mode.
+    if (route.audio.type === "playback") route.audio.type = route.previous;
+  } catch {}
+}
+
 function speechPlaybackFeedback(session, message, busy=false) {
   const button = session?.button;
   if (!button?.isConnected) return;
@@ -558,6 +581,7 @@ function speechPlaybackFeedback(session, message, busy=false) {
 }
 
 function stopSpeechPlayback() {
+  const stoppedSession = activeSpeechPlayback;
   const hadUtterance = Boolean(activeSpeechPlayback?.utterance);
   clearTimeout(activeSpeechPlayback?.startTimer);
   speechPlaybackFeedback(activeSpeechPlayback,"Audio stopped.");
@@ -566,6 +590,7 @@ function stopSpeechPlayback() {
   if (hadUtterance && "speechSynthesis" in window) {
     speechSynthesis.cancel();
   }
+  releaseSpeechAudioSession(stoppedSession);
   // Do not activate Safari's speech audio session while nothing is speaking.
   // The next actual speech segment resumes the synthesizer when needed.
   updateSpeechPauseControls();
@@ -596,6 +621,7 @@ function startSpeechSegment(session) {
   }
   if (session.index >= session.chunks.length) {
     activeSpeechPlayback = null;
+    releaseSpeechAudioSession(session);
     speechPlaybackFeedback(session,"Audio finished.");
     updateSpeechPauseControls();
     return;
@@ -635,6 +661,7 @@ function startSpeechSegment(session) {
     if (!current()) return;
     clearTimeout(session.startTimer);
     activeSpeechPlayback = null;
+    releaseSpeechAudioSession(session);
     updateSpeechPauseControls();
     const message = ["canceled","interrupted"].includes(event.error)
       ? "Audio stopped. Tap Hear again to retry."
@@ -649,9 +676,11 @@ function startSpeechSegment(session) {
     if (!current()) return;
     activeSpeechPlayback = null;
     speechSynthesis.cancel();
+    releaseSpeechAudioSession(session);
     updateSpeechPauseControls();
     speechPlaybackFeedback(session,"Audio did not start. Tap Hear again to retry.");
   },6000);
+  claimSpeechAudioSession(session);
   try {
     speechSynthesis.resume?.();
     speechSynthesis.speak(utterance);
@@ -674,6 +703,7 @@ function toggleSpeechPause() {
     session.token += 1;
     session.utterance = null;
     if(hadUtterance)speechSynthesis.cancel();
+    releaseSpeechAudioSession(session);
   } else {
     startSpeechSegment(session);
   }
@@ -4183,7 +4213,7 @@ function init() {
     setMode("translate");
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=137", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=138", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
