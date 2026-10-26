@@ -110,6 +110,55 @@ async function run(browser,file,width,native){
  assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí','failed capture retains previous words');
  assert.equal(await page.evaluate(()=>translationsStarted),beforeSilence,'failed capture never translates');
+ // WebKit/iOS can report successful start but NEVER dispatch an end after
+ // stop. The bounded watchdog must abort and free that session before retry.
+ await page.locator('#source-language-select').selectOption('es-EC');
+ await page.locator('#input-mic').click();
+ messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
+ assert.equal(messages.length,4);
+ assert.equal(messages[3].lang,'es-EC');
+ const stalledId=messages[3].id;
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'start'});else testRecognition.onstart?.();
+  if(!native)window.stalledRecognition=window.testRecognition;
+ },{native,id:stalledId});
+ await page.locator('#input-mic').click();
+ // Make the production watchdog fire quickly without sleeping three seconds
+ // for each browser/mobile/native combination.
+ await page.evaluate(()=>recognition?._hablaArmFinishDeadline?.(40));
+ await page.waitForFunction(()=>!document.querySelector('#input-mic').classList.contains('listening'),null,{timeout:2500});
+ assert.equal(await page.locator('#input-mic').getAttribute('aria-pressed'),'false','stalled mic resets its pressed state');
+ assert.equal(await page.evaluate(()=>testMessages.filter(item=>item.action==='abort').length>0),true,
+  'stalled recognition is aborted');
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(stalled and was reset|se bloqueó|se restableció)/i);
+ await page.locator('#input-mic').click();
+ messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
+ assert.equal(messages.length,5,'a fresh tap starts the fifth recognizer after a missing end');
+ const restartedId=messages[4].id;
+ assert.equal(messages[4].lang,'es-EC','retry keeps the selected Ecuadorian locale');
+ // Old web recognition callbacks and old native bridge events are ignored.
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'result',text:'stale result',final:true});
+  else {
+   const result=[{transcript:'stale result'}];result.isFinal=true;
+   window.stalledRecognition.onresult?.({results:[result]});
+  }
+ },{native,id:stalledId});
+ assert.equal(await page.locator('#translator-input').inputValue(),'Sí','stale recognizer cannot overwrite prior input');
+ await page.evaluate(({native,id})=>{
+  if(native){
+   __hablaNativeSpeech({id,type:'start'});
+   __hablaNativeSpeech({id,type:'result',text:'¿Cómo estás?',final:true});
+  }else{
+   testRecognition.onstart?.();
+   const result=[{transcript:'¿Cómo estás?'}];result.isFinal=true;
+   testRecognition.onresult({results:[result]});
+  }
+ },{native,id:restartedId});
+ assert.equal(await page.locator('#translator-input').inputValue(),'¿Cómo estás?','fresh recognizer delivers Spanish after stalled session');
+ await page.evaluate(({native,id})=>{
+  if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
+ },{native,id:restartedId});
  assert.deepEqual(errors,[],'no page JS errors during tap and recognition flow');
  await context.close();
  console.log(`${file} ${width}px ${native?'native bridge':'web'}: independent mic target, exact one-tap start, locale, transcription and retry passed`);
