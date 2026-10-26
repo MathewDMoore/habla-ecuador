@@ -72,10 +72,12 @@ async function run(browser,file,width,native){
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
  assert.equal(await page.evaluate(()=>translationsStarted),0,'partial Spanish output must not auto-translate');
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),true,'unconfirmed transcript remains pending review');
  assert.equal(await page.locator('#translator-mic-confirm').isVisible(),true,'review action shown for unconfirmed fragment');
  assert.match(await page.locator('#translator-mic-status').textContent(),/(Only a partial transcript|transcripción parcial)/i);
  assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden');
  await page.locator('#translator-mic-confirm').click();
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'manual acceptance unlocks translation');
  assert.equal(await page.evaluate(()=>translationsStarted),1,'manual approval requests translation');
  assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false);
  // An empty English recognition must explain the failure, not erase the draft.
