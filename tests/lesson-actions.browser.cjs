@@ -8,6 +8,7 @@ const browser=await pw[process.env.HABLA_BROWSER_ENGINE||'chromium'].launch();
 try{
  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('crash',()=>console.error('Web process crashed:',width,emptyVoices));
  await page.route('**/*',route=>{const u=new URL(route.request().url());let f=path.join(root,u.pathname.replace('/habla-ecuador/',''));if(f===path.join(root,'app.js')&&process.env.HABLA_APP_SOURCE)f=process.env.HABLA_APP_SOURCE;return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?route.fulfill({path:f}):route.abort();});
  await page.addInitScript(({emptyVoices})=>{
   window.speechCalls=[];window.tapActive=false;window.speechMode='normal';
@@ -29,6 +30,15 @@ try{
  await page.goto(origin+'/habla-ecuador/index.html?ui=en');
  await page.locator('.bottom-nav [data-open="lesson-view"]').tap();
  const host=page.locator('#quick-lessons');await host.locator(':scope > summary').tap();
+ // Pressed styling must keep the touch target fixed, including its edges.
+ const hear=host.locator('#quick-explanation-hear');
+ await hear.scrollIntoViewIfNeeded();const before=await hear.boundingBox();
+ await page.mouse.move(before.x+before.width/2,before.y+before.height/2);await page.mouse.down();
+ await page.waitForTimeout(180);const pressed=await hear.boundingBox();
+ for(const key of ['x','y','width','height'])assert.ok(Math.abs(before[key]-pressed[key])<.5,'pressed target geometry must stay fixed: '+key);
+ await page.mouse.up();
+ await hear.tap({position:{x:3,y:3}});
+ assert.equal(await page.evaluate(()=>speechCalls.filter(c=>c.action==='speak').at(-1)?.trustedTap),true,'edge tap must invoke the real audio action');
  const spoken=()=>page.evaluate(()=>speechCalls.filter(c=>c.action==='speak'));
  for(const locale of ['es-EC','en-US','en-GB']){
   await page.locator('#lesson-language').selectOption(locale);

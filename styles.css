@@ -825,3 +825,13 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #quick-lessons-content select { width:100%; min-width:0; }
 #quick-lessons-content { overflow-wrap:anywhere; }
 #quick-lessons-content button { max-width:100%; white-space:normal; }
+
+/* A lesson tap must land on the same target through press and release.
+ * Keep the inset-shadow acknowledgement without moving/shrinking the hit box. */
+#lesson-view button,
+#lesson-view button.is-pressed,
+#lesson-view button:active {
+  transform:none !important;
+  filter:none !important;
+  transition:box-shadow .1s ease;
+}
