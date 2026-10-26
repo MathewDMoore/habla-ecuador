@@ -4233,6 +4233,12 @@ function init() {
     openView("translator-view");
     setMode("translate");
   }
+  // The first visit gets a small optional invitation; help can be replayed
+  // from any tab, without altering text fields, voice choices or recordings.
+  if (typeof HablaTutorial !== "undefined") {
+    initializeOptionalFeature("bilingual tutorial",() =>
+      HablaTutorial.bind({navigate:openView,launchQuery}));
+  }
   const updateRegistration = "serviceWorker" in navigator
     ? navigator.serviceWorker.register("sw.js?v=141", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
@@ -4244,6 +4250,7 @@ function init() {
     || (typeof HablaRecordedPractice!=="undefined" && (HablaRecordedPractice.isPlaying() || HablaRecordedPractice.isProtected()))
     || (typeof HablaQuickLessons!=="undefined" && HablaQuickLessons.isProtected())
     || (typeof HablaOffline!=="undefined" && HablaOffline.busy)
+    || (typeof HablaTutorial!=="undefined" && HablaTutorial.isOpen())
   )});
 }
 
