@@ -7,11 +7,27 @@ const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
  localStorage:{getItem:()=>null,setItem(){}},navigator:{onLine:true},
  fetch:async(url,options)=>{const text=new URL(url).searchParams.get('q');requests.push(text);assert.ok(Buffer.byteLength(text)<=500);return handler(text,options);}
 });
-for(const file of ['research-reference.js','spanish-context.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['research-reference.js','spanish-context.js','language-community-terms.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ fresh();
+ // A language ability term cannot be reduced to the language name "Español".
+ handler=async()=>ok('Español');
+ for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX']){
+  assert.equal(await run(`requestGeneralTranslation("Spanish-speaking","en-ec",{source:"${source}",target:"${target}"})`),'hispanohablante');
+  assert.equal(await run(`requestGeneralTranslation("Spanish-speaking countries","en-ec",{source:"${source}",target:"${target}"})`),'países hispanohablantes');
+ }
+ for(const source of ['es-EC','es-BO','es-MX'])for(const target of ['en-US','en-GB']){
+  assert.equal(await run(`requestGeneralTranslation("hispanoparlante","ec-en",{source:"${source}",target:"${target}"})`),'Spanish-speaking');
+  assert.equal(await run(`requestGeneralTranslation("hispanohablante","ec-en",{source:"${source}",target:"${target}"})`),'Spanish-speaking');
+  assert.equal(await run(`requestGeneralTranslation("países de habla hispana","ec-en",{source:"${source}",target:"${target}"})`),'Spanish-speaking countries');
+ }
+ assert.equal(requests.length,0,'reliable glossary words never request an external service');
+ handler=async()=>ok('La comunidad española');
+ assert.equal(await run('requestGeneralTranslation("The Spanish-speaking community","en-ec",{source:"en-US",target:"es-EC"})'),'La comunidad hispanohablante');
+ assert.equal(requests.length,1,'non-glossary prose goes through normal translation with a bounded correction');
  fresh();
  // Recording regression: the final captured English clause ends in "on".
  run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec";translationPurpose="everyday";musicTranscriptReview=true');
