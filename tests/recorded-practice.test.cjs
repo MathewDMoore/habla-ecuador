@@ -8,6 +8,6 @@ for(const i of catalog.items){assert.ok(i.spanish&&i.us&&i.uk&&i.speaker&&i.regi
 const source=fs.readFileSync('recorded-practice.js','utf8');
 assert.match(source,/preload="none"/);assert.match(source,/not individual sounds/);
 assert.ok(!/getUserMedia|MediaRecorder|localStorage|sendBeacon|fetch\(/.test(source),'reuse existing recognition, no new user recording persistence or upload');
-for(const f of ['index.html','translator.html'])assert.match(fs.readFileSync(f,'utf8'),/recorded-practice\.js\?v=139/);
-assert.match(fs.readFileSync('sw.js','utf8'),/recorded-practice\.js\?v=139/);
+for(const f of ['index.html','translator.html'])assert.match(fs.readFileSync(f,'utf8'),/recorded-practice\.js\?v=140/);
+assert.match(fs.readFileSync('sw.js','utf8'),/recorded-practice\.js\?v=140/);
 console.log('Recorded-practice data: four explicit regions, Ecuador default, native speaker sources, CC BY credit, short excerpts, honest score and offline shell passed');
