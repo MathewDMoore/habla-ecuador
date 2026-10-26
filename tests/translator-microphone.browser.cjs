@@ -80,6 +80,7 @@ async function run(browser,file,width,native){
  assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false);
  // An empty English recognition must explain the failure, not erase the draft.
  await page.locator('#source-language-select').selectOption('en-US');
+ const beforeSilence=await page.evaluate(()=>translationsStarted);
  await page.locator('#input-mic').click();
  messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
  assert.equal(messages.length,3);
@@ -96,7 +97,7 @@ async function run(browser,file,width,native){
  await page.locator('#translator-mic-keyboard').click();
  assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí','failed capture retains previous words');
- assert.equal(await page.evaluate(()=>translationsStarted),1,'failed capture never translates');
+ assert.equal(await page.evaluate(()=>translationsStarted),beforeSilence,'failed capture never translates');
  assert.deepEqual(errors,[],'no page JS errors during tap and recognition flow');
  await context.close();
  console.log(`${file} ${width}px ${native?'native bridge':'web'}: independent mic target, exact one-tap start, locale, transcription and retry passed`);
