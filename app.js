@@ -1409,6 +1409,8 @@ function claimSourceTextEdit() {
   else if (recognition && activeRecognitionButton === $("#input-mic")) cancelListening(false);
 }
 
+let translatorDictationNeedsReview = false;
+
 function setTranslatorMicFeedback(message="",needsConfirmation=false,keyboardOption=false) {
   const box=$("#translator-mic-feedback"),status=$("#translator-mic-status");
   const confirm=$("#translator-mic-confirm"),keyboard=$("#translator-mic-keyboard");
@@ -1466,11 +1468,13 @@ function startInputMicrophone() {
         // iOS/Safari can end with only an unconfirmed fragment ("Sí" instead
         // of "¿Cómo estás?"). Keep it editable, but never translate it as fact.
         translationRequest += 1;
+        translatorDictationNeedsReview = true;
         const result=$("#translation-result"),empty=$("#translation-empty-target");
         if (result) result.hidden=true;
         if (empty) empty.hidden=false;
         setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true,true);
       } else {
+        translatorDictationNeedsReview = false;
         setTranslatorMicFeedback("Recognized words received. Check the transcription.");
         renderTranslation();
       }
@@ -2177,6 +2181,7 @@ function applySlangMeaning(choice) {
 }
 
 async function renderTranslation({allowImported=false, allowMusic=false}={}) {
+  if (translatorDictationNeedsReview && !allowImported && !allowMusic) return;
   if (musicListening || (musicTranscriptReview && !allowMusic)) return;
   if (allowMusic) musicTranscriptReview = false;
   if ($("#compare-english")) $("#compare-english").disabled = true;
@@ -3890,6 +3895,7 @@ function init() {
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
     // Editing the words is an explicit review of an uncertain dictated draft.
+    translatorDictationNeedsReview = false;
     setTranslatorMicFeedback("");
     wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
@@ -3928,6 +3934,7 @@ function init() {
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
   $("#translator-mic-confirm")?.addEventListener("click",()=>{
     if (!$("#translator-input")?.value.trim()) return;
+    translatorDictationNeedsReview = false;
     setTranslatorMicFeedback("Draft accepted. Translating…");
     renderTranslation();
   });
