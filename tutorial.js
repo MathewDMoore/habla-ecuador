@@ -119,7 +119,7 @@ function finish(){
  if(!active)return;
  active=false;overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
  remember();$("#tutorial-invitation")?.remove();go(previousView);
- if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("[data-tutorial-open]")?.focus({preventScroll:true});
+ if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }
 function keyboard(event){
  if(!active)return;
@@ -133,14 +133,14 @@ function keyboard(event){
 }
 function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
- document.querySelectorAll("[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
+ document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
  document.addEventListener("keydown",keyboard);
  window.addEventListener("resize",spotlight);
  window.addEventListener("scroll",spotlight,{passive:true});
  // Open the actual walkthrough, not an invitation card, on first launch.
  // A shared ?tour=1 link always reopens it, even after closing before.
  const params=launchQuery||new URLSearchParams(location.search);
- if(params.get("tour")==="1"||!seen())open($("[data-tutorial-open]"));
+ if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
 }
 const api={bind,open,close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,api};
