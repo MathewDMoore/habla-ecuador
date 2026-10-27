@@ -24,6 +24,20 @@ assert.equal(await page.locator('.profile-buttons button').evaluateAll(buttons=>
 assert.equal(await page.locator('[data-speaker-role="spanish"]').evaluate(b=>b.classList.contains('listening')),false,'name choice never activates microphone');
 await page.reload();if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();await page.locator('[data-mode="conversation"]').click();
 assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Eddie');assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-CU');
+const names=await page.locator('[data-speaker-preset="english"] option').evaluateAll(options=>options.map(o=>o.value));
+assert.deepEqual(names,await page.locator('[data-speaker-preset="spanish"] option').evaluateAll(options=>options.map(o=>o.value)),'identical complete name options for both languages');
+await page.locator('.conversation-composer summary').click();
+for(const name of names.filter(Boolean))for(const role of ['english','spanish'])
+ assert.equal(await page.locator('#conversation-text-speaker option').evaluateAll((options,value)=>options.some(o=>o.value===value),role+'::'+name),true,'typed menu contains every name for either language');
+await page.locator('#conversation-text-speaker').selectOption('english::Annalise');
+assert.equal(await page.locator('#english-speaker-name').inputValue(),'Annalise');
+assert.equal(await page.locator('#conversation-text-speaker').inputValue(),'english');
+await page.locator('#conversation-text-speaker').selectOption('spanish::Maria');
+assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Maria');
+assert.equal(await page.locator('[data-speaker-region="spanish"]').textContent(),'Guayaquil, Ecuador');
+assert.match(await page.locator('#conversation-text-speaker option:checked').textContent(),/Maria.*Guayaquil.*Español/);
+assert.match(await page.locator('[data-conversation-text-profile]').textContent(),/Maria.*Guayaquil.*Español/);
+assert.match(await page.locator('[data-conversation-profile="english"][data-profile-name="Eddie"]').textContent(),/Holguín/);
 await page.screenshot({path:`/tmp/profiles-${file}-${width}.png`,fullPage:true});
 await context.close();console.log(file+' '+width+': profile selection, locale, custom names, touch sizes, no capture and reload passed');
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

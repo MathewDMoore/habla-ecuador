@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.45 · build 155";
+const APP_VERSION = "0.26.46 · build 156";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -300,6 +300,18 @@ function speakerName(role) {
   return String(speakerNames[role] || fallback).trim().slice(0,24) || fallback;
 }
 
+function conversationProfileRegion(name) {
+  return {Maria:"Guayaquil, Ecuador",Eddie:"Holguín / Oriente, Cuba",Silvia:"Bolivia"}[name] || "Region not set / Región sin indicar";
+}
+function syncSpeakerRegion(role) {
+  const region=conversationProfileRegion(speakerName(role));
+  const badge=document.querySelector('[data-speaker-region="'+role+'"]');
+  if(badge)badge.textContent=region;
+  const picker=document.querySelector('#conversation-text-speaker');
+  const hint=document.querySelector('[data-conversation-text-profile]');
+  if(hint&&picker?.value===role)hint.textContent=speakerName(role)+" · "+region+" · "+(role==="spanish"?"Español":"English");
+}
+
 function syncConversationProfiles() {
   document.querySelectorAll('[data-conversation-profile]').forEach(button => {
     button.setAttribute('aria-pressed',String(speakerName(button.dataset.conversationProfile)===button.dataset.profileName));
@@ -310,12 +322,13 @@ function saveSpeakerName(role, value) {
   speakerNames[role] = String(value || "").trim().slice(0,24) || (role === "spanish" ? "Maria" : "Mathew");
   localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
   syncConversationProfiles();
+  syncSpeakerRegion(role);
   const knownSpanishLocale = {Maria:"es-EC", Eddie:"es-CU", Silvia:"es-BO"}[speakerNames[role]];
   if (role === "spanish" && knownSpanishLocale) setConversationLocale("spanish", knownSpanishLocale);
   const label = $('[data-speaker-label="' + role + '"]');
   if (label) label.textContent = speakerNames[role];
   const textLabel = $('[data-conversation-text-name="' + role + '"]');
-  if(textLabel)textLabel.textContent = speakerNames[role];
+  if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+(role==="spanish"?"Español":"English");
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
 }
@@ -325,6 +338,7 @@ function syncSpeakerNames() {
   ["english","spanish"].forEach(role => {
     const name = speakerName(role);
     speakerNames[role] = name;
+    syncSpeakerRegion(role);
     const input = $('[data-speaker-name="' + role + '"]');
     if (input) input.value = name;
     const preset = $('[data-speaker-preset="' + role + '"]');
@@ -332,7 +346,7 @@ function syncSpeakerNames() {
     const label = $('[data-speaker-label="' + role + '"]');
     if (label) label.textContent = name;
     const textLabel = $('[data-conversation-text-name="' + role + '"]');
-    if(textLabel)textLabel.textContent = name;
+    if(textLabel)textLabel.textContent = name+" · "+conversationProfileRegion(name)+" · "+(role==="spanish"?"Español":"English");
   });
 }
 
@@ -4197,6 +4211,16 @@ function init() {
   syncConversationLocaleUi();
   $("#conversation-playback").addEventListener("change",event=>setConversationPlayback(event.target.value));
   for(const role of ['english','spanish'])$('#conversation-'+role+'-language').addEventListener('change',event=>setConversationLocale(role,event.target.value));
+  $("#conversation-text-speaker").addEventListener('change',event=>{
+    const [role,name]=event.target.value.split('::');
+    if(name&&['english','spanish'].includes(role)){
+      const input=document.querySelector('[data-speaker-name="'+role+'"]');
+      if(input)input.value=name;
+      saveSpeakerName(role,name);
+      event.target.value=role;
+    }
+    syncSpeakerRegion(role);
+  });
   $("#conversation-text-form").addEventListener("submit",event=>{event.preventDefault();submitConversationText();});
   $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
@@ -4265,7 +4289,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=155", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=156", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
