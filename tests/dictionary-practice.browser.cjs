@@ -13,6 +13,7 @@ async function run(browser,native,width=390){
   window.SpeechRecognition=Recognition;
  });
  if(native)await page.addInitScript({path:native});
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/index.html');
  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
  await page.waitForSelector('#dictionary-results .dictionary-practice');
