@@ -6,6 +6,7 @@ on:
       - 'app.js'
       - 'tutorial.js'
       - 'music-song.js'
+      - 'whatsapp-audio.js'
       - 'tests/music-song.browser.cjs'
       - 'full-text-reader.js'
       - 'tests/full-text-reader.browser.cjs'
