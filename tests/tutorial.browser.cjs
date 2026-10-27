@@ -16,6 +16,9 @@ async function controlsFit(page){
  },{},{timeout:3000});
 }
 async function tap(page,id){
+ // A simulated viewport resize queues layout on the next animation frame.
+ // Wait for that layout before choosing fixed touch coordinates.
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await controlsFit(page);
  const r=await page.locator(id).boundingBox();
  await page.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);
