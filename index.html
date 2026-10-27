@@ -8,31 +8,32 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=148">
-  <script src="interface-es.js?v=148" defer></script>
-  <script src="interface-language.js?v=148" defer></script>
-  <script src="research-reference.js?v=148" defer></script>
-  <script src="document-import.js?v=148" defer></script>
-  <script src="whole-document.js?v=148" defer></script>
-  <script src="saved-paper.js?v=148" defer></script>
-  <script src="offline-device.js?v=148" defer></script>
-  <script src="english-varieties.js?v=148" defer></script>
-  <script src="screenshot-import.js?v=148" defer></script>
-  <script src="regional-vocabulary.js?v=148" defer></script>
-  <script src="spanish-context.js?v=148" defer></script>
-  <script src="language-community-terms.js?v=148" defer></script>
-  <script src="bilingual-music.js?v=148" defer></script>
-  <script src="button-feedback.js?v=148" defer></script>
-  <script src="regional-practice.js?v=148" defer></script>
-  <script src="recorded-transcripts.js?v=148" defer></script>
-  <script src="recorded-practice.js?v=148" defer></script>
-  <script src="quick-lessons.js?v=148" defer></script>
-  <script src="slang-contributions.js?v=148" defer></script>
-  <script src="app-feedback.js?v=148" defer></script>
-  <script src="app-updates.js?v=148" defer></script>
-  <script src="tutorial.js?v=148" defer></script>
-  <script src="full-text-reader.js?v=148" defer></script>
-  <script src="app.js?v=148" defer></script>
+  <link rel="stylesheet" href="styles.css?v=149">
+  <script src="interface-es.js?v=149" defer></script>
+  <script src="interface-language.js?v=149" defer></script>
+  <script src="research-reference.js?v=149" defer></script>
+  <script src="document-import.js?v=149" defer></script>
+  <script src="whole-document.js?v=149" defer></script>
+  <script src="saved-paper.js?v=149" defer></script>
+  <script src="offline-device.js?v=149" defer></script>
+  <script src="english-varieties.js?v=149" defer></script>
+  <script src="screenshot-import.js?v=149" defer></script>
+  <script src="regional-vocabulary.js?v=149" defer></script>
+  <script src="spanish-context.js?v=149" defer></script>
+  <script src="language-community-terms.js?v=149" defer></script>
+  <script src="bilingual-music.js?v=149" defer></script>
+  <script src="button-feedback.js?v=149" defer></script>
+  <script src="regional-practice.js?v=149" defer></script>
+  <script src="recorded-transcripts.js?v=149" defer></script>
+  <script src="recorded-practice.js?v=149" defer></script>
+  <script src="quick-lessons.js?v=149" defer></script>
+  <script src="slang-contributions.js?v=149" defer></script>
+  <script src="app-feedback.js?v=149" defer></script>
+  <script src="app-updates.js?v=149" defer></script>
+  <script src="music-song.js?v=149" defer></script>
+  <script src="tutorial.js?v=149" defer></script>
+  <script src="full-text-reader.js?v=149" defer></script>
+  <script src="app.js?v=149" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -41,7 +42,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.38 · build 148</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">?</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.39 · build 149</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">?</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -97,14 +98,15 @@
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
           <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
         </div>
-        <p class="music-intro">Listen to actual openly licensed Ecuadorian music, then use original Habla Ecuador drills to practice speaking rhythm. Every recording shows its performer, source, and license.</p>
-        <section class="music-section" aria-labelledby="recordings-title">
+        <p class="music-intro">Escucha palabras cantadas, entiende el significado y practica frases útiles. / Hear sung words, understand their meaning, and practice useful phrases.</p>
+        <section id="music-song-lesson" class="music-section"></section>
+        <details class="music-section"><summary>Escucha cultural opcional / Optional cultural listening · instrumentals</summary>
           <p class="eyebrow">Contemporary open listening</p>
           <h2 id="recordings-title">Ecuador now</h2>
           <p>Starting another track pauses the current one. Return to it later and it resumes from the same place.</p>
           <div id="open-music-tracks" class="open-music-tracks"></div>
           <p class="music-rights-note">These tracks permit noncommercial sharing with attribution. If Habla Ecuador later becomes commercial, we will obtain direct permission or replace them.</p>
-        </section>
+        </details>
         <section class="music-section" aria-labelledby="rhythm-title">
           <p class="eyebrow">Speak in rhythm</p>
           <h2 id="rhythm-title">Original rhythm recall</h2>

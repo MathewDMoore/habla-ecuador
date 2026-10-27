@@ -23,7 +23,7 @@ const STEPS=[
  {view:"lesson-view",target:"#lesson-language",symbol:"🗣️",en:"Practice speaking and listening",es:"Practica la expresión oral y la escucha",
   body:"Choose the language you want to learn, then try short listening and speaking activities. Review what the phone understood.",
   esp:"Elige el idioma que quieres aprender y prueba actividades breves de escucha y conversación. Revisa lo que entendió el teléfono."},
- {view:"music-view",target:"#open-music-tracks",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
+ {view:"music-view",target:"#music-song-lesson h2",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
   body:"Explore Music for listening, pronunciation, rhythm and culture. Available recordings and translation options may vary.",
   esp:"Explora Música para practicar la escucha, la pronunciación, el ritmo y la cultura. Las grabaciones y opciones de traducción pueden variar."},
  {view:null,target:".feedback-open",symbol:"💬",en:"Help improve Habla Ecuador",es:"Ayúdanos a mejorar Habla Ecuador",
