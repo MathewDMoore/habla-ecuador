@@ -43,6 +43,9 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#translator-input').inputValue(),'Misión\nUno.\n\nVisión\nDos.\n\nHistoria\nTres.','source edit survives close');
  // Reuse a fresh completed draft so the output reading action stays testable.
  await page.evaluate(({longSource,longTarget})=>{
+  // Stop an earlier source-edit debounce before presenting the completed mock.
+  clearTimeout(translationTimer);
+  translationRequest += 1;
   document.querySelector('#translator-input').value=longSource;
   setEditableTranslation(longSource,longTarget);
   document.querySelector('#translation-result').hidden=false;
