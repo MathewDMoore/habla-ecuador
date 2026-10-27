@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.32 · build 142";
+const APP_VERSION = "0.26.33 · build 143";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1692,7 +1692,10 @@ function refineAcademicEnglish(text, source="") {
 }
 
 function convertEnglishVariety(text, target=targetLanguage, options={}) {
-  if (typeof HablaEnglish !== "undefined") return HablaEnglish.adapt(text,target,options).text;
+  if (typeof HablaEnglish !== "undefined") {
+    const adapted=HablaEnglish.adapt(text,target,options).text;
+    return HablaEnglish.preserveCompleteSolutions(adapted,options.source);
+  }
   const ukPairs = [
     ["color","colour"],["colors","colours"],["center","centre"],["centers","centres"],
     ["analyze","analyse"],["analyzed","analysed"],["analyzing","analysing"],
@@ -3976,7 +3979,10 @@ function init() {
   initializeOptionalFeature("offline tools",() => HablaOffline.bind());
   initializeOptionalFeature("image import",() => HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText}));
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
-  queueMicrotask(bindTranslationTextTools);
+  queueMicrotask(()=>{
+    bindTranslationTextTools();
+    initializeOptionalFeature("complete text viewer",()=>HablaFullReader.bind());
+  });
   bindAppSharing();
   bindRegionalSearchRecovery();
   initializeOptionalFeature("source practice",renderSourcePractice);
@@ -4240,7 +4246,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=142", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=143", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
@@ -4251,6 +4257,7 @@ function init() {
     || (typeof HablaQuickLessons!=="undefined" && HablaQuickLessons.isProtected())
     || (typeof HablaOffline!=="undefined" && HablaOffline.busy)
     || (typeof HablaTutorial!=="undefined" && HablaTutorial.isOpen())
+    || (typeof HablaFullReader!=="undefined" && HablaFullReader.isOpen())
   )});
 }
 

@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {adapt,differences}=require('../english-varieties.js');
+const {adapt,differences,preserveCompleteSolutions}=require('../english-varieties.js');
 const uk=(draft,source,purpose='everyday')=>adapt(draft,'en-GB',{source,purpose});
 const us=(draft,source,purpose='everyday')=>adapt(draft,'en-US',{source,purpose});
 assert.equal(uk('I live in an apartment.','Vivo en un apartamento.').text,'I live in a flat.');
@@ -31,4 +31,16 @@ const highlighted=differences('The flat has colour.','The apartment has color.')
 assert.ok(highlighted.uk.some(r=>r.changed&&r.text.includes('flat')));
 assert.ok(highlighted.uk.some(r=>!r.changed&&r.text.includes('has')));
 assert.ok(uk('I rent an apartment.','Alquilo un apartamento.').changes.some(c=>c.type==='vocabulary'));
+assert.equal(preserveCompleteSolutions('We provide solutions that support education.','Proporcionar soluciones integrales que apoyen la educación.'),
+ 'We provide comprehensive solutions that support education.');
+assert.equal(preserveCompleteSolutions('We provide comprehensive solutions.','Ofrecemos soluciones integrales.'),
+ 'We provide comprehensive solutions.');
+assert.equal(preserveCompleteSolutions('We offer integrated solutions.','Ofrecemos soluciones integrales.'),
+ 'We offer integrated solutions.');
+assert.equal(preserveCompleteSolutions('We offer solutions for students.','Ofrecemos soluciones para estudiantes.'),
+ 'We offer solutions for students.','no insertion without the source meaning');
+assert.equal(preserveCompleteSolutions('Solutions for schools and solutions for families.','Soluciones integrales para escuelas y familias.'),
+ 'Solutions for schools and solutions for families.','avoid guessing which of two uses qualifies');
+assert.equal(preserveCompleteSolutions('We provide solutions.','No confundas soluciones integrales con soluciones parciales.'),
+ 'We provide comprehensive solutions.');
 console.log('English variety checks passed: source-scoped vocabulary, ambiguous meanings, sentence alignment, software programs, research protection and lossless highlighted differences.');
