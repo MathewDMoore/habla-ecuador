@@ -107,11 +107,15 @@ function spotlight(){
 function layout(){
  layoutFrame=0;if(!active)return;
  const v=placeViewport(),el=targetFor(steps[index]);
+ panel.dataset.compact=String(v.width<300);
  // A tall input card gets more room; the instructions scroll between controls
  // that remain visible. Never shrink the actual user's input to fit the tour.
  const height=el?.getBoundingClientRect().height||0;
  const bottomGap=v.height-(panel.getBoundingClientRect().bottom-overlay.getBoundingClientRect().top);
- panel.style.maxHeight=Math.min(v.height-24,Math.max(180,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
+ // Reserve a readable instruction area after measuring wrapped controls.
+ panel.style.maxHeight=(v.height-24)+"px";
+ const chrome=panel.querySelector(".tutorial-panel-top").offsetHeight+panel.querySelector(".tutorial-controls").offsetHeight+32;
+ panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+140,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();
   const available=panel.getBoundingClientRect().top-origin.top-12;
@@ -126,7 +130,7 @@ function scheduleLayout(){if(active&&!layoutFrame)layoutFrame=requestAnimationFr
 function render(){
  if(!active)return;
  const step=steps[index];go(step.view);
- $("#tutorial-progress").textContent=(index+1)+" / "+steps.length+" · Getting started / Primeros pasos";
+ $("#tutorial-progress").textContent=(index+1)+" / "+steps.length;
  $("#tutorial-symbol").textContent=step.symbol;
  $("#tutorial-title").textContent=step.en;$("#tutorial-english").textContent=step.body;
  $("#tutorial-title-es").textContent=step.es;$("#tutorial-spanish").textContent=step.esp;

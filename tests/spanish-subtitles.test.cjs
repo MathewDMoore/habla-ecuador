@@ -16,7 +16,7 @@ for(const [clip,source] of Object.entries(items)){
  assert.equal(cues.map(c=>c.text).join(' '),source.text,'full publisher transcript, no recognized-word substitutions');
  assert.equal(meta.videos[clip].sourceTextSha256,crypto.createHash('sha256').update(source.text).digest('hex'));
  assert.ok(meta.videos[clip].anchorCoverage>=.95);
- assert.ok(fs.readFileSync('sw.js','utf8').includes('captions/'+clip+'.es.vtt?v=147'));
+ assert.ok(fs.readFileSync('sw.js','utf8').includes('captions/'+clip+'.es.vtt?v=148'));
 }
 const controller=fs.readFileSync('recorded-practice.js','utf8');
 assert.match(controller,/<track kind="subtitles"[^>]+srclang="es"[^>]+default>/);

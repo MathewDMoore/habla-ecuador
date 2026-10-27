@@ -25,7 +25,7 @@ async function highlightFits(page,selector){
   const spot=document.querySelector('#tutorial-spotlight').getBoundingClientRect(),r=document.querySelector(selector).getBoundingClientRect();
   const panel=document.querySelector('.tutorial-panel').getBoundingClientRect();
   return spot.width>0&&spot.top<=r.top&&spot.bottom>=r.bottom&&spot.left<=r.left&&spot.right>=r.right&&spot.bottom<=panel.top;
- },selector,{timeout:3000});
+ },selector,{timeout:3000}).catch(async e=>{console.log(await page.evaluate(selector=>Object.fromEntries([selector,"#tutorial-spotlight",".tutorial-panel"].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()])),selector));throw e;});
 }
 async function run(browser,file,width,height=844){
  const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,serviceWorkers:'block'});

@@ -924,3 +924,17 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .full-reader-status {color:#53645b;font-size:13px;line-height:1.4;}
 @media(min-width:780px){.full-text-reader {height:min(94dvh,900px);max-height:94dvh;border-radius:20px;}}
 @media(prefers-reduced-motion:reduce){.full-text-reader,.full-reader-source{scroll-behavior:auto;animation:none;transition:none;}}
+
+/* Preserve whole words when the visual viewport narrows under pinch zoom. */
+.tutorial-controls {flex-wrap:wrap;}
+.tutorial-controls button {flex:1 0 auto;min-width:min-content;word-break:normal;overflow-wrap:normal;white-space:normal;}
+#tutorial-next {margin-left:0;}
+.tutorial-panel-top {flex-wrap:wrap;}
+#tutorial-progress {flex:1 1 70px;}
+#tutorial-close {max-width:none;word-break:normal;overflow-wrap:normal;}
+
+.tutorial-panel[data-compact="true"] #tutorial-skip {display:none;}
+.tutorial-panel[data-compact="true"] .tutorial-controls {flex-wrap:nowrap;}
+.tutorial-panel[data-compact="true"] .tutorial-controls button {flex:1 1 0;min-width:0;padding:6px 3px;}
+.tutorial-panel[data-compact="true"] #tutorial-close {padding:6px;font-size:12px;white-space:nowrap;}
+.tutorial-panel[data-compact="true"] #tutorial-progress {flex:0 0 auto;}
