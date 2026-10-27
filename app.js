@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.46 · build 156";
+const APP_VERSION = "0.26.47 · build 157";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -45,7 +45,21 @@ const TRANSLATOR_LANGUAGES = {
   "es-VE": {label:"Venezuelan Spanish", family:"es", voice:"es-VE"},
   "es-PE": {label:"Peruvian Spanish", family:"es", voice:"es-PE"},
   "es-CO": {label:"Colombian Spanish", family:"es", voice:"es-CO"},
-  "es-CU": {label:"Cuban Spanish", family:"es", voice:"es-CU"}
+  "es-CU": {label:"Cuban Spanish", family:"es", voice:"es-CU"},
+  "es-AR": {label:"Argentina \u00b7 Spanish", family:"es", voice:"es-AR"},
+  "es-CL": {label:"Chile \u00b7 Spanish", family:"es", voice:"es-CL"},
+  "es-CR": {label:"Costa Rica \u00b7 Spanish", family:"es", voice:"es-CR"},
+  "es-DO": {label:"Dominican Republic / Rep\u00fablica Dominicana \u00b7 Spanish", family:"es", voice:"es-DO"},
+  "es-SV": {label:"El Salvador \u00b7 Spanish", family:"es", voice:"es-SV"},
+  "es-GT": {label:"Guatemala \u00b7 Spanish", family:"es", voice:"es-GT"},
+  "es-HN": {label:"Honduras \u00b7 Spanish", family:"es", voice:"es-HN"},
+  "es-NI": {label:"Nicaragua \u00b7 Spanish", family:"es", voice:"es-NI"},
+  "es-PA": {label:"Panama / Panam\u00e1 \u00b7 Spanish", family:"es", voice:"es-PA"},
+  "es-PY": {label:"Paraguay \u00b7 Spanish", family:"es", voice:"es-PY"},
+  "es-PR": {label:"Puerto Rico \u00b7 Spanish", family:"es", voice:"es-PR"},
+  "es-ES": {label:"Spain / Espa\u00f1a \u00b7 Spanish", family:"es", voice:"es-ES"},
+  "es-UY": {label:"Uruguay \u00b7 Spanish", family:"es", voice:"es-UY"},
+  "es-GQ": {label:"Equatorial Guinea / Guinea Ecuatorial \u00b7 Spanish", family:"es", voice:"es-GQ"}
 };
 
 const culturalExpressions = [
@@ -254,7 +268,7 @@ let conversationLocaleOverrides = {};
 try {
   const saved=JSON.parse(localStorage.getItem(CONVERSATION_LOCALES_KEY)||"{}");
   if(['en-US','en-GB'].includes(saved?.english))conversationLocaleOverrides.english=saved.english;
-  if(['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','es-CU'].includes(saved?.spanish))conversationLocaleOverrides.spanish=saved.spanish;
+  if(TRANSLATOR_LANGUAGES[saved?.spanish]?.family==='es')conversationLocaleOverrides.spanish=saved.spanish;
 } catch {}
 let recognition = null;
 let evidenceFilter = "all";
@@ -1990,8 +2004,8 @@ function bindTranslationTextTools() {
 }
 
 const PUBLIC_APP_URL = "https://mathewdmoore.github.io/habla-ecuador/index.html";
-const APP_SHARE_REGIONS = new Set(["monterrey","es-VE","es-CU"]);
-const APP_SHARE_DESTINATIONS = new Set(["monterrey","es-VE","caracas","es-CU"]);
+const APP_SHARE_REGIONS = new Set(["monterrey", "es-EC", "es-BO", "es-MX", "es-VE", "es-PE", "es-CO", "es-CU", "es-AR", "es-CL", "es-CR", "es-DO", "es-SV", "es-GT", "es-HN", "es-NI", "es-PA", "es-PY", "es-PR", "es-ES", "es-UY", "es-GQ"]);
+const APP_SHARE_DESTINATIONS = new Set(["caracas",...APP_SHARE_REGIONS]);
 let appSharePending = false;
 
 function publicAppShareUrl(region="", ui="es") {
@@ -4274,7 +4288,7 @@ function init() {
     if (context) {
       context.textContent = invitedRegion === "es-VE" && launchQuery.get("city") === "caracas"
         ? "Invite for Caracas, Venezuela: showing country-attested entries. Caracas-specific review is pending."
-        : invitedRegion === "es-CU" ? "Invite for Cuba: starter dictionary entries; Holgu\u00edn / Oriente-specific review pending." : invitedRegion === "monterrey" ? "Invite for Monterrey, Nuevo León." : "Invite for Venezuela.";
+        : invitedRegion === "es-CU" ? "Invite for Cuba: starter dictionary entries; Holgu\u00edn / Oriente-specific review pending." : invitedRegion === "monterrey" ? "Invite for Monterrey, Nuevo León." : invitedRegion === "es-VE" ? "Invite for Venezuela." : "Country selected: "+(TRANSLATOR_LANGUAGES[invitedRegion]?.label||invitedRegion)+". Local dictionary coverage may be limited.";
       context.hidden = false;
     }
     openView("dictionary-view");
@@ -4289,7 +4303,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=156", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=157", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
