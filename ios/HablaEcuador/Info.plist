@@ -13,6 +13,7 @@
     <key>LSRequiresIPhoneOS</key><true/>
     <key>NSMicrophoneUsageDescription</key><string>Listen to spoken words or music around you for your private translation draft.</string>
     <key>NSSpeechRecognitionUsageDescription</key><string>Convert microphone audio into editable words. Apple may process speech using its servers.</string>
+    <key>NSMicrophoneInjectionUsageDescription</key><string>Add the translated text you explicitly choose as spoken audio to a compatible call.</string>
     <key>UILaunchScreen</key><dict/>
     <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
 </dict></plist>

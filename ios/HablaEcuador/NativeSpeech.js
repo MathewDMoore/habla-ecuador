@@ -20,7 +20,7 @@
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.4 (5)";
+    summary.textContent = "iPhone speech · native 0.1.5 (6)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
@@ -126,4 +126,27 @@
   }});
   window.SpeechRecognition = NativeSpeechRecognition;
   window.webkitSpeechRecognition = NativeSpeechRecognition;
+  // Native-only controls. Deliberately separate from web file playback.
+  function installNativeAudio() {
+    if(document.querySelector('#habla-native-audio'))return;
+    const anchor=document.querySelector('#whatsapp-audio-import')||document.querySelector('#music-listen');if(!anchor)return;
+    const panel=document.createElement('details');panel.id='habla-native-audio';panel.className='compact-info';
+    panel.innerHTML='<summary>Audio nativo / Native audio · prototype</summary><p>Notas de voz: transcripción en el iPhone. Llamadas: solo envío de voz; compatibilidad con WhatsApp no verificada. / Voice notes: on-device transcription. Calls: outgoing speech only; WhatsApp compatibility unverified. No remote-call audio capture.</p><button type="button" data-native-file>Transcribir archivo / Transcribe file</button> <button type="button" data-native-cancel>Cancelar / Cancel</button><label>Transcripción editable / Editable transcript<textarea data-native-transcript rows="4"></textarea></label><button type="button" data-native-use>Usar texto para traducir / Use text to translate</button><hr><button type="button" data-native-copy-translation>Preparar traducción / Prepare translation</button><label>Texto que enviarás / Text to send<textarea data-native-call-text rows="3"></textarea></label><button type="button" data-native-call>Activar voz saliente / Enable outgoing call speech</button><button type="button" data-native-send disabled>Enviar traducción a llamada / Speak translation into call</button><p data-native-status role="status"></p>';
+    anchor.after(panel);
+    const status=panel.querySelector('[data-native-status]'),transcript=panel.querySelector('[data-native-transcript]'),call=panel.querySelector('[data-native-call]'),send=panel.querySelector('[data-native-send]');
+    let counter=0,enabled=false;
+    const post=(action,data={})=>window.webkit.messageHandlers.hablaSpeech.postMessage({action,id:'audio-'+Date.now()+'-'+(++counter),...data});
+    panel.querySelector('[data-native-file]').onclick=()=>{status.textContent='Choose a saved voice note. Audio stays on this iPhone. / Elige una nota guardada; el audio permanece en este iPhone.';post('transcribeFile',{lang:document.querySelector('#source-language-select')?.value||'es-EC'});};
+    panel.querySelector('[data-native-cancel]').onclick=()=>post('cancelFile');
+    panel.querySelector('[data-native-use]').onclick=()=>{const input=document.querySelector('#translator-input');if(!input||!transcript.value.trim())return;input.value=transcript.value;input.dispatchEvent(new Event('input',{bubbles:true}));status.textContent='Transcript inserted for translation; check recognized words. / Texto insertado para traducir; revisa las palabras reconocidas.';};
+    call.onclick=()=>post('callSpeech',{enabled:!enabled});
+    panel.querySelector('[data-native-copy-translation]').onclick=()=>{const input=document.querySelector('#translator-input'),result=document.querySelector('#natural-result');if(input?.value.trim())panel.querySelector('[data-native-call-text]').value=result?.innerText?.trim()||'';};
+    send.onclick=()=>{const text=panel.querySelector('[data-native-call-text]').value.trim();if(!text){status.textContent='Translate a phrase first. / Traduce una frase primero.';return;}post('speakCall',{text,lang:document.querySelector('#target-language-select')?.value||'es-EC'});};
+    window.__hablaNativeAudio=message=>{
+      if(typeof message.enabled==='boolean'){enabled=message.enabled;send.disabled=!enabled;call.textContent=enabled?'Desactivar voz saliente / Disable outgoing call speech':'Activar voz saliente / Enable outgoing call speech';}
+      if(typeof message.text==='string'){transcript.value=message.text;status.textContent='Transcription ready ('+(message.language||'')+'). Review, then use it to translate. / Transcripción lista; revisa antes de traducir.';}
+      if(message.status||message.error)status.textContent=message.error||message.status;
+    };
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installNativeAudio);else installNativeAudio();
 })();
