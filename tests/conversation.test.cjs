@@ -47,6 +47,16 @@ context.spoken = spoken;
 run('say = (text,lang) => spoken.push({text,lang});');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 async function main() {
+  // A Cuban selection survives saving and routes speech to Spanish, not English.
+  run('setConversationLocale("spanish","es-CU")');
+  assert.equal(run('conversationLocales().spanish'),'es-CU');
+  assert.equal(JSON.parse(storage.get('habla-ecuador-conversation-locales-v1')).spanish,'es-CU');
+  context.cubanButton=button();
+  assert.equal(run('conversationOptions("spanish",cubanButton).lang'),'es-CU');
+  assert.equal(run('languageLabel("es-CU")'),'Cuban Spanish');
+  assert.equal(run('languageFamily("es-CU")'),'es');
+  run('conversationLocaleOverrides={}; conversationActive=false');
+
   // Retain interim-only dictation once; late events cannot duplicate a turn.
   context.b1=button();
   run('startConversation("english",b1)');
