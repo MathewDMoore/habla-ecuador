@@ -58,6 +58,10 @@ function open(focusSection="source",button=null){
   if(typeof dialog.showModal==="function")dialog.showModal();
   else dialog.setAttribute("open","");
  }
+ // Safari/WebKit returns zero scrollHeight for a textarea inside a hidden
+ // dialog. Measure only AFTER the dialog is visible, including pasted text.
+ resizeInput();
+ requestAnimationFrame(resizeInput);
  const section=focusSection==="target"?$("#full-reader-target-section"):$("#full-reader-source-section");
  section.scrollIntoView({block:"start",behavior:"instant"});
  (focusSection==="target"?$("#full-reader-target-jump"):$("#full-reader-source-jump")).focus({preventScroll:true});
