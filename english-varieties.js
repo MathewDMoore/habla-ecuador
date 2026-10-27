@@ -55,6 +55,18 @@ const HablaEnglish = (() => {
     }).join('');
     return {text:protectedText.restore(result),changes};
   }
+  // Preserve the completeness in "soluciones integrales" if a free
+  // translation provider omits it. Do not rewrite a sentence containing
+  // multiple distinct uses of "solutions" or already adequate wording.
+  function preserveCompleteSolutions(draft, source="") {
+    if ((String(source).match(/\bsoluciones\s+integrales\b/gi)||[]).length!==1) return draft;
+    const text=String(draft),uses=text.match(/\bsolutions\b/gi)||[];
+    if(uses.length!==1) return text;
+    if(/\b(?:comprehensive|integrated|holistic|complete|end-to-end|all-in-one)\s+solutions\b/i.test(text)) return text;
+    return text.replace(/\bsolutions\b/i,word=>
+      (word[0]===word[0].toUpperCase()?"Comprehensive":"comprehensive")+" "+word
+    );
+  }
   function differences(uk,us) {
     const a=uk.match(/\s+|[^\s]+/g)||[],b=us.match(/\s+|[^\s]+/g)||[];
     const left=[],right=[];
@@ -76,6 +88,6 @@ const HablaEnglish = (() => {
     }
     return {uk:left,us:right,same:uk===us};
   }
-  return {adapt,differences};
+  return {adapt,differences,preserveCompleteSolutions};
 })();
 if(typeof module !== 'undefined' && module.exports) module.exports=HablaEnglish;
