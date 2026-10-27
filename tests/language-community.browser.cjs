@@ -14,6 +14,7 @@ async function run(browser,file){
   const filename=path.join(root,decodeURIComponent(url.pathname.slice('/habla-ecuador/'.length))||'index.html');
   return fs.existsSync(filename)&&fs.statSync(filename).isFile()&&!filename.endsWith('.mp3')?route.fulfill({path:filename}):route.abort();
  });
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate');
  await page.waitForFunction(()=>Boolean(window.HablaLanguageCommunity)&&typeof renderTranslation==='function');
  await page.locator('#source-language-select').selectOption('en-US');

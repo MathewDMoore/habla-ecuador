@@ -18,6 +18,7 @@ async function run(browser,file,width){
   return target.startsWith(root+path.sep)&&fs.existsSync(target)&&fs.statSync(target).isFile()
    ?route.fulfill({path:target}):route.abort();
  });
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate');
  await page.waitForFunction(()=>Boolean(window.HablaFullReader)&&document.querySelector('#source-full-text'));
  await page.evaluate(({longSource,longTarget})=>{

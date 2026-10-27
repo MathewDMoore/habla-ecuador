@@ -27,6 +27,7 @@ try{
   window.recognitionCalls=[];
   window.SpeechRecognition=class{start(){recognitionCalls.push({action:'start',lang:this.lang});window.lastRecognition=this;}stop(){recognitionCalls.push({action:'stop'});}abort(){recognitionCalls.push({action:'abort'});}};
  },{emptyVoices});
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/index.html?ui=en');
  console.log(`${width}px browser AudioSession support: ${await page.evaluate(()=>navigator.audioSession?.type||'unsupported')}`);
  await page.locator('.bottom-nav [data-open="lesson-view"]').tap();
