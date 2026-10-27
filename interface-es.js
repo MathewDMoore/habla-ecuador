@@ -1,5 +1,6 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Silvia · Bolivia": "Silvia · Bolivia",
   "Cuban Spanish": "Español de Cuba",
   "Eddie · Cuba · Holguín / Oriente": "Eddie · Cuba · Holguín / Oriente",
   "Regional reference: Cuban Spanish → eastern Cuba (Oriente) → Holguín. This records a speaker’s own regional description. Holguín-specific expressions and pronunciation still need local review. Translation uses general Spanish; available device voices do not guarantee a Holguín accent.": "Referencia regional: español de Cuba → oriente de Cuba (Oriente) → Holguín. Se conserva la descripción regional del propio hablante. Las expresiones y la pronunciación específicas de Holguín aún necesitan revisión local. La traducción utiliza español general; las voces disponibles del dispositivo no garantizan un acento holguinero.",
@@ -297,7 +298,7 @@
   "Type any name": "Escribe cualquier nombre",
   "Spanish speaker · quick choice": "Hablante de español · selección rápida",
   "Choose Spanish speaker name": "Elegir nombre del hablante de español",
-  "Choose from the visible male, female, or role lists—or type absolutely any name. Names never change their assigned language.": "Elige de las listas de nombres masculinos, femeninos o de roles, o escribe cualquier nombre. El nombre no cambia el idioma asignado.",
+  "Choose a name or type any name. On the Spanish side, Silvia selects Bolivia and Eddie selects Cuba. You can change the Spanish variety above.": "Elige un nombre o escribe cualquiera. En el lado de español, Silvia selecciona Bolivia y Eddie selecciona Cuba. Puedes cambiar la variedad de español arriba.",
   "Tap to record English; tap again to finish": "Toca para grabar inglés; toca otra vez para terminar",
   "Tap · speak English": "Toca · habla inglés",
   "Ready when you are.": "Cuando quieras.",
