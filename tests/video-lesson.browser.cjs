@@ -20,6 +20,7 @@ const {englishCatalog}=require('../recorded-practice.js');
   window.SpeechRecognition=Recognition;
  });
  if(native)await page.addInitScript({path:native});
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/index.html?ui=es');
  await page.evaluate(()=>{window.spoken=[];window.say=(text,lang)=>{HablaRecordedPractice.pause();spoken.push({text,lang});};});
  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
