@@ -24,6 +24,7 @@ async function run(browser,width,file,nativeLayout){
    for(const name of ['translator-view','music-view'])document.querySelector('.bottom-nav [data-open="'+name+'"]').addEventListener('click',()=>document.getElementById(name).append(workspace));
   });
  });
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate&ui=en');
  await page.waitForFunction(()=>document.querySelector('#translation-text-tools')?.dataset.bound==='true');
  const baseline=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth}));
