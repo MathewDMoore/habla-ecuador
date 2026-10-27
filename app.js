@@ -1692,7 +1692,10 @@ function refineAcademicEnglish(text, source="") {
 }
 
 function convertEnglishVariety(text, target=targetLanguage, options={}) {
-  if (typeof HablaEnglish !== "undefined") return HablaEnglish.adapt(text,target,options).text;
+  if (typeof HablaEnglish !== "undefined") {
+    const adapted=HablaEnglish.adapt(text,target,options).text;
+    return HablaEnglish.preserveCompleteSolutions(adapted,options.source);
+  }
   const ukPairs = [
     ["color","colour"],["colors","colours"],["center","centre"],["centers","centres"],
     ["analyze","analyse"],["analyzed","analysed"],["analyzing","analysing"],
