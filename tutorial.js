@@ -35,24 +35,6 @@ let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
 function button(text,id){const b=document.createElement("button");b.type="button";b.textContent=text;b.id=id;return b;}
-function invite(){
- if(seen()||$("#tutorial-invitation"))return;
- // Put the invitation on the screen actually shown on first visit.
- // Standalone and shared ?start=translate links skip the Home screen.
- const current=$(".view.active");
- const intro=current?.querySelector(".intro");
- const anchor=intro||current?.querySelector(".mode-switch")||current?.querySelector(".view-heading")||$("#home-view .intro");
- if(!anchor)return;
- const card=document.createElement("section");card.id="tutorial-invitation";card.className="tutorial-invitation";card.setAttribute("translate","no");
- const heading=document.createElement("h2");heading.textContent="New here? / ¿Es tu primera vez?";
- const english=document.createElement("p");english.textContent="Take a quick tour of Habla Ecuador. No explanation needed.";
- const spanish=document.createElement("p");spanish.lang="es";spanish.textContent="Haz un recorrido breve por Habla Ecuador. No necesitas que nadie te lo explique.";
- const actions=document.createElement("div");actions.className="tutorial-invitation-actions";
- const start=button("Start tutorial / Comenzar","tutorial-invite-start");
- const later=button("Not now / Ahora no","tutorial-invite-later");
- start.addEventListener("click",()=>open(start));later.addEventListener("click",()=>{remember();card.remove();});
- actions.append(start,later);card.append(heading,english,spanish,actions);anchor.after(card);
-}
 function make(){
  if(overlay)return;
  overlay=document.createElement("div");overlay.id="tutorial-overlay";overlay.hidden=true;overlay.setAttribute("translate","no");
