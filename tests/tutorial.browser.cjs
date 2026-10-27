@@ -18,7 +18,7 @@ async function run(browser,file,width){
  await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v1','1'));
  await page.goto(origin+'/habla-ecuador/'+file);
  await page.waitForSelector('#tutorial-overlay:not([hidden])');
- assert.equal(await page.locator('[data-tutorial-open]').count(),1,'reopenable Help icon');
+ assert.equal(await page.locator('button[data-tutorial-open]').count(),1,'reopenable Help icon');
  assert.equal(await page.locator('#tutorial-invitation').count(),0,'old invitation card is replaced by automatic tutorial');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -39,7 +39,7 @@ async function run(browser,file,width){
  await page.locator('#source-language-select').selectOption('en-US');
  await page.locator('#target-language-select').selectOption('es-EC');
  const sourceBefore=await page.locator('#translator-input').inputValue();
- await page.locator('[data-tutorial-open]').click();
+ await page.locator('button[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
  assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
@@ -76,7 +76,7 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'translation input preserved after tour');
  assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
  assert.equal(await page.locator('#tutorial-invitation').count(),0);
- await page.locator('[data-tutorial-open]').click();
+ await page.locator('button[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'Help reopens after finishing');
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false,'Escape dismisses help');
