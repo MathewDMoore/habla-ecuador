@@ -13,13 +13,25 @@ async function run(browser,file,width){
    fs.existsSync(local)&&fs.statSync(local).isFile()&&!local.endsWith('.mp3')
    ?route.fulfill({path:local}):route.abort();
  });
+ // Previous versions stored v1 when the invitation was dismissed.
+ // This rollout should still display the actual tour once for those visitors.
+ await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v1','1'));
  await page.goto(origin+'/habla-ecuador/'+file);
- await page.waitForSelector('#tutorial-invitation');
- assert.equal(await page.locator('#tutorial-overlay').count(),0,'tour never automatically blocks the app');
+ await page.waitForSelector('#tutorial-overlay:not([hidden])');
  assert.equal(await page.locator('[data-tutorial-open]').count(),1,'reopenable Help icon');
- assert.equal(await page.locator('#tutorial-invite-start').isVisible(),true,'first-visit invitation');
- if(file==='index.html') // Standalone translator already lands on Translate and hides bottom navigation.
- if(await page.locator('#translator-view').evaluate(el=>!el.classList.contains('active')))
+ assert.equal(await page.locator('#tutorial-invitation').count(),0,'old invitation card is replaced by automatic tutorial');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
+ assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
+ assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
+ assert.equal(await page.locator('#tutorial-close').isVisible(),true,'Close is visible on launch');
+ assert.equal(await page.locator('#tutorial-close').textContent(),'Close / Cerrar');
+ await page.locator('#tutorial-close').click();
+ assert.equal(await page.locator('#tutorial-overlay').isVisible(),false,'Close dismisses immediate onboarding');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
+ await page.reload();
+ await page.waitForFunction(()=>Boolean(window.HablaTutorial));
+ assert.equal(await page.locator('#tutorial-overlay').count(),0,'later visit does not start onboarding again');
+ if(file==='index.html')
   await page.locator('.bottom-nav [data-open="translator-view"]').click();
  else assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true,
   'standalone starts on Translate with its bottom navigation intentionally hidden');
@@ -62,7 +74,7 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false,'finish dismisses tour');
  assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true,'returns to previous view');
  assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'translation input preserved after tour');
- assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v1')),'1');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
  assert.equal(await page.locator('#tutorial-invitation').count(),0);
  await page.locator('[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'Help reopens after finishing');
@@ -75,7 +87,7 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
  assert.deepEqual(errors,[],'no JavaScript exceptions');
  await context.close();
- console.log(file+' '+width+'px: invitation, bilingual steps, real routes, restore, no mic activation, reopen, Escape and direct tutorial link passed');
+ console.log(file+' '+width+'px: first-launch auto-open/Close, legacy migration, no repeat, bilingual steps, routes, restore, reopen, Escape and direct link passed');
 }
 (async()=>{
  const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
