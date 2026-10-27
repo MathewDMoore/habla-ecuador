@@ -32,6 +32,14 @@ Ordinary Translate dictation keeps its existing behavior. No native rebuild is
 required. Automated tests cover early previews, stopping, retained full-text
 translation and ordinary dictation; physical-iPhone latency remains unverified.
 
+## Cuban regional reference
+
+Cuban Spanish is available on both sides of Translate and in Conversation.
+The regional reference is Cuba → Oriente → Holguín, based on a speaker’s
+self-description. This does not certify Holguín-specific vocabulary, translation
+or a synthetic accent. The existing dictionary filters still reflect sourced
+entries. Music capture work remains in progress.
+
 ## Data layers
 
 - `data/candidate-lexicon.json` — sourced research leads and entries still being verified.

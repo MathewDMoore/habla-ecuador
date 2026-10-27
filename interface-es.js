@@ -1,5 +1,8 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Cuban Spanish": "Español de Cuba",
+  "Cuba · Holguín / Oriente": "Cuba · Holguín / Oriente",
+  "Regional reference: Cuban Spanish → eastern Cuba (Oriente) → Holguín. This records a speaker’s own regional description. Holguín-specific expressions and pronunciation still need local review. Translation uses general Spanish; available device voices do not guarantee a Holguín accent.": "Referencia regional: español de Cuba → oriente de Cuba (Oriente) → Holguín. Se conserva la descripción regional del propio hablante. Las expresiones y la pronunciación específicas de Holguín aún necesitan revisión local. La traducción utiliza español general; las voces disponibles del dispositivo no garantizan un acento holguinero.",
   "Starting audio…": "Iniciando audio…",
   "Playing audio.": "Reproduciendo audio.",
   "Audio finished.": "Audio finalizado.",

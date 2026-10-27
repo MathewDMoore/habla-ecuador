@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.39 · build 149";
+const APP_VERSION = "0.26.40 · build 150";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -44,7 +44,8 @@ const TRANSLATOR_LANGUAGES = {
   "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"},
   "es-VE": {label:"Venezuelan Spanish", family:"es", voice:"es-VE"},
   "es-PE": {label:"Peruvian Spanish", family:"es", voice:"es-PE"},
-  "es-CO": {label:"Colombian Spanish", family:"es", voice:"es-CO"}
+  "es-CO": {label:"Colombian Spanish", family:"es", voice:"es-CO"},
+  "es-CU": {label:"Cuban Spanish", family:"es", voice:"es-CU"}
 };
 
 const culturalExpressions = [
@@ -253,7 +254,7 @@ let conversationLocaleOverrides = {};
 try {
   const saved=JSON.parse(localStorage.getItem(CONVERSATION_LOCALES_KEY)||"{}");
   if(['en-US','en-GB'].includes(saved?.english))conversationLocaleOverrides.english=saved.english;
-  if(['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO'].includes(saved?.spanish))conversationLocaleOverrides.spanish=saved.spanish;
+  if(['es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','es-CU'].includes(saved?.spanish))conversationLocaleOverrides.spanish=saved.spanish;
 } catch {}
 let recognition = null;
 let evidenceFilter = "all";
@@ -4248,7 +4249,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=149", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=150", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
