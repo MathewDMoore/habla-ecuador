@@ -57,6 +57,13 @@ async function main() {
   assert.equal(run('languageFamily("es-CU")'),'es');
   run('conversationLocaleOverrides={}; conversationActive=false');
 
+  // Selecting Eddie assigns Cuban Spanish and updates the saved speaker name.
+  element('[data-speaker-preset="spanish"]').options=[{value:"Eddie"},{value:"Maria"}];
+  run('saveSpeakerName("spanish","Eddie")');
+  assert.equal(run('speakerName("spanish")'),'Eddie');
+  assert.equal(run('conversationLocales().spanish'),'es-CU');
+  assert.equal(JSON.parse(storage.get('habla-ecuador-speaker-names-v1')).spanish,'Eddie');
+  run('saveSpeakerName("spanish","Maria"); conversationLocaleOverrides={}');
   // Retain interim-only dictation once; late events cannot duplicate a turn.
   context.b1=button();
   run('startConversation("english",b1)');
