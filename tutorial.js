@@ -32,7 +32,7 @@ const STEPS=[
 ];
 const $=s=>document.querySelector(s);
 function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
-let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,observer=null;
+let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,spotFrame=0,observer=null;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
 function button(text,id){const b=document.createElement("button");b.type="button";b.textContent=text;b.id=id;return b;}
@@ -115,7 +115,7 @@ function layout(){
  // Reserve a readable instruction area after measuring wrapped controls.
  panel.style.maxHeight=(v.height-24)+"px";
  const chrome=panel.querySelector(".tutorial-panel-top").offsetHeight+panel.querySelector(".tutorial-controls").offsetHeight+32;
- panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+140,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
+ panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+(v.width<300?240:140),Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();
   const available=panel.getBoundingClientRect().top-origin.top-12;
@@ -127,6 +127,7 @@ function layout(){
  spotlight();
 }
 function scheduleLayout(){if(active&&!layoutFrame)layoutFrame=requestAnimationFrame(layout);}
+function trackSpotlight(){if(active){spotlight();spotFrame=requestAnimationFrame(trackSpotlight);}}
 function render(){
  if(!active)return;
  const step=steps[index];go(step.view);
@@ -150,11 +151,11 @@ function open(opener){
  trigger=opener&&opener.isConnected?opener:document.activeElement;
  previousView=$(".view.active")?.id||"home-view";
  placeViewport();overlay.hidden=false;document.documentElement.dataset.tutorialOpen="true";
- render();
+ render();trackSpotlight();
 }
 function finish(){
  if(!active)return;
- active=false;cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
+ active=false;cancelAnimationFrame(spotFrame);cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
  remember();$("#tutorial-invitation")?.remove();go(previousView);
  if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }

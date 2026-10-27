@@ -938,3 +938,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-panel[data-compact="true"] .tutorial-controls button {flex:1 1 0;min-width:0;padding:6px 3px;}
 .tutorial-panel[data-compact="true"] #tutorial-close {padding:6px;font-size:12px;white-space:nowrap;}
 .tutorial-panel[data-compact="true"] #tutorial-progress {flex:0 0 auto;}
+
+.tutorial-panel {-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+.tutorial-panel[data-compact="true"] .tutorial-controls button {font-size:11px;padding:6px 2px;}
+.tutorial-panel[data-compact="true"] #tutorial-close {font-size:11px;padding:6px 3px;}
