@@ -23,6 +23,7 @@ async function run(browser,file,width,native){
   window.SpeechRecognition=Recognition;
  });
  if(native)await page.addInitScript({path:process.env.HABLA_NATIVE_SCRIPT});
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate&ui=es');
  await page.waitForFunction(()=>Boolean(document.querySelector('#input-mic')?.isConnected));
  const structure=await page.evaluate(()=>{
