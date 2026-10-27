@@ -13,7 +13,7 @@ async function controlsFit(page){
    const r=document.querySelector(s).getBoundingClientRect();
    return r.top>=Math.max(top,panel.top)&&r.bottom<=Math.min(bottom,panel.bottom)&&r.left>=Math.max(left,panel.left)&&r.right<=Math.min(right,panel.right);
   });
- },{},{timeout:3000});
+ },{},{timeout:3000}).catch(async e=>{console.log(await page.evaluate(()=>Object.fromEntries(['.tutorial-panel','#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-progress'].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()]))));throw e;});
 }
 async function tap(page,id){
  // A simulated viewport resize queues layout on the next animation frame.
