@@ -36,7 +36,7 @@ const context = vm.createContext({
   localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
   window:{SpeechRecognition:Recognition, speechSynthesis:{}},
   speechSynthesis:{cancel(){}},
-  document:{querySelector:element,addEventListener(){}, createElement:()=>({textContent:"", get innerHTML(){return this.textContent;}, set innerHTML(value){this.value=value;}})},
+  document:{querySelector:element,querySelectorAll:()=>[],addEventListener(){}, createElement:()=>({textContent:"", get innerHTML(){return this.textContent;}, set innerHTML(value){this.value=value;}})},
   fetch:async()=>{throw new Error('Unexpected network request');}
 });
 vm.runInContext(fs.readFileSync(path.join(root,'research-reference.js'),'utf8'),context);

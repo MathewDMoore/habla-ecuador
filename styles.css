@@ -947,3 +947,21 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #music-song-lesson audio {width:100%;}
 #music-song-lesson button {min-height:44px;white-space:normal;padding:10px;border:1px solid #b4cdbd;border-radius:12px;background:var(--mint);color:var(--green);}
 .song-lyrics,.song-phrase {padding:12px;margin:12px 0;background:white;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere;}
+
+.conversation-profile-choices {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.conversation-profile-choices fieldset {min-width:0;border:0;padding:0;margin:0;}
+.conversation-profile-choices legend {font-size:13px;font-weight:800;margin-bottom:8px;}
+.profile-buttons {display:flex;flex-wrap:wrap;gap:8px;}
+.profile-buttons button {flex:1 1 105px;min-width:0;min-height:48px;padding:9px 10px;border:1px solid #aac9b6;border-radius:12px;background:white;color:var(--green);font-weight:800;white-space:normal;overflow-wrap:break-word;}
+.profile-buttons button small {display:block;margin-top:3px;font-size:11px;font-weight:500;}
+.profile-buttons button[aria-pressed="true"] {background:var(--green);color:white;box-shadow:inset 0 0 0 2px #fff;outline:2px solid var(--green);}
+.profile-buttons button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
+.conversation-more-names {margin-top:14px;}
+.conversation-more-names summary {min-height:44px;padding:10px 0;cursor:pointer;}
+@media(max-width:480px){.conversation-profile-choices {grid-template-columns:1fr;}}
+/* Keep the wider Tutorial label from widening the mobile layout viewport. */
+@media(max-width:480px){
+ .topbar {flex-wrap:wrap;gap:8px;padding-block:8px;}
+ .topbar-meta {flex:1 1 180px;min-width:0;max-width:100%;}
+ .interface-controls {flex-wrap:wrap;justify-content:flex-end;max-width:100%;}
+}
