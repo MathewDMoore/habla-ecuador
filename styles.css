@@ -852,7 +852,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-panel { position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:max(10px,calc((100vw - 510px)/2));width:min(calc(100vw - 20px),510px);max-height:min(56svh,480px);overflow:auto;overscroll-behavior:contain;padding:16px 18px 18px;border:1px solid #c5e0d0;border-radius:24px;background:#fffdf8;color:var(--ink);box-shadow:0 16px 55px rgba(0,0,0,.32);pointer-events:auto; }
 .tutorial-panel-top { display:flex;align-items:center;justify-content:space-between;gap:10px; }
 #tutorial-progress {font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:800; }
-#tutorial-close {width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:white;color:var(--green);font-size:28px;line-height:1; }
+#tutorial-close {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
 #tutorial-symbol {font-size:30px;line-height:1.1;margin:2px 0 8px;}
 .tutorial-panel h2 {margin:0;color:var(--green);font-size:21px;line-height:1.22;}
 .tutorial-panel h3 {margin:0;color:var(--green);font-size:17px;line-height:1.25;}
