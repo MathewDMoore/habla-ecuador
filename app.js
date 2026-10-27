@@ -3976,7 +3976,10 @@ function init() {
   initializeOptionalFeature("offline tools",() => HablaOffline.bind());
   initializeOptionalFeature("image import",() => HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText}));
   localStorage.removeItem("habla-ecuador-ios-voice-correction-v1");
-  queueMicrotask(bindTranslationTextTools);
+  queueMicrotask(()=>{
+    bindTranslationTextTools();
+    initializeOptionalFeature("complete text viewer",()=>HablaFullReader.bind());
+  });
   bindAppSharing();
   bindRegionalSearchRecovery();
   initializeOptionalFeature("source practice",renderSourcePractice);
@@ -4251,6 +4254,7 @@ function init() {
     || (typeof HablaQuickLessons!=="undefined" && HablaQuickLessons.isProtected())
     || (typeof HablaOffline!=="undefined" && HablaOffline.busy)
     || (typeof HablaTutorial!=="undefined" && HablaTutorial.isOpen())
+    || (typeof HablaFullReader!=="undefined" && HablaFullReader.isOpen())
   )});
 }
 
