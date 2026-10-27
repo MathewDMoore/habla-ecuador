@@ -13,9 +13,12 @@ async function controlsFit(page){
    const r=document.querySelector(s).getBoundingClientRect();
    return r.top>=Math.max(top,panel.top)&&r.bottom<=Math.min(bottom,panel.bottom)&&r.left>=Math.max(left,panel.left)&&r.right<=Math.min(right,panel.right);
   });
- },{},{timeout:3000});
+ },{},{timeout:3000}).catch(async e=>{console.log(await page.evaluate(()=>Object.fromEntries(['.tutorial-panel','#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-progress'].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()]))));throw e;});
 }
 async function tap(page,id){
+ // A simulated viewport resize queues layout on the next animation frame.
+ // Wait for that layout before choosing fixed touch coordinates.
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await controlsFit(page);
  const r=await page.locator(id).boundingBox();
  await page.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);

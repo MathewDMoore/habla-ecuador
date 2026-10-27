@@ -942,3 +942,8 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-panel {-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .tutorial-panel[data-compact="true"] .tutorial-controls button {font-size:11px;padding:6px 2px;}
 .tutorial-panel[data-compact="true"] #tutorial-close {font-size:11px;padding:6px 3px;}
+
+#music-song-lesson {padding:16px;border:1px solid #b4cdbd;border-radius:18px;background:#fffdf8;}
+#music-song-lesson audio {width:100%;}
+#music-song-lesson button {min-height:44px;white-space:normal;padding:10px;border:1px solid #b4cdbd;border-radius:12px;background:var(--mint);color:var(--green);}
+.song-lyrics,.song-phrase {padding:12px;margin:12px 0;background:white;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere;}
