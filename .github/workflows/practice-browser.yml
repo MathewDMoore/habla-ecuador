@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'app.js'
+      - 'tutorial.js'
+      - 'tests/tutorial*'
       - 'quick-lessons.js'
       - 'styles.css'
       - 'index.html'
@@ -38,6 +40,10 @@ jobs:
       - run: node tests/lesson-actions.browser.cjs
         env:
           DEBUG: pw:browser
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node tests/tutorial.browser.cjs
+        env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/translator-microphone.browser.cjs
