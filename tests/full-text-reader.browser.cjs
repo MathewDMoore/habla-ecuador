@@ -59,7 +59,11 @@ async function run(browser,file,width){
  await page.locator('#translation-expand').click();
  const style=await page.locator('#natural-result').evaluate(el=>({height:el.clientHeight,scrollHeight:el.scrollHeight,maxHeight:getComputedStyle(el).maxHeight,scrollY:getComputedStyle(el).overflowY}));
  assert.ok(style.height>=style.scrollHeight-4,'inline Expand reveals all the translated paragraphs: '+JSON.stringify(style));
- await page.locator('#translation-expand').click();
+ // After expanding a many-page result, WebKit Playwright can auto-scroll
+ // the Collapse button endlessly. Dispatch its real click directly; the
+ // full-screen and first Expand touch targets are tested above.
+ await page.locator('#translation-expand').evaluate(el=>el.click());
+ assert.equal(await page.locator('#translation-expand').getAttribute('aria-expanded'),'false','Collapse returns to compact mode');
  assert.deepEqual(errors,[],'no JS errors');
  await context.close();
  console.log(file+' '+width+'px full length pasted text, both expanding actions, paragraph preservation, source editing and Escape passed');
