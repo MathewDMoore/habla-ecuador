@@ -21,6 +21,7 @@ async function run(browser,mode,width){
  if(mode==='optional-error')await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{
   window.HablaRecordedPractice.render=()=>{throw Error('Injected optional recording widget failure');};
  }));
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/index.html');
  for(const view of ['translator-view','dictionary-view','music-view','lesson-view','home-view','dictionary-view']){
   await page.locator('.bottom-nav [data-open="'+view+'"]').click();
