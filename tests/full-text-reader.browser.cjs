@@ -54,6 +54,15 @@ async function run(browser,file,width){
  await page.locator('#translation-full-text').click();
  assert.equal(await page.locator('#full-text-reader').evaluate(el=>el.open),true,'translation opens same complete document');
  assert.equal(await page.locator('#full-reader-result').textContent(),longTarget);
+ // Missing/blocked clipboard must select the requested translation, never source.
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:undefined}));
+ await page.locator('#full-reader-copy-target').evaluate(el=>el.click());
+ assert.equal(await page.locator('#full-reader-copy-field').inputValue(),longTarget);
+ assert.equal(await page.locator('#full-reader-source').inputValue(),longSource,'copy fallback cannot replace source');
+ assert.deepEqual(await page.locator('#full-reader-copy-field').evaluate(el=>[el.selectionStart,el.selectionEnd,el.readOnly]),[0,longTarget.length,true]);
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:()=>Promise.reject(Error('blocked'))}}));
+ await page.locator('#full-reader-copy-source').evaluate(el=>el.click());
+ await page.waitForFunction(value=>document.querySelector('#full-reader-copy-field').value===value,longSource);
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#full-text-reader').evaluate(el=>el.open),false,'Escape closes full screen');
  // Inline Expand no longer crops the result at 55svh.
