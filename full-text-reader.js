@@ -3,7 +3,8 @@
 (function(root){
 "use strict";
 let dialog=null,source=null,target=null,sourceButton=null,targetButton=null,opener=null,bound=false;
-let writingTarget=false,watching=null;
+let writingTarget=false,watching=null,copyField=null,copyGeneration=0;
+function clearCopy(){copyGeneration++;if(copyField){copyField.value="";copyField.hidden=true;}}
 const $=s=>document.querySelector(s);
 function element(tag,id,className="",text=""){
  const e=document.createElement(tag);if(id)e.id=id;if(className)e.className=className;
@@ -25,12 +26,13 @@ function syncTarget(){
  const original=$("#natural-result"),result=$("#full-reader-result");
  if(!original||!result)return;
  const value=original.textContent||"";
- if(result.textContent!==value)result.textContent=value;
+ if(result.textContent!==value){clearCopy();result.textContent=value;}
  result.contentEditable=original.getAttribute("contenteditable")==="true"?"true":"false";
  const label=$("#translation-result .result-label")?.textContent.trim();
  $("#full-reader-target-title").textContent=label||titleFor("#target-language-select","Translation / Traducción");
 }
 function render(){
+ clearCopy();
  const original=$("#translator-input"),draft=$("#natural-result");
  source.value=original?.value||"";
  resizeInput();
@@ -46,6 +48,7 @@ function render(){
   titleFor("#target-language-select","Translation / Traducción");
 }
 function close(){
+ clearCopy();
  if(!dialog)return;
  if(dialog.open&&typeof dialog.close==="function")dialog.close();
  else dialog.removeAttribute("open");
@@ -68,14 +71,23 @@ function open(focusSection="source",button=null){
 }
 function copy(value,button){
  if(!value)return;
- const old=button.textContent;
- function report(ok){button.textContent=ok?"Copied / Copiado":"Select to copy / Selecciona para copiar";
-  setTimeout(()=>{if(button.isConnected)button.textContent=old;},1800);}
- if(navigator.clipboard?.writeText)navigator.clipboard.writeText(value).then(()=>report(true),()=>report(false));
- else {
-  const field=source;field.focus();field.select();report(false);
+ clearCopy();
+ const token=copyGeneration,old=button.textContent;
+ function report(ok){
+  if(token!==copyGeneration||!dialog.open)return;
+  button.textContent=ok?"Copied / Copiado":"Select to copy / Selecciona para copiar";
+  if(!ok){
+   copyField.hidden=false;copyField.value=value;
+   copyField.focus();copyField.select();copyField.setSelectionRange(0,value.length);
+  }
+  setTimeout(()=>{if(button.isConnected)button.textContent=old;},1800);
  }
+ try {
+  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(value).then(()=>report(true),()=>report(false));
+  else report(false);
+ } catch {report(false);}
 }
+
 function make(){
  dialog=element("dialog","full-text-reader","full-text-reader");
  dialog.setAttribute("aria-labelledby","full-reader-title");
@@ -103,6 +115,7 @@ function make(){
  source.spellcheck=true;source.rows=12;
  source.setAttribute("aria-label","Complete source text / Texto original completo");
  source.addEventListener("input",()=>{
+  clearCopy();
   const live=$("#translator-input");
   if(live){
    live.value=source.value;
@@ -125,6 +138,7 @@ function make(){
  target.setAttribute("aria-label","Complete translation / Traducción completa");
  target.spellcheck=true;
  target.addEventListener("input",()=>{
+  clearCopy();
   const live=$("#natural-result");
   if(!live||live.getAttribute("contenteditable")!=="true")return;
   writingTarget=true;
@@ -137,8 +151,12 @@ function make(){
  const translatedActions=element("div",null,"full-reader-section-actions");
  translatedActions.append(copyTarget);
  translated.append(translationTitle,translationNote,target,translatedActions);
- dialog.append(heading,jumps,original,translated);
- dialog.addEventListener("close",()=>{if(opener?.isConnected)opener.focus({preventScroll:true});});
+ copyField=element("textarea","full-reader-copy-field");
+ copyField.readOnly=true;copyField.hidden=true;copyField.rows=8;
+ copyField.setAttribute("aria-label","Select and copy this text / Selecciona y copia este texto");
+ copyField.style.cssText="width:100%;font-size:16px;white-space:pre-wrap;";
+ dialog.append(heading,jumps,original,translated,copyField);
+ dialog.addEventListener("close",()=>{clearCopy();if(opener?.isConnected)opener.focus({preventScroll:true});});
  dialog.addEventListener("click",event=>{
   // Clicking the modal backdrop closes it; tapping a text section never does.
   if(event.target===dialog)close();
