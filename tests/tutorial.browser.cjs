@@ -52,6 +52,13 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Elige tus idiomas');
  await page.locator('#tutorial-next').click();
  assert.equal(await page.locator('#tutorial-title').textContent(),'Translate words and phrases');
+ await page.waitForFunction(()=>{
+  const spot=document.querySelector('#tutorial-spotlight').getBoundingClientRect();
+  const input=document.querySelector('#translator-input').getBoundingClientRect();
+  const mic=document.querySelector('#input-mic').getBoundingClientRect();
+  return spot.width>0&&spot.top<=input.top&&spot.bottom>=mic.bottom&&spot.left<=mic.left&&spot.right>=mic.right;
+ },{},{timeout:3000}).catch(async error=>{console.log(await page.evaluate(()=>Object.fromEntries(['#tutorial-spotlight','#translator-input','#input-mic','.tutorial-panel','.input-card'].map(s=>[s,JSON.stringify(document.querySelector(s).getBoundingClientRect())]))));throw error;});
+ assert.equal(await page.locator('#input-mic').evaluate(el=>el.classList.contains('listening')),false,'highlighting the input group never starts capture');
  assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'tour leaves translation text untouched');
  await page.locator('#tutorial-next').click();
  assert.equal(await page.locator('#tutorial-title').textContent(),'Speak and check what was heard');

@@ -11,7 +11,7 @@ const STEPS=[
  {view:"translator-view",target:".language-picker-row",symbol:"🌐",en:"Choose your languages",es:"Elige tus idiomas",
   body:"Choose the language you speak or write under From and the translation language under To. Tap the arrows to switch.",
   esp:"Elige en De el idioma que hablas o escribes y en A el idioma al que quieres traducir. Toca las flechas para intercambiarlos."},
- {view:"translator-view",target:"#translator-input",symbol:"✍️",en:"Translate words and phrases",es:"Traduce palabras y frases",
+ {view:"translator-view",target:"#translator-input",groupTarget:".input-card",symbol:"✍️",en:"Translate words and phrases",es:"Traduce palabras y frases",
   body:"Type, paste or dictate a word, phrase or sentence. Review the translation, then use Copy or Share. Context changes meaning.",
   esp:"Escribe, pega o dicta una palabra, frase u oración. Revisa la traducción y usa Copiar o Compartir. El contexto cambia el significado."},
  {view:"translator-view",target:"#input-mic",symbol:"🎙️",en:"Speak and check what was heard",es:"Habla y comprueba lo que se escuchó",
@@ -31,6 +31,7 @@ const STEPS=[
   esp:"¿Encontraste una traducción o expresión regional incorrecta? Toca el globo de diálogo para sugerir una corrección. Nada se envía automáticamente."}
 ];
 const $=s=>document.querySelector(s);
+function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
 let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
@@ -68,7 +69,7 @@ function make(){
 function go(view){if(view&&!$("#"+view)?.classList.contains("active"))navigate?.(view);}
 function spotlight(){
  if(!active||!overlay)return;
- const step=steps[index],element=$(step.target),frame=$("#tutorial-spotlight");
+ const step=steps[index],element=targetFor(step),frame=$("#tutorial-spotlight");
  const panelTop=Math.max(95,panel.getBoundingClientRect().top-10);
  const r=element&&element.getClientRects().length?element.getBoundingClientRect():null;
  const valid=r&&r.width>0&&r.height>0&&r.top<panelTop-12&&r.bottom>0;
@@ -96,11 +97,12 @@ function render(){
  $("#tutorial-title-es").textContent=step.es;$("#tutorial-spanish").textContent=step.esp;
  $("#tutorial-back").disabled=index===0;
  $("#tutorial-next").textContent=index===steps.length-1?"Finish / Terminar":"Next / Siguiente";
- const el=$(step.target);
+ const el=targetFor(step);
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),top=rect.top+window.scrollY;
   const available=Math.max(140,window.innerHeight-panel.offsetHeight-22);
-  if(rect.top<64||rect.bottom>available-10)window.scrollTo({top:Math.max(0,top-96),behavior:"instant"});
+  const inset=Math.max(8,Math.min(96,available-rect.height-10));
+  if(rect.top<inset||rect.bottom>available-10)window.scrollTo({top:Math.max(0,top-inset),behavior:"instant"});
  }
  requestAnimationFrame(()=>requestAnimationFrame(spotlight));
  $("#tutorial-next").focus({preventScroll:true});
