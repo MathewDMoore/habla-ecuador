@@ -1,7 +1,9 @@
 /* Habla Ecuador guided bilingual help. Original content, runs without network. */
 (function(root){
 "use strict";
-const KEY="habla-tutorial-seen-v1";
+// New one-time onboarding rollout. People who dismissed the former invitation
+// will see the real guided tour once after updating; future visits respect Close.
+const KEY="habla-tutorial-seen-v2";
 const STEPS=[
  {view:"home-view",target:"#home-title",symbol:"🇪🇨",en:"Welcome to Habla Ecuador",es:"Bienvenido a Habla Ecuador",
   body:"Learn Ecuadorian Spanish and English through translation, listening, speaking and everyday expressions.",
@@ -63,7 +65,7 @@ function make(){
  panel.tabIndex=-1;
  const top=document.createElement("div");top.className="tutorial-panel-top";
  const progress=document.createElement("span");progress.id="tutorial-progress";
- const close=button("×","tutorial-close");close.setAttribute("aria-label","Close tutorial / Cerrar tutorial");close.addEventListener("click",finish);
+ const close=button("Close / Cerrar","tutorial-close");close.setAttribute("aria-label","Close tutorial / Cerrar tutorial");close.addEventListener("click",finish);
  top.append(progress,close);
  const symbol=document.createElement("div");symbol.id="tutorial-symbol";symbol.setAttribute("aria-hidden","true");
  const title=document.createElement("h2");title.id="tutorial-title";
@@ -153,9 +155,10 @@ function bind({navigate:route,launchQuery}={}){
  document.addEventListener("keydown",keyboard);
  window.addEventListener("resize",spotlight);
  window.addEventListener("scroll",spotlight,{passive:true});
- invite();
+ // Open the actual walkthrough, not an invitation card, on first launch.
+ // A shared ?tour=1 link always reopens it, even after closing before.
  const params=launchQuery||new URLSearchParams(location.search);
- if(params.get("tour")==="1")open($("[data-tutorial-open]"));
+ if(params.get("tour")==="1"||!seen())open($("[data-tutorial-open]"));
 }
 const api={bind,open,close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,api};
