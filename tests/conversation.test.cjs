@@ -63,6 +63,13 @@ async function main() {
   assert.equal(run('speakerName("spanish")'),'Eddie');
   assert.equal(run('conversationLocales().spanish'),'es-CU');
   assert.equal(JSON.parse(storage.get('habla-ecuador-speaker-names-v1')).spanish,'Eddie');
+  element('[data-speaker-preset="spanish"]').options.push({value:"Silvia"});
+  run('saveSpeakerName("spanish","Silvia")');
+  assert.equal(run('speakerName("spanish")'),'Silvia');
+  assert.equal(run('conversationLocales().spanish'),'es-BO');
+  assert.equal(JSON.parse(storage.get('habla-ecuador-conversation-locales-v1')).spanish,'es-BO');
+  run('setConversationLocale("spanish","es-EC")');
+  assert.equal(run('conversationLocales().spanish'),'es-EC','the regional choice remains editable');
   run('saveSpeakerName("spanish","Maria"); conversationLocaleOverrides={}');
   // Retain interim-only dictation once; late events cannot duplicate a turn.
   context.b1=button();
