@@ -145,7 +145,7 @@ function open(opener){
  index=0;active=true;
  trigger=opener&&opener.isConnected?opener:document.activeElement;
  previousView=$(".view.active")?.id||"home-view";
- overlay.hidden=false;document.documentElement.dataset.tutorialOpen="true";
+ placeViewport();overlay.hidden=false;document.documentElement.dataset.tutorialOpen="true";
  render();
 }
 function finish(){
