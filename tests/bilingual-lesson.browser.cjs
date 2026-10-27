@@ -21,6 +21,7 @@ async function run(browser,width,native){
   else{const r=[{transcript:text}];r.isFinal=true;testRecognition.onresult({results:[r]});}
  },{text,native:Boolean(native)});}
  const phrase='What time does the sun set?',spanish='¿A qué hora se pone el sol?';
+ await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/index.html?ui=es');await mockPlayback();
  assert.match(await page.locator('.lesson-card .card-kicker').textContent(),/inglés/);
  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
