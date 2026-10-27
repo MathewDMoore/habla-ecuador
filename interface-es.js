@@ -1,5 +1,15 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Invite for Cuba: starter dictionary entries; Holguín / Oriente-specific review pending.": "Invitación para Cuba: primeras entradas del diccionario; falta revisión específica de Holguín / Oriente.",
+  "Cuba · dictionary": "Cuba · diccionario",
+  "Country-attested; Holguín / Oriente-specific review pending.": "Documentado para Cuba; falta revisión específica de Holguín / Oriente.",
+  "Cuba: a close friend or companion.": "Cuba: amigo cercano o compañero.",
+  "Informal address depends on the relationship. ASALE lists asere as a variant of acere.": "El trato informal depende de la relación. ASALE recoge asere como variante de acere.",
+  "Cuba: bus; this meaning is shared with other regions.": "Cuba: autobús; este significado se comparte con otras regiones.",
+  "In Ecuador and Bolivia, guagua can refer to a young child. Check the country and sentence before choosing the meaning.": "En Ecuador y Bolivia, guagua puede referirse a un niño pequeño. Revisa el país y la oración antes de elegir el sentido.",
+  "Everyday regional vocabulary": "Vocabulario regional cotidiano",
+  "Cuba: a cloth, paper or plastic bag.": "Cuba: bolsa de tela, papel o plástico.",
+  "This entry covers the bag sense. Basket and crate senses are separate; context matters.": "Esta entrada cubre el sentido de bolsa. Los sentidos de cesta y cajón son distintos; importa el contexto.",
   "Silvia · Bolivia": "Silvia · Bolivia",
   "Cuban Spanish": "Español de Cuba",
   "Eddie · Cuba · Holguín / Oriente": "Eddie · Cuba · Holguín / Oriente",
