@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.43 · build 153";
+const APP_VERSION = "0.26.44 · build 154";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1968,8 +1968,8 @@ function bindTranslationTextTools() {
 }
 
 const PUBLIC_APP_URL = "https://mathewdmoore.github.io/habla-ecuador/index.html";
-const APP_SHARE_REGIONS = new Set(["monterrey","es-VE"]);
-const APP_SHARE_DESTINATIONS = new Set(["monterrey","es-VE","caracas"]);
+const APP_SHARE_REGIONS = new Set(["monterrey","es-VE","es-CU"]);
+const APP_SHARE_DESTINATIONS = new Set(["monterrey","es-VE","caracas","es-CU"]);
 let appSharePending = false;
 
 function publicAppShareUrl(region="", ui="es") {
@@ -3130,7 +3130,7 @@ function bindRegionalSearchRecovery() {
     const term = $("#regional-slang-search").value.trim();
     if (!term) return;
     const region = $("#regional-slang-region").value;
-    const countries = {"es-EC":"Ecuador","es-MX":"Mexico","es-BO":"Bolivia","es-VE":"Venezuela","es-PE":"Peru","es-CO":"Colombia","en-US":"U.S. English","en-GB":"U.K. English",quito:"Ecuador",monterrey:"Mexico","mexico-city":"Mexico",bogota:"Colombia"};
+    const countries = {"es-EC":"Ecuador","es-MX":"Mexico","es-BO":"Bolivia","es-VE":"Venezuela","es-PE":"Peru","es-CO":"Colombia","es-CU":"Cuba","en-US":"U.S. English","en-GB":"U.K. English",quito:"Ecuador",monterrey:"Mexico","mexico-city":"Mexico",bogota:"Colombia"};
     const cities = {quito:"Quito",monterrey:"Monterrey, Nuevo León","mexico-city":"Mexico City",bogota:"Bogotá"};
     const target = region.startsWith("en-") ? $("#regional-slang-target").selectedOptions[0].textContent : "";
     openView("review-view");
@@ -4236,7 +4236,7 @@ function init() {
     if (context) {
       context.textContent = invitedRegion === "es-VE" && launchQuery.get("city") === "caracas"
         ? "Invite for Caracas, Venezuela: showing country-attested entries. Caracas-specific review is pending."
-        : invitedRegion === "monterrey" ? "Invite for Monterrey, Nuevo León." : "Invite for Venezuela.";
+        : invitedRegion === "es-CU" ? "Invite for Cuba: starter dictionary entries; Holgu\u00edn / Oriente-specific review pending." : invitedRegion === "monterrey" ? "Invite for Monterrey, Nuevo León." : "Invite for Venezuela.";
       context.hidden = false;
     }
     openView("dictionary-view");
@@ -4251,7 +4251,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=153", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=154", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

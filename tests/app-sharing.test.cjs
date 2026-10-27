@@ -3,7 +3,7 @@ const source=fs.readFileSync('app.js','utf8'),context={URL,Set};
 vm.createContext(context);vm.runInContext(source.slice(source.indexOf('const PUBLIC_APP_URL ='),source.indexOf('function bindAppSharing()')),context);
 const home='https://mathewdmoore.github.io/habla-ecuador/index.html?ui=es';
 assert.equal(context.publicAppShareUrl(),home);
-for(const region of ['monterrey','es-VE']){
+for(const region of ['monterrey','es-VE','es-CU']){
  const url=new URL(context.publicAppShareUrl(region));
  assert.equal(url.origin,'https://mathewdmoore.github.io');assert.equal(url.pathname,'/habla-ecuador/index.html');
  assert.equal(url.searchParams.get('start'),'dictionary');assert.equal(url.searchParams.get('region'),region);
@@ -21,3 +21,12 @@ assert.equal(context.sharedAppRegion(new URLSearchParams('start=dictionary&regio
 
 assert.equal(new URL(context.publicAppShareUrl('monterrey','en')).searchParams.get('ui'),'en');
 assert.equal(new URL(context.publicAppShareUrl('','javascript:bad')).searchParams.get('ui'),'es');
+
+const cuban=require('../spanish-context.js').dictionary({region:'es-CU'});
+assert.equal(cuban.length,3,'Cuba shows verified entries, not unrelated shared slang');
+for(const term of ['asere / acere','guagua (Cuba)','jaba (Cuba)'])assert.ok(cuban.some(e=>e.term===term));
+for(const file of ['index.html','translator.html']){
+ const html=fs.readFileSync(file,'utf8');
+ assert.match(html,/<option value="es-CU">Cuba · dictionary<\/option>/);
+ for(const id of ['regional-slang-region','regional-slang-target'])assert.match(html.match(new RegExp('<select id="'+id+'"[^>]*>[\\s\\S]*?<\/select>'))[0],/<option value="es-CU">Cuba<\/option>/);
+}
