@@ -1,0 +1,29 @@
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
+const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium',browser=await pw[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
+try{for(const file of ['index.html','translator.html'])for(const width of [320,390]){
+const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
+await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v2','1'));
+await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dirname,'..',u.pathname.replace('/habla-ecuador/',''));return u.origin==='https://mathewdmoore.github.io'&&fs.existsSync(p)&&fs.statSync(p).isFile()?r.fulfill({path:p}):r.abort()});
+await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file);
+if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();
+await page.locator('[data-mode="conversation"]').click();
+for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Maria','es-EC']]){
+ const choice=page.locator(`[data-conversation-profile="spanish"][data-profile-name="${name}"]`);await choice.tap();
+ assert.equal(await choice.getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#spanish-speaker-name').inputValue(),name);
+ assert.equal(await page.locator('[data-speaker-label="spanish"]').textContent(),name);
+ assert.equal(await page.locator('#conversation-spanish-language').inputValue(),locale);
+ assert.equal(await page.locator('[data-conversation-profile="spanish"][aria-pressed="true"]').count(),1);
+}
+assert.equal(await page.locator('#conversation-spanish-language option:checked').textContent(),'Ecuador');
+await page.locator('.conversation-more-names summary').click();await page.locator('#spanish-speaker-name').fill('Amiga nueva');
+assert.equal(await page.locator('[data-conversation-profile="spanish"][aria-pressed="true"]').count(),0);
+await page.locator('[data-speaker-preset="spanish"]').selectOption('Annalise');assert.equal(await page.locator('[data-speaker-label="spanish"]').textContent(),'Annalise');
+await page.locator('[data-conversation-profile="spanish"][data-profile-name="Eddie"]').tap();
+assert.equal(await page.locator('.profile-buttons button').evaluateAll(buttons=>buttons.every(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44&&r.left>=0&&r.right<=innerWidth})),true,'all name targets fit the viewport');
+assert.equal(await page.locator('[data-speaker-role="spanish"]').evaluate(b=>b.classList.contains('listening')),false,'name choice never activates microphone');
+await page.reload();if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();await page.locator('[data-mode="conversation"]').click();
+assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Eddie');assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-CU');
+await page.screenshot({path:`/tmp/profiles-${file}-${width}.png`,fullPage:true});
+await context.close();console.log(file+' '+width+': profile selection, locale, custom names, touch sizes, no capture and reload passed');
+}}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
