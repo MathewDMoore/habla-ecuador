@@ -10,7 +10,8 @@ const context=await browser.newContext({viewport:{width,height:844},isMobile:tru
 page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/*',route=>{const u=new URL(route.request().url()),f=path.join(root,u.pathname.replace('/habla-ecuador/',''));return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?route.fulfill({path:f}):route.abort();});
 await page.addInitScript(()=>{class Recognition{start(){window.testRecognition=this;}stop(){}abort(){}}window.SpeechRecognition=Recognition;});
-await page.goto(origin+'/habla-ecuador/'+file+'?ui=en');
+await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
+ await page.goto(origin+'/habla-ecuador/'+file+'?ui=en');
 await page.evaluate(()=>{window.spoken=[];window.say=(text,lang)=>spoken.push({text,lang});});
 if(file==='translator.html')await page.evaluate(()=>openView('lesson-view')); // Standalone shell intentionally hides navigation.
 else await page.locator('.bottom-nav [data-open="lesson-view"]').click();
