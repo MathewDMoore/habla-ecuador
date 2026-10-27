@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.36 · build 146";
+const APP_VERSION = "0.26.37 · build 147";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -420,7 +420,7 @@ function openView(id) {
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
   $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
-  window.scrollTo({top:0, behavior:"smooth"});
+  window.scrollTo({top:0, behavior:typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen()?"instant":"smooth"});
   if (id === "lesson-view") { renderLesson(); renderSourcePractice(); }
   if (id === "review-view") renderReview();
   if (id === "music-view") renderMusic();
@@ -4246,7 +4246,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=146", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=147", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

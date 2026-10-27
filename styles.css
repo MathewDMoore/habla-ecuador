@@ -846,10 +846,13 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-invitation button { min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid #a1c9b1;background:white;color:var(--green);font-size:13px;font-weight:800; }
 #tutorial-invite-start { background:var(--green);color:white; }
 #tutorial-overlay[hidden], .tutorial-panel [hidden] { display:none !important; }
-#tutorial-overlay { position:fixed;inset:0;z-index:250;pointer-events:none; }
-.tutorial-shade { position:fixed;background:rgba(11,28,24,.70);pointer-events:auto; }
-#tutorial-spotlight { position:fixed;box-sizing:border-box;border:3px solid #ffc35a;border-radius:12px;box-shadow:0 0 0 2px #173f35,0 0 20px 5px rgba(255,184,73,.38);pointer-events:auto; }
-.tutorial-panel { position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:max(10px,calc((100vw - 510px)/2));width:min(calc(100vw - 20px),510px);max-height:min(56svh,480px);overflow:auto;overscroll-behavior:contain;padding:16px 18px 18px;border:1px solid #c5e0d0;border-radius:24px;background:#fffdf8;color:var(--ink);box-shadow:0 16px 55px rgba(0,0,0,.32);pointer-events:auto; }
+#tutorial-overlay { position:fixed;inset:auto;z-index:250;pointer-events:auto; }
+.tutorial-shade { position:absolute;background:rgba(11,28,24,.70);touch-action:none; }
+#tutorial-spotlight { position:absolute;box-sizing:border-box;border:3px solid #ffc35a;border-radius:12px;box-shadow:0 0 0 2px #173f35,0 0 20px 5px rgba(255,184,73,.38);touch-action:none; }
+.tutorial-panel { position:absolute;box-sizing:border-box;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(calc(100% - 20px),510px);max-height:56%;display:flex;flex-direction:column;overflow:hidden;padding:12px 16px;border:1px solid #c5e0d0;border-radius:24px;background:#fffdf8;color:var(--ink);box-shadow:0 16px 55px rgba(0,0,0,.32); }
+.tutorial-panel-top,.tutorial-controls {flex-shrink:0;background:#fffdf8;}
+.tutorial-content {min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;padding:8px 0;scrollbar-gutter:stable;}
+.tutorial-content:focus-visible {outline:2px solid #d66927;outline-offset:-2px;}
 .tutorial-panel-top { display:flex;align-items:center;justify-content:space-between;gap:10px; }
 #tutorial-progress {font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:800; }
 #tutorial-close {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
@@ -865,7 +868,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-controls button:disabled {opacity:.4;}
 .tutorial-controls button:focus-visible,.tutorial-open:focus-visible,.tutorial-invitation button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
 @media(max-width:360px){
- .tutorial-panel{padding:12px 13px;max-height:60svh;}
+ .tutorial-panel{padding:10px 12px;}
  .tutorial-panel h2{font-size:19px;}
  .tutorial-panel p{font-size:13px;}
  .tutorial-controls button{padding:8px;font-size:12px;}
