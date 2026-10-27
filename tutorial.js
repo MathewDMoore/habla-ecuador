@@ -32,7 +32,7 @@ const STEPS=[
 ];
 const $=s=>document.querySelector(s);
 function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
-let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false;
+let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,observer=null;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
 function button(text,id){const b=document.createElement("button");b.type="button";b.textContent=text;b.id=id;return b;}
@@ -63,31 +63,66 @@ function make(){
  skip.addEventListener("click",finish);back.addEventListener("click",()=>move(-1));
  next.addEventListener("click",()=>index===steps.length-1?finish():move(1));
  controls.append(skip,back,next);
- panel.append(top,symbol,title,english,divider,spanishTitle,spanish,note,controls);
+ const content=document.createElement("div");content.className="tutorial-content";content.tabIndex=0;
+ content.append(symbol,title,english,divider,spanishTitle,spanish,note);
+ panel.append(top,content,controls);
  overlay.append(panel);document.body.append(overlay);
 }
 function go(view){if(view&&!$("#"+view)?.classList.contains("active"))navigate?.(view);}
+// Fixed elements use the layout viewport; Safari's bars and zoom change the
+// smaller visual viewport. Keep all overlay coordinates in that visible area.
+function viewport(){
+ const v=window.visualViewport;
+ return {left:v?.offsetLeft||0,top:v?.offsetTop||0,width:v?.width||window.innerWidth,height:v?.height||window.innerHeight};
+}
+function placeViewport(){
+ const v=viewport();
+ Object.assign(overlay.style,{left:v.left+"px",top:v.top+"px",width:v.width+"px",height:v.height+"px"});
+ return v;
+}
 function spotlight(){
  if(!active||!overlay)return;
- const step=steps[index],element=targetFor(step),frame=$("#tutorial-spotlight");
- const panelTop=Math.max(95,panel.getBoundingClientRect().top-10);
+ const v=placeViewport(),origin=overlay.getBoundingClientRect();
+ const element=targetFor(steps[index]),frame=$("#tutorial-spotlight");
+ const panelTop=panel.getBoundingClientRect().top-origin.top-10;
  const r=element&&element.getClientRects().length?element.getBoundingClientRect():null;
- const valid=r&&r.width>0&&r.height>0&&r.top<panelTop-12&&r.bottom>0;
- const x=valid?Math.max(5,r.left-5):0,y=valid?Math.max(5,r.top-5):0;
- const w=valid?Math.min(window.innerWidth-x-5,r.width+10):0;
- const h=valid?Math.min(panelTop-y,r.height+10):0;
+ // Intersect edges, rather than moving the top while retaining the old height.
+ // The latter drew an empty frame above an offscreen microphone on iPhone.
+ const x=r?Math.max(5,r.left-origin.left-5):0,y=r?Math.max(5,r.top-origin.top-5):0;
+ const right=r?Math.min(v.width-5,r.right-origin.left+5):0;
+ const bottom=r?Math.min(panelTop,r.bottom-origin.top+5):0;
+ const w=Math.max(0,right-x),h=Math.max(0,bottom-y),valid=w>0&&h>0;
  frame.style.display=valid?"block":"none";
  if(valid)Object.assign(frame.style,{left:x+"px",top:y+"px",width:w+"px",height:h+"px"});
  const regions=valid?{
-  top:[0,0,window.innerWidth,y],left:[0,y,x,h],
-  right:[x+w,y,Math.max(0,window.innerWidth-x-w),h],
-  bottom:[0,y+h,window.innerWidth,Math.max(0,window.innerHeight-y-h)]
- }:{top:[0,0,window.innerWidth,window.innerHeight],left:[0,0,0,0],right:[0,0,0,0],bottom:[0,0,0,0]};
+  top:[0,0,v.width,y],left:[0,y,x,h],
+  right:[x+w,y,Math.max(0,v.width-x-w),h],
+  bottom:[0,y+h,v.width,Math.max(0,v.height-y-h)]
+ }:{top:[0,0,v.width,v.height],left:[0,0,0,0],right:[0,0,0,0],bottom:[0,0,0,0]};
  for(const shade of overlay.querySelectorAll(".tutorial-shade")){
   const [left,top,width,height]=regions[shade.dataset.edge];
   Object.assign(shade.style,{left:left+"px",top:top+"px",width:width+"px",height:height+"px"});
  }
 }
+function layout(){
+ layoutFrame=0;if(!active)return;
+ const v=placeViewport(),el=targetFor(steps[index]);
+ // A tall input card gets more room; the instructions scroll between controls
+ // that remain visible. Never shrink the actual user's input to fit the tour.
+ const height=el?.getBoundingClientRect().height||0;
+ const bottomGap=v.height-(panel.getBoundingClientRect().bottom-overlay.getBoundingClientRect().top);
+ panel.style.maxHeight=Math.min(v.height-24,Math.max(180,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
+ if(el&&el.getClientRects().length){
+  const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();
+  const available=panel.getBoundingClientRect().top-origin.top-12;
+  const inset=Math.max(10,Math.min(80,available-rect.height-5));
+  const top=rect.top-origin.top;
+  if(top<inset||top+rect.height>available)
+   window.scrollTo({top:Math.max(0,window.scrollY+top-inset),behavior:"instant"});
+ }
+ spotlight();
+}
+function scheduleLayout(){if(active&&!layoutFrame)layoutFrame=requestAnimationFrame(layout);}
 function render(){
  if(!active)return;
  const step=steps[index];go(step.view);
@@ -97,15 +132,11 @@ function render(){
  $("#tutorial-title-es").textContent=step.es;$("#tutorial-spanish").textContent=step.esp;
  $("#tutorial-back").disabled=index===0;
  $("#tutorial-next").textContent=index===steps.length-1?"Finish / Terminar":"Next / Siguiente";
- const el=targetFor(step);
- if(el&&el.getClientRects().length){
-  const rect=el.getBoundingClientRect(),top=rect.top+window.scrollY;
-  const available=Math.max(140,window.innerHeight-panel.offsetHeight-22);
-  const inset=Math.max(8,Math.min(96,available-rect.height-10));
-  if(rect.top<inset||rect.bottom>available-10)window.scrollTo({top:Math.max(0,top-inset),behavior:"instant"});
- }
- requestAnimationFrame(()=>requestAnimationFrame(spotlight));
+ panel.querySelector(".tutorial-content").scrollTop=0;
+ // Keep focus on a permanently visible control; it must not scroll the card.
  $("#tutorial-next").focus({preventScroll:true});
+ if(observer){observer.disconnect();observer.observe(panel);const el=targetFor(step);if(el)observer.observe(el);}
+ scheduleLayout();
 }
 function move(n){if(active){index=Math.max(0,Math.min(steps.length-1,index+n));render();}}
 function open(opener){
@@ -119,7 +150,7 @@ function open(opener){
 }
 function finish(){
  if(!active)return;
- active=false;overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
+ active=false;cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
  remember();$("#tutorial-invitation")?.remove();go(previousView);
  if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }
@@ -127,7 +158,7 @@ function keyboard(event){
  if(!active)return;
  if(event.key==="Escape"){event.preventDefault();finish();}
  else if(event.key==="Tab"){
-  const controls=[...panel.querySelectorAll("button:not([disabled])")];if(!controls.length)return;
+  const controls=[...panel.querySelectorAll("button:not([disabled]),[tabindex=\"0\"]")];if(!controls.length)return;
   const first=controls[0],last=controls[controls.length-1];
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
@@ -137,7 +168,10 @@ function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
  document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
  document.addEventListener("keydown",keyboard);
- window.addEventListener("resize",spotlight);
+ window.addEventListener("resize",scheduleLayout);
+ window.visualViewport?.addEventListener("resize",scheduleLayout);
+ window.visualViewport?.addEventListener("scroll",scheduleLayout);
+ if(typeof ResizeObserver==="function")observer=new ResizeObserver(scheduleLayout);
  window.addEventListener("scroll",spotlight,{passive:true});
  // Open the actual walkthrough, not an invitation card, on first launch.
  // A shared ?tour=1 link always reopens it, even after closing before.
