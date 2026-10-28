@@ -87,6 +87,14 @@ async function main() {
   assert.equal(run('speakerRegionProfile("Grayson").country'),'es-VE');
   run('saveSpeakerName("english","Mathew");saveSpeakerName("spanish","Maria");conversationLocaleOverrides={};');
 
+  for(const country of run('Object.keys(PERSON_COUNTRY_LABELS)')){
+    assert.ok(run('speakerRegionOptions('+JSON.stringify(country)+').length')>0,country+' has suggestions');
+  }
+  assert.ok(run('speakerRegionOptions("es-MX").includes("Jalisco")'));
+  assert.ok(run('speakerRegionOptions("en-US").includes("Wyoming")'));
+  assert.ok(!run('speakerRegionOptions("es-MX").includes("Wyoming")'),'suggestions follow country');
+  assert.ok(run('speakerRegionOptions("es-MX","Custom area").includes("Custom area")'));
+
   // Country, region/state and city are independent, editable values.
   run('saveSpeakerName("spanish","Editable person");saveSpeakerRegion("spanish","es-MX","Puebla","Puebla state")');
   assert.equal(run('speakerRegionProfile("Editable person").country'),'es-MX');
