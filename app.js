@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.54 · build 164";
+const APP_VERSION = "0.26.55 · build 165";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1168,6 +1168,250 @@ function syncSpeakerRegionPicker(role,profile) {
     + speakerRegionOptions(profile.country,profile.region).map(value=>'<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+'</option>').join("");
   picker.value=profile.region;
 }
+// A small city suggestion list, supplemented with this device's saved places.
+const PERSON_CITY_OPTIONS = {
+  "en-US": [
+    [
+      "Laramie",
+      "Wyoming"
+    ],
+    [
+      "Casper",
+      "Wyoming"
+    ],
+    [
+      "Cheyenne",
+      "Wyoming"
+    ],
+    [
+      "Denver",
+      "Colorado"
+    ]
+  ],
+  "en-GB": [
+    [
+      "London",
+      "London"
+    ],
+    [
+      "Edinburgh",
+      "Scotland"
+    ],
+    [
+      "Cardiff",
+      "Wales"
+    ]
+  ],
+  "es-EC": [
+    [
+      "Guayaquil",
+      "Guayas"
+    ],
+    [
+      "Quito",
+      "Pichincha"
+    ],
+    [
+      "Cuenca",
+      "Azuay"
+    ]
+  ],
+  "es-BO": [
+    [
+      "La Paz",
+      "La Paz"
+    ],
+    [
+      "Santa Cruz de la Sierra",
+      "Santa Cruz"
+    ],
+    [
+      "Cochabamba",
+      "Cochabamba"
+    ]
+  ],
+  "es-MX": [
+    [
+      "Guadalajara",
+      "Jalisco"
+    ],
+    [
+      "Ciudad de México",
+      "Ciudad de México"
+    ],
+    [
+      "Monterrey",
+      "Nuevo León"
+    ]
+  ],
+  "es-VE": [
+    [
+      "Caracas",
+      "Distrito Capital"
+    ],
+    [
+      "Maracaibo",
+      "Zulia"
+    ]
+  ],
+  "es-CU": [
+    [
+      "Holguín",
+      "Holguín"
+    ],
+    [
+      "La Habana",
+      "La Habana"
+    ],
+    [
+      "Santiago de Cuba",
+      "Santiago de Cuba"
+    ]
+  ],
+  "es-PE": [
+    [
+      "Lima",
+      "Municipalidad Metropolitana de Lima"
+    ],
+    [
+      "Cusco",
+      "Cusco"
+    ]
+  ],
+  "es-CO": [
+    [
+      "Bogotá",
+      "Distrito Capital"
+    ],
+    [
+      "Medellín",
+      "Antioquia"
+    ]
+  ],
+  "es-AR": [
+    [
+      "Buenos Aires",
+      "Capital Federal"
+    ],
+    [
+      "Córdoba",
+      "Córdoba"
+    ]
+  ],
+  "es-CL": [
+    [
+      "Santiago",
+      "Región Metropolitana de Santiago"
+    ],
+    [
+      "Valparaíso",
+      "Valparaíso"
+    ]
+  ],
+  "es-CR": [
+    [
+      "San José",
+      "San José"
+    ]
+  ],
+  "es-DO": [
+    [
+      "Santo Domingo",
+      "Distrito Nacional"
+    ]
+  ],
+  "es-SV": [
+    [
+      "San Salvador",
+      "San Salvador"
+    ]
+  ],
+  "es-GT": [
+    [
+      "Ciudad de Guatemala",
+      "Guatemala"
+    ]
+  ],
+  "es-HN": [
+    [
+      "Tegucigalpa",
+      "Francisco Morazán"
+    ]
+  ],
+  "es-NI": [
+    [
+      "Managua",
+      "Managua"
+    ]
+  ],
+  "es-PA": [
+    [
+      "Ciudad de Panamá",
+      "Panamá"
+    ]
+  ],
+  "es-PY": [
+    [
+      "Asunción",
+      "Asunción"
+    ]
+  ],
+  "es-PR": [
+    [
+      "San Juan",
+      "San Juan"
+    ]
+  ],
+  "es-ES": [
+    [
+      "Madrid",
+      "Madrid"
+    ],
+    [
+      "Barcelona",
+      "Barcelona"
+    ]
+  ],
+  "es-UY": [
+    [
+      "Montevideo",
+      "Montevideo"
+    ]
+  ],
+  "es-GQ": [
+    [
+      "Malabo",
+      "Bioko Norte"
+    ]
+  ]
+};
+function speakerCityOptions(country,city="",region="") {
+  const choices=new Map((PERSON_CITY_OPTIONS[country]||[]).map(([city,region])=>[normalize(city),{city,region}]));
+  for(const profile of Object.values(speakerRegions))if(profile && profile.country===country && typeof profile.city==='string' && profile.city.trim()) {
+    const city=profile.city.trim().slice(0,80),key=normalize(city);
+    if(!choices.has(key))choices.set(key,{city,region:typeof profile.region==='string'?profile.region.slice(0,80):''});
+  }
+  if(city&&!choices.has(normalize(city)))choices.set(normalize(city),{city,region});
+  return [...choices.values()].sort((a,b)=>a.city.localeCompare(b.city,'es'));
+}
+// Explicit choices remain usable without opening a platform select menu.
+function syncVisibleLocationChoices(role,profile) {
+  for(const kind of ['country','region','city']) {
+    const panel=document.querySelector('[data-location-options="'+role+'-'+kind+'"]');
+    const list=panel?.querySelector('[data-location-choices]');
+    if(!list)continue;
+    const choices=kind==='country' ? Object.entries(PERSON_COUNTRY_LABELS) : kind==='region' ? speakerRegionOptions(profile.country,profile.region).map(value=>[value,value]) : speakerCityOptions(profile.country,profile.city,profile.region).map(place=>[place.city,[place.city,place.region].filter(Boolean).join(' · ')]);
+    const current=kind==='country' ? profile.country : kind==='region' ? profile.region : profile.city;
+    const label=kind==='country' ? 'countries / países' : kind==='region' ? 'regions / regiones' : 'cities / ciudades';
+    panel.querySelector('summary').textContent='Show '+choices.length+' '+label;
+    list.innerHTML=[['','Clear / Borrar'],...choices].map(([value,text])=>'<button type="button" data-location-pick="'+kind+'" data-location-role="'+role+'" data-location-value="'+escapeHtml(value)+'" aria-pressed="'+(value===current)+'">'+escapeHtml(text)+'</button>').join('');
+    const search=panel.querySelector('[data-location-search]');
+    if(search)search.value='';
+    const empty=panel.querySelector('[data-location-empty]');
+    if(empty){empty.hidden=choices.length>0;empty.textContent=kind!=='country'&&!profile.country ? 'Choose a country above to see its places / Elige un país arriba para ver sus lugares' : 'No matching choices / No hay coincidencias';}
+    if(!current)panel.open=true;
+  }
+}
 function speakerCountryLabel(country) { return PERSON_COUNTRY_LABELS[country] || ""; }
 function conversationProfileRegion(name) {
   const profile=speakerRegionProfile(name);
@@ -1188,6 +1432,7 @@ function syncSpeakerRegion(role) {
   const area=document.querySelector('[data-person-region="'+role+'"]');
   if(area)area.value=profile.region;
   syncSpeakerRegionPicker(role,profile);
+  syncVisibleLocationChoices(role,profile);
   const city=document.querySelector('[data-person-city="'+role+'"]');
   if(city)city.value=profile.city;
   const person=document.querySelector('[data-person-region-name="'+role+'"]');
@@ -5194,6 +5439,31 @@ function init() {
     const profile=speakerRegionProfile(speakerName(role));
     if(profile.locales[role])applySpeakerLocale(role);
   }
+  document.querySelectorAll('[data-location-options]').forEach(panel=>{
+    panel.addEventListener('input',event=>{
+      if(!event.target.matches('[data-location-search]'))return;
+      const query=normalize(event.target.value);
+      let matches=0;
+      panel.querySelectorAll('[data-location-pick]').forEach(button=>{
+        button.hidden=Boolean(query)&&!normalize(button.textContent).includes(query);
+        if(!button.hidden)matches++;
+      });
+      panel.querySelector('[data-location-empty]').hidden=matches>0;
+    });
+    panel.addEventListener('click',event=>{
+      const button=event.target.closest('[data-location-pick]');
+      if(!button)return;
+      const role=button.dataset.locationRole,kind=button.dataset.locationPick,value=button.dataset.locationValue;
+      const country=$('[data-person-country="'+role+'"]');
+      const region=$('[data-person-region="'+role+'"]');
+      const city=$('[data-person-city="'+role+'"]');
+      const chosen=kind==='city'&&value ? speakerCityOptions(country.value,city.value,region.value).find(place=>place.city===value) : null;
+      saveSpeakerRegion(role,kind==='country'?value:country.value,kind==='city'?value:city.value,kind==='region'?value:chosen?.region||region.value);
+      // Keep the available choices visible when clearing; close after choosing.
+      panel.open=!value;
+      if(value)panel.querySelector('summary').focus({preventScroll:true});
+    });
+  });
   document.querySelectorAll('[data-person-region-choice]').forEach(control=>control.addEventListener('change',()=>{
     const role=control.dataset.personRegionChoice;
     const region=control.value;
@@ -5306,7 +5576,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=164", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=165", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

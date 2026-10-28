@@ -43,6 +43,31 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
   const country=page.locator(`[data-person-country="${role}"]`),region=page.locator(`[data-person-region="${role}"]`),choices=page.locator(`[data-person-region-choice="${role}"]`);
   const spoken=await page.locator('#conversation-'+role+'-language').inputValue();
   await country.selectOption('');await region.fill('');await region.press('Tab');
+  // Real taps must reveal named choices; programmatic selectOption alone cannot prove this.
+  const countryPanel=page.locator(`[data-location-options="${role}-country"]`),regionPanel=page.locator(`[data-location-options="${role}-region"]`);
+  assert.equal(await countryPanel.getAttribute('open'),'','clearing country reveals its choices');
+  await countryPanel.locator('[data-location-search]').fill('mex');
+  const mexico=countryPanel.locator('[data-location-value="es-MX"]');
+  assert.equal(await mexico.isVisible(),true);
+  assert.equal(await countryPanel.locator('[data-location-value="en-US"]').isVisible(),false,'search filters actual buttons');
+  await mexico.tap();
+  assert.equal(await country.inputValue(),'es-MX');
+  assert.equal(await regionPanel.locator('[data-location-value="Jalisco"]').isVisible(),true,'specific regions are revealed on page');
+  await regionPanel.locator('[data-location-search]').fill('jalisco');
+  await regionPanel.locator('[data-location-value="Jalisco"]').tap();
+  assert.equal(await region.inputValue(),'Jalisco');
+  await choices.selectOption({label:'Clear region / Borrar región'});
+  assert.equal(await regionPanel.locator('[data-location-value="Jalisco"]').isVisible(),true,'clearing automatically reopens choices');
+  await regionPanel.locator('[data-location-value="Jalisco"]').tap();
+  assert.equal(await region.inputValue(),'Jalisco');
+  await country.selectOption('es-EC');
+  const cityPanel=page.locator(`[data-location-options="${role}-city"]`),city=page.locator(`[data-person-city="${role}"]`);
+  await city.fill('');await city.press('Tab');
+  assert.equal(await cityPanel.locator('[data-location-value="Guayaquil"]').isVisible(),true,'Guayaquil is a visible city choice');
+  await cityPanel.locator('[data-location-value="Guayaquil"]').tap();
+  assert.equal(await city.inputValue(),'Guayaquil');assert.equal(await region.inputValue(),'Guayas','Guayaquil selects its province');
+  await city.fill('');await city.press('Tab');
+  assert.equal(await cityPanel.locator('[data-location-value="Guayaquil"]').isVisible(),true,'clearing city reveals named choices');
   const countries=await country.locator('option').evaluateAll(opts=>opts.map(o=>o.value).filter(Boolean));
   assert.equal(countries.length,23,'clearing a country leaves all country choices available');
   for(const code of countries){
@@ -70,6 +95,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(await page.locator('#conversation-english-language').inputValue(),'es-MX');
  assert.equal(await page.locator('[data-person-country="english"]').inputValue(),'es-CO');
  assert.equal(await page.locator('[data-person-region="english"]').inputValue(),'Test region');
+ assert.equal(await page.locator('[data-person-region-choice="english"]').inputValue(),'Test region');
  await page.locator('#interface-language').selectOption('es');
  assert.equal(await page.locator('[data-speaker-label="english"]').textContent(),'Mathew','interface language preserves the chosen name');
  await page.locator('.conversation-composer summary').tap();

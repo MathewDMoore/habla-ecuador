@@ -1002,3 +1002,15 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
   background-image:linear-gradient(45deg,transparent 50%,var(--green) 50%),linear-gradient(135deg,var(--green) 50%,transparent 50%);
   background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat;
 }
+
+/* Named location choices are visible on the page, including on touch browsers. */
+.location-options { min-width:0; max-width:100%; padding:8px; border:1px solid var(--line); border-radius:12px; background:var(--mint); }
+.location-options summary { cursor:pointer; color:var(--green); font-weight:700; overflow-wrap:anywhere; min-height:32px; }
+.location-options label { display:block; margin:8px 0; }
+.location-choice-list { display:grid; gap:6px; max-height:220px; overflow:auto; overscroll-behavior:contain; }
+.location-choice-list button { min-width:0; width:100%; min-height:44px; padding:9px; white-space:normal; overflow-wrap:anywhere; text-align:left; background:white; border:1px solid var(--line); border-radius:9px; font:inherit; color:var(--ink); }
+.location-choice-list button[aria-pressed="true"] { border:2px solid var(--green); background:#e1f1e9; }
+.location-choice-list button[hidden],.location-options p[hidden] { display:none; }
+
+/* Keep iPhone text-entry focus from zooming the location controls out of view. */
+.speaker-region-editors input,.speaker-region-editors select { font-size:16px; }
