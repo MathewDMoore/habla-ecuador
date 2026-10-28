@@ -49,6 +49,10 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(await page.locator('[data-person-region="english"]').inputValue(),'Test region');
  await page.locator('#interface-language').selectOption('es');
  assert.equal(await page.locator('[data-speaker-label="english"]').textContent(),'Mathew','interface language preserves the chosen name');
+ await page.locator('.conversation-composer summary').tap();
+ await page.locator('#conversation-text-speaker').selectOption('english::Mathew');
+ await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth,{},{timeout:2000});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'long person and language labels fit the screen');
  assert.deepEqual(errors,[]);
  await context.close();console.log(`${engine} ${file} ${width}px: Mathew/Mateo/Ayssel, both person slots, Spanish/English microphone settings, independent country and reload passed`);
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
