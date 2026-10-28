@@ -86,6 +86,29 @@ async function main() {
   assert.equal(run('speakerRegionProfile("Grayson").country'),'es-VE');
   run('saveSpeakerName("english","Mathew");saveSpeakerName("spanish","Maria");conversationLocaleOverrides={};');
 
+  // Country, region/state and city are independent, editable values.
+  run('saveSpeakerName("spanish","Editable person");saveSpeakerRegion("spanish","es-MX","Puebla","Puebla state")');
+  assert.equal(run('speakerRegionProfile("Editable person").country'),'es-MX');
+  assert.equal(run('speakerRegionProfile("Editable person").region'),'Puebla state');
+  assert.equal(run('speakerRegionProfile("Editable person").city'),'Puebla');
+  assert.equal(run('speakerRegionIndex("Puebla state")[0].name'),'Editable person');
+  run('saveSpeakerRegion("spanish","es-MX","Cholula","Puebla state");speakerRegions=readSpeakerRegions()');
+  assert.equal(run('speakerRegionProfile("Editable person").city'),'Cholula');
+  assert.equal(run('speakerRegionProfile("Editable person").region'),'Puebla state');
+  run('saveSpeakerRegion("spanish","es-MX","Cholula","")');
+  assert.equal(run('speakerRegionProfile("Editable person").region'),'','region can be cleared independently');
+  assert.equal(run('speakerRegionProfile("Editable person").city'),'Cholula');
+  run('saveSpeakerRegion("spanish","es-CO","Bogotá","Distrito Capital")');
+  assert.equal(run('conversationLocales().spanish'),'es-CO');
+  run('saveSpeakerRegion("spanish","es-CO","Bogotá")');
+  assert.equal(run('speakerRegionProfile("Editable person").region'),'Distrito Capital','old three-argument updates preserve region');
+  assert.equal(run('speakerRegionProfile("Ayssel").region'),'','unknown region is not inferred');
+  storage.set('habla-ecuador-speaker-regions-v1',JSON.stringify({legacy:{country:'es-EC',city:'Existing combined city / area',locales:{spanish:'es-EC'}}}));
+  run('speakerRegions=readSpeakerRegions()');
+  assert.equal(run('speakerRegionProfile("legacy").city'),'Existing combined city / area');
+  assert.equal(run('speakerRegionProfile("legacy").region'),'','legacy city strings survive without arbitrary splitting');
+  run('speakerRegions={};speakerNames={english:"Mathew",spanish:"Maria"};conversationLocaleOverrides={}');
+
   // A Cuban selection survives saving and routes speech to Spanish, not English.
   run('setConversationLocale("spanish","es-CU")');
   assert.equal(run('conversationLocales().spanish'),'es-CU');

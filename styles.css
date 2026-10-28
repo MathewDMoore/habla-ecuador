@@ -978,3 +978,5 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .person-index-actions button[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--green); }
 
 [data-people-index-results] { max-height:28rem;overflow:auto;overscroll-behavior:contain; }
+
+.person-index-edit { grid-column:1 / -1; }
