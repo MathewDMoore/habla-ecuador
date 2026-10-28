@@ -8,7 +8,7 @@ await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dir
 await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file);
 if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();
 await page.locator('[data-mode="conversation"]').click();
-for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Maria','es-EC']]){
+for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Ayssel','es-MX'],['Maria','es-EC']]){
  const choice=page.locator(`[data-conversation-profile="spanish"][data-profile-name="${name}"]`);await choice.tap();
  assert.equal(await choice.getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#spanish-speaker-name').inputValue(),name);
  assert.equal(await page.locator('[data-speaker-label="spanish"]').textContent(),name);
@@ -40,7 +40,17 @@ assert.equal(await page.locator('[data-speaker-role="spanish"]').evaluate(b=>b.c
 await page.reload();if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();await page.locator('[data-mode="conversation"]').click();
 assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Eddie');assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-CU');
 const names=await page.locator('[data-speaker-preset="english"] option').evaluateAll(options=>options.map(o=>o.value));
+assert.ok(names.includes('Ayssel'),'Ayssel is a regular selectable name');
 assert.deepEqual(names,await page.locator('[data-speaker-preset="spanish"] option').evaluateAll(options=>options.map(o=>o.value)),'identical complete name options for both languages');
+if(!await page.locator('#spanish-speaker-name').isVisible())await page.locator('.conversation-more-names summary').click();
+for(const role of ['english','spanish']){
+ await page.locator(`[data-conversation-profile="${role}"][data-profile-name="Ayssel"]`).tap();
+ assert.equal(await page.locator('#'+role+'-speaker-name').inputValue(),'Ayssel');
+ const preset=page.locator(`[data-speaker-preset="${role}"]`);
+ await preset.selectOption('Annalise');await preset.selectOption('Ayssel');
+ assert.equal(await page.locator('#'+role+'-speaker-name').inputValue(),'Ayssel');
+ assert.equal(await page.locator(`[data-person-country="${role}"]`).inputValue(),'es-MX');
+}
 await page.locator('.conversation-composer summary').click();
 for(const name of names.filter(Boolean))for(const role of ['english','spanish'])
  assert.equal(await page.locator('#conversation-text-speaker option').evaluateAll((options,value)=>options.some(o=>o.value===value),role+'::'+name),true,'typed menu contains every name for either language');
