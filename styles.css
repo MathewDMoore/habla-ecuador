@@ -969,3 +969,12 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .speaker-region-editors fieldset { min-width:0; margin:0; padding:12px; border:1px solid var(--line); border-radius:12px; display:grid; gap:10px; }
 .speaker-region-editors legend { max-width:100%; overflow-wrap:anywhere; font-size:13px; font-weight:700; color:var(--green); }
 .speaker-region-editors input { box-sizing:border-box; width:100%; min-width:0; min-height:44px; border:1px solid var(--line); border-radius:12px; padding:10px; font:inherit; color:var(--ink); background:white; }
+
+#people-region-index > input { box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--line);border-radius:12px;font:inherit; }
+.person-index-item { display:grid;gap:10px;border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere; }
+.person-index-item p { margin:3px 0;font-size:13px; }
+.person-index-actions { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.person-index-actions button { min-width:0;min-height:44px;white-space:normal; }
+.person-index-actions button[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--green); }
+
+[data-people-index-results] { max-height:28rem;overflow:auto;overscroll-behavior:contain; }

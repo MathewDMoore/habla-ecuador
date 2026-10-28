@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.48 · build 158";
+const APP_VERSION = "0.26.49 · build 159";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -332,7 +332,8 @@ function speakerRegionProfile(name) {
   const saved=Object.hasOwn(speakerRegions,key) ? speakerRegions[key] : null;
   const fallback=Object.entries(DEFAULT_SPEAKER_REGIONS).find(([name])=>speakerRegionKey(name)===key)?.[1];
   const profile=saved && typeof saved==="object" ? saved : fallback || {};
-  return {country:Object.hasOwn(TRANSLATOR_LANGUAGES,profile.country||"") ? profile.country : "",
+  return {name:typeof profile.name==="string" ? profile.name.slice(0,24) : String(name).slice(0,24),
+    country:Object.hasOwn(TRANSLATOR_LANGUAGES,profile.country||"") ? profile.country : "",
     city:typeof profile.city==="string" ? profile.city.slice(0,80) : "",
     locales:profile.locales && typeof profile.locales==="object" ? profile.locales : {}};
 }
@@ -368,6 +369,7 @@ function syncSpeakerRegion(role) {
   if(hint&&picker?.value===role)hint.textContent=name+" · "+region+" · "+(role==="spanish"?"Español":"English");
 }
 function persistSpeakerProfile(name,profile) {
+  profile.name=String(name).trim().slice(0,24);
   Object.defineProperty(speakerRegions,speakerRegionKey(name),{value:profile,enumerable:true,writable:true,configurable:true});
   try { localStorage.setItem(SPEAKER_REGIONS_STORAGE_KEY,JSON.stringify(speakerRegions)); }
   catch { showToast("Region changed for this session; device storage is unavailable."); }
@@ -385,6 +387,37 @@ function saveSpeakerRegion(role,country,city) {
   persistSpeakerProfile(name,profile);
   syncSpeakerNames();
   for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))applySpeakerLocale(r);
+}
+
+function speakerRegionIndex(query="") {
+  const names=[...Object.keys(DEFAULT_SPEAKER_REGIONS),speakerName("english"),speakerName("spanish")];
+  document.querySelectorAll('[data-speaker-preset="spanish"] option').forEach(option=>{
+    if(option.value && option.parentElement?.label!=="Roles and other")names.push(option.value);
+  });
+  Object.entries(speakerRegions).forEach(([key,profile])=>{
+    if(profile && typeof profile==="object")names.push(typeof profile.name==="string" ? profile.name : key);
+  });
+  const unique=new Map();
+  names.forEach(value=>{const name=String(value).trim().slice(0,24);if(name&&!unique.has(speakerRegionKey(name)))unique.set(speakerRegionKey(name),name);});
+  const search=normalize(query);
+  return [...unique.values()].map(name=>{
+    const profile=speakerRegionProfile(name);
+    const country=speakerCountryLabel(profile.country);
+    return {name,city:profile.city,country,region:conversationProfileRegion(name)};
+  }).filter(person=>!search||normalize([person.name,person.city,person.country].join(" ")).includes(search))
+    .sort((a,b)=>a.name.localeCompare(b.name,"es"));
+}
+function renderSpeakerRegionIndex() {
+  const results=document.querySelector('[data-people-index-results]');
+  if(!results)return;
+  const query=document.querySelector('#people-region-search')?.value||"";
+  const people=speakerRegionIndex(query);
+  results.innerHTML=people.map(person=>`<article class="person-index-item">
+    <div><strong>${escapeHtml(person.name)}</strong><p>${escapeHtml(person.city||"City/region not specified / Ciudad o región sin indicar")}</p><p>${escapeHtml(person.country||"Country not specified / País sin indicar")}</p></div>
+    <div class="person-index-actions"><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="english" aria-label="${escapeHtml(person.name)} · English / Inglés" aria-pressed="${speakerRegionKey(speakerName("english"))===speakerRegionKey(person.name)}">English / Inglés</button><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="spanish" aria-label="${escapeHtml(person.name)} · Spanish / Español" aria-pressed="${speakerRegionKey(speakerName("spanish"))===speakerRegionKey(person.name)}">Spanish / Español</button></div>
+  </article>`).join("");
+  const status=document.querySelector('[data-people-index-status]');
+  if(status)status.textContent=people.length ? `${people.length} people / personas` : "No matches / Sin resultados";
 }
 
 function syncConversationProfiles() {
@@ -405,9 +438,13 @@ function saveSpeakerName(role, value) {
   if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+(role==="spanish"?"Español":"English");
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
+  const nameInput=document.querySelector('[data-speaker-name="'+role+'"]');
+  if(nameInput && nameInput.value!==speakerNames[role])nameInput.value=speakerNames[role];
+  renderSpeakerRegionIndex();
 }
 
 function syncSpeakerNames() {
+  renderSpeakerRegionIndex();
   syncConversationProfiles();
   document.querySelectorAll('[data-conversation-profile]').forEach(button=>{
     const small=button.querySelector('small');if(small)small.textContent=conversationProfileRegion(button.dataset.profileName);
@@ -4272,6 +4309,16 @@ function init() {
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { closeImportedDocument(); preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   syncSpeakerNames();
+  document.querySelector('#people-region-search')?.addEventListener('input',renderSpeakerRegionIndex);
+  document.querySelector('[data-people-index-results]')?.addEventListener('click',event=>{
+    const button=event.target.closest('[data-index-person]');
+    if(button && ['english','spanish'].includes(button.dataset.indexRole)) {
+      const {indexRole,indexPerson}=button.dataset;
+      saveSpeakerName(indexRole,indexPerson);
+      const replacement=Array.from(document.querySelectorAll('[data-index-person]')).find(item=>item.dataset.indexRole===indexRole && item.dataset.indexPerson===indexPerson);
+      replacement?.focus({preventScroll:true});
+    }
+  });
   for(const role of ['english','spanish']) {
     const profile=speakerRegionProfile(speakerName(role));
     if(profile.locales[role])applySpeakerLocale(role);
@@ -4383,7 +4430,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=158", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=159", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
