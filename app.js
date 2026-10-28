@@ -385,9 +385,10 @@ function applySpeakerLocale(role) {
 function saveSpeakerRegion(role,country,city,region) {
   if(!["english","spanish"].includes(role) || (country && !Object.hasOwn(TRANSLATOR_LANGUAGES,country)))return;
   const name=speakerName(role), profile=speakerRegionProfile(name);
+  const countryChanged=profile.country!==country;
   profile.country=country;profile.city=String(city||"").trim().slice(0,80);
   if(region!==undefined)profile.region=String(region||"").trim().slice(0,80);
-  if(country)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
+  if(country && countryChanged)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
   persistSpeakerProfile(name,profile);
   syncSpeakerNames();
   for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))applySpeakerLocale(r);

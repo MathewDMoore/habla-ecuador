@@ -92,7 +92,9 @@ async function main() {
   assert.equal(run('speakerRegionProfile("Editable person").region'),'Puebla state');
   assert.equal(run('speakerRegionProfile("Editable person").city'),'Puebla');
   assert.equal(run('speakerRegionIndex("Puebla state")[0].name'),'Editable person');
+  run('setConversationLocale("spanish","es-BO")');
   run('saveSpeakerRegion("spanish","es-MX","Cholula","Puebla state");speakerRegions=readSpeakerRegions()');
+  assert.equal(run('conversationLocales().spanish'),'es-BO','editing city or region must preserve an explicitly chosen language variety');
   assert.equal(run('speakerRegionProfile("Editable person").city'),'Cholula');
   assert.equal(run('speakerRegionProfile("Editable person").region'),'Puebla state');
   run('saveSpeakerRegion("spanish","es-MX","Cholula","")');
