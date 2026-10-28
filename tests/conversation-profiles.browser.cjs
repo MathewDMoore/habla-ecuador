@@ -93,6 +93,8 @@ assert.match(await page.locator('[data-people-index-results]').textContent(),/Ay
 await page.locator('[data-index-person="Ayssel"][data-index-role="english"]').tap();
 assert.equal(await page.locator('#english-speaker-name').inputValue(),'Ayssel');
 assert.match(await page.locator('[data-speaker-region="english"]').textContent(),/Ciudad de México/);
+const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,items:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&(r.right>innerWidth+1||r.left< -1);}).map(el=>({tag:el.tagName,id:el.id,cls:el.className,text:el.textContent.slice(0,80),width:el.getBoundingClientRect().width})).slice(0,20)}));
+if(overflow.scroll>overflow.width)console.log('Mobile overflow details',JSON.stringify(overflow));
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'index fits mobile viewport');
 // Edit a profile directly from the index; change all three location fields.
 await page.locator('#people-region-search').fill('Grayson');

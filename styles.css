@@ -980,3 +980,8 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 [data-people-index-results] { max-height:28rem;overflow:auto;overscroll-behavior:contain; }
 
 .person-index-edit { grid-column:1 / -1; }
+
+/* Selected names include their saved location; keep native selects inside their grid tracks. */
+.conversation-composer form { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.conversation-composer label, .speaker-name-fields label { min-width:0; }
+@media(max-width:360px) { .conversation-composer form { grid-template-columns:minmax(0,1fr); } }
