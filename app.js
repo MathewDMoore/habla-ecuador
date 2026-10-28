@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.49 · build 159";
+const APP_VERSION = "0.26.50 · build 160";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -317,7 +317,7 @@ function speakerName(role) {
 }
 
 const DEFAULT_SPEAKER_REGIONS = {
-  Maria:{country:"es-EC",city:"Guayaquil"}, Eddie:{country:"es-CU",city:"Holguín / Oriente"},
+  Maria:{country:"es-EC",city:"Guayaquil"}, Eddie:{country:"es-CU",city:"Holguín",region:"Oriente"},
   Silvia:{country:"es-BO",city:""}, Grayson:{country:"es-VE",city:"Caracas"}, Ayssel:{country:"es-MX",city:""}
 };
 function speakerRegionKey(name) { return String(name).trim().normalize("NFC").toLowerCase(); }
@@ -335,6 +335,7 @@ function speakerRegionProfile(name) {
   return {name:typeof profile.name==="string" ? profile.name.slice(0,24) : String(name).slice(0,24),
     country:Object.hasOwn(TRANSLATOR_LANGUAGES,profile.country||"") ? profile.country : "",
     city:typeof profile.city==="string" ? profile.city.slice(0,80) : "",
+    region:typeof profile.region==="string" ? profile.region.slice(0,80) : "",
     locales:profile.locales && typeof profile.locales==="object" ? profile.locales : {}};
 }
 function speakerCountryLabel(country) {
@@ -345,7 +346,7 @@ function speakerCountryLabel(country) {
 }
 function conversationProfileRegion(name) {
   const profile=speakerRegionProfile(name);
-  return [profile.city,speakerCountryLabel(profile.country)].filter(Boolean).join(", ") || "Region not set / Región sin indicar";
+  return [profile.city,profile.region,speakerCountryLabel(profile.country)].filter(Boolean).join(", ") || "Region not set / Región sin indicar";
 }
 function syncSpeakerRegion(role) {
   const name=speakerName(role), profile=speakerRegionProfile(name), region=conversationProfileRegion(name);
@@ -360,6 +361,8 @@ function syncSpeakerRegion(role) {
     }
     country.value=profile.country;
   }
+  const area=document.querySelector('[data-person-region="'+role+'"]');
+  if(area)area.value=profile.region;
   const city=document.querySelector('[data-person-city="'+role+'"]');
   if(city)city.value=profile.city;
   const person=document.querySelector('[data-person-region-name="'+role+'"]');
@@ -379,11 +382,13 @@ function applySpeakerLocale(role) {
   const locale=profile.locales[role] || (languageFamily(profile.country)===(role==="spanish"?"es":"en") ? profile.country : "");
   if(locale)setConversationLocale(role,locale,false);
 }
-function saveSpeakerRegion(role,country,city) {
+function saveSpeakerRegion(role,country,city,region) {
   if(!["english","spanish"].includes(role) || (country && !Object.hasOwn(TRANSLATOR_LANGUAGES,country)))return;
   const name=speakerName(role), profile=speakerRegionProfile(name);
+  const countryChanged=profile.country!==country;
   profile.country=country;profile.city=String(city||"").trim().slice(0,80);
-  if(country)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
+  if(region!==undefined)profile.region=String(region||"").trim().slice(0,80);
+  if(country && countryChanged)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
   persistSpeakerProfile(name,profile);
   syncSpeakerNames();
   for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))applySpeakerLocale(r);
@@ -403,8 +408,8 @@ function speakerRegionIndex(query="") {
   return [...unique.values()].map(name=>{
     const profile=speakerRegionProfile(name);
     const country=speakerCountryLabel(profile.country);
-    return {name,city:profile.city,country,region:conversationProfileRegion(name)};
-  }).filter(person=>!search||normalize([person.name,person.city,person.country].join(" ")).includes(search))
+    return {name,city:profile.city,region:profile.region,country,location:conversationProfileRegion(name)};
+  }).filter(person=>!search||normalize([person.name,person.city,person.region,person.country].join(" ")).includes(search))
     .sort((a,b)=>a.name.localeCompare(b.name,"es"));
 }
 function renderSpeakerRegionIndex() {
@@ -413,8 +418,8 @@ function renderSpeakerRegionIndex() {
   const query=document.querySelector('#people-region-search')?.value||"";
   const people=speakerRegionIndex(query);
   results.innerHTML=people.map(person=>`<article class="person-index-item">
-    <div><strong>${escapeHtml(person.name)}</strong><p>${escapeHtml(person.city||"City/region not specified / Ciudad o región sin indicar")}</p><p>${escapeHtml(person.country||"Country not specified / País sin indicar")}</p></div>
-    <div class="person-index-actions"><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="english" aria-label="${escapeHtml(person.name)} · English / Inglés" aria-pressed="${speakerRegionKey(speakerName("english"))===speakerRegionKey(person.name)}">English / Inglés</button><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="spanish" aria-label="${escapeHtml(person.name)} · Spanish / Español" aria-pressed="${speakerRegionKey(speakerName("spanish"))===speakerRegionKey(person.name)}">Spanish / Español</button></div>
+    <div><strong>${escapeHtml(person.name)}</strong><p>${escapeHtml(person.city||"City not specified / Ciudad sin indicar")}</p><p>${escapeHtml(person.region||"Region/state not specified / Región o estado sin indicar")}</p><p>${escapeHtml(person.country||"Country not specified / País sin indicar")}</p></div>
+    <div class="person-index-actions"><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="english" aria-label="${escapeHtml(person.name)} · English / Inglés" aria-pressed="${speakerRegionKey(speakerName("english"))===speakerRegionKey(person.name)}">English / Inglés</button><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="spanish" aria-label="${escapeHtml(person.name)} · Spanish / Español" aria-pressed="${speakerRegionKey(speakerName("spanish"))===speakerRegionKey(person.name)}">Spanish / Español</button><button type="button" class="person-index-edit" data-edit-person="${escapeHtml(person.name)}" aria-label="${escapeHtml(person.name)} · Edit location / Editar ubicación">Edit location / Editar ubicación</button></div>
   </article>`).join("");
   const status=document.querySelector('[data-people-index-status]');
   if(status)status.textContent=people.length ? `${people.length} people / personas` : "No matches / Sin resultados";
@@ -4309,6 +4314,17 @@ function init() {
   syncSpeakerNames();
   document.querySelector('#people-region-search')?.addEventListener('input',renderSpeakerRegionIndex);
   document.querySelector('[data-people-index-results]')?.addEventListener('click',event=>{
+    const edit=event.target.closest('[data-edit-person]');
+    if(edit) {
+      const name=edit.dataset.editPerson;
+      const role=speakerRegionKey(speakerName('english'))===speakerRegionKey(name) ? 'english' : 'spanish';
+      const input=document.querySelector('[data-speaker-name="'+role+'"]');
+      if(input)input.value=name;
+      saveSpeakerName(role,name);
+      const country=document.querySelector('[data-person-country="'+role+'"]');
+      country?.scrollIntoView({block:'center'});country?.focus({preventScroll:true});
+      return;
+    }
     const button=event.target.closest('[data-index-person]');
     if(button && ['english','spanish'].includes(button.dataset.indexRole)) {
       const {indexRole,indexPerson}=button.dataset;
@@ -4323,9 +4339,9 @@ function init() {
     const profile=speakerRegionProfile(speakerName(role));
     if(profile.locales[role])applySpeakerLocale(role);
   }
-  document.querySelectorAll('[data-person-country],[data-person-city]').forEach(control=>control.addEventListener('change',()=>{
-    const role=control.dataset.personCountry||control.dataset.personCity;
-    saveSpeakerRegion(role,$('[data-person-country="'+role+'"]').value,$('[data-person-city="'+role+'"]').value);
+  document.querySelectorAll('[data-person-country],[data-person-region],[data-person-city]').forEach(control=>control.addEventListener('change',()=>{
+    const role=control.dataset.personCountry||control.dataset.personRegion||control.dataset.personCity;
+    saveSpeakerRegion(role,$('[data-person-country="'+role+'"]').value,$('[data-person-city="'+role+'"]').value,$('[data-person-region="'+role+'"]').value);
   }));
   document.querySelectorAll('[data-conversation-profile]').forEach(button => button.addEventListener('click',()=>{
     const role=button.dataset.conversationProfile,name=button.dataset.profileName;
@@ -4430,7 +4446,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=159", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=160", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
