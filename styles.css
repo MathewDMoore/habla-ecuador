@@ -965,3 +965,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
  .topbar-meta {flex:1 1 180px;min-width:0;max-width:100%;}
  .interface-controls {flex-wrap:wrap;justify-content:flex-end;max-width:100%;}
 }
+
+.speaker-region-editors fieldset { min-width:0; margin:0; padding:12px; border:1px solid var(--line); border-radius:12px; display:grid; gap:10px; }
+.speaker-region-editors legend { max-width:100%; overflow-wrap:anywhere; font-size:13px; font-weight:700; color:var(--green); }
+.speaker-region-editors input { box-sizing:border-box; width:100%; min-width:0; min-height:44px; border:1px solid var(--line); border-radius:12px; padding:10px; font:inherit; color:var(--ink); background:white; }

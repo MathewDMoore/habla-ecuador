@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.47 · build 157";
+const APP_VERSION = "0.26.48 · build 158";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -300,6 +300,8 @@ const VOICE_STORAGE_KEY = "habla-ecuador-voice-preferences-v1";
 const SPEAKER_NAMES_STORAGE_KEY = "habla-ecuador-speaker-names-v1";
 let voicePreferences = readVoicePreferences();
 let speakerNames = readSpeakerNames();
+const SPEAKER_REGIONS_STORAGE_KEY = "habla-ecuador-speaker-regions-v1";
+let speakerRegions = readSpeakerRegions();
 
 function readSpeakerNames() {
   try {
@@ -314,16 +316,75 @@ function speakerName(role) {
   return String(speakerNames[role] || fallback).trim().slice(0,24) || fallback;
 }
 
+const DEFAULT_SPEAKER_REGIONS = {
+  Maria:{country:"es-EC",city:"Guayaquil"}, Eddie:{country:"es-CU",city:"Holguín / Oriente"},
+  Silvia:{country:"es-BO",city:""}, Grayson:{country:"es-VE",city:"Caracas"}, Ayssel:{country:"es-MX",city:""}
+};
+function speakerRegionKey(name) { return String(name).trim().normalize("NFC").toLowerCase(); }
+function readSpeakerRegions() {
+  try {
+    const saved=JSON.parse(localStorage.getItem(SPEAKER_REGIONS_STORAGE_KEY)||"{}");
+    return saved && typeof saved==="object" && !Array.isArray(saved) ? saved : {};
+  } catch { return {}; }
+}
+function speakerRegionProfile(name) {
+  const key=speakerRegionKey(name);
+  const saved=Object.hasOwn(speakerRegions,key) ? speakerRegions[key] : null;
+  const fallback=Object.entries(DEFAULT_SPEAKER_REGIONS).find(([name])=>speakerRegionKey(name)===key)?.[1];
+  const profile=saved && typeof saved==="object" ? saved : fallback || {};
+  return {country:Object.hasOwn(TRANSLATOR_LANGUAGES,profile.country||"") ? profile.country : "",
+    city:typeof profile.city==="string" ? profile.city.slice(0,80) : "",
+    locales:profile.locales && typeof profile.locales==="object" ? profile.locales : {}};
+}
+function speakerCountryLabel(country) {
+  const select=document.querySelector('#conversation-spanish-language');
+  const option=select && Array.from(select.options||[]).find(option=>option.value===country);
+  return country==="en-US" ? "United States / Estados Unidos" : country==="en-GB" ? "United Kingdom / Reino Unido"
+    : country==="es-CU" ? "Cuba" : option?.textContent || (country ? languageLabel(country) : "");
+}
 function conversationProfileRegion(name) {
-  return {Maria:"Guayaquil, Ecuador",Eddie:"Holguín / Oriente, Cuba",Silvia:"Bolivia"}[name] || "Region not set / Región sin indicar";
+  const profile=speakerRegionProfile(name);
+  return [profile.city,speakerCountryLabel(profile.country)].filter(Boolean).join(", ") || "Region not set / Región sin indicar";
 }
 function syncSpeakerRegion(role) {
-  const region=conversationProfileRegion(speakerName(role));
+  const name=speakerName(role), profile=speakerRegionProfile(name), region=conversationProfileRegion(name);
   const badge=document.querySelector('[data-speaker-region="'+role+'"]');
   if(badge)badge.textContent=region;
+  const country=document.querySelector('[data-person-country="'+role+'"]');
+  if(country && country.options) {
+    if(!country.options.length) {
+      const source=document.querySelector('#conversation-spanish-language');
+      country.innerHTML='<option value="">Not set / Sin indicar</option><option value="en-US">United States / Estados Unidos</option><option value="en-GB">United Kingdom / Reino Unido</option>'
+        + Array.from(source?.options||[]).map(option=>'<option value="'+escapeHtml(option.value)+'">'+escapeHtml(speakerCountryLabel(option.value))+'</option>').join("");
+    }
+    country.value=profile.country;
+  }
+  const city=document.querySelector('[data-person-city="'+role+'"]');
+  if(city)city.value=profile.city;
+  const person=document.querySelector('[data-person-region-name="'+role+'"]');
+  if(person)person.textContent=name;
   const picker=document.querySelector('#conversation-text-speaker');
   const hint=document.querySelector('[data-conversation-text-profile]');
-  if(hint&&picker?.value===role)hint.textContent=speakerName(role)+" · "+region+" · "+(role==="spanish"?"Español":"English");
+  if(hint&&picker?.value===role)hint.textContent=name+" · "+region+" · "+(role==="spanish"?"Español":"English");
+}
+function persistSpeakerProfile(name,profile) {
+  Object.defineProperty(speakerRegions,speakerRegionKey(name),{value:profile,enumerable:true,writable:true,configurable:true});
+  try { localStorage.setItem(SPEAKER_REGIONS_STORAGE_KEY,JSON.stringify(speakerRegions)); }
+  catch { showToast("Region changed for this session; device storage is unavailable."); }
+}
+function applySpeakerLocale(role) {
+  const profile=speakerRegionProfile(speakerName(role));
+  const locale=profile.locales[role] || (languageFamily(profile.country)===(role==="spanish"?"es":"en") ? profile.country : "");
+  if(locale)setConversationLocale(role,locale,false);
+}
+function saveSpeakerRegion(role,country,city) {
+  if(!["english","spanish"].includes(role) || (country && !Object.hasOwn(TRANSLATOR_LANGUAGES,country)))return;
+  const name=speakerName(role), profile=speakerRegionProfile(name);
+  profile.country=country;profile.city=String(city||"").trim().slice(0,80);
+  if(country)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
+  persistSpeakerProfile(name,profile);
+  syncSpeakerNames();
+  for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))applySpeakerLocale(r);
 }
 
 function syncConversationProfiles() {
@@ -337,8 +398,7 @@ function saveSpeakerName(role, value) {
   localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
   syncConversationProfiles();
   syncSpeakerRegion(role);
-  const knownSpanishLocale = {Maria:"es-EC", Eddie:"es-CU", Silvia:"es-BO"}[speakerNames[role]];
-  if (role === "spanish" && knownSpanishLocale) setConversationLocale("spanish", knownSpanishLocale);
+  applySpeakerLocale(role);
   const label = $('[data-speaker-label="' + role + '"]');
   if (label) label.textContent = speakerNames[role];
   const textLabel = $('[data-conversation-text-name="' + role + '"]');
@@ -349,6 +409,14 @@ function saveSpeakerName(role, value) {
 
 function syncSpeakerNames() {
   syncConversationProfiles();
+  document.querySelectorAll('[data-conversation-profile]').forEach(button=>{
+    const small=button.querySelector('small');if(small)small.textContent=conversationProfileRegion(button.dataset.profileName);
+  });
+  document.querySelectorAll('[data-speaker-preset] option,#conversation-text-speaker optgroup option').forEach(option=>{
+    if(!option.value)return;
+    const name=option.value.includes('::') ? option.value.split('::')[1] : option.value;
+    option.textContent=name+" · "+conversationProfileRegion(name);
+  });
   ["english","spanish"].forEach(role => {
     const name = speakerName(role);
     speakerNames[role] = name;
@@ -2938,8 +3006,12 @@ function syncConversationLocaleUi() {
   }
 }
 
-function setConversationLocale(role,locale) {
+function setConversationLocale(role,locale,savePerson=true) {
   if(!['english','spanish'].includes(role)||!TRANSLATOR_LANGUAGES[locale]||languageFamily(locale)!==(role==='spanish'?'es':'en'))return;
+  if(savePerson) {
+    const profile=speakerRegionProfile(speakerName(role));
+    profile.locales[role]=locale;persistSpeakerProfile(speakerName(role),profile);
+  }
   conversationLocaleOverrides[role]=locale;
   localStorage.setItem(CONVERSATION_LOCALES_KEY,JSON.stringify(conversationLocaleOverrides));
   syncConversationLocaleUi();
@@ -4200,6 +4272,14 @@ function init() {
   $("#suggestion-list").innerHTML = suggestions.map(item => `<button>${item}</button>`).join("");
   $$("#suggestion-list button").forEach(button => button.addEventListener("click", () => { closeImportedDocument(); preservedCulturalContext = null; $("#translator-input").value = button.textContent; renderTranslation(); }));
   syncSpeakerNames();
+  for(const role of ['english','spanish']) {
+    const profile=speakerRegionProfile(speakerName(role));
+    if(profile.locales[role])applySpeakerLocale(role);
+  }
+  document.querySelectorAll('[data-person-country],[data-person-city]').forEach(control=>control.addEventListener('change',()=>{
+    const role=control.dataset.personCountry||control.dataset.personCity;
+    saveSpeakerRegion(role,$('[data-person-country="'+role+'"]').value,$('[data-person-city="'+role+'"]').value);
+  }));
   document.querySelectorAll('[data-conversation-profile]').forEach(button => button.addEventListener('click',()=>{
     const role=button.dataset.conversationProfile,name=button.dataset.profileName;
     const input=document.querySelector('[data-speaker-name="'+role+'"]');
@@ -4303,7 +4383,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=157", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=158", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
