@@ -445,6 +445,7 @@ function saveSpeakerName(role, value) {
   if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+speakerSlotLanguageLabel(role);
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
+  syncConversationLocaleUi();
   renderSpeakerRegionIndex();
 }
 

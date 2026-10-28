@@ -16,6 +16,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  await page.locator('.conversation-more-names summary').tap();
  for(const name of ['Mathew','Mateo','Ayssel'])for(const role of ['english','spanish']){
   await page.locator(`[data-speaker-preset="${role}"]`).selectOption(name);
+  assert.match(await page.locator(`[data-speaker-role="${role}"]`).getAttribute('aria-label'),new RegExp(name));
   const language=page.locator('#conversation-'+role+'-language');
   const options=await language.locator('option').evaluateAll(options=>options.map(o=>o.value));
   assert.ok(options.includes('en-US')&&options.includes('en-GB')&&options.includes('es-MX')&&options.includes('es-EC'));
