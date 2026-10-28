@@ -985,3 +985,6 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .conversation-composer form { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
 .conversation-composer label, .speaker-name-fields label { min-width:0; }
 @media(max-width:360px) { .conversation-composer form { grid-template-columns:minmax(0,1fr); } }
+
+.speaker-region-editors label { min-width:0; }
+.speaker-region-editors select { max-width:100%; }

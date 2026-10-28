@@ -46,6 +46,7 @@ const run = code => vm.runInContext(code,context);
 context.spoken = spoken;
 run('say = (text,lang) => spoken.push({text,lang});');
 const flush = () => new Promise(resolve => setImmediate(resolve));
+const languageFamilyForTest=locale=>locale.split("-")[0];
 async function main() {
   // A person's country/city and language choice survive switching names and reload.
   for(const role of ['english','spanish'])element('[data-speaker-preset="'+role+'"]').options=[];
@@ -68,7 +69,7 @@ async function main() {
   assert.equal(run('conversationLocales().spanish'),'es-MX');
   assert.equal(run('speakerRegionProfile("grayson").city'),'Caracas');
   run('saveSpeakerName("spanish","Nueva amiga");saveSpeakerRegion("spanish","es-AR","Córdoba")');
-  assert.equal(run('conversationLocales().spanish'),'es-AR');
+  assert.equal(run('conversationLocales().spanish'),'es-MX','country edits preserve the spoken-language choice');
   run('saveSpeakerRegion("spanish","invalid","bad")');
   assert.equal(run('speakerRegionProfile("Nueva amiga").city'),'Córdoba');
   assert.equal(run('speakerRegionIndex("cordoba")[0].name'),'Nueva amiga','saved custom display names remain readable and searchable without accents');
@@ -101,7 +102,7 @@ async function main() {
   assert.equal(run('speakerRegionProfile("Editable person").region'),'','region can be cleared independently');
   assert.equal(run('speakerRegionProfile("Editable person").city'),'Cholula');
   run('saveSpeakerRegion("spanish","es-CO","Bogotá","Distrito Capital")');
-  assert.equal(run('conversationLocales().spanish'),'es-CO');
+  assert.equal(run('conversationLocales().spanish'),'es-BO','country edits cannot set the spoken language');
   run('saveSpeakerRegion("spanish","es-CO","Bogotá")');
   assert.equal(run('speakerRegionProfile("Editable person").region'),'Distrito Capital','old three-argument updates preserve region');
   assert.equal(run('speakerRegionProfile("Ayssel").region'),'','unknown region is not inferred');
@@ -251,9 +252,49 @@ async function main() {
   assert.equal(run('conversationOptions("spanish",b2).lang'),'es-MX');
   assert.match(storage.get('habla-ecuador-conversation-locales-v1'),/es-MX/);
   run('setConversationLocale("english","es-EC")');
-  assert.equal(run('conversationLocales().english'),'en-GB','invalid language family does not replace the speaker variety');
+  assert.equal(run('conversationLocales().english'),'es-EC','person 1 can choose Spanish');
+  run('setConversationLocale("english","en-GB")');
   await run('handleConversationText("spanish","Maria","Estas instrucciones contienen detalles nuevos.",true)');
   assert.equal(routes.at(-1).source,'es-MX');assert.equal(routes.at(-1).target,'en-GB');
+
+  // Every built-in name accepts both language families in either person slot.
+  const presetHtml=/data-speaker-preset="english"[^>]*>([\s\S]*?)<\/select>/.exec(fs.readFileSync(path.join(root,'index.html'),'utf8'))[1];
+  const allNames=[...presetHtml.matchAll(/<option value="([^"]+)"/g)].map(match=>match[1]).filter(Boolean);
+  for(const name of allNames)for(const role of ['english','spanish']){
+    context.everyName=name;context.everyRole=role;
+    run('saveSpeakerName(everyRole,everyName)');
+    for(const locale of ['es-MX','en-GB']){
+      context.everyLocale=locale;run('setConversationLocale(everyRole,everyLocale)');
+      assert.equal(run('conversationOptions(everyRole,b1).lang'),locale,name+' can use '+locale+' in '+role+' slot');
+    }
+  }
+
+  // Both person slots accept both languages, independently of country.
+  run('clearConversation();saveSpeakerName("english","Mathew");saveSpeakerName("spanish","Ayssel");setConversationLocale("english","es-MX");setConversationLocale("spanish","en-GB")');
+  assert.equal(run('conversationOptions("english",b1).lang'),'es-MX');
+  assert.equal(run('conversationOptions("english",b1).way'),'ec-en');
+  assert.equal(run('conversationOptions("spanish",b2).lang'),'en-GB');
+  assert.equal(run('conversationOptions("spanish",b2).way'),'en-ec');
+  await run('handleConversationText("english","Mathew","Estas instrucciones contienen detalles nuevos.",true)');
+  assert.equal(routes.at(-1).source,'es-MX');assert.equal(routes.at(-1).target,'en-GB');
+  assert.equal(run('turns.at(-1).switched'),false,'Spanish chosen for person 1 is not an automatic language switch');
+  await run('handleConversationText("spanish","Ayssel","These instructions have additional details for you.",true)');
+  assert.equal(routes.at(-1).source,'en-GB');assert.equal(routes.at(-1).target,'es-MX');
+  run('saveSpeakerRegion("english","en-US","Test city","Test state")');
+  assert.equal(run('conversationLocales().english'),'es-MX','origin does not determine spoken language');
+  run('saveSpeakerName("english","Eddie");saveSpeakerName("english","Mathew")');
+  assert.equal(run('conversationLocales().english'),'es-MX','chosen Spanish restores with Mathew');
+  assert.equal(run('speakerRegionProfile("Mathew").country'),'en-US');
+  run('conversationLocaleOverrides=JSON.parse(localStorage.getItem(CONVERSATION_LOCALES_KEY))');
+  assert.equal(run('conversationLocales().english'),'es-MX');
+  assert.equal(run('conversationLocales().spanish'),'en-GB');
+  run('setConversationLocale("english","en-US");setConversationLocale("spanish","en-GB")');
+  await run('handleConversationText("english","Mathew","These are additional details for you.",true)');
+  assert.equal(routes.at(-1).source,'en-US');assert.equal(languageFamilyForTest(routes.at(-1).target),'es','both English choices still route to Spanish');
+  run('setConversationLocale("english","es-MX");setConversationLocale("spanish","es-BO")');
+  await run('handleConversationText("spanish","Ayssel","Estas instrucciones contienen detalles nuevos.",true)');
+  assert.equal(routes.at(-1).source,'es-BO');assert.equal(languageFamilyForTest(routes.at(-1).target),'en','both Spanish choices still route to English');
+  run('setConversationLocale("english","en-GB");setConversationLocale("spanish","es-MX")');
 
   // Text-only mode suppresses automatic speech but retains explicit Hear.
   run('clearConversation();conversationLocaleOverrides={};setConversationPlayback("text")');

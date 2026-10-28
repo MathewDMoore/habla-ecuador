@@ -15,7 +15,7 @@ for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Ayssel','es-M
  assert.equal(await page.locator('#conversation-spanish-language').inputValue(),locale);
  assert.equal(await page.locator('[data-conversation-profile="spanish"][aria-pressed="true"]').count(),1);
 }
-assert.equal(await page.locator('#conversation-spanish-language option:checked').textContent(),'Ecuador');
+assert.match(await page.locator('#conversation-spanish-language option:checked').textContent(),/Spanish.*Ecuador/);
 const index=page.locator('#people-region-index');await index.locator(':scope > summary').tap();
 await page.locator('#people-region-search').fill('Ayssel');
 assert.equal(await index.locator('.person-index-item').count(),1);
@@ -107,7 +107,7 @@ await page.locator('[data-person-region="spanish"]').fill('Test province');
 await page.locator('[data-person-region="spanish"]').press('Tab');
 await page.locator('[data-person-city="spanish"]').fill('Test city');
 await page.locator('[data-person-city="spanish"]').press('Tab');
-assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-AR');
+assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-VE','country does not change the chosen spoken language');
 assert.match(await page.locator('[data-speaker-region="spanish"]').textContent(),/Test city, Test province, Argentina/);
 await page.locator('#people-region-search').fill('Test province');
 assert.match(await page.locator('[data-people-index-results]').textContent(),/Grayson/);
