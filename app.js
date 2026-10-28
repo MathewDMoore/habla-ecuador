@@ -315,7 +315,7 @@ function speakerName(role) {
 }
 
 function conversationProfileRegion(name) {
-  return {Maria:"Guayaquil, Ecuador",Eddie:"Holguín / Oriente, Cuba",Silvia:"Bolivia"}[name] || "Region not set / Región sin indicar";
+  return {Maria:"Guayaquil, Ecuador",Eddie:"Holguín / Oriente, Cuba",Silvia:"Bolivia",Grayson:"Caracas, Venezuela"}[name] || "Region not set / Región sin indicar";
 }
 function syncSpeakerRegion(role) {
   const region=conversationProfileRegion(speakerName(role));
@@ -337,7 +337,7 @@ function saveSpeakerName(role, value) {
   localStorage.setItem(SPEAKER_NAMES_STORAGE_KEY, JSON.stringify(speakerNames));
   syncConversationProfiles();
   syncSpeakerRegion(role);
-  const knownSpanishLocale = {Maria:"es-EC", Eddie:"es-CU", Silvia:"es-BO"}[speakerNames[role]];
+  const knownSpanishLocale = {Maria:"es-EC", Eddie:"es-CU", Silvia:"es-BO", Grayson:"es-VE"}[speakerNames[role]];
   if (role === "spanish" && knownSpanishLocale) setConversationLocale("spanish", knownSpanishLocale);
   const label = $('[data-speaker-label="' + role + '"]');
   if (label) label.textContent = speakerNames[role];

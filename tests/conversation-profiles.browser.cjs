@@ -8,7 +8,7 @@ await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dir
 await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file);
 if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();
 await page.locator('[data-mode="conversation"]').click();
-for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Maria','es-EC']]){
+for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Grayson','es-VE'],['Maria','es-EC']]){
  const choice=page.locator(`[data-conversation-profile="spanish"][data-profile-name="${name}"]`);await choice.tap();
  assert.equal(await choice.getAttribute('aria-pressed'),'true');assert.equal(await page.locator('#spanish-speaker-name').inputValue(),name);
  assert.equal(await page.locator('[data-speaker-label="spanish"]').textContent(),name);
@@ -38,6 +38,16 @@ assert.equal(await page.locator('[data-speaker-region="spanish"]').textContent()
 assert.match(await page.locator('#conversation-text-speaker option:checked').textContent(),/Maria.*Guayaquil.*Español/);
 assert.match(await page.locator('[data-conversation-text-profile]').textContent(),/Maria.*Guayaquil.*Español/);
 assert.match(await page.locator('[data-conversation-profile="english"][data-profile-name="Eddie"]').textContent(),/Holguín/);
+await page.locator('#conversation-text-speaker').selectOption('spanish::Grayson');
+assert.equal(await page.locator('[data-speaker-region="spanish"]').textContent(),'Caracas, Venezuela');
+assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-VE');
+assert.match(await page.locator('[data-conversation-text-profile]').textContent(),/Grayson.*Caracas, Venezuela/);
+assert.match(await page.locator('[data-speaker-preset="spanish"] option:checked').textContent(),/Grayson.*Caracas, Venezuela/);
+await page.reload();if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();await page.locator('[data-mode="conversation"]').click();
+assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Grayson');
+assert.equal(await page.locator('[data-speaker-region="spanish"]').textContent(),'Caracas, Venezuela');
+assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-VE');
+
 await page.screenshot({path:`/tmp/profiles-${file}-${width}.png`,fullPage:true});
 await context.close();console.log(file+' '+width+': profile selection, locale, custom names, touch sizes, no capture and reload passed');
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
