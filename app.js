@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.52 · build 162";
+const APP_VERSION = "0.26.53 · build 163";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -267,8 +267,7 @@ const CONVERSATION_LOCALES_KEY = "habla-ecuador-conversation-locales-v1";
 let conversationLocaleOverrides = {};
 try {
   const saved=JSON.parse(localStorage.getItem(CONVERSATION_LOCALES_KEY)||"{}");
-  if(['en-US','en-GB'].includes(saved?.english))conversationLocaleOverrides.english=saved.english;
-  if(TRANSLATOR_LANGUAGES[saved?.spanish]?.family==='es')conversationLocaleOverrides.spanish=saved.spanish;
+  for(const role of ['english','spanish'])if(Object.hasOwn(TRANSLATOR_LANGUAGES,saved?.[role]))conversationLocaleOverrides[role]=saved[role];
 } catch {}
 let recognition = null;
 let evidenceFilter = "all";
@@ -338,12 +337,16 @@ function speakerRegionProfile(name) {
     region:typeof profile.region==="string" ? profile.region.slice(0,80) : "",
     locales:profile.locales && typeof profile.locales==="object" ? profile.locales : {}};
 }
-function speakerCountryLabel(country) {
-  const select=document.querySelector('#conversation-spanish-language');
-  const option=select && Array.from(select.options||[]).find(option=>option.value===country);
-  return country==="en-US" ? "United States / Estados Unidos" : country==="en-GB" ? "United Kingdom / Reino Unido"
-    : country==="es-CU" ? "Cuba" : option?.textContent || (country ? languageLabel(country) : "");
-}
+const PERSON_COUNTRY_LABELS = {
+  "en-US":"United States / Estados Unidos", "en-GB":"United Kingdom / Reino Unido",
+  "es-EC":"Ecuador", "es-BO":"Bolivia", "es-MX":"Mexico / México", "es-VE":"Venezuela",
+  "es-PE":"Peru / Perú", "es-CO":"Colombia", "es-CU":"Cuba", "es-AR":"Argentina",
+  "es-CL":"Chile", "es-CR":"Costa Rica", "es-DO":"Dominican Republic / República Dominicana",
+  "es-SV":"El Salvador", "es-GT":"Guatemala", "es-HN":"Honduras", "es-NI":"Nicaragua",
+  "es-PA":"Panama / Panamá", "es-PY":"Paraguay", "es-PR":"Puerto Rico", "es-ES":"Spain / España",
+  "es-UY":"Uruguay", "es-GQ":"Equatorial Guinea / Guinea Ecuatorial"
+};
+function speakerCountryLabel(country) { return PERSON_COUNTRY_LABELS[country] || ""; }
 function conversationProfileRegion(name) {
   const profile=speakerRegionProfile(name);
   return [profile.city,profile.region,speakerCountryLabel(profile.country)].filter(Boolean).join(", ") || "Region not set / Región sin indicar";
@@ -355,9 +358,8 @@ function syncSpeakerRegion(role) {
   const country=document.querySelector('[data-person-country="'+role+'"]');
   if(country && country.options) {
     if(!country.options.length) {
-      const source=document.querySelector('#conversation-spanish-language');
-      country.innerHTML='<option value="">Not set / Sin indicar</option><option value="en-US">United States / Estados Unidos</option><option value="en-GB">United Kingdom / Reino Unido</option>'
-        + Array.from(source?.options||[]).map(option=>'<option value="'+escapeHtml(option.value)+'">'+escapeHtml(speakerCountryLabel(option.value))+'</option>').join("");
+      country.innerHTML='<option value="">Not set / Sin indicar</option>'
+        + Object.entries(PERSON_COUNTRY_LABELS).map(([value,label])=>'<option value="'+value+'">'+escapeHtml(label)+'</option>').join("");
     }
     country.value=profile.country;
   }
@@ -369,7 +371,7 @@ function syncSpeakerRegion(role) {
   if(person)person.textContent=name;
   const picker=document.querySelector('#conversation-text-speaker');
   const hint=document.querySelector('[data-conversation-text-profile]');
-  if(hint&&picker?.value===role)hint.textContent=name+" · "+region+" · "+(role==="spanish"?"Español":"English");
+  if(hint&&picker?.value===role)hint.textContent=name+" · "+region+" · "+speakerSlotLanguageLabel(role);
 }
 function persistSpeakerProfile(name,profile) {
   profile.name=String(name).trim().slice(0,24);
@@ -385,13 +387,13 @@ function applySpeakerLocale(role) {
 function saveSpeakerRegion(role,country,city,region) {
   if(!["english","spanish"].includes(role) || (country && !Object.hasOwn(TRANSLATOR_LANGUAGES,country)))return;
   const name=speakerName(role), profile=speakerRegionProfile(name);
-  const countryChanged=profile.country!==country;
+  for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))profile.locales[r]=conversationLocales()[r];
   profile.country=country;profile.city=String(city||"").trim().slice(0,80);
   if(region!==undefined)profile.region=String(region||"").trim().slice(0,80);
-  if(country && countryChanged)profile.locales[languageFamily(country)==="es"?"spanish":"english"]=country;
+
   persistSpeakerProfile(name,profile);
   syncSpeakerNames();
-  for(const r of ["english","spanish"])if(speakerRegionKey(speakerName(r))===speakerRegionKey(name))applySpeakerLocale(r);
+
 }
 
 function speakerRegionIndex(query="") {
@@ -418,8 +420,8 @@ function renderSpeakerRegionIndex() {
   const query=document.querySelector('#people-region-search')?.value||"";
   const people=speakerRegionIndex(query);
   results.innerHTML=people.map(person=>`<article class="person-index-item">
-    <div><strong>${escapeHtml(person.name)}</strong><p>${escapeHtml(person.city||"City not specified / Ciudad sin indicar")}</p><p>${escapeHtml(person.region||"Region/state not specified / Región o estado sin indicar")}</p><p>${escapeHtml(person.country||"Country not specified / País sin indicar")}</p></div>
-    <div class="person-index-actions"><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="english" aria-label="${escapeHtml(person.name)} · English / Inglés" aria-pressed="${speakerRegionKey(speakerName("english"))===speakerRegionKey(person.name)}">English / Inglés</button><button type="button" data-index-person="${escapeHtml(person.name)}" data-index-role="spanish" aria-label="${escapeHtml(person.name)} · Spanish / Español" aria-pressed="${speakerRegionKey(speakerName("spanish"))===speakerRegionKey(person.name)}">Spanish / Español</button><button type="button" class="person-index-edit" data-edit-person="${escapeHtml(person.name)}" aria-label="${escapeHtml(person.name)} · Edit location / Editar ubicación">Edit location / Editar ubicación</button></div>
+    <div><strong data-ui-content>${escapeHtml(person.name)}</strong><p>${escapeHtml(person.city||"City not specified / Ciudad sin indicar")}</p><p>${escapeHtml(person.region||"Region/state not specified / Región o estado sin indicar")}</p><p>${escapeHtml(person.country||"Country not specified / País sin indicar")}</p></div>
+    <div class="person-index-actions"><button type="button" data-ui-content data-index-person="${escapeHtml(person.name)}" data-index-role="english" aria-label="${escapeHtml(person.name)} · Person 1 / Persona 1" aria-pressed="${speakerRegionKey(speakerName("english"))===speakerRegionKey(person.name)}">Person 1 / Persona 1</button><button type="button" data-ui-content data-index-person="${escapeHtml(person.name)}" data-index-role="spanish" aria-label="${escapeHtml(person.name)} · Person 2 / Persona 2" aria-pressed="${speakerRegionKey(speakerName("spanish"))===speakerRegionKey(person.name)}">Person 2 / Persona 2</button><button type="button" class="person-index-edit" data-ui-content data-edit-person="${escapeHtml(person.name)}" aria-label="${escapeHtml(person.name)} · Edit location / Editar ubicación">Edit location / Editar ubicación</button></div>
   </article>`).join("");
   const status=document.querySelector('[data-people-index-status]');
   if(status)status.textContent=people.length ? `${people.length} people / personas` : "No matches / Sin resultados";
@@ -440,9 +442,10 @@ function saveSpeakerName(role, value) {
   const label = $('[data-speaker-label="' + role + '"]');
   if (label) label.textContent = speakerNames[role];
   const textLabel = $('[data-conversation-text-name="' + role + '"]');
-  if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+(role==="spanish"?"Español":"English");
+  if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+speakerSlotLanguageLabel(role);
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
+  syncConversationLocaleUi();
   renderSpeakerRegionIndex();
 }
 
@@ -468,7 +471,7 @@ function syncSpeakerNames() {
     const label = $('[data-speaker-label="' + role + '"]');
     if (label) label.textContent = name;
     const textLabel = $('[data-conversation-text-name="' + role + '"]');
-    if(textLabel)textLabel.textContent = name+" · "+conversationProfileRegion(name)+" · "+(role==="spanish"?"Español":"English");
+    if(textLabel)textLabel.textContent = name+" · "+conversationProfileRegion(name)+" · "+speakerSlotLanguageLabel(role);
   });
 }
 
@@ -2959,7 +2962,7 @@ function showToast(message) {
 const SPANISH_CONVERSATION_HINTS = new Set(["a","al","algo","aqui","bien","como","con","cuando","de","del","despues","donde","el","ella","en","es","esta","estoy","gracias","hola","la","las","lo","los","me","mi","muy","no","para","pero","por","porque","que","quiero","se","si","soy","su","te","tengo","tu","un","una","vale","vamos","verga","voy","y","ya"]);
 const ENGLISH_CONVERSATION_HINTS = new Set(["a","after","am","and","are","around","because","but","can","do","going","good","hello","here","how","i","in","is","it","me","my","no","not","of","on","please","so","thank","that","the","there","this","to","want","we","what","when","where","with","yes","you","your"]);
 
-function conversationLanguageEvidence(text, expectedRole) {
+function conversationLanguageEvidence(text, expectedRole, expectedLocale=conversationLocales()[expectedRole]) {
   const clean = normalize(text);
   const words = clean.split(" ").filter(Boolean);
   let spanishScore = words.filter(word => SPANISH_CONVERSATION_HINTS.has(word)).length;
@@ -2969,7 +2972,7 @@ function conversationLanguageEvidence(text, expectedRole) {
   if (/\b(?:i'm|i've|don't|can't|won't|it's|you're|we're|they're)\b/i.test(text)) englishScore += 3;
   if (spanishScore >= englishScore + 2 || (spanishScore > englishScore && /\b(?:hola|gracias|adios)\b/.test(clean))) return {family:"es",confident:true};
   if (englishScore >= spanishScore + 2 || (englishScore > spanishScore && /\b(?:hello|thanks|yes|goodbye)\b/.test(clean))) return {family:"en",confident:true};
-  return {family:expectedRole === "spanish" ? "es" : "en",confident:false};
+  return {family:languageFamily(expectedLocale),confident:false};
 }
 
 function detectConversationLanguage(text, expectedRole) {
@@ -3022,7 +3025,7 @@ async function submitConversationText() {
 function renderTurns() {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
-  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${turn.role === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
+  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${(turn.slot||turn.role) === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
   box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
@@ -3038,16 +3041,33 @@ function conversationLocales() {
   };
 }
 
+function speakerSlotLanguageLabel(role) {
+  return languageFamily(conversationLocales()[role])==="es" ? "Español" : "English";
+}
 function syncConversationLocaleUi() {
   const locales=conversationLocales();
   for(const role of ['english','spanish']) {
     const select=$('#conversation-'+role+'-language');
     if(select)select.value=locales[role];
+    const button=document.querySelector('[data-speaker-role="'+role+'"]');
+    if(button?.dataset) {
+      const spanish=languageFamily(locales[role])==='es';
+      const hint=spanish ? 'Speak Spanish / Habla español' : 'Speak English / Habla inglés';
+      button.dataset.idleHint=hint;
+      button.dataset.activeHint="Listening… / Escuchando…";
+      button.dataset.finishingHint="Finishing… / Terminando…";
+      button.setAttribute('aria-label',speakerName(role)+' · '+(spanish ? 'Record Spanish; tap again to finish / Grabar español; toca otra vez para terminar' : 'Record English; tap again to finish / Grabar inglés; toca otra vez para terminar'));
+      const text=button.querySelector?.('small:last-child');
+      if(text && activeRecognitionButton!==button)text.textContent=hint;
+    }
+    syncSpeakerRegion(role);
+    const textLabel=document.querySelector('[data-conversation-text-name="'+role+'"]');
+    if(textLabel)textLabel.textContent=speakerName(role)+" · "+conversationProfileRegion(speakerName(role))+" · "+speakerSlotLanguageLabel(role);
   }
 }
-
 function setConversationLocale(role,locale,savePerson=true) {
-  if(!['english','spanish'].includes(role)||!TRANSLATOR_LANGUAGES[locale]||languageFamily(locale)!==(role==='spanish'?'es':'en'))return;
+  if(!['english','spanish'].includes(role)||!Object.hasOwn(TRANSLATOR_LANGUAGES,locale))return;
+  if(activeRecognitionButton?.dataset?.speakerRole===role)cancelListening(true);
   if(savePerson) {
     const profile=speakerRegionProfile(speakerName(role));
     profile.locales[role]=locale;persistSpeakerProfile(speakerName(role),profile);
@@ -3056,12 +3076,22 @@ function setConversationLocale(role,locale,savePerson=true) {
   localStorage.setItem(CONVERSATION_LOCALES_KEY,JSON.stringify(conversationLocaleOverrides));
   syncConversationLocaleUi();
 }
+function conversationTranslationRoute(role,family,locales) {
+  const other=role==='english'?'spanish':'english';
+  const pair=[targetLanguage,sourceLanguage];
+  const fallback=base=>pair.find(code=>languageFamily(code)===base)||(base==='es'?'es-EC':englishVariant==='uk'?'en-GB':'en-US');
+  const targetFamily=family==='es'?'en':'es';
+  return {
+    source:[locales[role],locales[other],fallback(family)].find(code=>code&&languageFamily(code)===family),
+    target:[locales[other],locales[role],fallback(targetFamily)].find(code=>code&&languageFamily(code)===targetFamily)
+  };
+}
 
 function conversationOptions(role, button) {
   conversationActive = true;
-  const way = role === "spanish" ? "ec-en" : "en-ec";
   const name = speakerName(role);
   const locales = conversationLocales();
+  const way = languageFamily(locales[role]) === "es" ? "ec-en" : "en-ec";
   const generation = conversationGeneration;
   const firstTurnIndex = turns.length;
   let captureError="";
@@ -3092,27 +3122,29 @@ function finishConversationTurn(turn) {
 async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole}={}) {
   const generation = conversationGeneration;
   const manual=forcedRole === "spanish" || forcedRole === "english";
-  const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole);
+  const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole,locales[expectedRole]);
   const detectedFamily = evidence.family;
   const actualRole = detectedFamily === "es" ? "spanish" : "english";
   const way = actualRole === "spanish" ? "ec-en" : "en-ec";
   const languageLabel = `${detectedFamily === "es" ? "Spanish" : "English"} ${manual ? "chosen" : evidence.confident ? "from text" : "selected · language uncertain"}${provisional ? " · transcript needs checking" : ""}`;
-  const switched = actualRole !== expectedRole;
-  liveConversationTurn = {role:actualRole,speaker,source:text,translation:final ? "Translating…" : "Listening…",languageLabel,pending:true};
+  const switched = detectedFamily !== languageFamily(locales[expectedRole]);
+  liveConversationTurn = {role:actualRole,slot:expectedRole,speaker,source:text,translation:final ? "Translating…" : "Listening…",languageLabel,pending:true};
   renderTurns();
   $("#conversation-status").textContent = `${languageLabel}${switched ? " · translation direction switched automatically" : ""}: ${text}`;
   if (!final) return;
 
-  const target = way === "en-ec" ? locales.spanish : locales.english;
-  const sourceLocale=way === "en-ec" ? locales.english : locales.spanish;
-  const turn = {role:actualRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,languageUncertain:!evidence.confident};
+  const route=conversationTranslationRoute(expectedRole,detectedFamily,locales);
+  const target=route.target, sourceLocale=route.source;
+  const turn = {role:actualRole,slot:expectedRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,languageUncertain:!evidence.confident};
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
-  const phrase = locales.spanish === "es-EC" ? matchPhrase(text, way) : null;
+  const spanishLocale=detectedFamily==="es" ? sourceLocale : target;
+  const englishLocale=detectedFamily==="en" ? sourceLocale : target;
+  const phrase = spanishLocale === "es-EC" ? matchPhrase(text, way) : null;
   try {
     turn.translation = phrase
-      ? way === "en-ec" ? phrase.natural : (locales.english === "en-GB" ? phrase.uk : phrase.us) || phrase.en
+      ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
       : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)});
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
@@ -4446,7 +4478,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=162", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=163", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
