@@ -438,8 +438,6 @@ function saveSpeakerName(role, value) {
   if(textLabel)textLabel.textContent = speakerNames[role]+" · "+conversationProfileRegion(speakerNames[role])+" · "+(role==="spanish"?"Español":"English");
   const preset = $('[data-speaker-preset="' + role + '"]');
   if (preset) preset.value = Array.from(preset.options).some(option => option.value === speakerNames[role]) ? speakerNames[role] : "";
-  const nameInput=document.querySelector('[data-speaker-name="'+role+'"]');
-  if(nameInput && nameInput.value!==speakerNames[role])nameInput.value=speakerNames[role];
   renderSpeakerRegionIndex();
 }
 
@@ -4314,6 +4312,8 @@ function init() {
     const button=event.target.closest('[data-index-person]');
     if(button && ['english','spanish'].includes(button.dataset.indexRole)) {
       const {indexRole,indexPerson}=button.dataset;
+      const input=document.querySelector('[data-speaker-name="'+indexRole+'"]');
+      if(input)input.value=indexPerson;
       saveSpeakerName(indexRole,indexPerson);
       const replacement=Array.from(document.querySelectorAll('[data-index-person]')).find(item=>item.dataset.indexRole===indexRole && item.dataset.indexPerson===indexPerson);
       replacement?.focus({preventScroll:true});
