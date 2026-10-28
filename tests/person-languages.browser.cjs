@@ -38,6 +38,29 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(await page.evaluate(()=>personTestRecognition.lang),'en-GB');
  await page.locator('[data-speaker-role="english"]').tap();
  await page.locator('#conversation-english-language').selectOption('es-MX');
+ // Clear and re-add locations through the real country and region controls.
+ for(const role of ['english','spanish']){
+  const country=page.locator(`[data-person-country="${role}"]`),region=page.locator(`[data-person-region="${role}"]`),choices=page.locator(`[data-person-region-choice="${role}"]`);
+  const spoken=await page.locator('#conversation-'+role+'-language').inputValue();
+  await country.selectOption('');await region.fill('');await region.press('Tab');
+  const countries=await country.locator('option').evaluateAll(opts=>opts.map(o=>o.value).filter(Boolean));
+  assert.equal(countries.length,23,'clearing a country leaves all country choices available');
+  for(const code of countries){
+   await country.selectOption(code);
+   assert.ok(await choices.locator('option').count()>2,code+' has region suggestions');
+  }
+  for(const [code,value] of [['en-US','Wyoming'],['es-MX','Jalisco'],['es-EC','Guayas']]){
+   await country.selectOption(code);await choices.selectOption(value);
+   assert.equal(await region.inputValue(),value);
+   await choices.selectOption({label:'Clear region / Borrar región'});
+   assert.equal(await region.inputValue(),'');
+   assert.ok((await choices.locator('option').allTextContents()).includes(value),'clearing region keeps suggestions');
+   await choices.selectOption(value);
+  }
+  await region.fill('My custom region');await region.press('Tab');
+  assert.equal(await choices.inputValue(),'My custom region','custom region remains editable');
+  assert.equal(await page.locator('#conversation-'+role+'-language').inputValue(),spoken,'location choices preserve language');
+ }
  for(const country of ['en-US','es-MX','es-CO']){
   await page.locator('[data-person-country="english"]').selectOption(country);
   assert.equal(await page.locator('#conversation-english-language').inputValue(),'es-MX','country cannot set spoken language');
