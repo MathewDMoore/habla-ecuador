@@ -988,3 +988,9 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 
 .speaker-region-editors label { min-width:0; }
 .speaker-region-editors select { max-width:100%; }
+
+/* Keep a language-changing microphone's touch target fixed during capture. */
+#conversation-panel [data-speaker-role],
+#conversation-panel [data-speaker-role]:active,
+#conversation-panel [data-speaker-role].is-pressed { transform:none !important;transition:none !important;animation:none !important; }
+#conversation-panel [data-speaker-role] small:last-child { min-height:2.6em; }

@@ -3052,9 +3052,9 @@ function syncConversationLocaleUi() {
     const button=document.querySelector('[data-speaker-role="'+role+'"]');
     if(button?.dataset) {
       const spanish=languageFamily(locales[role])==='es';
-      const hint=spanish ? 'Tap · speak Spanish / Toca · habla español' : 'Tap · speak English / Toca · habla inglés';
+      const hint=spanish ? 'Speak Spanish / Habla español' : 'Speak English / Habla inglés';
       button.dataset.idleHint=hint;
-      button.dataset.activeHint="Listening… tap to finish / Escuchando… toca para terminar";
+      button.dataset.activeHint="Listening… / Escuchando…";
       button.dataset.finishingHint="Finishing… / Terminando…";
       button.setAttribute('aria-label',speakerName(role)+' · '+(spanish ? 'Record Spanish; tap again to finish / Grabar español; toca otra vez para terminar' : 'Record English; tap again to finish / Grabar inglés; toca otra vez para terminar'));
       const text=button.querySelector?.('small:last-child');
