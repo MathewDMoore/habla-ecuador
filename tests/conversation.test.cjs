@@ -47,6 +47,38 @@ context.spoken = spoken;
 run('say = (text,lang) => spoken.push({text,lang});');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 async function main() {
+  // A person's country/city and language choice survive switching names and reload.
+  for(const role of ['english','spanish'])element('[data-speaker-preset="'+role+'"]').options=[];
+  run('saveSpeakerName("spanish","Grayson");saveSpeakerRegion("spanish","es-VE","Caracas")');
+  assert.equal(run('speakerRegionProfile("Grayson").country'),'es-VE');
+  assert.match(run('conversationProfileRegion("Grayson")'),/Caracas/);
+  assert.equal(run('conversationLocales().spanish'),'es-VE');
+  run('saveSpeakerName("spanish","Ayssel");saveSpeakerRegion("spanish","es-MX","")');
+  assert.equal(run('conversationLocales().spanish'),'es-MX');
+  assert.equal(run('speakerRegionProfile("Ayssel").city'),'');
+  run('saveSpeakerName("spanish","Grayson")');
+  assert.equal(run('conversationLocales().spanish'),'es-VE');
+  assert.equal(run('speakerRegionProfile("Grayson").city'),'Caracas');
+  run('saveSpeakerName("english","Grayson")');
+  assert.equal(run('speakerRegionProfile(speakerName("english")).city'),'Caracas');
+  run('setConversationLocale("english","en-GB");saveSpeakerName("english","Other person");setConversationLocale("english","en-US");saveSpeakerName("english","Grayson")');
+  assert.equal(run('conversationLocales().english'),'en-GB');
+  assert.equal(run('conversationLocales().spanish'),'es-VE','English preference cannot overwrite Spanish preference');
+  run('speakerRegions=readSpeakerRegions();saveSpeakerName("spanish","Ayssel")');
+  assert.equal(run('conversationLocales().spanish'),'es-MX');
+  assert.equal(run('speakerRegionProfile("grayson").city'),'Caracas');
+  run('saveSpeakerName("spanish","Nueva amiga");saveSpeakerRegion("spanish","es-AR","Córdoba")');
+  assert.equal(run('conversationLocales().spanish'),'es-AR');
+  run('saveSpeakerRegion("spanish","invalid","bad")');
+  assert.equal(run('speakerRegionProfile("Nueva amiga").city'),'Córdoba');
+  run('saveSpeakerName("spanish","__proto__");saveSpeakerRegion("spanish","es-PE","Lima")');
+  assert.equal(run('speakerRegionProfile("__proto__").city'),'Lima');
+  assert.equal(run('({}).city'),undefined);
+  storage.set('habla-ecuador-speaker-regions-v1','bad json');
+  run('speakerRegions=readSpeakerRegions()');
+  assert.equal(run('speakerRegionProfile("Grayson").country'),'es-VE');
+  run('saveSpeakerName("english","Mathew");saveSpeakerName("spanish","Maria");conversationLocaleOverrides={};');
+
   // A Cuban selection survives saving and routes speech to Spanish, not English.
   run('setConversationLocale("spanish","es-CU")');
   assert.equal(run('conversationLocales().spanish'),'es-CU');
