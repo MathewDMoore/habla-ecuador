@@ -8,33 +8,33 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=158">
-  <script src="interface-es.js?v=158" defer></script>
-  <script src="interface-language.js?v=158" defer></script>
-  <script src="research-reference.js?v=158" defer></script>
-  <script src="document-import.js?v=158" defer></script>
-  <script src="whole-document.js?v=158" defer></script>
-  <script src="saved-paper.js?v=158" defer></script>
-  <script src="offline-device.js?v=158" defer></script>
-  <script src="english-varieties.js?v=158" defer></script>
-  <script src="screenshot-import.js?v=158" defer></script>
-  <script src="regional-vocabulary.js?v=158" defer></script>
-  <script src="spanish-context.js?v=158" defer></script>
-  <script src="language-community-terms.js?v=158" defer></script>
-  <script src="bilingual-music.js?v=158" defer></script>
-  <script src="button-feedback.js?v=158" defer></script>
-  <script src="regional-practice.js?v=158" defer></script>
-  <script src="recorded-transcripts.js?v=158" defer></script>
-  <script src="recorded-practice.js?v=158" defer></script>
-  <script src="quick-lessons.js?v=158" defer></script>
-  <script src="slang-contributions.js?v=158" defer></script>
-  <script src="app-feedback.js?v=158" defer></script>
-  <script src="app-updates.js?v=158" defer></script>
-  <script src="music-song.js?v=158" defer></script>
-  <script src="whatsapp-audio.js?v=158" defer></script>
-  <script src="tutorial.js?v=158" defer></script>
-  <script src="full-text-reader.js?v=158" defer></script>
-  <script src="app.js?v=158" defer></script>
+  <link rel="stylesheet" href="styles.css?v=159">
+  <script src="interface-es.js?v=159" defer></script>
+  <script src="interface-language.js?v=159" defer></script>
+  <script src="research-reference.js?v=159" defer></script>
+  <script src="document-import.js?v=159" defer></script>
+  <script src="whole-document.js?v=159" defer></script>
+  <script src="saved-paper.js?v=159" defer></script>
+  <script src="offline-device.js?v=159" defer></script>
+  <script src="english-varieties.js?v=159" defer></script>
+  <script src="screenshot-import.js?v=159" defer></script>
+  <script src="regional-vocabulary.js?v=159" defer></script>
+  <script src="spanish-context.js?v=159" defer></script>
+  <script src="language-community-terms.js?v=159" defer></script>
+  <script src="bilingual-music.js?v=159" defer></script>
+  <script src="button-feedback.js?v=159" defer></script>
+  <script src="regional-practice.js?v=159" defer></script>
+  <script src="recorded-transcripts.js?v=159" defer></script>
+  <script src="recorded-practice.js?v=159" defer></script>
+  <script src="quick-lessons.js?v=159" defer></script>
+  <script src="slang-contributions.js?v=159" defer></script>
+  <script src="app-feedback.js?v=159" defer></script>
+  <script src="app-updates.js?v=159" defer></script>
+  <script src="music-song.js?v=159" defer></script>
+  <script src="whatsapp-audio.js?v=159" defer></script>
+  <script src="tutorial.js?v=159" defer></script>
+  <script src="full-text-reader.js?v=159" defer></script>
+  <script src="app.js?v=159" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -43,7 +43,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.48 · build 158</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.49 · build 159</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -582,6 +582,14 @@
             <p>Choose a name, then set that person’s country and optional city below. / Elige un nombre y luego indica su país y, si quieres, su ciudad abajo.</p>
 </details>
           </section>
+          <details id="people-region-index" class="compact-info">
+            <summary>People &amp; regions index / Índice de personas y regiones</summary>
+            <label for="people-region-search">Search name, city or country / Buscar nombre, ciudad o país</label>
+            <input id="people-region-search" type="search" autocomplete="off" placeholder="Grayson · Caracas · Venezuela">
+            <p>Select a person for either language. Edit their region below. / Elige una persona para cualquiera de los idiomas y edita su región abajo.</p>
+            <p data-people-index-status role="status" aria-live="polite"></p>
+            <div data-people-index-results></div>
+          </details>
           <div class="speaker-region-editors conversation-controls">
             <fieldset><legend>English speaker / Hablante de inglés: <span data-person-region-name="english"></span></legend>
               <label>Country / País<select data-person-country="english" aria-label="Country for english speaker"></select></label>

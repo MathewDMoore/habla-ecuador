@@ -16,6 +16,21 @@ for(const [name,locale] of [['Eddie','es-CU'],['Silvia','es-BO'],['Maria','es-EC
  assert.equal(await page.locator('[data-conversation-profile="spanish"][aria-pressed="true"]').count(),1);
 }
 assert.equal(await page.locator('#conversation-spanish-language option:checked').textContent(),'Ecuador');
+const index=page.locator('#people-region-index');await index.locator(':scope > summary').tap();
+await page.locator('#people-region-search').fill('Ayssel');
+assert.equal(await index.locator('.person-index-item').count(),1);
+assert.match(await index.locator('.person-index-item').textContent(),/Ciudad o región sin indicar/);
+await page.locator('#people-region-search').fill('caracas');
+assert.equal(await index.locator('.person-index-item').count(),1);
+await index.locator('[data-index-person="Grayson"][data-index-role="spanish"]').tap();
+assert.equal(await page.locator('#spanish-speaker-name').inputValue(),'Grayson');
+assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-VE');
+assert.equal(await index.locator('[data-index-role="spanish"]').getAttribute('aria-pressed'),'true');
+await page.locator('#people-region-search').fill('HOLGUIN');
+assert.match(await index.locator('.person-index-item').textContent(),/Eddie.*Holguín/s);
+await page.locator('#people-region-search').fill('zzzz-no-person');
+assert.match(await index.locator('[data-people-index-status]').textContent(),/Sin resultados/);
+await index.locator(':scope > summary').tap();
 await page.locator('.conversation-more-names summary').click();await page.locator('#spanish-speaker-name').fill('Amiga nueva');
 assert.equal(await page.locator('[data-conversation-profile="spanish"][aria-pressed="true"]').count(),0);
 await page.locator('[data-speaker-preset="spanish"]').selectOption('Annalise');assert.equal(await page.locator('[data-speaker-label="spanish"]').textContent(),'Annalise');
@@ -62,6 +77,13 @@ assert.equal(await page.locator('[data-person-country="spanish"]').inputValue(),
 assert.equal(await page.locator('[data-person-city="spanish"]').inputValue(),'Ciudad de México');
 assert.equal(await page.locator('#conversation-spanish-language').inputValue(),'es-MX');
 assert.equal(await page.locator('[data-speaker-role="spanish"]').evaluate(b=>b.classList.contains('listening')),false);
+await page.locator('#people-region-index > summary').tap();
+await page.locator('#people-region-search').fill('Ciudad de Mexico');
+assert.match(await page.locator('[data-people-index-results]').textContent(),/Ayssel/);
+await page.locator('[data-index-person="Ayssel"][data-index-role="english"]').tap();
+assert.equal(await page.locator('#english-speaker-name').inputValue(),'Ayssel');
+assert.match(await page.locator('[data-speaker-region="english"]').textContent(),/Ciudad de México/);
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'index fits mobile viewport');
 await page.screenshot({path:`/tmp/profiles-${file}-${width}.png`,fullPage:true});
 await context.close();console.log(file+' '+width+': profile selection, locale, custom names, touch sizes, no capture and reload passed');
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

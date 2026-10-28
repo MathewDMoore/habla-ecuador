@@ -71,6 +71,13 @@ async function main() {
   assert.equal(run('conversationLocales().spanish'),'es-AR');
   run('saveSpeakerRegion("spanish","invalid","bad")');
   assert.equal(run('speakerRegionProfile("Nueva amiga").city'),'Córdoba');
+  assert.equal(run('speakerRegionIndex("cordoba")[0].name'),'Nueva amiga','saved custom display names remain readable and searchable without accents');
+  assert.equal(run('speakerRegionIndex("CARACAS")[0].name'),'Grayson');
+  assert.equal(run('speakerRegionIndex("holguin")[0].name'),'Eddie');
+  assert.equal(run('speakerRegionIndex("Ayssel")[0].city'),'','unknown city must not be guessed');
+  assert.equal(run('speakerRegionIndex("zzzz-no-person").length'),0);
+  assert.equal(run('speakerRegionIndex().filter(person=>speakerRegionKey(person.name)==="grayson").length'),1);
+
   run('saveSpeakerName("spanish","__proto__");saveSpeakerRegion("spanish","es-PE","Lima")');
   assert.equal(run('speakerRegionProfile("__proto__").city'),'Lima');
   assert.equal(run('({}).city'),undefined);
