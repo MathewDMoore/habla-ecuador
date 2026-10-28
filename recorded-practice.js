@@ -159,8 +159,8 @@
       content.dataset.stage=String(next);
     };
     content.querySelectorAll('[data-mini-step],[data-mini-next]').forEach(button=>button.addEventListener('click',()=>stage(Number(button.dataset.miniStep||button.dataset.miniNext))));
-    content.querySelector('#english-explanation-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.explanation,'es-EC');});
-    content.querySelector('#english-context-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.context,locale);});
+    content.querySelector('#english-explanation-hear').addEventListener('click',event=>{root.cancelDictionaryPractice(host);root.say(item.explanation,'es-EC',event.currentTarget);});
+    content.querySelector('#english-context-hear').addEventListener('click',event=>{root.cancelDictionaryPractice(host);root.say(item.context,locale,event.currentTarget);});
     const think=content.querySelector('#english-think-first');
     const modelParts=['#english-context-meaning','.english-mini-reply','#english-model-hear','#english-mini-parts-tip','.english-mini-chunks'].map(selector=>content.querySelector(selector));
     think.addEventListener('click',()=>{
@@ -173,8 +173,8 @@
         ?'Listen and answer in English, then reveal the model when ready.'
         :'Compare your reply with the model. Listen and say it again.';
     });
-    content.querySelector('#english-model-hear').addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(item.phrase,locale);});
-    content.querySelectorAll('[data-english-chunk]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(button.dataset.englishChunk,locale);}));
+    content.querySelector('#english-model-hear').addEventListener('click',event=>{root.cancelDictionaryPractice(host);root.say(item.phrase,locale,event.currentTarget);});
+    content.querySelectorAll('[data-english-chunk]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice(host);root.say(button.dataset.englishChunk,locale,button);}));
     content.querySelector('#english-lesson-select').addEventListener('change',event=>{
       root.cancelDictionaryPractice(host);leave();selectedEnglish[locale]=event.target.value;renderEnglish(host);
     });

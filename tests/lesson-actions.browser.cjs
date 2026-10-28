@@ -79,6 +79,34 @@ try{
  await page.evaluate(()=>speechMode='normal');
  await host.locator('.dictionary-practice-hear').tap();
  assert.match(await host.locator('.dictionary-practice > .speech-action-status').textContent(),/Playing audio/,'fresh tap recovers after failure');
+ // Guided and English mini-lessons must use the same real feedback path.
+ await page.locator('#lesson-play').tap();
+ assert.match(await page.locator('.phrase-card > .speech-action-status').textContent(),/Playing audio/);
+ assert.equal(await page.locator('#lesson-play').getAttribute('aria-busy'),'true');
+ const recorded=page.locator('#recorded-practice');
+ if(!await recorded.evaluate(el=>el.open))await recorded.locator(':scope > summary').tap();
+ const explanation=recorded.locator('#english-explanation-hear');
+ await explanation.tap();
+ assert.equal((await spoken()).at(-1).trustedTap,true);
+ assert.match(await recorded.locator('#english-mini-understand > .speech-action-status').textContent(),/Playing audio/);
+ for(const mode of ['error','silent']){
+  await page.evaluate(mode=>speechMode=mode,mode);await explanation.tap();
+  await recorded.locator('#english-mini-understand > .speech-action-status').filter({hasText:mode==='silent'?'Audio did not start':'Audio could not start'}).waitFor({timeout:9000});
+  assert.equal(await explanation.getAttribute('aria-busy'),'false');
+ }
+ await page.evaluate(()=>speechMode='normal');
+ await recorded.locator('[data-mini-next="2"]').tap();
+ for(const selector of ['#english-context-hear','#english-model-hear','[data-english-chunk]']){
+  const control=recorded.locator(selector).first();await control.tap();
+  assert.equal((await spoken()).at(-1).trustedTap,true);
+  assert.match(await control.evaluate(b=>b.parentElement.querySelector(':scope > .speech-action-status')?.textContent||''),/Playing audio/);
+ }
+ await recorded.locator('#english-model-hear').tap();await page.evaluate(()=>lastUtterance.onend());
+ await recorded.locator('#english-mini-listen > .speech-action-status').filter({hasText:'Audio finished.'}).waitFor();
+ await page.evaluate(()=>speechMode='error');await recorded.locator('#english-model-hear').tap();
+ await recorded.locator('#english-mini-listen > .speech-action-status').filter({hasText:'Audio could not start'}).waitFor();
+ await page.evaluate(()=>speechMode='normal');
+ await recorded.locator(':scope > summary').tap();
  await page.locator('#interface-language').selectOption('es');
  await host.locator('.dictionary-practice-hear').tap();
  await page.waitForFunction(()=>document.querySelector('#quick-lessons .dictionary-practice > .speech-action-status').textContent==='Reproduciendo audio.');

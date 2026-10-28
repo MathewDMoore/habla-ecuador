@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.50 · build 160";
+const APP_VERSION = "0.26.51 · build 161";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -715,7 +715,7 @@ function speechPlaybackFeedback(session, message, busy=false) {
   const button = session?.button;
   if (!button?.isConnected) return;
   button.setAttribute("aria-busy",String(busy));
-  const host = button.closest(".dictionary-practice") || button.parentElement;
+  const host = button.closest(".dictionary-practice, .phrase-card, .map-card") || button.parentElement;
   if (!host) return;
   let status = host.querySelector(":scope > .speech-action-status");
   if (!status) {
@@ -3730,9 +3730,9 @@ function bindDictionaryPractice(root) {
       const prompt = prompts[Number(select.value) || 0];
       say(prompt.text,prompt.lang,hear);
     });
-    $(".dictionary-practice-focus-hear",panel).addEventListener("click",() => {
+    $(".dictionary-practice-focus-hear",panel).addEventListener("click",event => {
       cancelDictionaryPractice();
-      if (focusText) say(focusText,prompts[Number(select.value) || 0].lang);
+      if (focusText) say(focusText,prompts[Number(select.value) || 0].lang,event.currentTarget);
     });
     $(".dictionary-practice-focus-try",panel).addEventListener("click",() => {
       if (!focusText) return;
@@ -4069,7 +4069,7 @@ function renderEnglishLesson(content,locale) {
 
 function bindLesson() {
   const locale = lessonTargetLocale(), english = locale !== "es-EC";
-  $("#lesson-play")?.addEventListener("click", () => say(english ? "What time does the sun set?" : "¿A qué hora se pone el sol?",locale));
+  $("#lesson-play")?.addEventListener("click", event => say(english ? "What time does the sun set?" : "¿A qué hora se pone el sol?",locale,event.currentTarget));
   $("#lesson-next")?.addEventListener("click", () => { if (lessonStep < 4) { lessonStep += 1; renderLesson(); } });
   bindPushToTalk($("#lesson-mic"), button => ({lang:locale,button,onText:text => {
     const heard = normalize(text);
@@ -4089,7 +4089,7 @@ function bindLesson() {
   }));
   $$('[data-say]').forEach(button => {
     button.setAttribute("aria-label", `Hear: ${button.dataset.say}`);
-    button.addEventListener("click", () => say(button.dataset.say,button.dataset.sayLang || locale));
+    button.addEventListener("click", () => say(button.dataset.say,button.dataset.sayLang || locale,button));
   });
   $("#lesson-finish")?.addEventListener("click", () => { lessonStep = 1; selectedChoice = ""; openView("home-view"); showToast("Lesson complete — ¡bien hecho!"); });
 }
@@ -4446,7 +4446,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=160", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=161", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
