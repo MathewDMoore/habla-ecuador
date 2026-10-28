@@ -294,6 +294,9 @@ async function main() {
   assert.equal(element('#conversation-text').value,'');assert.equal(element('#conversation-text-send').disabled,false);
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
+    assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');
+    assert.equal((html.match(/value="Ayssel"/g)||[]).length,2,'Ayssel name menu for both roles');
+    for(const role of ['english','spanish'])assert.equal((html.match(new RegExp('value="'+role+'::Ayssel"','g'))||[]).length,1,'Ayssel in typed-turn menu');
     for(const id of ['conversation-playback','conversation-mode-status','conversation-english-language','conversation-spanish-language','conversation-text-form','conversation-text-speaker','conversation-text-language','conversation-text-send'])assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1);
   }
   run('targetLanguage="es-EC"; translationPurpose="academic"; setEditableTranslation("How are you?","¿Cómo estás?");');
