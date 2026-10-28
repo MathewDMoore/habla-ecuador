@@ -95,6 +95,9 @@ async function main() {
   assert.ok(!run('speakerRegionOptions("es-MX").includes("Wyoming")'),'suggestions follow country');
   assert.ok(run('speakerRegionOptions("es-MX","Custom area").includes("Custom area")'));
 
+  assert.equal(run('speakerCityOptions("es-EC").find(place=>place.city==="Guayaquil").region'),'Guayas');
+  assert.ok(!run('speakerCityOptions("es-MX").some(place=>place.city==="Guayaquil")'));
+
   // Country, region/state and city are independent, editable values.
   run('saveSpeakerName("spanish","Editable person");saveSpeakerRegion("spanish","es-MX","Puebla","Puebla state")');
   assert.equal(run('speakerRegionProfile("Editable person").country'),'es-MX');
