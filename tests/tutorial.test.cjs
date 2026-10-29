@@ -1,6 +1,7 @@
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const {STEPS}=require("../tutorial.js");
+const {STEPS,api}=require("../tutorial.js");
+assert.equal(typeof api.openLessons,"function","Practice has its own guided tutorial entry point");
 assert.equal(STEPS.length,10);
 assert.equal(STEPS.filter(step=>step.fullOnly).length,1);
 assert.equal(STEPS.filter(step=>step.view==="lesson-view").length,3);
