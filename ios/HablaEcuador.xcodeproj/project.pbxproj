@@ -75,6 +75,7 @@
 				<string>000000000000000000000011</string>
 				<string>000000000000000000000012</string>
 				<string>000000000000000000000013</string>
+				<string>000000000000000000000017</string>
 			</array>
 			<key>path</key>
 			<string>HablaEcuador</string>
@@ -151,6 +152,24 @@
 			<key>sourceTree</key>
 			<string>&lt;group&gt;</string>
 		</dict>
+		<key>000000000000000000000017</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>folder.assetcatalog</string>
+			<key>path</key>
+			<string>Assets.xcassets</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000018</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+			<key>fileRef</key>
+			<string>000000000000000000000017</string>
+		</dict>
 		<key>000000000000000000000014</key>
 		<dict>
 			<key>isa</key>
@@ -195,6 +214,7 @@
 			<key>files</key>
 			<array>
 				<string>000000000000000000000016</string>
+				<string>000000000000000000000018</string>
 			</array>
 			<key>runOnlyForDeploymentPostprocessing</key>
 			<string>0</string>
@@ -297,6 +317,8 @@
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
+				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
+				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
 				<string>0.1.4</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
@@ -347,6 +369,8 @@
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
 				<string>HablaEcuador/Info.plist</string>
+				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
+				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
 				<string>0.1.4</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>

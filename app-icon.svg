@@ -1,8 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#173f35"/>
-  <path d="M98 106h78v110h160V106h78v300h-78V286H176v120H98z" fill="#fff9ef"/>
-  <path d="M338 360h78v46h-78z" fill="#ed7840"/>
-  <path d="M97 430h318" stroke="#f3d23b" stroke-width="18" stroke-linecap="round"/>
-  <path d="M97 454h318" stroke="#3762a6" stroke-width="18" stroke-linecap="round"/>
-  <path d="M97 478h318" stroke="#cf3d3d" stroke-width="18" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Habla Ecuador</title>
+  <desc id="desc">Andean mountain and tropical leaf beneath a sunrise, with Ecuador's yellow, blue, and red colors</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#49b9ae"/><stop offset="1" stop-color="#b7e0c9"/>
+    </linearGradient>
+    <clipPath id="frame"><rect width="512" height="512" rx="110"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+    <circle cx="154" cy="154" r="83" fill="#ffdd62"/>
+    <path d="M-40 355 195 124l73 76 79-87 205 242v170H-40z" fill="#fdf8ec"/>
+    <path d="m-40 355 235-231 36 38-36-10-46 63-27-12-162 162z" fill="#d5e9e4"/>
+    <path d="m268 200 79-87 205 242v170H268l-45-192 63-76 44 27 32-53z" fill="#b6d6cb"/>
+    <path d="M-30 362q125-55 267 0t305-2v165H-30z" fill="#2a806d"/>
+    <path d="M386 275q37-70 100-89-18 46-82 73 47-13 101-4-39 36-97 34 45 9 75 41-49 10-92-28-6 37-1 76h-25q8-45-4-90-47-6-85-38 57-15 102 17-26-42-25-95 43 28 45 103z" fill="#184c3e"/>
+    <path d="M0 389q138 25 256 0t256 0v49q-117-25-256 0T0 438z" fill="#f5d844"/>
+    <path d="M0 438q129-26 256 0t256 0v45q-124-25-256 0T0 483z" fill="#245caa"/>
+    <path d="M0 482q122 26 256 0t256 0v30H0z" fill="#df3e49"/>
+  </g>
 </svg>
