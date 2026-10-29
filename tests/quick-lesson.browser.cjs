@@ -19,7 +19,7 @@ const host=page.locator('#quick-lessons');await host.locator('summary').first().
 for(const locale of ['es-EC','en-US','en-GB']){
 await page.locator('#lesson-language').selectOption(locale);
 assert.equal(await host.getAttribute('data-learning-language'),locale);
-assert.equal(await host.locator('#quick-lesson-select option').count(),3);
+assert.equal(await host.locator('#quick-lesson-select option').count(),4);
 for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
 await host.locator('#quick-explanation-hear').click();
@@ -27,6 +27,19 @@ assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.explanation
 for(let i=0;i<lesson.situations.length;i++){
 const cue=lesson.situations[i];
 assert.equal(await host.locator('.dictionary-practice-target').textContent(),cue.phrase);
+if(lesson.checks){
+ const question=lesson.checks[i];
+ assert.equal(await host.locator('#quick-grammar-prompt').textContent(),question.prompt,'new question for each speaking situation');
+ assert.equal(await host.locator('[data-quick-answer]').count(),4,'every expression is available');
+ const wrong=question.options.find(option=>option!==question.answer);
+ await host.locator('[data-quick-answer="'+wrong+'"]').click();
+ assert.equal(await host.locator('#quick-grammar-feedback').getAttribute('data-correct'),'false');
+ await host.locator('[data-quick-answer="'+question.answer+'"]').click();
+ assert.equal(await host.locator('#quick-grammar-feedback').getAttribute('data-correct'),'true');
+ assert.match(await host.locator('#quick-grammar-feedback').textContent(),/Correct|Correcto/);
+ const choice=host.locator('[data-quick-answer="'+question.answer+'"]');
+ assert.equal(await choice.getAttribute('aria-pressed'),'true');
+}
 await host.locator('[data-quick-hear]').first().click();
 assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.examples[0][0],lang:locale});
 await host.locator('#quick-recall').click();
@@ -51,6 +64,6 @@ if(file==='translator.html')await page.evaluate(()=>openView('home-view'));
 else await page.locator('.bottom-nav [data-open="home-view"]').click();
 assert.equal(await page.evaluate(()=>HablaQuickLessons.isProtected()),false);
 assert.deepEqual(errors,[]);
-await context.close();console.log(`${file} ${width}px: three goals, all topics/scenes, audio locales, recall, stable mic prompt, language changes, navigation passed`);
+await context.close();console.log(`${file} ${width}px: three goals, four topics, grammar challenges, audio locales, recall, stable mic prompt, language changes, navigation passed`);
 }}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});

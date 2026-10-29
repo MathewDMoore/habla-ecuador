@@ -1067,3 +1067,17 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
   font-size: 13px;
   font-weight: 850;
 }
+
+/* Short spoken-grammar exercise: large tap targets and readable explanations. */
+.quick-grammar-check { margin:16px 0; padding:14px; border:1px solid #c9dccc; border-radius:16px; background:#f1f8f1; }
+.quick-grammar-check h3 { margin:0 0 8px; color:#173f35; font-size:17px; }
+#quick-grammar-prompt { margin:8px 0 14px; font-weight:800; font-size:clamp(17px,5vw,21px); line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+#quick-grammar-choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.quick-grammar-choice { min-height:48px; padding:10px 8px; border:1.5px solid #abc5af; background:white; color:#173f35; border-radius:12px; font-size:15px; font-weight:800; overflow-wrap:anywhere; }
+.quick-grammar-choice[aria-pressed="true"] { border-color:#317957; box-shadow:inset 0 0 0 1px #317957; }
+.quick-grammar-choice.is-correct { background:#d4efdc; }
+.quick-grammar-choice.is-incorrect { background:#ffefdf; border-color:#b66d3f; }
+.quick-grammar-choice:focus-visible { outline:3px solid #ecad4e; outline-offset:2px; }
+#quick-grammar-feedback { min-height:1.7em; margin:10px 0 0; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
+#quick-grammar-feedback[data-correct="true"] { font-weight:700; color:#18543c; }
+@media(max-width:335px){.quick-grammar-choices { gap:7px; }.quick-grammar-choice { font-size:13px; }}
