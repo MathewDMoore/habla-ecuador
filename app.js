@@ -3527,7 +3527,7 @@ function applySlangMeaning(choice) {
    Never send Spanish text through an English-to-Spanish machine translation route. */
 function translationInputLanguageMismatch(text) {
   if (!text || translationPurpose === "academic" || documentImportActive || musicListening || musicTranscriptReview) return null;
-  const words = text.match(/[\\p{L}\\p{M}]+/gu) || [];
+  const words = text.match(/[\p{L}\p{M}]+/gu) || [];
   if (words.length < 4) return null; // Do not guess the language of short or ambiguous phrases.
   const family = languageFamily(sourceLanguage);
   const expectedRole = family === "es" ? "spanish" : "english";
