@@ -102,6 +102,24 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  await page.locator('#conversation-text-speaker').selectOption('english::Mathew');
  await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth,{},{timeout:2000});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'long person and language labels fit the screen');
+ await page.locator('[data-mode="translate"]').tap();
+ const original='  ¿Qué haces?\n\n¡Hola! 😁  ',translated='What are you doing?\n\nHello! 😁';
+ await page.evaluate(({original,translated})=>{
+  sourceLanguage='es-EC';targetLanguage='en-US';syncLanguagePair();
+  document.querySelector('#translator-input').value=original;
+  setEditableTranslation(original.trim(),translated);
+  document.querySelector('#translation-result').hidden=false;
+ },{original,translated});
+ const requests=[];page.on('request',r=>requests.push(r.url()));
+ for(let repeat=0;repeat<3;repeat++){
+  await page.locator('#swap-button').tap();
+  assert.equal(await page.locator('#translator-input').inputValue(),translated);
+  assert.equal(await page.locator('#natural-result').textContent(),original);
+  await page.locator('#swap-button').tap();
+  assert.equal(await page.locator('#translator-input').inputValue(),original);
+  assert.equal(await page.locator('#natural-result').textContent(),translated);
+ }
+ assert.ok(!requests.some(url=>/mymemory|translate.google/.test(url)),'flipping completed pairs makes no translation request');
  assert.deepEqual(errors,[]);
  await context.close();console.log(`${engine} ${file} ${width}px: Mathew/Mateo/Ayssel, both person slots, Spanish/English microphone settings, independent country and reload passed`);
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

@@ -15,11 +15,11 @@ for(const selector of ["#home-title",".language-picker-row","#translator-input",
 for(const file of ["index.html","translator.html"]){
  const html=fs.readFileSync(file,"utf8");
  assert.ok(html.includes('data-tutorial-open'));
- assert.ok(html.includes('tutorial.js?v=167'),"tour ships on both entry pages");
+ assert.ok(html.includes('tutorial.js?v=168'),"tour ships on both entry pages");
  assert.ok(!html.includes('id="tutorial-overlay"'),"not inserted until needed");
 }
 const sw=fs.readFileSync("sw.js","utf8");
-assert.ok(sw.includes('"tutorial.js?v=167"'),"tutorial remains available offline in app cache");
+assert.ok(sw.includes('"tutorial.js?v=168"'),"tutorial remains available offline in app cache");
 const app=fs.readFileSync("app.js","utf8");
 assert.ok(app.includes('HablaTutorial.bind({navigate:openView,launchQuery})'));
 assert.ok(app.includes("HablaTutorial.isOpen()"));
