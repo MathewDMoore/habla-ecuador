@@ -921,3 +921,6 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .full-reader-status {color:#53645b;font-size:13px;line-height:1.4;}
 @media(min-width:780px){.full-text-reader {height:min(94dvh,900px);max-height:94dvh;border-radius:20px;}}
 @media(prefers-reduced-motion:reduce){.full-text-reader,.full-reader-source{scroll-behavior:auto;animation:none;transition:none;}}
+
+.lesson-tutorial-button { display:inline-flex;justify-content:center;align-items:center;min-height:44px;max-width:100%;padding:10px 13px;margin:8px 0 12px;border:1px solid #b5d4c2;border-radius:12px;background:#e6f3eb;color:#173f35;font-size:13px;font-weight:850;white-space:normal;text-align:center; }
+.lesson-tutorial-button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
