@@ -26,7 +26,7 @@ const STEPS=[
  {view:"lesson-view",target:"#quick-lessons",symbol:"📚",en:"Open a short lesson",es:"Abre una lección corta",
   body:"Open Short lessons to learn one useful idea at a time. Choose a topic, listen to the example, and try the exercise.",
   esp:"Abre Lecciones cortas para aprender una idea útil a la vez. Elige un tema, escucha el ejemplo y prueba el ejercicio."},
- {view:"lesson-view",target:"#lesson-content",symbol:"🎯",en:"Listen, respond, and review",es:"Escucha, responde y revisa",
+ {view:"lesson-view",target:"#lesson-title",symbol:"🎯",en:"Listen, respond, and review",es:"Escucha, responde y revisa",
   body:"Follow each activity's instructions. Listen, select or speak your response, and review the feedback. Retry when you need more practice.",
   esp:"Sigue las instrucciones de cada actividad. Escucha, selecciona o di tu respuesta y revisa los comentarios. Vuelve a intentarlo cuando necesites más práctica."},
  {view:"music-view",target:"#music-song-lesson h2",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
