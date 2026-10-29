@@ -12,7 +12,7 @@ for(const step of STEPS){
 }
 const ids=STEPS.map(s=>s.target);
 for(const selector of ["#home-title",".language-picker-row","#translator-input","#input-mic",
- "#regional-slang-search","#lesson-language","#music-song-lesson h2",".feedback-open"])
+ "#regional-slang-search","#lesson-language","#quick-lessons","#lesson-title","#music-song-lesson h2",".feedback-open"])
  assert.ok(ids.includes(selector));
 for(const file of ["index.html","translator.html"]){
  const html=fs.readFileSync(file,"utf8");
