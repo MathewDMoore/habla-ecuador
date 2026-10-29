@@ -1081,3 +1081,6 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #quick-grammar-feedback { min-height:1.7em; margin:10px 0 0; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
 #quick-grammar-feedback[data-correct="true"] { font-weight:700; color:#18543c; }
 @media(max-width:335px){.quick-grammar-choices { gap:7px; }.quick-grammar-choice { font-size:13px; }}
+
+.lesson-tutorial-button { display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:10px 14px;margin:8px 0 12px;border:1px solid #b5d4c2;border-radius:12px;background:#e6f3eb;color:#173f35;font-size:13px;font-weight:850;white-space:normal;text-align:center; }
+.lesson-tutorial-button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
