@@ -134,7 +134,7 @@ async function run(browser,file,width,height=844){
  await highlightFits(page,'#quick-lessons');
  await tap(page,'#tutorial-next');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Listen, respond, and review');
- await highlightFits(page,'#lesson-content');
+ await highlightFits(page,'#lesson-title');
  if(file==='index.html'){
   await tap(page,'#tutorial-next');
   assert.equal(await page.locator('#tutorial-title').textContent(),'Learn through music');
