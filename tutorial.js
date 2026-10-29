@@ -23,6 +23,12 @@ const STEPS=[
  {view:"lesson-view",target:"#lesson-language",symbol:"🗣️",en:"Practice speaking and listening",es:"Practica la expresión oral y la escucha",
   body:"Choose the language you want to learn, then try short listening and speaking activities. Review what the phone understood.",
   esp:"Elige el idioma que quieres aprender y prueba actividades breves de escucha y conversación. Revisa lo que entendió el teléfono."},
+ {view:"lesson-view",target:"#quick-lessons",symbol:"📚",en:"Explore short lessons",es:"Explora las lecciones cortas",
+  body:"Open Short lessons to practice one useful expression at a time. Choose a lesson, listen to the example and try the activity.",
+  esp:"Abre Lecciones cortas para practicar una expresión útil a la vez. Elige una lección, escucha el ejemplo y prueba la actividad."},
+ {view:"lesson-view",target:"#lesson-content",symbol:"🎯",en:"Answer, listen and try again",es:"Responde, escucha y vuelve a intentar",
+  body:"Follow the instructions in each activity. Listen, choose or say your answer, then review the feedback. You can try again without losing your progress.",
+  esp:"Sigue las instrucciones de cada actividad. Escucha, elige o di tu respuesta y revisa los comentarios. Puedes intentarlo de nuevo sin perder tu progreso."},
  {view:"music-view",target:"#open-music-tracks",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
   body:"Explore Music for listening, pronunciation, rhythm and culture. Available recordings and translation options may vary.",
   esp:"Explora Música para practicar la escucha, la pronunciación, el ritmo y la cultura. Las grabaciones y opciones de traducción pueden variar."},
@@ -106,9 +112,12 @@ function render(){
  $("#tutorial-next").focus({preventScroll:true});
 }
 function move(n){if(active){index=Math.max(0,Math.min(steps.length-1,index+n));render();}}
-function open(opener){
+function open(opener,mode="full"){
  if(active)return;
- make();steps=STEPS.filter(s=>!s.fullOnly||Boolean($("#music-view")));
+ make();
+ steps=mode==="lessons"
+  ? STEPS.filter(s=>s.view==="lesson-view")
+  : STEPS.filter(s=>!s.fullOnly||Boolean($("#music-view")));
  index=0;active=true;
  trigger=opener&&opener.isConnected?opener:document.activeElement;
  previousView=$(".view.active")?.id||"home-view";
@@ -134,6 +143,7 @@ function keyboard(event){
 function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
  document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
+ document.querySelectorAll("button[data-lesson-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b,"lessons")));
  document.addEventListener("keydown",keyboard);
  window.addEventListener("resize",spotlight);
  window.addEventListener("scroll",spotlight,{passive:true});
@@ -142,7 +152,7 @@ function bind({navigate:route,launchQuery}={}){
  const params=launchQuery||new URLSearchParams(location.search);
  if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
 }
-const api={bind,open,close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
+const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,api};
 root.HablaTutorial=api;
 })(typeof window==="object"?window:globalThis);
