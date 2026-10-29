@@ -32,12 +32,12 @@ if(lesson.checks){
  assert.equal(await host.locator('#quick-grammar-prompt').textContent(),question.prompt,'new question for each speaking situation');
  assert.equal(await host.locator('[data-quick-answer]').count(),4,'every expression is available');
  const wrong=question.options.find(option=>option!==question.answer);
- await host.locator('[data-quick-answer]').filter({hasText:wrong}).click();
+ await host.locator('[data-quick-answer="'+wrong+'"]').click();
  assert.equal(await host.locator('#quick-grammar-feedback').getAttribute('data-correct'),'false');
- await host.locator('[data-quick-answer]').filter({hasText:question.answer}).click();
+ await host.locator('[data-quick-answer="'+question.answer+'"]').click();
  assert.equal(await host.locator('#quick-grammar-feedback').getAttribute('data-correct'),'true');
  assert.match(await host.locator('#quick-grammar-feedback').textContent(),/Correct|Correcto/);
- const choice=host.locator('[data-quick-answer]').filter({hasText:question.answer});
+ const choice=host.locator('[data-quick-answer="'+question.answer+'"]');
  assert.equal(await choice.getAttribute('aria-pressed'),'true');
 }
 await host.locator('[data-quick-hear]').first().click();
