@@ -1043,3 +1043,27 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .about-action,.about-repository { display:inline-block; margin-top:15px; min-height:44px; padding:12px 16px; border:0; border-radius:13px; background:var(--mint); color:var(--green); font-size:13px; font-weight:850; text-decoration:none; }
 .about-signoff { margin:24px 10px; color:var(--green-2); font-size:13px; text-align:center; font-style:italic; line-height:1.6; }
 @media (max-width:370px) { .about-hero { gap:12px; padding:13px; } .about-hero img { width:76px; height:76px; } .about-hero h2 { font-size:19px; } }
+
+
+/* Guard against translating text in the wrong selected source language. */
+.source-language-warning {
+  margin: 10px 0 14px;
+  padding: 13px 15px;
+  border: 1px solid #deb870;
+  border-radius: 16px;
+  background: #fff4db;
+  color: #59401a;
+}
+.source-language-warning[hidden] { display: none !important; }
+.source-language-warning p { margin: 0 0 11px; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.source-language-warning button {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 13px;
+  border: 1px solid #bd994e;
+  border-radius: 12px;
+  background: white;
+  color: #463513;
+  font-size: 13px;
+  font-weight: 850;
+}
