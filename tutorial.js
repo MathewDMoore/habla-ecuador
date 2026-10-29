@@ -23,6 +23,12 @@ const STEPS=[
  {view:"lesson-view",target:"#lesson-language",symbol:"🗣️",en:"Practice speaking and listening",es:"Practica la expresión oral y la escucha",
   body:"Choose the language you want to learn, then try short listening and speaking activities. Review what the phone understood.",
   esp:"Elige el idioma que quieres aprender y prueba actividades breves de escucha y conversación. Revisa lo que entendió el teléfono."},
+ {view:"lesson-view",target:"#quick-lessons",symbol:"📚",en:"Open a short lesson",es:"Abre una lección corta",
+  body:"Open Short lessons to learn one useful idea at a time. Choose a topic, listen to the example, and try the exercise.",
+  esp:"Abre Lecciones cortas para aprender una idea útil a la vez. Elige un tema, escucha el ejemplo y prueba el ejercicio."},
+ {view:"lesson-view",target:"#lesson-title",symbol:"🎯",en:"Listen, respond, and review",es:"Escucha, responde y revisa",
+  body:"Follow each activity's instructions. Listen, select or speak your response, and review the feedback. Retry when you need more practice.",
+  esp:"Sigue las instrucciones de cada actividad. Escucha, selecciona o di tu respuesta y revisa los comentarios. Vuelve a intentarlo cuando necesites más práctica."},
  {view:"music-view",target:"#music-song-lesson h2",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
   body:"Explore Music for listening, pronunciation, rhythm and culture. Available recordings and translation options may vary.",
   esp:"Explora Música para practicar la escucha, la pronunciación, el ritmo y la cultura. Las grabaciones y opciones de traducción pueden variar."},
@@ -144,9 +150,12 @@ function render(){
  scheduleLayout();
 }
 function move(n){if(active){index=Math.max(0,Math.min(steps.length-1,index+n));render();}}
-function open(opener){
+function open(opener,mode="full"){
  if(active)return;
- make();steps=STEPS.filter(s=>!s.fullOnly||Boolean($("#music-view")));
+ make();
+ steps=mode==="lessons"
+  ? STEPS.filter(s=>s.view==="lesson-view")
+  : STEPS.filter(s=>!s.fullOnly||Boolean($("#music-view")));
  index=0;active=true;
  trigger=opener&&opener.isConnected?opener:document.activeElement;
  previousView=$(".view.active")?.id||"home-view";
@@ -172,6 +181,7 @@ function keyboard(event){
 function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
  document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
+ document.querySelectorAll("button[data-lesson-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b,"lessons")));
  document.addEventListener("keydown",keyboard);
  window.addEventListener("resize",scheduleLayout);
  window.visualViewport?.addEventListener("resize",scheduleLayout);
@@ -181,9 +191,10 @@ function bind({navigate:route,launchQuery}={}){
  // Open the actual walkthrough, not an invitation card, on first launch.
  // A shared ?tour=1 link always reopens it, even after closing before.
  const params=launchQuery||new URLSearchParams(location.search);
- if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
+ if(params.get("tour")==="lessons")open($("button[data-lesson-tutorial-open]"),"lessons");
+ else if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
 }
-const api={bind,open,close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
+const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,api};
 root.HablaTutorial=api;
 })(typeof window==="object"?window:globalThis);

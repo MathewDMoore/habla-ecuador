@@ -70,7 +70,7 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
  assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
- const expected=file==='index.html'?8:7;
+ const expected=file==='index.html'?10:9;
  assert.equal(await page.evaluate(()=>HablaTutorial.count),expected);
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -129,6 +129,12 @@ async function run(browser,file,width,height=844){
  await tap(page,'#tutorial-next');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
  await highlightFits(page,'#lesson-language');
+ await tap(page,'#tutorial-next');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Open a short lesson');
+ await highlightFits(page,'#quick-lessons');
+ await tap(page,'#tutorial-next');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Listen, respond, and review');
+ await highlightFits(page,'#lesson-title');
  if(file==='index.html'){
   await tap(page,'#tutorial-next');
   assert.equal(await page.locator('#tutorial-title').textContent(),'Learn through music');
@@ -143,6 +149,18 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'translation input preserved after tour');
  assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
  assert.equal(await page.locator('#tutorial-invitation').count(),0);
+ if(file==='index.html'){
+  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
+  await page.locator('button[data-lesson-tutorial-open]').click();
+  assert.equal(await page.evaluate(()=>HablaTutorial.count),3,'Practice guide includes three focused lesson steps');
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
+  await tap(page,'#tutorial-next');
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Open a short lesson');
+  await tap(page,'#tutorial-next');
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Listen, respond, and review');
+  await tap(page,'#tutorial-close');
+  assert.equal(await page.locator('#lesson-view').evaluate(el=>el.classList.contains('active')),true,'returns to Practice');
+ }
  await page.locator('button[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'Help reopens after finishing');
  await page.keyboard.press('Escape');
@@ -152,6 +170,11 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'tour=1 opens on demand');
  await tap(page,'#tutorial-skip');
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
+ await page.goto(origin+'/habla-ecuador/'+file+'?tour=lessons');
+ assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'lessons direct link opens mini-guide');
+ assert.equal(await page.evaluate(()=>HablaTutorial.count),3);
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
+ await tap(page,'#tutorial-close');
  assert.deepEqual(errors,[],'no JavaScript exceptions');
  await context.close();
  console.log(file+' '+width+'x'+height+'px: first-launch auto-open/Close, legacy migration, no repeat, bilingual steps, routes, restore, reopen, Escape and direct link passed');
