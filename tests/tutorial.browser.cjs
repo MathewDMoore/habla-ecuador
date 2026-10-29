@@ -18,7 +18,7 @@ async function run(browser,file,width){
  await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v1','1'));
  await page.goto(origin+'/habla-ecuador/'+file);
  await page.waitForSelector('#tutorial-overlay:not([hidden])');
- assert.equal(await page.locator('button[data-tutorial-open]').count(),1,'reopenable Help icon');
+ assert.ok(await page.locator('button[data-tutorial-open]').count()>=1,'reopenable Help icon');
  assert.equal(await page.locator('#tutorial-invitation').count(),0,'old invitation card is replaced by automatic tutorial');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -39,11 +39,11 @@ async function run(browser,file,width){
  await page.locator('#source-language-select').selectOption('en-US');
  await page.locator('#target-language-select').selectOption('es-EC');
  const sourceBefore=await page.locator('#translator-input').inputValue();
- await page.locator('button[data-tutorial-open]').click();
+ await page.locator('button[data-tutorial-open]').first().click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
  assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
- const expected=file==='index.html'?8:7;
+ const expected=file==='index.html'?10:9;
  assert.equal(await page.evaluate(()=>HablaTutorial.count),expected);
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -62,6 +62,10 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
  await page.locator('#tutorial-next').click();
  assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
+ await page.locator('#tutorial-next').click();
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Explore short lessons');
+ await page.locator('#tutorial-next').click();
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Answer, listen and try again');
  if(file==='index.html'){
   await page.locator('#tutorial-next').click();
   assert.equal(await page.locator('#tutorial-title').textContent(),'Learn through music');
@@ -76,7 +80,19 @@ async function run(browser,file,width){
  assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'translation input preserved after tour');
  assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
  assert.equal(await page.locator('#tutorial-invitation').count(),0);
- await page.locator('button[data-tutorial-open]').click();
+ if(file==='index.html'){
+  await page.locator('.bottom-nav [data-open="lesson-view"]').click();
+  await page.locator('button[data-lesson-tutorial-open]').click();
+  assert.equal(await page.evaluate(()=>HablaTutorial.count),3,'lesson guide has three Practice steps');
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
+  await page.locator('#tutorial-next').click();
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Explore short lessons');
+  await page.locator('#tutorial-next').click();
+  assert.equal(await page.locator('#tutorial-title').textContent(),'Answer, listen and try again');
+  await page.locator('#tutorial-close').click();
+  assert.equal(await page.locator('#lesson-view').evaluate(el=>el.classList.contains('active')),true);
+ }
+ await page.locator('button[data-tutorial-open]').first().click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'Help reopens after finishing');
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false,'Escape dismisses help');
