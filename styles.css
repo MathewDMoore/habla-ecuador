@@ -1014,3 +1014,32 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 
 /* Keep iPhone text-entry focus from zooming the location controls out of view. */
 .speaker-region-editors input,.speaker-region-editors select { font-size:16px; }
+
+
+/* About Habla Ecuador: light, readable project history without disturbing navigation. */
+.version-row { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.about-top-button { min-width:32px; min-height:32px; padding:2px; border:1px solid #d2dfd7; border-radius:50%; color:var(--green); background:white; font-weight:900; font-size:17px; }
+.about-entry { display:flex; align-items:center; gap:12px; width:100%; min-height:48px; margin:20px 0 4px; padding:12px 15px; border:1px solid var(--line); border-radius:15px; background:white; color:var(--green); font-size:14px; font-weight:850; text-align:left; }
+.about-entry span:first-child { font-size:21px; }
+.about-entry span:last-child { margin-left:auto; font-size:21px; }
+.about-hero { display:flex; align-items:center; gap:16px; margin:20px 0 16px; padding:18px; border-radius:24px; background:linear-gradient(140deg,#d4eee3,#fff0c9); }
+.about-hero img { width:96px; height:96px; flex:0 0 auto; border-radius:22px; box-shadow:0 8px 22px rgba(23,63,53,.14); }
+.about-hero h2 { margin:0 0 5px; color:var(--green); font-size:22px; line-height:1.15; }
+.about-hero p { margin:0; color:#3c6255; font-size:13px; line-height:1.4; }
+.about-card { margin:14px 0; padding:19px; border:1px solid var(--line); border-radius:22px; background:white; }
+.about-card h2 { margin:0 0 11px; color:var(--green); font-size:19px; line-height:1.25; }
+.about-card p { margin:0; color:#505d55; font-size:14px; line-height:1.6; }
+.about-timeline { margin:0; padding:0 0 0 22px; list-style:none; border-left:2px solid #d6e4da; }
+.about-timeline li { position:relative; display:grid; gap:4px; margin:0 0 18px; padding-left:14px; color:#505d55; font-size:13px; line-height:1.45; }
+.about-timeline li:last-child { margin-bottom:0; }
+.about-timeline li::before { content:""; position:absolute; left:-29px; top:3px; width:12px; height:12px; border-radius:50%; background:var(--orange); outline:3px solid white; }
+.about-timeline strong { color:var(--ink); font-size:14px; }
+.about-note { margin-top:13px !important; color:var(--muted) !important; font-size:11px !important; }
+.about-details { margin:0; }
+.about-details div { display:flex; justify-content:space-between; align-items:flex-start; gap:13px; padding:10px 0; border-bottom:1px solid #f0ebe5; font-size:13px; }
+.about-details div:last-child { border-bottom:0; }
+.about-details dt { color:var(--muted); flex:1; }
+.about-details dd { margin:0; max-width:60%; text-align:right; overflow-wrap:anywhere; font-weight:800; color:var(--green); }
+.about-action,.about-repository { display:inline-block; margin-top:15px; min-height:44px; padding:12px 16px; border:0; border-radius:13px; background:var(--mint); color:var(--green); font-size:13px; font-weight:850; text-decoration:none; }
+.about-signoff { margin:24px 10px; color:var(--green-2); font-size:13px; text-align:center; font-style:italic; line-height:1.6; }
+@media (max-width:370px) { .about-hero { gap:12px; padding:13px; } .about-hero img { width:76px; height:76px; } .about-hero h2 { font-size:19px; } }
