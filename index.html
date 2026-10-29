@@ -43,7 +43,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.55 · build 165</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.26.55 · build 165</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -92,6 +92,51 @@
           <article><span>🌎</span><div><h2>Regional context</h2><p>Learn how a phrase lands in Ecuador.</p></div></article>
         </div>
         <button class="evidence-link" data-open="dictionary-view">Open the evidence-backed Ecuadorian dictionary →</button>
+        <button type="button" class="about-entry" data-open="about-view"><span aria-hidden="true">ⓘ</span><span>About Habla Ecuador</span><span aria-hidden="true">›</span></button>
+      </section>
+
+      <section id="about-view" class="view" aria-labelledby="about-title">
+        <div class="view-heading">
+          <button type="button" class="back-button" data-open="home-view" aria-label="Back to home">←</button>
+          <div><p class="eyebrow">Our story · Nuestra historia</p><h1 id="about-title">About Habla Ecuador</h1></div>
+        </div>
+        <div class="about-hero">
+          <img src="app-icon.svg" alt="Habla Ecuador: sunrise, mountains and Ecuadorian colors" width="108" height="108">
+          <div><h2>Habla Ecuador 🇪🇨</h2><p>Language, culture &amp; connection.</p></div>
+        </div>
+        <article class="about-card">
+          <h2>Our mission</h2>
+          <p>Learn to speak with people, not just translate words. Ecuadorian Spanish comes first, with room for Bolivia, Venezuela, Cuba, Mexico, other regional varieties, and U.S. / U.K. English.</p>
+        </article>
+        <article class="about-card">
+          <h2>Development timeline</h2>
+          <ol class="about-timeline">
+            <li><strong>August 31, 2026</strong><span>Development began, according to the project's early notes.</span></li>
+            <li><strong>September 25, 2026</strong><span>The Habla Ecuador GitHub repository was created.</span></li>
+            <li><strong>October 2026</strong><span>Expanded iPhone translation, listening, speaking practice and regional language tools.</span></li>
+          </ol>
+          <p class="about-note">Milestones describe project history, not an App Store release date.</p>
+        </article>
+        <article class="about-card">
+          <h2>App information</h2>
+          <dl class="about-details">
+            <div><dt>Web version &amp; build</dt><dd data-app-version>Loading…</dd></div>
+            <div><dt>Developer</dt><dd>Mathew D. Moore</dd></div>
+            <div><dt>iPhone companion</dt><dd>Native version and build are set separately in Xcode</dd></div>
+          </dl>
+          <p class="about-note">The same live web version and build also remain visible on the Home Screen.</p>
+        </article>
+        <article class="about-card">
+          <h2>What's new</h2>
+          <p>See the current update status and check for web updates from Home → App updates.</p>
+          <button type="button" class="about-action" data-open="home-view">Return to Home</button>
+        </article>
+        <article class="about-card">
+          <h2>Acknowledgments</h2>
+          <p>With gratitude to the speakers, friends, testers and communities helping Habla Ecuador reflect real language and culture. Regional contributions are reviewed, never assumed.</p>
+          <a class="about-repository" href="https://github.com/MathewDMoore/habla-ecuador" target="_blank" rel="noopener noreferrer">Project on GitHub</a>
+        </article>
+        <p class="about-signoff">Different words. Shared understanding. Keep the conversation going. 🌱</p>
       </section>
 
       <section id="music-view" class="view" aria-labelledby="music-title">
