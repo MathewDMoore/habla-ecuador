@@ -47,12 +47,23 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  assert.equal(run('targetLanguage'),'en-US');
  assert.equal(select('#translator-input').value,original);
  assert.equal(run('translationInputLanguageMismatch('+JSON.stringify(original)+')'),null);
- // A perfectly valid completed machine translation must NOT become the next
- // source on swap. The original typed sentence remains untouched.
- run('lastCompletedTranslation={source:'+JSON.stringify(original)+',target:"Sorry if I am late.",sourceLanguage:"es-CU",targetLanguage:"en-US"}');
+ // Completed pairs switch together and round-trip verbatim without a service call.
+ const raw="  ¿Qué haces?\n\n¡Hola! 😁  ";
+ select('#translator-input').value=raw;
+ run('setEditableTranslation('+JSON.stringify(raw.trim())+',"What are you doing?\\n\\nHello! 😁");');
+ select('#translation-result').hidden=false;
+ const english=select('#natural-result').textContent;
  run('swapDirection()');
  assert.equal(run('sourceLanguage'),'en-US');
- assert.equal(run('targetLanguage'),'es-CU');
- assert.equal(select('#translator-input').value,original,'reversing must retain the actual source, not translation output');
- assert.equal(run('translationInputLanguageMismatch('+JSON.stringify(original)+')'),'es');
+ assert.equal(select('#translator-input').value,english);
+ assert.equal(select('#natural-result').textContent,raw);
+ run('swapDirection()');
+ assert.equal(run('sourceLanguage'),'es-CU');
+ assert.equal(select('#translator-input').value,raw);
+ assert.equal(select('#natural-result').textContent,english);
+ // An edited source invalidates the old pair; never promote its stale translation.
+ select('#translator-input').value='New text';
+ run('swapDirection()');
+ assert.equal(select('#translator-input').value,'New text');
+ assert.equal(select('#translation-result').hidden,true);
 });

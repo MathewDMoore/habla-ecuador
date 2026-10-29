@@ -34,7 +34,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.57 · build 167";
+const APP_VERSION = "0.26.58 · build 168";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3381,7 +3381,7 @@ function setEditableTranslation(source, generated, metadata={}) {
   const result = $("#natural-result");
   const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
-  const target = metadata.documentDraft ? generated : savedText || generated;
+  const target = (metadata.documentDraft || metadata.swapPair) ? generated : savedText || generated;
   if ($("#compare-english")) $("#compare-english").disabled = languageFamily(targetLanguage) !== "en";
   result.textContent = target;
   result.setAttribute("contenteditable", "true");
@@ -4048,14 +4048,37 @@ function setTranslationPurpose(purpose, rerender=true) {
 function swapDirection() {
   cancelMusicListening();
   saveActiveTranslationEdit();
-  // Only change direction. The user's source words are never overwritten by
-  // a machine-generated translation, even when a prior request succeeded.
-  translationRequest += 1;
+  const input=$("#translator-input"), completed=lastCompletedTranslation;
+  const paired=activeTranslationEdit && completed && !$("#translation-result").hidden
+    && completed.source===input.value.trim()
+    && completed.sourceLanguage===sourceLanguage && completed.targetLanguage===targetLanguage
+    && completed.purpose===translationPurpose;
+  const original=input.value, translated=$("#natural-result").textContent;
+  clearTimeout(translationTimer);
+  translationRequest += 1; // Late responses from the old direction cannot replace the pair.
   [sourceLanguage,targetLanguage] = [targetLanguage,sourceLanguage];
   preservedCulturalContext = null;
   syncLanguagePair();
   setTranslationPurpose(translationPurpose,false);
-  renderTranslation();
+  showTranslationLanguageWarning(null);
+  if(paired && translated.trim()) {
+    input.value=translated;
+    setEditableTranslation(translated.trim(),original,{swapPair:true});
+    $("#translation-result").hidden=false;
+    $("#no-result").hidden=true;
+    $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+" · preserved text / texto conservado";
+    $("#literal-result").textContent="Original text preserved / Texto original conservado";
+    $("#usage-note").textContent="The completed text pair was switched without retranslating. / Se intercambió el par de textos sin volver a traducir.";
+    if($("#english-comparison"))$("#english-comparison").hidden=true;
+  } else {
+    // Before a translation completes, only the language selectors can switch.
+    // Do not submit unchanged text under the opposite source language.
+    lastCompletedTranslation=null;activeTranslationEdit=null;
+    $("#translation-result").hidden=true;
+    $("#natural-result").removeAttribute("contenteditable");
+    updateTranslationEditUi();
+    if(input.value.trim())showToast("Languages switched. Check the source language before translating. / Idiomas cambiados. Revisa el idioma de origen antes de traducir.");
+  }
 }
 
 function setMode(mode) {
@@ -5625,7 +5648,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=167", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=168", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
