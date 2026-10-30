@@ -3,7 +3,7 @@
 (function(root){
 "use strict";
 let dialog=null,source=null,target=null,sourceButton=null,targetButton=null,opener=null,bound=false;
-let writingTarget=false,watching=null,copyField=null,copyGeneration=0;
+let writingTarget=false,watching=null,copyField=null,copyGeneration=0,inlineSignature="";
 function clearCopy(){copyGeneration++;if(copyField){copyField.value="";copyField.hidden=true;}}
 const $=s=>document.querySelector(s);
 function element(tag,id,className="",text=""){
@@ -22,6 +22,8 @@ function resizeInput(){
  source.style.height=Math.max(96,Math.min(source.scrollHeight+4,120000))+"px";
 }
 function syncTarget(){
+ resizeMainInput();
+ syncInlineAlternatives();
  if(!dialog?.open||writingTarget)return;
  const original=$("#natural-result"),result=$("#full-reader-result");
  if(!original||!result)return;
@@ -92,11 +94,12 @@ function open(focusSection="source",button=null){
 function copy(value,button){
  if(!value)return;
  clearCopy();
- const token=copyGeneration,old=button.textContent;
+ const token=copyGeneration,old=button.textContent,inReader=dialog.contains(button);
  function report(ok){
-  if(token!==copyGeneration||!dialog.open)return;
+  if(token!==copyGeneration||(inReader&&!dialog.open))return;
   button.textContent=ok?"Copied / Copiado":"Select to copy / Selecciona para copiar";
   if(!ok){
+   button.parentElement.after(copyField);
    copyField.hidden=false;copyField.value=value;
    copyField.focus();copyField.select();copyField.setSelectionRange(0,value.length);
   }
@@ -108,13 +111,15 @@ function copy(value,button){
  } catch {report(false);}
 }
 
-function refreshAlternatives(){
- const box=$("#full-reader-alternatives-list");if(!box)return;
+function refreshAlternatives(box=$("#full-reader-alternatives-list")){
+ if(!box)return;
  box.replaceChildren();
  const choices=typeof window.translationWordingAlternatives==="function" ? window.translationWordingAlternatives() : [];
  const compare=$("#compare-english");
  if(compare && !compare.disabled){
+  const comparison=$("#english-comparison"),wasHidden=comparison?.hidden;
   compare.click();
+  if(box.id==="inline-alternatives-list" && wasHidden && comparison)comparison.hidden=true;
   const note=$("#comparison-notes")?.textContent.trim()||"Regional English wording; review in context. / Variante regional del inglés; revisa el contexto.";
   for(const variant of ["us","uk"]){const text=$("#comparison-"+variant)?.value;
    if(text && text!==$("#natural-result").textContent && !choices.some(c=>c.text===text))choices.push({text,label:variant==="us"?"U.S. English / Inglés estadounidense":"U.K. English / Inglés británico",note});
@@ -137,12 +142,43 @@ function refreshAlternatives(){
   actions.append(hear,copyButton,use);card.append(summary,label,note,actions);box.append(card);
  }
  if(choices.length){
-  const toggle=makeButton("Collapse all / Contraer todas","full-reader-alternatives-toggle");
+  const toggle=makeButton("Collapse all / Contraer todas",box.id+"-toggle");
   toggle.addEventListener("click",()=>{
    const cards=[...box.querySelectorAll(".full-reader-alternative-card")],expand=cards.some(card=>!card.open);
    cards.forEach(card=>card.open=expand);toggle.textContent=expand?"Collapse all / Contraer todas":"Expand all / Ampliar todas";
   });box.prepend(toggle);
  } else box.append(element("p",null,"","No additional wording available for this draft. / No hay variantes adicionales para este texto."));
+}
+
+
+function resizeMainInput(){
+ const input=$("#translator-input");if(!input)return;
+ input.style.height="auto";
+ input.style.height=Math.max(96,Math.min(input.scrollHeight+4,120000))+"px";
+}
+function syncInlineAlternatives(){
+ const panel=$("#inline-translation-alternatives");
+ if(!panel)return;
+ const live=$("#natural-result");
+ const editable=!$("#translation-result")?.hidden && live?.getAttribute("contenteditable")==="true";
+ const signature=JSON.stringify([editable,live?.textContent,$("#translator-input")?.value,$("#source-language-select")?.value,$("#target-language-select")?.value]);
+ if(signature===inlineSignature)return;
+ inlineSignature=signature;
+ if(panel.hidden===editable)panel.hidden=!editable;
+ if(editable && panel.open)refreshAlternatives($("#inline-alternatives-list"));
+}
+function makeInlineAlternatives(){
+ const panel=element("details","inline-translation-alternatives");
+ panel.hidden=true;panel.className="inline-translation-alternatives";
+ const summary=element("summary",null,"","Alternatives / Alternativas");
+ summary.setAttribute("aria-label","Show alternative translations / Mostrar traducciones alternativas");
+ const list=element("div","inline-alternatives-list");
+ panel.append(summary,list);
+ panel.addEventListener("toggle",()=>{if(panel.open)refreshAlternatives(list);});
+ $("#translation-result .result-actions").after(panel);
+ const speed=$("#translation-result .result-speed-control");
+ const notes=$("#translation-result .result-notes");
+ if(speed && notes)notes.append(speed);
 }
 
 function make(){
@@ -251,6 +287,10 @@ function bind(){
  const editor=$("#translator-input"),tools=$("#translation-text-tools");
  if(!editor||!tools)return;
  make();
+ makeInlineAlternatives();
+ editor.addEventListener("input",resizeMainInput);
+ resizeMainInput();
+ syncInlineAlternatives();
  sourceButton=makeButton("Expand source / Ampliar original","source-full-text");
  sourceButton.setAttribute("aria-haspopup","dialog");
  sourceButton.setAttribute("aria-controls","full-text-reader");

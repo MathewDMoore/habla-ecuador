@@ -1272,3 +1272,35 @@ body.ve-theater-open {overflow:hidden !important;}
  .ve-in-video-switch select {max-width:132px; font-size:.82rem; min-height:41px;}
  .ve-video-box > .ve-caption-overlay:not([hidden]) {bottom:30px; font-size:var(--ve-overlay-font,1.4rem);}
 }
+
+/* Compact translation flow. The reverse stays in the sticky language row,
+   outside every expandable alternative, in both the main and full reader. */
+#translate-panel {overflow:visible;}
+#translate-panel > .language-picker-row {top:env(safe-area-inset-top,0px);z-index:30;margin:0;padding:10px 0;border-bottom:1px solid var(--line);box-shadow:0 3px 8px #173f3510;}
+#shared-translation-workspace {overflow:visible;border:0;border-radius:0;background:transparent;}
+#shared-translation-workspace > .input-card {padding:12px 0;background:transparent;}
+#shared-translation-workspace > .input-card textarea {height:96px;min-height:96px;max-height:none;line-height:1.4;font-size:24px;}
+#shared-translation-workspace > .result-card {padding:14px 0;background:transparent;color:var(--ink);border-top:2px solid #6da68f;}
+#shared-translation-workspace > #translation-result > #natural-result {max-height:none;overflow:visible;font-size:var(--translation-text-size,24px);line-height:1.4;color:var(--green);white-space:pre-wrap;}
+#translation-result .result-label {color:var(--muted);font-size:12px;letter-spacing:.04em;}
+#translation-result .translation-text-tools,#translation-result .result-actions {gap:6px;flex-wrap:wrap;}
+#translation-result .translation-text-tools button,#translation-result .result-actions button,#source-full-text,#translator-mic-add {min-height:44px;padding:8px 10px;font-size:13px;border:1px solid #b4d1c0;border-radius:10px;background:transparent;color:var(--green);}
+#translation-result .translation-edit-status {color:var(--muted);}
+#translation-result .result-notes {color:var(--ink);}
+.inline-translation-alternatives {margin:12px 0;border:1px solid #89ae9e;border-radius:14px;padding:0 12px;color:var(--ink);background:white;}
+.inline-translation-alternatives > summary {cursor:pointer;min-height:48px;padding:13px 0;font-size:15px;font-weight:750;color:var(--green);}
+#inline-alternatives-list {display:grid;gap:10px;padding-bottom:12px;overflow-wrap:anywhere;}
+#inline-alternatives-list > button {min-height:44px;justify-self:end;border:0;background:transparent;color:var(--green);font-size:13px;}
+.inline-translation-alternatives .full-reader-alternative-card {border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0;}
+.inline-translation-alternatives .full-reader-alternative-card > summary {font-size:22px;line-height:1.4;color:var(--green);white-space:pre-wrap;overflow-wrap:anywhere;}
+.inline-translation-alternatives .full-reader-alternative-card > strong {font-size:13px;}
+.inline-translation-alternatives .full-reader-alternative-card > p {font-size:14px;line-height:1.5;color:var(--muted);}
+.full-reader-jumps {top:0;z-index:30;box-shadow:0 3px 8px #173f3510;}
+#full-reader-reverse,#swap-button {position:relative;min-width:44px;min-height:44px;touch-action:manipulation;}
+
+#translation-result .result-speed-control {border-color:var(--line);background:var(--mint);}
+#translation-result .result-speed-control .speed-control-heading label,
+#translation-result .result-speed-control .speed-control-heading output,
+#translation-result .result-speed-control .speed-slider-row {color:var(--green);}
+#translation-result .translation-text-options > summary {border:1px solid #b4d1c0;background:transparent;color:var(--green);}
+#translation-result .result-actions {margin:8px 0;}

@@ -1,4 +1,5 @@
 const phrases = [
+  { en:"Spanish is very beneficial for business.", es:"El español es muy beneficioso para los negocios.", natural:"El español es muy útil para los negocios.", note:"Neutral wording suitable in Ecuador and elsewhere. / Expresión neutra válida en Ecuador y otros países.", register:"Everyday · business", keys:["espanol es muy beneficioso para negocios","el espanol es muy beneficioso para los negocios","spanish is very beneficial for business"], alternatives:{en:[{text:"Spanish is very useful in business.",label:"Natural phrasing / Uso natural",note:"An everyday way to express the practical benefit. / Una forma cotidiana de expresar la utilidad práctica."},{text:"Spanish offers substantial benefits in business.",label:"Formal / Formal",note:"Suitable for professional writing. / Adecuada para textos profesionales."}],es:[{text:"El español ofrece grandes beneficios en los negocios.",label:"Formal / Formal",note:"Una alternativa para contextos profesionales. / An alternative for professional contexts."}] } },
   { en:"How are you?", us:"How are you? / How's it going?", uk:"How are you? / You alright?", es:"¿Cómo estás?", natural:"¿Cómo estás? / ¿Qué tal?", note:"Both sound natural in Ecuador. ¿Qué tal? is relaxed and conversational.", register:"Friendly · everyday", keys:["como estas","que tal"] },
   { en:"Maybe another time.", es:"Tal vez en otra ocasión.", natural:"Quizás otro día.", note:"Quizás otro día is the warmer everyday option when declining without sounding final.", register:"Friendly · neutral Ecuador", keys:["tal vez otra vez","talvez un otra vez","quizas otro dia"] },
   { en:"What happened?", us:"What happened? / What's going on?", uk:"What happened? / What's going on?", es:"¿Qué pasó?", natural:"¿Qué pasó? / ¿Qué fue?", note:"¿Qué pasó? works everywhere. ¿Qué fue? is much more informal and depends on the relationship.", register:"Everyday · informal alternative", keys:["que paso","que fue"] },
@@ -34,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.72 · build 182";
+const APP_VERSION = "0.26.73 · build 183";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3172,8 +3173,8 @@ function bindTranslationTextTools() {
   if (!tools || !draft || tools.dataset.bound) return;
   tools.dataset.bound = "true";
   // The installed companion puts unknown result children in its notes dropdown.
-  // Move only these new controls back beside the same editable translation.
-  draft.before(tools);
+  // Keep the editable translation first, then its compact controls.
+  draft.after(tools);
   // Recover hosted controls from the installed companion's collapsed notes.
   tools.after($("#translation-copy-status"),$("#translation-copy-fallback"));
   $("#copy-result").addEventListener("click",()=>copyTranslation());
@@ -4098,11 +4099,11 @@ function translationWordingAlternatives() {
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
   const phrase=localRoute ? matchPhrase(completed.source) : null;
   if(!phrase)return [];
-  const choices=languageFamily(targetLanguage)==="es"
+  const choices=phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},
-       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}];
+       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]);
   const seen=new Set([$("#natural-result").textContent.trim()]);
   return choices.flatMap(choice=>typeof choice.text==="string" ? choice.text.split(" / ").map(text=>({...choice,text:text.trim()})) : [])
     .filter(choice=>choice.text && !seen.has(choice.text) && seen.add(choice.text));
@@ -5721,7 +5722,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=182", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=183", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
