@@ -1135,3 +1135,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .ve-source-actions button { background:#e6efe7; color:#15422e; border-color:#b0c8b6; }
 .ve-source-actions input[type=file] { display:block; grid-column:1 / -1; width:100%; min-width:0; font-size:.8rem; color:#e5efe3; background:transparent; }
 @media(max-width:410px){.ve-source-actions{grid-template-columns:1fr;}}
+
+
+/* Translator dictation continuation: visibly separate fresh from add. */
+.translator-mic-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:10px;flex-wrap:wrap}
+.input-card .translator-mic-actions #input-mic{margin:0;position:relative;right:auto;bottom:auto;flex:0 0 44px}
+#translator-mic-add{display:inline-flex;align-items:center;justify-content:center;max-width:calc(100% - 60px);min-height:44px;padding:9px 12px;border:1px solid #a7c4b1;border-radius:12px;background:#e6f3e9;color:#174e3c;font-size:.84rem;font-weight:750;line-height:1.2;white-space:normal;cursor:pointer;touch-action:manipulation}
+#translator-mic-add:focus-visible{outline:3px solid #df9b56;outline-offset:2px}
