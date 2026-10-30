@@ -61,18 +61,26 @@ uk:'I want to make love while gazing at the stars from a viewpoint in a neighbou
 note:'Mirador means lookout/viewpoint. Which Marbella is intended is unconfirmed.'}
 ];
 const id=name=>host.querySelector('#ve-'+name);
-const frame=id('youtube-frame'),caption=id('caption-overlay'),reading=id('caption-reading'),
+const frame=id('youtube-frame'),localVideo=id('local-video'),videoPicker=id('local-file'),
+playerStart=id('player-start'),tryYoutube=id('youtube-try'),
+caption=id('caption-overlay'),reading=id('caption-reading'),
 lang=id('caption-language'),source=id('source-choice'),status=id('video-status'),
 confidence=id('caption-confidence'),timing=id('video-time'),timeLabel=id('video-time-label'),
 offsetInput=id('caption-offset'),offsetLabel=id('offset-value'),passages=id('lyric-comparison'),
 list=id('caption-cue-list');
-let player,ready=false,manual=0,offset=0,last=-2;
+let player,ready=false,manual=0,offset=0,last=-2,sourceMode='none',localUrl=null,youtubeStarted=false;
 const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
-function position(){try{if(ready&&player&&typeof player.getCurrentTime==='function')return Number(player.getCurrentTime())||0;}catch{}return manual;}
+function position(){
+ if(sourceMode==='local')return Number(localVideo.currentTime)||0;
+ if(sourceMode==='youtube'){
+  try{if(ready&&player&&typeof player.getCurrentTime==='function')return Number(player.getCurrentTime())||0;}catch{}
+ }
+ return manual;
+}
 function selectedCue(seconds){return cues.findIndex(c=>seconds>=c[0]&&seconds<c[1]);}
 function draw(force){
  const now=position();timeLabel.textContent=fmt(now);
- if(ready&&document.activeElement!==timing){timing.value=String(Math.round(now));manual=now;}
+ if((sourceMode==='local'||ready)&&document.activeElement!==timing){timing.value=String(Math.round(now));manual=now;}
  const index=selectedCue(now+offset);
  if(index===last&&!force)return;last=index;const cue=cues[index];
  const enabled=lang.value!=='off';
@@ -100,8 +108,13 @@ function renderPassages(){
 }
 function seek(sec){
  manual=sec;timing.value=String(Math.round(sec));
- if(ready&&player&&typeof player.seekTo==='function'){try{player.seekTo(sec,true);}catch{}}
- else status.textContent='YouTube sync unavailable here. Drag the YouTube progress bar to the same time.';
+ if(sourceMode==='local'){
+   try{localVideo.currentTime=Math.min(sec,Number.isFinite(localVideo.duration)?localVideo.duration:sec);}catch{}
+ } else if(sourceMode==='youtube'&&ready&&player&&typeof player.seekTo==='function'){
+   try{player.seekTo(sec,true);}catch{}
+ } else {
+   status.textContent='Manual caption timeline. Choose a saved video to synchronize it here.';
+ }
  draw(true);
 }
 for(let i=0;i<cues.length;i++){
@@ -115,25 +128,90 @@ timing.addEventListener('change',()=>seek(Number(timing.value)));
 offsetInput.addEventListener('input',()=>{offset=Number(offsetInput.value);offsetLabel.textContent=(offset>=0?'+':'')+offset.toFixed(1)+'s';draw(true);});
 id('previous').addEventListener('click',()=>seek(Math.max(0,position()-10)));
 id('next').addEventListener('click',()=>seek(Math.min(188,position()+10)));
+function importLocalVideo(file){
+ if(!file)return;
+ if(!(file.type.startsWith('video/')||/\.(mp4|mov|m4v)$/i.test(file.name))){
+  status.textContent='Choose an MP4, MOV or another supported video file from Photos or Files.';return;
+ }
+ try{
+  const next=root.URL.createObjectURL(file);
+  if(localUrl)root.URL.revokeObjectURL(localUrl);
+  localUrl=next;
+  try{if(ready&&player&&typeof player.pauseVideo==='function')player.pauseVideo();}catch{}
+  sourceMode='local';ready=false;manual=0;last=-2;
+  localVideo.src=localUrl;localVideo.hidden=false;
+  frame.hidden=true;playerStart.hidden=true;caption.hidden=true;
+  status.textContent='Saved video loaded from this device. Tap play; Habla English captions follow the video time. Adjust caption offset if needed.';
+  localVideo.load();
+  draw(true);
+ }catch(e){
+  status.textContent='Could not open that video on this device. Please choose a playable MP4 or MOV file.';
+ }
+}
+videoPicker.addEventListener('change',()=>importLocalVideo(videoPicker.files&&videoPicker.files[0]));
+localVideo.addEventListener('loadedmetadata',()=>{
+ const duration=Number(localVideo.duration)||188;
+ timing.max=String(Math.max(188,Math.ceil(duration)));
+ draw(true);
+});
+for(const event of ['timeupdate','seeked','play','pause','loadeddata']){
+ localVideo.addEventListener(event,()=>{if(sourceMode==='local')draw(true);});
+}
+localVideo.addEventListener('error',()=>{
+ if(sourceMode==='local')status.textContent='This recording could not play here. Try an MP4 or MOV saved on your iPhone.';
+});
 function connect(){
- if(!root.YT||!root.YT.Player)return;
+ if(!root.YT||!root.YT.Player||sourceMode!=='youtube')return;
  try{
   player=new root.YT.Player(frame,{events:{
-   onReady:e=>{player=e.target;ready=true;status.textContent='Captions follow playback when the video plays inside Habla. Timings are drafts.';draw(true);},
-   onError:e=>{status.textContent='YouTube blocked in-app playback (code '+e.data+'). Open the original on YouTube; the English study lines remain available.';},
+   onReady:e=>{
+    player=e.target;ready=true;
+    status.textContent='YouTube is attempting inline playback. If it leaves Habla, use a saved video instead so English captions remain visible.';
+    draw(true);
+   },
+   onError:e=>{
+    status.textContent='YouTube refuses embedded playback (code '+e.data+'). Choose a saved recording; your English translations stay here.';
+   },
    onStateChange:()=>draw(true)
   }});
- }catch{status.textContent='YouTube sync unavailable; use manual time controls.';}
+ }catch{
+  status.textContent='YouTube inline playback is unavailable. Choose a saved recording to keep subtitles in Habla.';
+ }
 }
-const oldCallback=root.onYouTubeIframeAPIReady;
-root.onYouTubeIframeAPIReady=function(){if(typeof oldCallback==='function')oldCallback();connect();};
-if(root.YT&&root.YT.Player)connect();else{
- const s=document.createElement('script');s.async=true;s.src='https://www.youtube.com/iframe_api';
- s.onerror=()=>{status.textContent='Player sync unavailable. Read the captions below or use YouTube settings.';};
- document.head.append(s);
-}
+const previousYoutubeReady=root.onYouTubeIframeAPIReady;
+root.onYouTubeIframeAPIReady=function(){
+ if(typeof previousYoutubeReady==='function')previousYoutubeReady();
+ connect();
+};
+tryYoutube.addEventListener('click',()=>{
+ try{localVideo.pause();}catch{}
+ sourceMode='youtube';ready=false;last=-2;
+ localVideo.hidden=true;playerStart.hidden=true;frame.hidden=false;
+ status.textContent='Trying YouTube inside Habla. On some iPhones YouTube may take over playback; Habla cannot keep captions over that external player.';
+ if(!youtubeStarted){
+  youtubeStarted=true;
+  frame.src=frame.dataset.src;
+  if(root.YT&&root.YT.Player)connect();
+  else{
+   const script=document.createElement('script');
+   script.async=true;script.src='https://www.youtube.com/iframe_api';
+   script.onerror=()=>{status.textContent='YouTube controls could not load. Try a saved video for captions.';};
+   document.head.append(script);
+  }
+ } else {
+  if(root.YT&&root.YT.Player&&!ready)connect();
+ }
+ draw(true);
+});
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden)return;
+ if(sourceMode==='local')try{localVideo.pause();}catch{}
+});
 root.setInterval(()=>{if(!document.hidden&&document.getElementById('music-view')?.classList.contains('active'))draw(false);},300);
-const observer=new MutationObserver(()=>{if(!document.getElementById('music-view')?.classList.contains('active')&&ready){try{player.pauseVideo();}catch{}}});
+const observer=new MutationObserver(()=>{if(!document.getElementById('music-view')?.classList.contains('active')){
+ if(sourceMode==='local')try{localVideo.pause();}catch{}
+ if(sourceMode==='youtube'&&ready)try{player.pauseVideo();}catch{}
+}});
 observer.observe(document.getElementById('music-view'),{attributes:true,attributeFilter:['class']});
 renderPassages();draw(true);
 })(window);
