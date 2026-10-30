@@ -53,6 +53,7 @@ test('End-to-end everyday translator repairs provider meaning loss without chang
  });
  for(const file of ['research-reference.js','spanish-context.js','english-varieties.js','language-community-terms.js','mixed-language-translation.js','app.js']){
   vm.runInContext(fs.readFileSync(file,'utf8'),context,{filename:file});
+  if(file==='mixed-language-translation.js')context.HablaMixedTranslation=context.window.HablaMixedTranslation;
  }
  context.userSentence=original;
  const translate=target=>vm.runInContext('requestGeneralTranslation(userSentence,"ec-en",{source:"es-MX",target:'+JSON.stringify(target)+',purpose:"everyday",onDevice:false})',context);
