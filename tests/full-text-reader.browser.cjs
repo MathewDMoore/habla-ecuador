@@ -111,6 +111,28 @@ async function run(browser,file,width){
  await page.waitForFunction(()=>document.querySelector('#full-reader-result').textContent==='Completed test draft.');
  assert.equal(await page.locator('#full-reader-translation-state').textContent(),'');
  assert.equal(await page.locator('#full-reader-reverse').isEnabled(),true);
+ // Actual local direct/conversational wording cards preserve the original.
+ await page.evaluate(()=>{
+  sourceLanguage='en-US';targetLanguage='es-EC';syncLanguagePair();
+  const text='Do you want to go fishing with me?';
+  document.querySelector('#translator-input').value=text;
+  setEditableTranslation(text,'¿Te gustaría ir a pescar conmigo?');
+  document.querySelector('#translation-result').hidden=false;
+  document.querySelector('#literal-result').textContent='Direct version: ¿Quieres ir a pescar conmigo?';
+ });
+ await page.locator('#full-reader-alternatives').evaluate(el=>el.open=false);
+ await page.locator('#full-reader-alternatives summary').first().click();
+ await page.waitForFunction(()=>document.querySelector('.full-reader-alternative-card'));
+ assert.equal(await page.locator('.full-reader-alternative-card').count(),1);
+ await page.locator('#full-reader-alternatives-toggle').click();
+ assert.equal(await page.locator('.full-reader-alternative-card').getAttribute('open'),null);
+ assert.equal(await page.locator('#full-reader-reverse').isVisible(),true);
+ await page.locator('#full-reader-alternatives-toggle').click();
+ await page.locator('.full-reader-alternative-card button').filter({hasText:'Use this'}).click();
+ assert.equal(await page.locator('#translator-input').inputValue(),'Do you want to go fishing with me?');
+ assert.equal(await page.locator('#full-reader-result').textContent(),'¿Quieres ir a pescar conmigo?');
+ await page.locator('#full-reader-reverse').tap();
+ assert.equal(await page.locator('#full-reader-result').textContent(),'Do you want to go fishing with me?');
  assert.deepEqual(errors,[],'no JS errors');
  await context.close();
  console.log(file+' '+width+'px full length pasted text, both expanding actions, paragraph preservation, source editing and Escape passed');
