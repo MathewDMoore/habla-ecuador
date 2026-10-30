@@ -59,7 +59,7 @@ test('English option appears directly inside the video frame, above YouTube ifra
  const iframe=html.indexOf('id="ve-youtube-frame"');
  const control=html.indexOf('id="ve-in-video-language"');
  const overlay=html.indexOf('id="ve-caption-overlay"');
- const boxEnd=html.indexOf('</div>\n            <div class="ve-theater-caption">');
+ const boxEnd=html.indexOf('</div>\n            <div class="ve-theater-caption"');
  assert.ok(iframe>=0&&control>iframe&&overlay>control&&boxEnd>overlay);
  assert.match(html,/value="en-US">🇺🇸 English on/);
  assert.match(html,/value="en-GB">🇬🇧 UK English on/);
