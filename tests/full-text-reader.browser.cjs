@@ -100,10 +100,13 @@ async function run(browser,file,width){
  await page.waitForFunction(()=>document.querySelector('#full-reader-result').textContent==='');
  assert.equal(await page.locator('#full-reader-reverse').isDisabled(),true);
  assert.equal(await page.locator('#full-reader-copy-target').isDisabled(),true);
- await page.evaluate(()=>{window.retryTranslation=()=>{
+ await page.evaluate(()=>{
+  document.querySelector('#source-language-warning').hidden=true;
+  document.querySelector('#retry-translation').addEventListener('click',event=>{
+  event.stopImmediatePropagation();
   setEditableTranslation(document.querySelector('#translator-input').value,'Completed test draft.');
   document.querySelector('#translation-result').hidden=false;
- };});
+ },{capture:true,once:true});});
  await page.locator('#full-reader-translate').click();
  await page.waitForFunction(()=>document.querySelector('#full-reader-result').textContent==='Completed test draft.');
  assert.equal(await page.locator('#full-reader-translation-state').textContent(),'');
