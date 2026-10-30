@@ -1123,3 +1123,15 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .ve-caption-list button { padding:9px 10px; text-align:left; border:1px solid #d8e4d9; border-radius:8px; background:#f5f7f2; color:#263a2a; font-size:.83rem; }
 .ve-caption-list button:focus-visible { outline:2px solid #236a4e; }
 @media(max-width:410px) { .ve-controls,.ve-verse-pair { grid-template-columns:1fr; } .ve-lesson { padding:10px; } .ve-video-box { min-height:200px; } }
+
+/* Music Lab v173: do not let YouTube auto-open before user chooses it */
+.ve-video-box [hidden] { display:none !important; }
+.ve-video-box video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; }
+.ve-player-start { min-height:200px; height:100%; padding:22px 17px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; background:linear-gradient(145deg,#142d23,#050b08); color:#fff; }
+.ve-player-start strong { font-size:1.1rem; }
+.ve-player-start p { margin:0; font-size:.87rem; line-height:1.55; color:#e1e9df; }
+.ve-source-actions { display:grid; gap:8px; grid-template-columns:1fr 1fr; margin:12px 0; }
+.ve-source-actions .ve-import-file,.ve-source-actions button { display:flex; justify-content:center; align-items:center; min-height:49px; padding:9px; border-radius:10px; text-align:center; background:#f5d08a; color:#1d251f; font-weight:800; font-size:.85rem; cursor:pointer; border:1px solid #af8b50; }
+.ve-source-actions button { background:#e6efe7; color:#15422e; border-color:#b0c8b6; }
+.ve-source-actions input[type=file] { display:block; grid-column:1 / -1; width:100%; min-width:0; font-size:.8rem; color:#e5efe3; background:transparent; }
+@media(max-width:410px){.ve-source-actions{grid-template-columns:1fr;}}
