@@ -1,0 +1,28 @@
+name: Mixed-language translation regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mixed-language-translation.js'
+      - 'app.js'
+      - 'tests/mixed-language-translation.test.cjs'
+      - 'tests/translation-service.test.cjs'
+      - 'tests/translation-direction.test.cjs'
+      - '.github/workflows/mixed-language-translation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify mixed-language meanings and existing translation routes
+        run: node --test tests/mixed-language-translation.test.cjs tests/translation-service.test.cjs tests/translation-direction.test.cjs
