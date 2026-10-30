@@ -74,20 +74,52 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
+    // The app's document and embedded YouTube video are different frames.
+    // Never redirect a subframe or script-initiated YouTube navigation to Safari.
+    private func isTrustedAppPage(_ url: URL) -> Bool {
+        url.scheme?.lowercased() == "https" &&
+        url.host?.lowercased() == site.host &&
+        url.path.hasPrefix("/habla-ecuador/")
+    }
+
+    private func isAllowedVideoFrame(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == "https" else { return false }
+        switch url.host?.lowercased() {
+        case "www.youtube.com", "www.youtube-nocookie.com", "youtube.com":
+            return true
+        default:
+            return false
+        }
+    }
+
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
-        let trusted = url.scheme == "https" && url.host == site.host
-            && url.path.hasPrefix("/habla-ecuador/")
-        if trusted {
-            // Discard callbacks from the old page before a new document installs its bridge.
-            if navigationAction.targetFrame?.isMainFrame != false { speech?.abortActive() }
-            decisionHandler(.allow)
-        } else {
+        guard let url = navigationAction.request.url else {
             decisionHandler(.cancel)
-            if ["https", "http", "mailto"].contains(url.scheme ?? "") {
-                UIApplication.shared.open(url)
-            }
+            return
+        }
+
+        // A YouTube iframe should load *inside* the Music screen, not replace
+        // Habla or launch the YouTube application. Keep the main-frame boundary.
+        if navigationAction.targetFrame?.isMainFrame == false {
+            decisionHandler(isTrustedAppPage(url) || isAllowedVideoFrame(url) ? .allow : .cancel)
+            return
+        }
+
+        if isTrustedAppPage(url) {
+            // Retain the existing speech bridge's main-frame navigation cleanup.
+            speech?.abortActive()
+            decisionHandler(.allow)
+            return
+        }
+
+        // Only an explicit, main-document link tap may open an external app.
+        // YouTube's scripts, redirects, and iframe links cannot escape Habla.
+        decisionHandler(.cancel)
+        if navigationAction.sourceFrame.isMainFrame,
+           navigationAction.navigationType == .linkActivated,
+           ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") {
+            UIApplication.shared.open(url)
         }
     }
 
