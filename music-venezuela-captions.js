@@ -210,10 +210,21 @@ document.addEventListener('visibilitychange',()=>{
  if(sourceMode==='local')try{localVideo.pause();}catch{}
 });
 root.setInterval(()=>{if(!document.hidden&&document.getElementById('music-view')?.classList.contains('active'))draw(false);},300);
-const observer=new MutationObserver(()=>{if(!document.getElementById('music-view')?.classList.contains('active')){
- if(sourceMode==='local')try{localVideo.pause();}catch{}
- if(sourceMode==='youtube'&&ready)try{player.pauseVideo();}catch{}
-}});
+// Only the updated native shell opts in: previous iPhone builds redirected
+// YouTube subframe navigations to the external app. Never auto-load in Safari.
+function showNativePlayerOnMusicTab(){
+ if(root.__hablaNativeInlineVideo===true && sourceMode==='none' &&
+    document.getElementById('music-view')?.classList.contains('active')){
+   tryYoutube.click(); // Loads the frame, never auto-plays video or audio.
+   status.textContent='The video is now in the Habla Music tab. Tap its play button to start; English captions appear below the player.';
+ }
+}
+const observer=new MutationObserver(()=>{
+ if(!document.getElementById('music-view')?.classList.contains('active')){
+  if(sourceMode==='local')try{localVideo.pause();}catch{}
+  if(sourceMode==='youtube'&&ready)try{player.pauseVideo();}catch{}
+ } else showNativePlayerOnMusicTab();
+});
 observer.observe(document.getElementById('music-view'),{attributes:true,attributeFilter:['class']});
-renderPassages();draw(true);
+renderPassages();draw(true);showNativePlayerOnMusicTab();
 })(window);
