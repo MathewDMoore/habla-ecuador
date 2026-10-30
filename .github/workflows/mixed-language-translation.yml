@@ -6,6 +6,8 @@ on:
     paths:
       - 'mixed-language-translation.js'
       - 'music-venezuela-captions.js'
+      - 'styles.css'
+      - 'tests/music-caption-readability.test.cjs'
       - 'index.html'
       - 'tests/native-music-visibility.test.cjs'
       - 'app.js'
@@ -29,4 +31,4 @@ jobs:
         with:
           node-version: '22'
       - name: Verify mixed-language meanings and existing translation routes
-        run: node --test tests/native-music-visibility.test.cjs tests/dictation-continuation.test.cjs tests/mixed-language-translation.test.cjs tests/translation-service.test.cjs tests/translation-direction.test.cjs
+        run: node --test tests/music-caption-readability.test.cjs tests/native-music-visibility.test.cjs tests/dictation-continuation.test.cjs tests/mixed-language-translation.test.cjs tests/translation-service.test.cjs tests/translation-direction.test.cjs
