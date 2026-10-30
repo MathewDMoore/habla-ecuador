@@ -67,7 +67,9 @@ caption=id('caption-overlay'),reading=id('caption-reading'),
 lang=id('caption-language'),source=id('source-choice'),status=id('video-status'),
 confidence=id('caption-confidence'),timing=id('video-time'),timeLabel=id('video-time-label'),
 offsetInput=id('caption-offset'),offsetLabel=id('offset-value'),passages=id('lyric-comparison'),
-list=id('caption-cue-list'),sizeSelect=id('caption-size');
+list=id('caption-cue-list'),sizeSelect=id('caption-size'),
+theaterButton=id('habla-theater'),theaterClose=id('theater-close'),
+theaterEnglish=id('theater-english');
 function applyCaptionSize(value){
  const next=['standard','large','extra'].includes(value)?value:'large';
  host.dataset.captionSize=next;
@@ -79,6 +81,32 @@ try{savedCaptionSize=root.localStorage?.getItem('habla-ve-caption-size-v1') || '
 applyCaptionSize(savedCaptionSize);
 sizeSelect.addEventListener('change',()=>applyCaptionSize(sizeSelect.value));
 let player,ready=false,manual=0,offset=0,last=-2,sourceMode='none',localUrl=null,youtubeStarted=false;
+let theaterOpen=false,previousFocus=null;
+function setTheater(open){
+ if(Boolean(open)===theaterOpen)return;
+ theaterOpen=Boolean(open);
+ host.classList.toggle('ve-theater-mode',theaterOpen);
+ document.body.classList.toggle('ve-theater-open',theaterOpen);
+ theaterButton.setAttribute('aria-pressed',String(theaterOpen));
+ if(theaterOpen){
+  previousFocus=document.activeElement;
+  // The YouTube iframe stays inline, so its fullscreen view never hides
+  // Habla's separately rendered English caption track.
+  theaterClose.focus();
+ }else{
+  previousFocus?.focus?.();
+  previousFocus=null;
+ }
+ draw(true);
+}
+theaterButton.addEventListener('click',()=>{
+ if(sourceMode==='none')tryYoutube.click();
+ setTheater(true);
+});
+theaterClose.addEventListener('click',()=>setTheater(false));
+document.addEventListener('keydown',event=>{
+ if(theaterOpen && event.key==='Escape'){event.preventDefault();setTheater(false);}
+});
 const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 function position(){
  if(sourceMode==='local')return Number(localVideo.currentTime)||0;
@@ -96,6 +124,11 @@ function draw(force){
  const enabled=lang.value!=='off';
  const text=enabled&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
  caption.hidden=!text;caption.textContent=text;
+ // The video itself is cross-origin; its fullscreen playback hides the page.
+ // Keep an English caption strip in Habla's own viewing mode, adjacent to video.
+ theaterEnglish.textContent=text||(!enabled?'English captions are off. Select English in Translation / Traducción.'
+  :sourceMode==='youtube'&&!ready?'Connecting to YouTube timing. Tap Play; if text stays still, review the caption timeline below.'
+  :'No verified English caption for this moment. Timing is approximate.');
  reading.textContent=text||(sourceMode==='none'
   ?'English lyric translations are ready below. Choose a saved screen recording to follow them during playback.'
   :enabled?'No caption verified for this moment.':'English captions off.');
@@ -246,6 +279,7 @@ nativeLayoutObserver.observe(document.getElementById('music-view'),{childList:tr
 document.addEventListener('DOMContentLoaded',exposeFeaturedVideoInNativeMusic,{once:true});
 const observer=new MutationObserver(()=>{
  if(!document.getElementById('music-view')?.classList.contains('active')){
+  if(theaterOpen)setTheater(false);
   if(sourceMode==='local')try{localVideo.pause();}catch{}
   if(sourceMode==='youtube'&&ready)try{player.pauseVideo();}catch{}
  } else showNativePlayerOnMusicTab();
