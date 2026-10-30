@@ -3,6 +3,9 @@
   if (location.origin !== "https://mathewdmoore.github.io"
       || !location.pathname.startsWith("/habla-ecuador/")
       || !window.webkit?.messageHandlers?.hablaSpeech) return;
+  // Exposed only by native 0.1.5+; the Music page may load the YouTube
+  // iframe inline after the user opens Music, without external navigation.
+  Object.defineProperty(window, "__hablaNativeInlineVideo", {value:true});
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;
@@ -20,7 +23,7 @@
     panel.style.cssText = "margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:16px";
     panel.id = "native-speech-details";
     const summary = document.createElement("summary");
-    summary.textContent = "iPhone speech · native 0.1.4 (5)";
+    summary.textContent = "iPhone speech · native 0.1.5 (6)";
     const label = document.createElement("label");
     label.textContent = "Recognition mode ";
     modeSelect = document.createElement("select");
