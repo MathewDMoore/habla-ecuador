@@ -19,15 +19,30 @@ function resizeInput(){
  source.style.height="auto";
  // Scroll the enclosing dialog, not a tiny independent 140px textarea.
  // Cap only for extraordinary book-length inputs to avoid browser layout limits.
- source.style.height=Math.max(260,Math.min(source.scrollHeight+4,120000))+"px";
+ source.style.height=Math.max(96,Math.min(source.scrollHeight+4,120000))+"px";
 }
 function syncTarget(){
  if(!dialog?.open||writingTarget)return;
  const original=$("#natural-result"),result=$("#full-reader-result");
  if(!original||!result)return;
- const value=original.textContent||"";
+ const available=!$("#translation-result")?.hidden;
+ const editable=available && original.getAttribute("contenteditable")==="true";
+ const value=available ? original.textContent||"" : "";
+ const error=$("#no-result");
+ $("#full-reader-translation-state").textContent=editable ? "" : error && !error.hidden
+  ? error.textContent.trim() : available ? "Translating… / Traduciendo…" : "Tap Translate to prepare this text. / Toca Traducir para preparar este texto.";
+ $("#full-reader-copy-target").disabled=!editable;
+ $("#full-reader-hear").disabled=!editable;
+ $("#full-reader-reverse").disabled=!editable;
+ $("#full-reader-translate").disabled=available && !editable;
+ for(const [id,live] of [["#full-reader-source-jump","#source-language-select"],["#full-reader-target-jump","#target-language-select"]]){
+  $(id).value=$(live)?.value||"";
+ }
+ const liveSource=$("#translator-input");
+ if(liveSource && source.value!==liveSource.value){source.value=liveSource.value;resizeInput();}
+ $("#full-reader-source-title").textContent=titleFor("#source-language-select","Source / Original");
  if(result.textContent!==value){clearCopy();result.textContent=value;}
- result.contentEditable=original.getAttribute("contenteditable")==="true"?"true":"false";
+ result.contentEditable=editable?"true":"false";
  const label=$("#translation-result .result-label")?.textContent.trim();
  $("#full-reader-target-title").textContent=label||titleFor("#target-language-select","Translation / Traducción");
 }
@@ -46,6 +61,7 @@ function render(){
  $("#full-reader-target-title").textContent=
   $("#translation-result .result-label")?.textContent.trim()||
   titleFor("#target-language-select","Translation / Traducción");
+ syncTarget();
 }
 function close(){
  clearCopy();
@@ -64,6 +80,7 @@ function open(focusSection="source",button=null){
  // Safari/WebKit returns zero scrollHeight for a textarea inside a hidden
  // dialog. Measure only AFTER the dialog is visible, including pasted text.
  resizeInput();
+ syncTarget();
  requestAnimationFrame(resizeInput);
  const section=focusSection==="target"?$("#full-reader-target-section"):$("#full-reader-source-section");
  section.scrollIntoView({block:"start",behavior:"instant"});
@@ -101,18 +118,31 @@ function make(){
  const done=makeButton("Close / Cerrar","full-reader-close");done.addEventListener("click",close);
  heading.append(group,done);
  const jumps=element("nav",null,"full-reader-jumps");
- const js=makeButton("Source / Original","full-reader-source-jump");
- const jt=makeButton("Translation / Traducción","full-reader-target-jump");
- js.addEventListener("click",()=>$("#full-reader-source-section").scrollIntoView({block:"start",behavior:"instant"}));
- jt.addEventListener("click",()=>$("#full-reader-target-section").scrollIntoView({block:"start",behavior:"instant"}));
- jumps.append(js,jt);
+ const js=element("select","full-reader-source-jump");
+ js.setAttribute("aria-label","Source language / Idioma original");
+ const jt=element("select","full-reader-target-jump");
+ jt.setAttribute("aria-label","Translation language / Idioma de traducción");
+ for(const [control,id] of [[js,"#source-language-select"],[jt,"#target-language-select"]]){
+  control.innerHTML=$(id)?.innerHTML||"";
+  control.addEventListener("change",()=>{const live=$(id);if(live){live.value=control.value;live.dispatchEvent(new Event("change",{bubbles:true}));render();}});
+ }
+ const translate=makeButton("Translate / Traducir","full-reader-translate");
+ translate.addEventListener("click",()=>{
+  const confirm=$("#translator-mic-confirm");
+  (confirm && !confirm.hidden ? confirm : $("#retry-translation"))?.click();
+  syncTarget();
+ });
+ const reverse=makeButton("⇄ Reverse / Invertir","full-reader-reverse");
+ reverse.addEventListener("click",()=>{$("#swap-button")?.click();render();});
+ reverse.textContent="⇄";reverse.setAttribute("aria-label","Reverse languages and texts / Invertir idiomas y textos");
+ jumps.append(js,reverse,jt,translate);
  const original=element("section","full-reader-source-section","full-reader-section");
  const originalHeader=element("div",null,"full-reader-section-heading");
  const originalTitle=element("h3","full-reader-source-title","","Source / Original");
  const originalInfo=element("small","full-reader-source-count","","");
  originalHeader.append(originalTitle,originalInfo);
  source=element("textarea","full-reader-source");
- source.spellcheck=true;source.rows=12;
+ source.spellcheck=true;source.rows=3;
  source.setAttribute("aria-label","Complete source text / Texto original completo");
  source.addEventListener("input",()=>{
   clearCopy();
@@ -149,7 +179,9 @@ function make(){
  const copyTarget=makeButton("Copy translation / Copiar traducción","full-reader-copy-target");
  copyTarget.addEventListener("click",()=>copy(target.innerText,copyTarget));
  const translatedActions=element("div",null,"full-reader-section-actions");
- translatedActions.append(copyTarget);
+ const hear=makeButton("🔊 Hear / Escuchar","full-reader-hear");
+ hear.addEventListener("click",()=>$("#hear-result")?.click());
+ translatedActions.append(hear,copyTarget);
  translated.append(translationTitle,translationNote,target,translatedActions);
  copyField=element("textarea","full-reader-copy-field");
  copyField.readOnly=true;copyField.hidden=true;copyField.rows=8;
@@ -163,7 +195,9 @@ function make(){
  });
  document.body.append(dialog);
  watching=new MutationObserver(syncTarget);
- const live=$("#natural-result");if(live)watching.observe(live,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["contenteditable"]});
+ for(const selector of ["#natural-result","#translation-result","#no-result"]){
+  const live=$(selector);if(live)watching.observe(live,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["contenteditable","hidden"]});
+ }
 }
 function bind(){
  if(bound)return;bound=true;

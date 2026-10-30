@@ -1169,3 +1169,29 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
   .ve-video-box { min-height:265px; }
   .ve-reading-text { padding:15px 12px; }
 }
+
+/* Keep paired texts close; long passages still grow fully and scroll with the reader. */
+.full-reader-header {padding:10px 12px;align-items:center;}
+.full-reader-header h2 {font-size:17px;margin:0;}
+.full-reader-header p {display:none;}
+.full-reader-jumps {position:static;padding:8px 12px;gap:8px;}
+.full-reader-section {margin:8px 12px;padding:12px;box-shadow:none;border-radius:12px;scroll-margin-top:76px;}
+.full-reader-section h3 {margin-bottom:6px;}
+.full-reader-source {min-height:96px;}
+.full-reader-result {min-height:72px;}
+.full-reader-status:empty {display:none;}
+.full-reader-section-actions {margin-top:6px;}
+.full-reader-jumps button:disabled {opacity:.55;}
+
+.full-reader-jumps {display:grid;grid-template-columns:1fr 1fr;}
+
+/* One continuous bilingual workspace, with a single language switch row. */
+.full-reader-section {background:transparent;border:0;border-radius:0;margin:0 16px;padding:14px 0;}
+#full-reader-target-section {border-top:2px solid #6da68f;}
+.full-reader-source,.full-reader-result {border:0;border-radius:0;padding:4px 0;background:transparent;font-size:clamp(22px,6vw,28px);line-height:1.45;}
+.full-reader-result {color:#174d3d;}
+.full-reader-jumps {display:grid;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);align-items:center;padding:8px 12px;}
+.full-reader-jumps select {width:100%;min-width:0;min-height:44px;font-size:14px;border:1px solid #a9cabc;border-radius:10px;background:white;color:#173f35;padding:6px;}
+#full-reader-translate {grid-column:1/-1;min-height:36px;}
+#full-reader-source-count {display:none;}
+.full-reader-section-actions button {background:transparent;border:0;padding:6px;}
