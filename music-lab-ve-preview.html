@@ -32,6 +32,12 @@ p{margin:9px 0}.note{font-size:.88rem;color:var(--muted);line-height:1.55}
 .pane p{margin:7px 0 0;font-size:1.02rem}
 .status{padding:10px 12px;background:#eef4eb;border-radius:10px;font-size:.91rem;margin:12px 0;color:#335443}
 details{margin-top:12px}details summary{font-weight:700;color:#16553a;cursor:pointer}
+.translation-header{padding:14px;margin-top:14px;border-radius:12px;background:#eaf4e9;border:1px solid #a8c6ae}
+.translation-header strong{font-size:1.1rem}.translation-header label{margin-top:12px;max-width:440px}
+.translation-help{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:13px}
+.lesson{border-top:1px solid #cddfcf;padding-top:16px;margin-top:14px}
+.pane p{white-space:pre-wrap;overflow-wrap:anywhere}
+.pane .original-note{display:block;margin-top:10px}
 .copy{background:var(--pine);border:0;color:#fff;margin-top:9px;padding:10px 13px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
 a{color:inherit}
 @media(max-width:600px){.grid,.pair{grid-template-columns:1fr}.stage{padding:14px 11px}.video-frame{border-width:3px}}
@@ -45,45 +51,98 @@ a{color:inherit}
 </section>
 <section class="panel" aria-labelledby="translations"><h2 id="translations">🌎 Translation options / Opciones de traducción</h2>
 <div class="grid">
-<label>From / Desde<select id="source"><option value="original">🇻🇪 Spanish · original wording</option><option value="spelling">🇻🇪 Spanish · spelling notes</option></select></label>
+<label>From / Desde<select id="source"><option value="spelling" selected>🇻🇪 Spanish · readable punctuation</option><option value="original">🇻🇪 Spanish · exact original</option></select></label>
 <label>To / Hacia<select id="target"><option value="en-US">🇺🇸 American English</option><option value="en-GB">🇬🇧 British English</option><option value="es-EC">🇪🇨 Ecuador</option><option value="es-VE">🇻🇪 Venezuela</option><option value="es-BO">🇧🇴 Bolivia</option><option value="es-CU">🇨🇺 Cuba</option><option value="es-MX">🇲🇽 Mexico</option><option value="es-CO">🇨🇴 Colombia</option><option value="es-PE">🇵🇪 Peru</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-ES">🇪🇸 Spain</option></select></label></div>
 <div id="status" class="status" role="status"></div>
+<div class="translation-header"><strong>Full Spanish → English translation / Traducción completa</strong><p class="note">These are the three lyric passages you supplied, not a verified full-song transcript. The original text and your supplied English are preserved separately from editorial drafts.</p>
+<label for="english-version">English wording / Versión inglesa
+<select id="english-version"><option value="revised">Natural, meaning-checked English (default)</option><option value="submitted">Your originally supplied English</option></select></label></div>
 <div id="examples"></div>
-<details><summary>Paste your full lyrics privately / Pega las letras completas</summary>
-<p class="note">Paste original lyrics and your authorized English reference here if you want to compare them while the video plays. The page does not upload or save the text. This is a study demo, not automatic translation.</p>
-<div class="grid"><label>Original Spanish / Español original<textarea id="full-es" placeholder="Paste Spanish lyrics here..."></textarea></label>
-<label>English reference / Traducción inglesa<textarea id="full-en" placeholder="Paste English translation here..."></textarea></label></div>
-<button id="copy" class="copy" type="button">Copy paired text / Copiar</button>
+<div class="translation-help"><button id="copy" class="copy" type="button">Copy displayed Spanish + English / Copiar</button><span id="copy-status" role="status" class="note"></span></div>
+<details><summary>Translation accuracy & regional notes / Notas</summary>
+<p>“Le pedí a Dios” means “I asked God”, not “I said goodbye”. “Que me pusiera en tu camino” means “to put me in your path”; the person moving is the speaker, not the beloved. “Menos por los amores…” is grammatically unclear, so its interpretation is provisional. The word “culo” is deliberately direct and vulgar; it is not euphemised in the English rendering.</p>
+<p>Source: listener-supplied Spanish and English. Venezuela is confirmed; the artist’s city is unknown. Not synchronized to YouTube playback and not a certified official transcription. Regional rewrites require evidence or native-speaker review.</p>
 </details>
-<p class="note">Short examples below are derived from the supplied lyrics. For full translation of new text, use <a style="color:#145e43;font-weight:750" href="./index.html" target="_blank" rel="noopener">Habla Ecuador's main translator</a>. Regional rewrites require evidence or native-speaker verification.</p>
+<p class="note">For new text, use <a style="color:#145e43;font-weight:750" href="./index.html" target="_blank" rel="noopener">Habla Ecuador's main translator</a>. YouTube captions are separate from the study translation below.</p>
 </section>
 <section class="panel"><h2>📖 How this becomes a lesson</h2><p>The video stays original. Learners can compare authentic Venezuelan Spanish with natural US/UK English and view region-aware notes without guessing which city the artist is from.</p><p class="note">Standalone hosted preview, not installed as an iOS app update. YouTube embedding depends on the video owner's permissions and the playback environment.</p></section>
 </main>
 <script>
 (function(){
 'use strict';
-const examples=[
- {es:'Al verte a los ojos',us:'When I looked into your eyes',gb:'When I looked into your eyes',note:'A poetic phrase; no claim that this expression is exclusive to Venezuela.'},
- {es:'corazón frío',us:'cold heart',gb:'cold heart',note:'A metaphor understood across Spanish-speaking regions.'},
- {es:'mirando las estrellas',us:'looking at the stars',gb:'gazing at the stars',note:'The two English choices differ in style, not necessarily in basic meaning.'}
-];
-const src=document.getElementById('source'),dst=document.getElementById('target'),status=document.getElementById('status'),host=document.getElementById('examples');
-function node(tag,cls,text){let e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
-function render(){
-const target=dst.value,english=target.startsWith('en');
-status.textContent=english?'Comparing Venezuelan Spanish with '+(target==='en-US'?'American':'British')+' English. Video caption settings are separate.':target==='es-VE'?'Showing source Venezuelan Spanish; the city is unconfirmed.':'Regional option selected. The Spanish source is preserved; an accurate local rewrite has NOT been verified.';
-host.replaceChildren();
-examples.forEach((x,i)=>{
-const section=node('section','lesson'),h=node('h3','',String(i+1)+'. Phrase practice / Práctica'),pair=node('div','pair'),left=node('div','pane'),right=node('div','pane');
-left.append(node('small','','🇻🇪 Original Spanish'),node('p','',x.es));
-right.append(node('small','',english?(target==='en-US'?'🇺🇸 English':'🇬🇧 English'):'🌎 Shared Spanish (not verified local wording)'),node('p','',english?(target==='en-US'?x.us:x.gb):x.es));
-pair.append(left,right);section.append(h,pair,node('p','note',x.note));host.append(section);
-});
+const verses=[
+{
+  esOriginal:'al verte a los ojos no se que diablos pasó no se si fue ese culo que me idiotiso al irme a dormir siempre le pedí adiós que me pusiera en tu camino y ya me lo cumplió',
+  esReadable:'Al verte a los ojos, no sé qué diablos pasó. No sé si fue ese culo que me idiotizó. Al irme a dormir, siempre le pedí a Dios que me pusiera en tu camino, y ya me lo cumplió.',
+  enSubmitted:'When I looked into your eyes, I don’t know what the hell happened—maybe it was that ass of yours that left me completely dazed. Before going to sleep, I always prayed to God to bring you into my path, and He’s finally granted that wish.',
+  enUS:'When I looked into your eyes, I don’t know what the hell happened. I don’t know if it was that ass of yours that left me completely dazed. Before going to sleep, I always prayed to God to put me in your path, and he finally granted that wish.',
+  enGB:'When I looked into your eyes, I don’t know what the hell happened. I don’t know if it was that arse of yours that left me completely dazed. Before going to sleep, I always prayed to God to put me in your path, and he finally granted that wish.',
+  note:'The original “adiós” is likely “a Dios” (to God). The line asks God to put the speaker in the other person’s path.'
+},
+{
+  esOriginal:'en mi vida nunca avía pasado menos por los amores q avía a mi lado  beby tú me tienes el corazón frío helado como las montañas fría de colorado',
+  esReadable:'En mi vida nunca había pasado, menos por los amores que había a mi lado. Baby, tú me tienes el corazón frío, helado como las montañas frías de Colorado.',
+  enSubmitted:'Nothing like this has ever happened to me before—certainly not with any of the lovers I’ve had in the past. Baby, you’ve left my heart cold—frozen, like the mountains in Colorado.',
+  enUS:'Nothing like this has ever happened to me before, certainly not with the lovers I’d had by my side. Baby, you’ve left my heart cold, frozen like the mountains of Colorado.',
+  enGB:'Nothing like this has ever happened to me before, certainly not with the lovers I’d had by my side. Baby, you’ve left my heart cold, frozen like the mountains of Colorado.',
+  note:'“Menos por los amores que había a mi lado” is unusual Spanish; this line is an interpretation, not a verified correction. “Frío, helado” deliberately preserves the cold-heart metaphor.'
+},
+{
+  esOriginal:'quiero hacer el amor mirando las estrellas en el mirador en un barrio de Marbella',
+  esReadable:'Quiero hacer el amor mirando las estrellas, en el mirador, en un barrio de Marbella.',
+  enSubmitted:'I want to make love while gazing at the stars from a viewpoint in a neighborhood in Marbella.',
+  enUS:'I want to make love while gazing at the stars from a lookout in a neighborhood of Marbella.',
+  enGB:'I want to make love while gazing at the stars from a viewpoint in a neighbourhood of Marbella.',
+  note:'“Mirador” is a lookout or viewpoint. We have not confirmed which Marbella the singer means.'
 }
-src.addEventListener('change',render);dst.addEventListener('change',render);render();
-document.getElementById('copy').addEventListener('click',()=>{
-const t=document.getElementById('full-es').value+'\n\n'+document.getElementById('full-en').value;
-const btn=document.getElementById('copy');if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>btn.textContent='Copied ✓').catch(()=>btn.textContent='Copy unavailable');else btn.textContent='Copy requires a secure browser';
+];
+const src=document.getElementById('source');
+const dst=document.getElementById('target');
+const version=document.getElementById('english-version');
+const status=document.getElementById('status');
+const host=document.getElementById('examples');
+let displayed=[];
+function node(tag,cls,txt){
+ const e=document.createElement(tag);
+ if(cls)e.className=cls;
+ if(txt!==undefined)e.textContent=txt;
+ return e;
+}
+function render(){
+ const target=dst.value, english=target.startsWith('en');
+ status.textContent=english
+  ?'Full provided passages in Venezuelan Spanish and '+(target==='en-US'?'American':'British')+' English. The video soundtrack stays original; these reading translations are not timed subtitles.'
+  :'Showing Venezuelan source for comparison with '+dst.selectedOptions[0].textContent+'. A separate region-specific adaptation is not yet verified and will not be invented.';
+ const pieces=[];
+ host.replaceChildren();
+ verses.forEach((v,i)=>{
+  const section=node('section','lesson'),heading=node('h3','',String(i+1)+'. '+(['First encounter / Primer encuentro','A cold heart / Corazón helado','Looking at the stars / Las estrellas'][i]));
+  const pair=node('div','pair'),left=node('div','pane'),right=node('div','pane');
+  const spanish=src.value==='original'?v.esOriginal:v.esReadable;
+  const englishText=version.value==='submitted'?v.enSubmitted:(target==='en-GB'?v.enGB:v.enUS);
+  const targetText=english?englishText:spanish;
+  left.append(node('small','','🇻🇪 Español · '+(src.value==='original'?'exact original':'punctuation/spelling draft')),node('p','',spanish));
+  right.append(node('small','',english?(target==='en-GB'?'🇬🇧 British English':'🇺🇸 American English')+(version.value==='submitted'?' · supplied':' · checked draft'):'🌎 Original Spanish · regional adaptation pending'),node('p','',targetText));
+  pair.append(left,right);
+  section.append(heading,pair,node('p','note','Language note / Nota: '+v.note));
+  host.append(section);
+  pieces.push(spanish+'\n\n'+targetText);
+ });
+ displayed=pieces;
+}
+src.addEventListener('change',render);
+dst.addEventListener('change',render);
+version.addEventListener('change',render);
+render();
+document.getElementById('copy').addEventListener('click',async()=>{
+ const out=displayed.join('\n\n---\n\n');
+ const feedback=document.getElementById('copy-status');
+ try {
+  await navigator.clipboard.writeText(out);
+  feedback.textContent='Copied / Copiado ✓';
+ } catch (e) {
+  feedback.textContent='Copy unavailable here. Select the visible text to copy it.';
+ }
 });
 })();
 </script></body></html>
