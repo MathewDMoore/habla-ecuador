@@ -57,7 +57,7 @@ test('Unconfirmed native text needs approval even if the backend marks session f
  emit(sessions[0],'and incomplete',{final:true,confirmedText:'and',tentativeText:'incomplete'});
  assert.equal(el('#translator-input').value,'The words I know\nand incomplete');
  assert.equal(run('translatorDictationNeedsReview'),true);
- assert.equal(run('translationCount || 0'),0,'tentative native text must not auto-translate');
+ assert.equal(run('typeof translationCount === "undefined" ? 0 : translationCount'),0,'tentative native text must not auto-translate');
  assert.equal(el('#translator-mic-confirm').hidden,false,'review button available');
 });
 test('Empty continuation keeps existing words and unrelated dictation defaults to replace',()=>{
