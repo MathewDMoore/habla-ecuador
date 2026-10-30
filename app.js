@@ -3072,7 +3072,12 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const image=inputType==='image'&&purpose!=='academic';
   const music=inputType==='music'&&purpose!=='academic';
   const sourceDraft=image?imageParagraphText(text):text;
-  const prepared=way==='ec-en'&&typeof HablaSpanishContext!=='undefined'?HablaSpanishContext.prepare(sourceDraft,{purpose,source}):sourceDraft;
+  // Normalize only the provider request for explicit Spanish/English
+  // code-switches. Never replace the learner's entered source text.
+  const mixedPrepared=typeof HablaMixedTranslation!=='undefined'
+    ? HablaMixedTranslation.prepare(sourceDraft,{source,target,purpose,way}) : sourceDraft;
+  const prepared=way==='ec-en'&&typeof HablaSpanishContext!=='undefined'
+    ? HablaSpanishContext.prepare(mixedPrepared,{purpose,source}) : mixedPrepared;
   const protectedDocument = purpose === "academic" ? protectResearchTokens(text) : {text:prepared,restore:value=>value};
   const chunks = splitLongTranslationText(protectedDocument.text);
   if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
@@ -3091,7 +3096,11 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const joined = translated.map((value,index) => index > 0 && !chunks[index].separator && !chunks[index-1].separator ? `${chunks[index].joiner ?? " "}${value}` : value).join("");
   const combined = protectedDocument.restore(joined);
   const refined = purpose === "academic" && way === "ec-en" ? refineAcademicEnglish(combined,text) : combined;
-  if (languageFamily(target) === "en") return convertEnglishVariety(refined,target,{source:text,purpose});
+  if (languageFamily(target) === "en") {
+    const english=convertEnglishVariety(refined,target,{source:text,purpose});
+    return typeof HablaMixedTranslation!=='undefined'
+      ? HablaMixedTranslation.refine(english,text,{source,target,purpose,way}) : english;
+  }
   const corrected = languageFamily(source) === "en" && languageFamily(target) === "es"
     ? refineSpanishOrthography(refined,text) : refined;
   return typeof HablaLanguageCommunity!=="undefined"
@@ -3674,6 +3683,15 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#usage-note").innerHTML='<strong>Meaning preserved</strong><span>Preferred: hispanohablante. Also valid: hispanoparlante. In country/community contexts: de habla hispana. “Español” alone does not reliably mean “Spanish-speaking.”</span>';
       }
       if(inputType==='image'&&translationPurpose!=='academic')$("#usage-note").innerHTML+='<p>Image paragraphs are retained while screen line wraps are joined. Counting, dancing and volume wording can be clarified from context; figurative lyrics still need review.</p>';
+      if(typeof HablaMixedTranslation!=='undefined' &&
+         HablaMixedTranslation.detect(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,way:direction}).mixedDevelopment){
+        const note=document.createElement("p");
+        const lost=HablaMixedTranslation.lostMeaning(translated,sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,way:direction});
+        note.textContent=lost
+          ? "Meaning warning: the original says developing the app. The draft may have lost that action. Check this English text before sharing."
+          : "Spanish-English mixed input: ‘developing’ was interpreted as ‘desarrollando’ for translation. Your original words remain unchanged.";
+        $("#usage-note").append(note);
+      }
       const embeddedEntry = embeddedSlang.entries[0];
       if (embeddedEntry && translationPurpose !== "academic") {
         const literalMeaning = englishVariant === "uk" ? embeddedEntry.literalUk : embeddedEntry.literalUs;
