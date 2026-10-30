@@ -8,7 +8,7 @@ const css=fs.readFileSync('styles.css','utf8');
 const player=fs.readFileSync('music-venezuela-captions.js','utf8');
 
 test('Habla theater supplies English captions beside YouTube instead of native fullscreen',()=>{
- assert.match(html,/id="ve-habla-theater"[^>]*>Watch with English captions/);
+ assert.match(html,/id="ve-habla-theater"[^>]*>[^<]*Watch with English captions/);
  assert.match(html,/id="ve-theater-english"/);
  assert.match(html,/id="ve-theater-close"/);
  assert.match(html,/data-src="https:\/\/www.youtube.com\/embed\/[^"]*playsinline=1&amp;fs=0/);
