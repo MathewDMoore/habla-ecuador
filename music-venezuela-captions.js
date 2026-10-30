@@ -34,7 +34,7 @@ const cues=[
 [140.2,145.2,"I've found the princess for my castle. I'm never going to say goodbye to you."],
 [145.3,151.1,"Baby, you're right by my side. With you I'll stay on standby."],
 [151.2,159.4,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[159.5,165.7,'With you I'll stay on standby. Between heart and reason...'],
+[159.5,165.7,"With you I’ll stay on standby. Between heart and reason..."],
 [165.8,169.1,'...there is always a choice.'],[169.2,173.3,'And my choice, my choice is you.'],
 [173.4,180.6,'[Spoken outro: words unclear]'],
 [180.7,184.6,'We keep doing it again. They call it “heavy.” [uncertain]'],
