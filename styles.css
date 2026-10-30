@@ -1093,7 +1093,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .ve-stage-label { color:#f6e8c6; font-weight:750; font-size:.86rem; margin:0 0 10px; }
 .ve-video-box { position:relative; min-height:200px; aspect-ratio:16/9; width:100%; background:#000; border:3px solid #1e1e1e; border-radius:9px; overflow:hidden; box-shadow:0 0 0 1px #f2ce84; }
 .ve-video-box iframe { position:absolute; inset:0; width:100%; height:100%; border:0; display:block; }
-.ve-caption-overlay { position:absolute; bottom:32px; left:7px; right:7px; z-index:2; padding:6px 8px; border-radius:6px; background:rgba(0,0,0,.90); color:#fff; text-shadow:0 1px 2px #000; text-align:center; font-size:clamp(.83rem,3.5vw,1.06rem); line-height:1.3; font-weight:700; pointer-events:none; }
+.ve-caption-overlay { position:absolute; bottom:45px; left:6px; right:6px; z-index:10; box-sizing:border-box; padding:9px 10px; border:2px solid #ffe18d; border-radius:8px; background:#050505; color:#fff; -webkit-text-fill-color:#fff; text-shadow:0 2px 2px #000; text-align:center; font-size:var(--ve-overlay-font,1.4rem); line-height:1.3; letter-spacing:.01em; font-weight:850; white-space:normal; overflow-wrap:break-word; pointer-events:none; }
 .ve-caption-overlay[hidden] { display:none; }
 .ve-video-status { color:#d9e7db; font-size:.82rem; margin:10px 2px; line-height:1.45; }
 .ve-youtube-link { color:#ffe1a2; font-weight:700; font-size:.87rem; display:inline-block; padding:6px 2px; }
@@ -1102,7 +1102,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .ve-controls select { width:100%; margin-top:5px; padding:9px 7px; border:1px solid #bdcfbe; border-radius:8px; background:#fff; color:#18382e; }
 .ve-reading { padding:12px; border-radius:12px; border:1px solid #bad4c6; background:#f1f7f1; }
 .ve-reading-heading { margin:0 0 7px; font-weight:800; font-size:.84rem; color:#194734; }
-.ve-reading-text { padding:13px 10px; min-height:68px; border-radius:9px; margin:0 0 8px; background:#143a2d; color:#fff; line-height:1.48; font-size:1.04rem; }
+.ve-reading-text { box-sizing:border-box; padding:16px 14px; min-height:100px; border:2px solid #f5d27b; border-radius:10px; margin:0 0 8px; background:#080b09; color:#fff; -webkit-text-fill-color:#fff; line-height:1.42; letter-spacing:.01em; font-size:var(--ve-reading-font,1.625rem); font-weight:800; overflow-wrap:anywhere; white-space:normal; }
 .ve-confidence { color:#825322; font-size:.81rem; margin:7px 0; }
 .ve-confidence.ve-reviewed { color:#16633a; font-weight:650; }
 .ve-playback-row { display:flex; align-items:center; gap:10px; justify-content:space-between; margin:12px 0 8px; }
@@ -1117,10 +1117,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .ve-verse-pair > div { border-radius:9px; padding:11px; background:#e8f1e9; min-width:0; }
 .ve-verse-pair > div + div { background:#fff2de; }
 .ve-verse-pair strong { font-size:.82rem; }
-.ve-verse-pair p { line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; margin:7px 0 0; }
+.ve-verse-pair p { color:#17251b; font-size:1.06rem; font-weight:600; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; margin:7px 0 0; }
 .ve-note { font-size:.82rem; color:#596a5c; line-height:1.5; margin:11px 0; }
 .ve-caption-list { display:grid; gap:5px; padding-top:10px; max-height:300px; overflow-y:auto; }
-.ve-caption-list button { padding:9px 10px; text-align:left; border:1px solid #d8e4d9; border-radius:8px; background:#f5f7f2; color:#263a2a; font-size:.83rem; }
+.ve-caption-list button { padding:12px; text-align:left; border:1px solid #8eac96; border-radius:8px; background:#fff; color:#102a1d; font-size:1rem; font-weight:700; line-height:1.45; }
 .ve-caption-list button:focus-visible { outline:2px solid #236a4e; }
 @media(max-width:410px) { .ve-controls,.ve-verse-pair { grid-template-columns:1fr; } .ve-lesson { padding:10px; } .ve-video-box { min-height:200px; } }
 
@@ -1142,3 +1142,30 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .input-card .translator-mic-actions #input-mic{margin:0;position:relative;right:auto;bottom:auto;flex:0 0 44px}
 #translator-mic-add{display:inline-flex;align-items:center;justify-content:center;max-width:calc(100% - 60px);min-height:44px;padding:9px 12px;border:1px solid #a7c4b1;border-radius:12px;background:#e6f3e9;color:#174e3c;font-size:.84rem;font-weight:750;line-height:1.2;white-space:normal;cursor:pointer;touch-action:manipulation}
 #translator-mic-add:focus-visible{outline:3px solid #df9b56;outline-offset:2px}
+
+
+/* Build 178: high-contrast, adjustable BYE BYE subtitles. The full English
+   wording always remains in the separate panel, including in iPhone WKWebView. */
+.ve-lesson { --ve-overlay-font:1.4rem; --ve-reading-font:1.625rem; }
+.ve-lesson[data-caption-size="standard"] { --ve-overlay-font:1.125rem; --ve-reading-font:1.25rem; }
+.ve-lesson[data-caption-size="extra"] { --ve-overlay-font:1.7rem; --ve-reading-font:2rem; }
+.ve-accessibility-controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin:12px 0; padding:12px; border:2px solid #1b4836; border-radius:12px; background:#e0efe5; color:#103324; }
+.ve-accessibility-controls label { flex:1; min-width:160px; font-size:1rem; font-weight:850; line-height:1.4; }
+.ve-accessibility-controls select { max-width:100%; min-height:48px; padding:9px 12px; border:2px solid #1b4836; border-radius:10px; background:#fff; color:#112c1e; font:inherit; font-size:1rem; font-weight:800; }
+.ve-accessibility-controls select:focus-visible { outline:3px solid #de8b2b; outline-offset:2px; }
+.ve-reading-heading { font-size:1rem; color:#123c2b; }
+.ve-reading { background:#e8f2eb; border:2px solid #769e83; }
+.ve-video-box { min-height:clamp(250px,65vw,305px); }
+.ve-verse-pair strong { color:#103b29; font-size:1rem; }
+.ve-verse-pair > div + div strong { color:#4d2a05; }
+.ve-note { font-size:.96rem; color:#304337; }
+.ve-confidence { font-size:.95rem; color:#53320c; }
+.ve-controls label { font-size:1rem; }
+.ve-controls select { font-size:1rem; min-height:44px; }
+.ve-playback-row button { min-height:44px; font-size:1rem; }
+.ve-caption-list button:focus-visible { outline:3px solid #d08018; outline-offset:2px; }
+@media (max-width:410px) {
+  .ve-caption-overlay { left:4px; right:4px; padding:7px 8px; bottom:44px; }
+  .ve-video-box { min-height:265px; }
+  .ve-reading-text { padding:15px 12px; }
+}
