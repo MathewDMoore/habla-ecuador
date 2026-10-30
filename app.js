@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.73 · build 183";
+const APP_VERSION = "0.26.74 · build 184";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1592,7 +1592,32 @@ function matchesPhraseCandidate(clean, candidate) {
   return containsWholePhrase(clean,normalized) || containsWholePhrase(normalized,clean);
 }
 
+function matchEvidenceExample(value, way=direction) {
+  const clean=normalize(value);
+  if(!clean || translationPurpose==="academic")return null;
+  const ecuadorRoute=way==="en-ec"
+    ? targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en"
+    : sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en";
+  if(!ecuadorRoute)return null;
+  const entry=evidenceEntries.find(item=>item.origin==="learner-ready"
+    && item.verification?.dictionaryAttested===true
+    && typeof item.exampleEs==="string" && typeof item.exampleUs==="string" && typeof item.exampleUk==="string"
+    && (way==="en-ec" ? [item.exampleUs,item.exampleUk] : [item.exampleEs])
+      .some(text=>normalize(text)===clean));
+  if(!entry)return null;
+  const note=[entry.regionStatus,entry.warning,
+    "The usage is documented; these example translations are editorial and await speaker review. / El uso está documentado; las traducciones del ejemplo son editoriales y esperan revisión de hablantes."].filter(Boolean).join(" ");
+  return {en:entry.exampleUs,us:entry.exampleUs,uk:entry.exampleUk,es:entry.exampleEs,natural:entry.exampleEs,
+    register:entry.register||"Ecuadorian usage / Uso ecuatoriano",note,evidenceExampleId:entry.id,
+    sourceUrls:entry.evidenceUrls||[],
+    verificationLabel:"Source-linked learning example / Ejemplo de aprendizaje con fuentes",
+    alternatives:{en:[{text:entry.exampleUs,label:"U.S. English / Inglés estadounidense",note},
+      {text:entry.exampleUk,label:"U.K. English / Inglés británico",note}]}};
+}
+
 function matchPhrase(value, way=direction) {
+  const example=matchEvidenceExample(value,way);
+  if(example)return example;
   const clean = normalize(value);
   if (!clean) return null;
   const phraseMatch = phrases.find(phrase => {
@@ -3796,6 +3821,11 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     ? "This reversal preserves the Ecuadorian slang sense selected in the previous translation. "
     : "";
   $("#usage-note").innerHTML = `<strong>${isCultural ? "Ecuadorian slang · " : ""}${phrase.register}</strong><span>${preservedNote}${phrase.note}${warning}</span>`;
+  if(phrase.evidenceExampleId){
+    const links=phrase.sourceUrls.filter(url=>/^https:\/\//.test(url))
+      .map((url,index)=>`<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Reference ${index+1} / Fuente ${index+1}</a>`).join(" · ");
+    if(links)$("#usage-note").innerHTML+=`<p>Usage references / Fuentes de uso: ${links}</p>`;
+  }
 }
 
 function updateEcuadorResearchPaperLink() {
@@ -4415,6 +4445,9 @@ async function loadEvidence() {
       <article><strong>${queue.length}</strong><span>Review queue</span></article>`;
     status.hidden = true;
     renderDictionary();
+    // If the learner typed while references were loading, retry only an exact
+    // documented example; request cancellation protects against late drafts.
+    if(!$("#translate-panel")?.hidden && matchEvidenceExample($("#translator-input")?.value||""))renderTranslation();
   } catch (error) {
     status.hidden = false;
     status.textContent = "Source files could not load. Ecuadorian expressions are available; learner entries and additional evidence are unavailable. Reload to retry.";
@@ -5722,7 +5755,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=183", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=184", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
