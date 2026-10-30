@@ -1,3 +1,44 @@
+# Native video playback in Habla Ecuador — 0.1.5 (6)
+
+This release fixes the installed app opening YouTube externally instead of
+keeping the video inside the Music tab. The old WKNavigationDelegate cancelled
+all non-Habla navigation, including YouTube's legitimate iframe, then called
+UIApplication.open. Now YouTube is permitted **only inside subframes** while
+the full-page main navigation remains restricted to Habla Ecuador.
+External websites open only after an explicit main-document link tap.
+
+The native bridge marks support for the repaired frame through
+`window.__hablaNativeInlineVideo`. Hosted Habla web build **174** recognizes
+this flag and loads the BYE BYE YouTube frame after the learner enters the
+Music tab. It **does not autoplay**. The player and English caption companion
+remain in Habla, subject to YouTube allowing embedding. Lyrics and caption
+timing are still editorial drafts; not official timed YouTube subtitles.
+If the embed is unavailable, the Music tab still provides the three supplied
+Spanish/English passages and an on-device video-file option. It never uploads
+a private recording.
+
+**Install on the Mac:** In your existing signed checkout, pull just the two
+native files below from `origin/main` to preserve your local signing setup,
+then open the existing HablaEcuador target in Xcode, set Version `0.1.5` and
+Build `6`, select your iPhone and press Run (⌘R). Do not uninstall the app or
+replace the locally signed project settings.
+
+```sh
+git fetch origin main
+git restore --source=FETCH_HEAD --worktree -- \
+  ios/HablaEcuador/HablaEcuadorApp.swift \
+  ios/HablaEcuador/NativeSpeech.js
+```
+
+Use the repository root as the working directory for those commands, and
+only restore the paths after checking for local edits to preserve. The
+`NativeSpeechCapture.swift` logic, microphone configuration, translator
+behavior and user data are unchanged by the video navigation fix. GitHub
+Actions' unsigned iOS Simulator compile is not a signed iPhone install.
+On the phone, open Habla → Music, tap play inside the video. If YouTube
+refuses embedding, use the on-device video chooser; external playback is
+not evidence that caption synchronization works.
+
 # Native iPhone microphone prototype — 0.1.4 (5)
 
 This is a native companion prototype for the existing Habla Ecuador
