@@ -174,7 +174,7 @@ function make(){
  const originalTitle=element("h3","full-reader-source-title","","Source / Original");
  const originalInfo=element("small","full-reader-source-count","","");
  originalHeader.append(originalTitle,originalInfo);
- source=element("textarea","full-reader-source");
+ source=element("textarea","full-reader-source","full-reader-source");
  source.spellcheck=true;source.rows=3;
  source.setAttribute("aria-label","Complete source text / Texto original completo");
  source.addEventListener("input",()=>{
