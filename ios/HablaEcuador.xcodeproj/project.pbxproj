@@ -312,7 +312,7 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>5</string>
+				<string>6</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
@@ -320,7 +320,7 @@
 				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
 				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.4</string>
+				<string>0.1.5</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -364,7 +364,7 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>5</string>
+				<string>6</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
@@ -372,7 +372,7 @@
 				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
 				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.4</string>
+				<string>0.1.5</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
