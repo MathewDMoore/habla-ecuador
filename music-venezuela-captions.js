@@ -69,7 +69,7 @@ confidence=id('caption-confidence'),timing=id('video-time'),timeLabel=id('video-
 offsetInput=id('caption-offset'),offsetLabel=id('offset-value'),passages=id('lyric-comparison'),
 list=id('caption-cue-list'),sizeSelect=id('caption-size'),
 theaterButton=id('habla-theater'),theaterClose=id('theater-close'),
-theaterEnglish=id('theater-english');
+theaterEnglish=id('theater-english'),inVideoLanguage=id('in-video-language');
 function applyCaptionSize(value){
  const next=['standard','large','extra'].includes(value)?value:'large';
  host.dataset.captionSize=next;
@@ -122,8 +122,15 @@ function draw(force){
  const index=selectedCue(now+offset);
  if(index===last&&!force)return;last=index;const cue=cues[index];
  const enabled=lang.value!=='off';
- const text=enabled&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
- caption.hidden=!text;caption.textContent=text;
+ // The YouTube IFrame API must confirm the current playback time before
+ // applying any time-coded words. Never pretend a guessed cue is synchronized.
+ const synced=sourceMode!=='youtube'||ready;
+ const text=enabled&&synced&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
+ const onVideo=sourceMode==='youtube'||sourceMode==='local';
+ const waitingForSync=onVideo&&sourceMode==='youtube'&&!ready;
+ const overlayText=text||(enabled&&waitingForSync?'🇺🇸 English on · connecting to video time…':'');
+ caption.hidden=!(onVideo&&enabled&&overlayText);
+ caption.textContent=overlayText;
  // The video itself is cross-origin; its fullscreen playback hides the page.
  // Keep an English caption strip in Habla's own viewing mode, adjacent to video.
  theaterEnglish.textContent=text||(!enabled?'English captions are off. Select English in Translation / Traducción.'
@@ -166,7 +173,16 @@ for(let i=0;i<cues.length;i++){
  const cue=cues[i],button=document.createElement('button');button.type='button';
  button.textContent=fmt(cue[0])+' '+cue[2];button.addEventListener('click',()=>seek(cue[0]));list.append(button);
 }
-lang.addEventListener('change',()=>{draw(true);renderPassages();});
+function syncInVideoLanguage(){
+ inVideoLanguage.value=lang.value;
+ inVideoLanguage.parentElement.hidden=!(sourceMode==='youtube'||sourceMode==='local');
+ draw(true);renderPassages();
+}
+lang.addEventListener('change',syncInVideoLanguage);
+inVideoLanguage.addEventListener('change',()=>{
+ lang.value=inVideoLanguage.value;
+ syncInVideoLanguage();
+});
 source.addEventListener('change',renderPassages);
 timing.addEventListener('input',()=>{manual=Number(timing.value);timeLabel.textContent=fmt(manual);});
 timing.addEventListener('change',()=>seek(Number(timing.value)));
@@ -184,6 +200,7 @@ function importLocalVideo(file){
   localUrl=next;
   try{if(ready&&player&&typeof player.pauseVideo==='function')player.pauseVideo();}catch{}
   sourceMode='local';ready=false;manual=0;last=-2;
+  syncInVideoLanguage();
   localVideo.src=localUrl;localVideo.hidden=false;
   frame.hidden=true;playerStart.hidden=true;caption.hidden=true;
   status.textContent='Saved video loaded from this device. Tap play; Habla English captions follow the video time. Adjust caption offset if needed.';
@@ -231,6 +248,7 @@ root.onYouTubeIframeAPIReady=function(){
 tryYoutube.addEventListener('click',()=>{
  try{localVideo.pause();}catch{}
  sourceMode='youtube';ready=false;last=-2;
+ syncInVideoLanguage();
  localVideo.hidden=true;playerStart.hidden=true;frame.hidden=false;
  status.textContent='Trying YouTube inside Habla. On some iPhones YouTube may take over playback; Habla cannot keep captions over that external player.';
  if(!youtubeStarted){
@@ -285,5 +303,5 @@ const observer=new MutationObserver(()=>{
  } else showNativePlayerOnMusicTab();
 });
 observer.observe(document.getElementById('music-view'),{attributes:true,attributeFilter:['class']});
-renderPassages();draw(true);showNativePlayerOnMusicTab();
+renderPassages();syncInVideoLanguage();showNativePlayerOnMusicTab();
 })(window);
