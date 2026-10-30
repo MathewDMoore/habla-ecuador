@@ -2827,7 +2827,7 @@ function startInputMicrophone({append=false}={}) {
         const result=$("#translation-result"),empty=$("#translation-empty-target");
         if (result) result.hidden=true;
         if (empty) empty.hidden=false;
-        setTranslatorMicFeedback("Some dictated words are unconfirmed. Check the complete source; add any missing words before translating.",true,true);
+        setTranslatorMicFeedback("Only a partial transcript was received. Check the complete source; add missing words before translating.",true,true);
       } else {
         translatorDictationNeedsReview = false;
         setTranslatorMicFeedback("Recognized words received. Check for missing or changed words. Use Add missing words to continue.");
