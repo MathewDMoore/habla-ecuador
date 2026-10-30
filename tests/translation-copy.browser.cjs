@@ -14,6 +14,7 @@ async function run(browser,width,file,nativeLayout){
   document.execCommand=command=>{if(command!=='copy')throw Error('Unexpected command');legacyValues.push(document.activeElement.value);return legacySucceeds;};
  });
  if(nativeLayout)await page.addInitScript(()=>{
+  if(window!==window.top)return; // The layout fixture belongs to the app, not embedded video frames.
   // Reproduce the signed companion 16 layout contract observed in the recording:
   // unknown result children enter a closed notes disclosure; the workspace moves
   // between Translate and Music. This is a layout fixture, not an iPhone test.

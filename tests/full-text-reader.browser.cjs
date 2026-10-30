@@ -74,6 +74,43 @@ async function run(browser,file,width){
  // full-screen and first Expand touch targets are tested above.
  await page.locator('#translation-expand').evaluate(el=>el.click());
  assert.equal(await page.locator('#translation-expand').getAttribute('aria-expanded'),'false','Collapse returns to compact mode');
+ // Short paired view stays compact and reverses without translating again.
+ await page.evaluate(()=>{
+  document.querySelector('#translator-input').value='Hello there!';
+  setEditableTranslation('Hello there!','¡Hola!');
+  document.querySelector('#translation-result').hidden=false;
+ });
+ await page.locator('#source-full-text').click();
+ assert.ok(await page.locator('#full-reader-source').evaluate(el=>el.clientHeight<180),'short source fits content');
+ await page.locator('#full-reader-alternatives summary').click();
+ assert.equal(await page.locator('#full-reader-alternatives').getAttribute('open'),'');
+ assert.equal(await page.locator('#full-reader-reverse').isVisible(),true,'reverse stays available with alternatives expanded');
+ assert.equal(await page.locator('.full-reader-jumps').evaluate(el=>getComputedStyle(el).position),'sticky');
+ await page.locator('#full-reader-reverse').tap();
+ assert.equal(await page.locator('#full-reader-source').inputValue(),'¡Hola!');
+ assert.equal(await page.locator('#full-reader-result').textContent(),'Hello there!');
+ await page.locator('#full-reader-reverse').tap();
+ assert.equal(await page.locator('#full-reader-source').inputValue(),'Hello there!');
+ assert.equal(await page.locator('#full-reader-result').textContent(),'¡Hola!');
+ // Hidden stale placeholders cannot masquerade as a finished translation.
+ await page.evaluate(()=>{
+  document.querySelector('#translation-result').hidden=true;
+  document.querySelector('#natural-result').textContent='Translating…';
+ });
+ await page.waitForFunction(()=>document.querySelector('#full-reader-result').textContent==='');
+ assert.equal(await page.locator('#full-reader-reverse').isDisabled(),true);
+ assert.equal(await page.locator('#full-reader-copy-target').isDisabled(),true);
+ await page.evaluate(()=>{
+  document.querySelector('#source-language-warning').hidden=true;
+  document.querySelector('#retry-translation').addEventListener('click',event=>{
+  event.stopImmediatePropagation();
+  setEditableTranslation(document.querySelector('#translator-input').value,'Completed test draft.');
+  document.querySelector('#translation-result').hidden=false;
+ },{capture:true,once:true});});
+ await page.locator('#full-reader-translate').click();
+ await page.waitForFunction(()=>document.querySelector('#full-reader-result').textContent==='Completed test draft.');
+ assert.equal(await page.locator('#full-reader-translation-state').textContent(),'');
+ assert.equal(await page.locator('#full-reader-reverse').isEnabled(),true);
  assert.deepEqual(errors,[],'no JS errors');
  await context.close();
  console.log(file+' '+width+'px full length pasted text, both expanding actions, paragraph preservation, source editing and Escape passed');
