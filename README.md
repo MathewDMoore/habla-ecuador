@@ -6,6 +6,26 @@ An Ecuadorian-first Spanish practice and translation app. This repository contai
 
 Serve this folder with a static web server, then open the local URL. The app loads vocabulary and source references from JSON files; fetching those files may not work when opening `index.html` directly as a file.
 
+### Venezuela video + English caption companion (v0.26.61 · build 171)
+
+Music now includes the original BYE BYE YouTube embed (Johnny Jab ft. Somerflex) with
+an in-app English US/UK companion subtitle overlay and text strip. It follows
+the YouTube IFrame Player API timeline when playback is permitted, supports
+manual seeking and a ±5-second caption offset, and displays the three
+listener-supplied Spanish passages beside reviewed English drafts. Original
+Spanish is preserved separately from optional spelling/punctuation editing.
+
+The country is Venezuela; the contributor's city is **unknown**. The caption
+track contains 38 **estimated** English cues derived from the supplied screen
+recordings and earlier draft. Only the three supplied passages have undergone
+meaning review, and one phrase remains linguistically uncertain. The rest,
+plus exact cue timing, require songwriter/native-speaker verification.
+Habla captions are an HTML overlay, not captions uploaded to YouTube: YouTube
+fullscreen may hide the overlay, and the embed may be blocked by YouTube or
+the publisher. A fallback link remains available. iPhone playback and sync
+have not been verified on a physical device. This is a hosted web-app update;
+it does not replace or rebuild the native iOS shell.
+
 ## Current prototype
 
 - Browse a regional slang dictionary with Ecuador first, six country filters,
