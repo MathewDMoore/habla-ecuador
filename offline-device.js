@@ -9,7 +9,9 @@ const HablaOffline = (() => {
     "ec-en": {id:"Xenova/opus-mt-es-en", revision:"eadfd7c658a9d8929ac3b8e996b68a68e2c7d480"}
   };
   const FILES = ["config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"];
-  let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null;
+  let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null, startup = null;
+  // Match the cached app release instead of leaving the worker on an older build.
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=182";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
@@ -58,7 +60,7 @@ const HablaOffline = (() => {
   }
   function call(type, payload = {}) {
     if (!worker) {
-      worker = new Worker("offline-worker.js?v=180");
+      worker = new Worker("offline-worker.js" + workerVersion);
       worker.onmessage = ({data}) => {
         if (data.type === "progress") { status(data.message); return; }
         const request = pending.get(data.id);
@@ -135,11 +137,21 @@ const HablaOffline = (() => {
   }
   function shouldUse() { return enabled || (ready && navigator.onLine === false); }
   async function translate(text, way) {
+    if (startup) await startup;
     if (validating) await validating;
-    if (!ready) throw fail("offline_pack", "Download the offline pack while connected first.");
+    if (!ready && !supportProblem() && await checkPack()) {
+      try { await validate(); }
+      catch (error) { throw fail("offline_engine", "The downloaded pack could not start: " + error.message); }
+    }
+    if (!ready) throw fail("offline_pack", "The offline pack is incomplete or unavailable in this app. Your text is kept.");
     return call("translate", {text, way});
   }
-  async function bind() {
+  function bind() {
+    if (startup) return startup;
+    startup = initialize().finally(() => { startup = null; });
+    return startup;
+  }
+  async function initialize() {
     const button = document.querySelector("#offline-download"), checkbox = document.querySelector("#offline-use");
     if (!button || !checkbox) return;
     button.addEventListener("click", install);
@@ -159,11 +171,12 @@ const HablaOffline = (() => {
     try {downloaded=await checkPack();} catch {}
     if (downloaded) {
       button.textContent="Validate offline pack";
-      if(enabled) {
-        button.disabled=true;
-        try {await validate();} catch(error){status(`Offline pack not ready. ${error.message}`);}
-        finally {button.disabled=false;}
-      } else status("Pack files downloaded. Tap Validate offline pack to check both directions and offline app files.");
+      // Reuse retained files automatically, including after a cold app launch.
+      // A denied persistence request never discards the pack.
+      try {await navigator.storage?.persist?.();} catch {}
+      button.disabled=true;
+      try {await validate();} catch(error){status(`Downloaded pack retained, but the engine could not start. ${error.message}`);}
+      finally {button.disabled=false;}
     } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
   return {get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
