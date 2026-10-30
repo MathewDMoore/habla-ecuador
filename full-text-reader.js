@@ -105,6 +105,34 @@ function copy(value,button){
  } catch {report(false);}
 }
 
+function refreshAlternatives(){
+ const box=$("#full-reader-alternatives-list");if(!box)return;
+ box.replaceChildren();
+ const direct=$("#literal-result")?.textContent.trim()||"";
+ if(/^(Direct version|Literal\/context alternatives):/.test(direct)){const note=element("p",null,"",direct);box.append(note);}
+ const compare=$("#compare-english");
+ if(compare && !compare.disabled){
+  const compareButton=makeButton("Compare U.S. / U.K. English","full-reader-compare");
+  compareButton.addEventListener("click",()=>{
+   compare.click();
+   for(const variant of ["us","uk"]){
+    const text=$("#comparison-"+variant)?.value;
+    if(!text)continue;
+    const choice=makeButton((variant==="us"?"U.S.: ":"U.K.: ")+text);
+    choice.addEventListener("click",()=>{
+     const live=$("#natural-result");
+     if(live?.getAttribute("contenteditable")!=="true")return;
+     live.textContent=text;live.dispatchEvent(new Event("input",{bubbles:true}));syncTarget();
+    });
+    box.append(choice);
+   }
+   compareButton.remove();
+  });
+  box.append(compareButton);
+ }
+ if(!box.childNodes.length)box.append(element("p",null,"","No additional wording available for this draft. / No hay variantes adicionales para este texto."));
+}
+
 function make(){
  dialog=element("dialog","full-text-reader","full-text-reader");
  dialog.setAttribute("aria-labelledby","full-reader-title");
@@ -184,7 +212,12 @@ function make(){
  const hear=makeButton("🔊 Hear / Escuchar","full-reader-hear");
  hear.addEventListener("click",()=>$("#hear-result")?.click());
  translatedActions.append(hear,copyTarget);
- translated.append(translationTitle,translationNote,target,translatedActions);
+ const alternatives=element("details","full-reader-alternatives");
+ const summary=element("summary",null,"","Alternatives / Alternativas");
+ const list=element("div","full-reader-alternatives-list");
+ alternatives.append(summary,list);
+ alternatives.addEventListener("toggle",()=>{if(alternatives.open)refreshAlternatives();});
+ translated.append(translationTitle,translationNote,target,translatedActions,alternatives);
  copyField=element("textarea","full-reader-copy-field");
  copyField.readOnly=true;copyField.hidden=true;copyField.rows=8;
  copyField.setAttribute("aria-label","Select and copy this text / Selecciona y copia este texto");

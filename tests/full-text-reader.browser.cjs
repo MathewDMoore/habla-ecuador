@@ -82,6 +82,10 @@ async function run(browser,file,width){
  });
  await page.locator('#source-full-text').click();
  assert.ok(await page.locator('#full-reader-source').evaluate(el=>el.clientHeight<180),'short source fits content');
+ await page.locator('#full-reader-alternatives summary').click();
+ assert.equal(await page.locator('#full-reader-alternatives').getAttribute('open'),'');
+ assert.equal(await page.locator('#full-reader-reverse').isVisible(),true,'reverse stays available with alternatives expanded');
+ assert.equal(await page.locator('.full-reader-jumps').evaluate(el=>getComputedStyle(el).position),'sticky');
  await page.locator('#full-reader-reverse').click();
  assert.equal(await page.locator('#full-reader-source').inputValue(),'¡Hola!');
  assert.equal(await page.locator('#full-reader-result').textContent(),'Hello there!');

@@ -1195,3 +1195,11 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #full-reader-translate {grid-column:1/-1;min-height:36px;}
 #full-reader-source-count {display:none;}
 .full-reader-section-actions button {background:transparent;border:0;padding:6px;}
+
+.full-reader-header {position:static;}
+.full-reader-jumps {position:sticky;top:0;z-index:4;background:var(--cream);}
+#full-reader-alternatives {margin-top:8px;border-top:1px solid #b4d1c0;padding-top:10px;}
+#full-reader-alternatives summary {min-height:44px;cursor:pointer;font-weight:700;color:#173f35;}
+#full-reader-alternatives-list {display:grid;gap:8px;overflow-wrap:anywhere;}
+#full-reader-alternatives-list button {min-height:44px;white-space:normal;text-align:left;padding:10px;border:1px solid #a9cabc;border-radius:10px;background:white;color:#173f35;}
+#translate-panel > .language-picker-row {position:sticky;top:0;z-index:4;background:var(--cream);padding:8px 0;}
