@@ -1205,3 +1205,9 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #translate-panel > .language-picker-row {position:sticky;top:0;z-index:4;background:var(--cream);padding:8px 0;}
 /* Stable touch target during rapid reversal; color feedback does not move it. */
 #full-reader-reverse,#full-reader-reverse.is-pressed,#full-reader-reverse:active,#swap-button,#swap-button.is-pressed,#swap-button:active {transform:none!important;transition:none!important;animation:none!important;}
+
+.full-reader-alternative-card {border:1px solid #b4d1c0;border-radius:12px;padding:12px;background:white;}
+.full-reader-alternative-card>summary {font-size:21px;line-height:1.4;padding-bottom:8px;}
+.full-reader-alternative-card>strong {display:block;font-size:14px;color:#173f35;}
+.full-reader-alternative-card>p {font-size:15px;line-height:1.5;}
+.full-reader-alternative-card .full-reader-section-actions {flex-wrap:wrap;}
