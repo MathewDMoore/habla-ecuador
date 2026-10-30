@@ -1,6 +1,6 @@
 {
-  "version": "0.26.65",
-  "build": 175,
+  "version": "0.26.66",
+  "build": 176,
   "released": "2026-10-29",
-  "notes": "Preserve the meaning of developing this app in mixed Spanish-English translation; protect original text."
+  "notes": "Add missing words by dictation without erasing existing source; review unconfirmed iPhone speech instead of automatically translating."
 }
