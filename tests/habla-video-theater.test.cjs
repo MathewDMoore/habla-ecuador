@@ -15,7 +15,7 @@ test('Habla theater supplies English captions beside YouTube instead of native f
  assert.doesNotMatch(html,/id="ve-youtube-frame"[^>]*allowfullscreen/);
  assert.match(css,/\.ve-lesson\.ve-theater-mode \.ve-stage\s*\{[^}]*position:fixed/);
  assert.match(css,/\.ve-lesson\.ve-theater-mode \.ve-theater-caption\s*\{[^}]*display:block/);
- assert.match(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{display:none !important;\}/);
+ assert.doesNotMatch(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{display:none !important;\}/);
 });
 test('English cue is rendered inside the playing-video companion too',()=>{
  assert.match(player,/theaterEnglish\.textContent=text\|\|/);
