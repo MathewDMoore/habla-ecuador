@@ -8,7 +8,7 @@
   <title>Habla Ecuador</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=170">
+  <link rel="stylesheet" href="styles.css?v=171">
   <script src="interface-es.js?v=170" defer></script>
   <script src="interface-language.js?v=170" defer></script>
   <script src="research-reference.js?v=170" defer></script>
@@ -31,10 +31,11 @@
   <script src="app-feedback.js?v=170" defer></script>
   <script src="app-updates.js?v=170" defer></script>
   <script src="music-song.js?v=170" defer></script>
+  <script src="music-venezuela-captions.js?v=171" defer></script>
   <script src="whatsapp-audio.js?v=170" defer></script>
   <script src="tutorial.js?v=170" defer></script>
   <script src="full-text-reader.js?v=170" defer></script>
-  <script src="app.js?v=170" defer></script>
+  <script src="app.js?v=171" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -43,7 +44,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.26.60 · build 170</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.26.61 · build 171</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -145,6 +146,51 @@
           <div><p class="eyebrow">Music & living language</p><h1 id="music-title">Hear the culture.</h1></div>
         </div>
         <p class="music-intro">Escucha palabras cantadas, entiende el significado y practica frases útiles. / Hear sung words, understand their meaning, and practice useful phrases.</p>
+        <section id="ve-music-lesson" class="music-section ve-lesson" aria-labelledby="ve-video-title">
+          <h2 id="ve-video-title">🇻🇪 BYE BYE · English video captions / Subtítulos en inglés</h2>
+          <p>Johnny Jab ft. Somerflex · Venezuela (city unknown). Listen to the original YouTube performance with Habla's English caption companion.</p>
+          <div class="ve-stage">
+            <p class="ve-stage-label">🎬 Video original · English companion captions / Subtítulos acompañantes</p>
+            <div class="ve-video-box">
+              <iframe id="ve-youtube-frame" title="BYE BYE — Johnny Jab featuring Somerflex" src="https://www.youtube.com/embed/zucN-uBedlg?enablejsapi=1&amp;playsinline=1&amp;cc_lang_pref=en&amp;origin=https%3A%2F%2Fmathewdmoore.github.io" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe>
+              <div id="ve-caption-overlay" class="ve-caption-overlay" aria-live="off" hidden></div>
+            </div>
+            <p id="ve-video-status" class="ve-video-status" role="status">Play in the video window. The English caption overlay is separate from YouTube's own CC track.</p>
+            <a class="ve-youtube-link" href="https://youtu.be/zucN-uBedlg" rel="noopener noreferrer" target="_blank">Open original on YouTube (if embedding is blocked)</a>
+          </div>
+          <div class="ve-controls">
+            <label for="ve-caption-language">Translation / Traducción
+              <select id="ve-caption-language"><option value="en-US">🇺🇸 English subtitles · US</option><option value="en-GB">🇬🇧 English subtitles · UK</option><option value="off">Captions off / Sin subtítulos</option></select>
+            </label>
+            <label for="ve-source-choice">Spanish reading / Lectura en español
+              <select id="ve-source-choice"><option value="readable">Spanish · spelling suggestions</option><option value="original">Spanish · exact supplied original</option></select>
+            </label>
+          </div>
+          <div class="ve-reading" role="group" aria-label="English captions and time controls">
+            <p class="ve-reading-heading">English captions / Subtítulos</p>
+            <p id="ve-caption-reading" class="ve-reading-text">Press play to follow the captions.</p>
+            <p id="ve-caption-confidence" class="ve-confidence" role="status">English draft · lyrics under review</p>
+            <div class="ve-playback-row">
+              <button id="ve-previous" type="button">−10 s</button>
+              <label for="ve-video-time">Video <output id="ve-video-time-label">0:00</output></label>
+              <button id="ve-next" type="button">+10 s</button>
+            </div>
+            <input id="ve-video-time" type="range" min="0" max="188" value="0" step="1" aria-label="Caption/video position in seconds">
+            <label for="ve-caption-offset" class="ve-offset-label">Subtitle timing adjustment / Ajustar tiempo <output id="ve-offset-value">+0.0s</output></label>
+            <input id="ve-caption-offset" type="range" min="-5" max="5" value="0" step="0.5" aria-label="Move companion captions earlier or later">
+          </div>
+          <details class="ve-transcript" open>
+            <summary>Full supplied Spanish → English translation / Traducción completa</summary>
+            <p class="ve-note">These are the three supplied passages, not a verified full-song lyric sheet. The source text remains unchanged; spelling edits are a separate display. The translation corrects the “a Dios / adiós” confusion and the direction of “me pusiera en tu camino.”</p>
+            <div id="ve-lyric-comparison"></div>
+          </details>
+          <details class="ve-transcript">
+            <summary>All timed English caption drafts / Todas las líneas</summary>
+            <p class="ve-note">38 estimated subtitle cues from the prior recording analysis. Only the contributed passages have reviewed wording. Other cues and all timestamps still need verification; tapping a cue seeks the video if the embedded player permits it.</p>
+            <div id="ve-caption-cue-list" class="ve-caption-list"></div>
+          </details>
+          <p class="ve-note">Subtitles appear over the in-app player and underneath it. YouTube fullscreen may hide Habla's overlay; use the in-page player to see companion captions. YouTube's own CC settings remain separate. No audio or original video is modified.</p>
+        </section>
         <section id="music-song-lesson" class="music-section"></section>
         <details class="music-section"><summary>Escucha cultural opcional / Optional cultural listening · instrumentals</summary>
           <p class="eyebrow">Contemporary open listening</p>
