@@ -31,7 +31,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
         configuration.userContentController.addUserScript(WKUserScript(
-            source: "window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
+            source: "window.__hablaNativeInlineVideo = true; window.__hablaSongIdentificationSupported = window.__hablaSystemAudioSupported = \(NativeSpeechCapture.supportsSystemAudioCapture ? "true" : "false");",
             injectionTime: .atDocumentStart, forMainFrameOnly: true))
         if let scriptURL = Bundle.main.url(forResource: "NativeSpeech", withExtension: "js"),
            let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
@@ -80,20 +80,46 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
+    // Keep video subframes in Habla instead of handing YouTube to Safari.
+    private func isTrustedAppPage(_ url: URL) -> Bool {
+        url.scheme?.lowercased() == "https" &&
+        url.host?.lowercased() == site.host &&
+        url.path.hasPrefix("/habla-ecuador/")
+    }
+
+    private func isAllowedVideoFrame(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == "https" else { return false }
+        switch url.host?.lowercased() {
+        case "www.youtube.com", "www.youtube-nocookie.com", "youtube.com":
+            return true
+        default:
+            return false
+        }
+    }
+
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
-        let trusted = url.scheme == "https" && url.host == site.host
-            && url.path.hasPrefix("/habla-ecuador/")
-        if trusted {
-            // Discard callbacks from the old page before a new document installs its bridge.
-            if navigationAction.targetFrame?.isMainFrame != false { speech?.abortActive() }
-            decisionHandler(.allow)
-        } else {
+        guard let url = navigationAction.request.url else {
             decisionHandler(.cancel)
-            if ["https", "http", "mailto"].contains(url.scheme ?? "") {
-                UIApplication.shared.open(url)
-            }
+            return
+        }
+        // The hosted Music screen embeds YouTube in a subframe.
+        if navigationAction.targetFrame?.isMainFrame == false {
+            decisionHandler(isTrustedAppPage(url) || isAllowedVideoFrame(url) ? .allow : .cancel)
+            return
+        }
+        if isTrustedAppPage(url) {
+            // Preserve native speech lifecycle cleanup for main-page navigation.
+            speech?.abortActive()
+            decisionHandler(.allow)
+            return
+        }
+        decisionHandler(.cancel)
+        // Script-initiated and iframe navigation must never launch YouTube externally.
+        if navigationAction.sourceFrame.isMainFrame,
+           navigationAction.navigationType == .linkActivated,
+           ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") {
+            UIApplication.shared.open(url)
         }
     }
 
