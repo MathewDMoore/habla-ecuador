@@ -41,7 +41,10 @@ function syncTarget(){
  const liveSource=$("#translator-input");
  if(liveSource && source.value!==liveSource.value){source.value=liveSource.value;resizeInput();}
  $("#full-reader-source-title").textContent=titleFor("#source-language-select","Source / Original");
- if(result.textContent!==value){clearCopy();result.textContent=value;}
+ const changed=result.textContent!==value;
+ if(changed){clearCopy();result.textContent=value;}
+ const alternatives=$("#full-reader-alternatives");
+ if(alternatives){alternatives.hidden=!editable;if(alternatives.open && changed)refreshAlternatives();}
  result.contentEditable=editable?"true":"false";
  const label=$("#translation-result .result-label")?.textContent.trim();
  $("#full-reader-target-title").textContent=label||titleFor("#target-language-select","Translation / Traducción");
