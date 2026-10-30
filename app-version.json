@@ -1,6 +1,6 @@
 {
-  "version": "0.26.62",
-  "build": 172,
+  "version": "0.26.63",
+  "build": "173",
   "released": "2026-10-29",
-  "notes": "Direct Music player link, BYE BYE English captions and build refresh."
+  "notes": "Prevent automatic YouTube handoff; support importing a saved recording for reliable in-app English captions."
 }
