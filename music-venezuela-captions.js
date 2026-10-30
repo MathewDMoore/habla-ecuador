@@ -219,6 +219,21 @@ function showNativePlayerOnMusicTab(){
    status.textContent='The video is now in the Habla Music tab. Tap its play button to start; English captions appear below the player.';
  }
 }
+// The native iOS Music layout moves older sections into a CLOSED
+// "Explore recordings & culture" panel. Keep BYE BYE's video and caption
+// companion above the translation controls, visible without expanding it.
+function exposeFeaturedVideoInNativeMusic(){
+ if(root.__hablaNativeInlineVideo!==true)return;
+ const music=document.getElementById('music-view');
+ const workspace=document.getElementById('native-music-workspace');
+ if(!music||!workspace||host.parentElement===music)return;
+ music.insertBefore(host,workspace); // move, never duplicate IDs or handlers
+}
+// The native bridge runs its own DOMContentLoaded callback. The direct-child
+// observer also covers either registration order without watching caption text.
+const nativeLayoutObserver=new MutationObserver(exposeFeaturedVideoInNativeMusic);
+nativeLayoutObserver.observe(document.getElementById('music-view'),{childList:true});
+document.addEventListener('DOMContentLoaded',exposeFeaturedVideoInNativeMusic,{once:true});
 const observer=new MutationObserver(()=>{
  if(!document.getElementById('music-view')?.classList.contains('active')){
   if(sourceMode==='local')try{localVideo.pause();}catch{}
