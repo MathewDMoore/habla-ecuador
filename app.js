@@ -2050,7 +2050,12 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.commitTranscript = (provisional=false) => {
     if (recognition !== instance || committed || !latestText) return;
     committed = true;
-    if (commitOnEnd && latestFinal) provisional = false;
+    // A native backend may report session-end while it still contains
+    // tentative words. Ending a session does not certify its transcript.
+    const tentative = typeof latestMetadata.tentativeText === "string"
+      && latestMetadata.tentativeText.trim().length > 0;
+    provisional = Boolean(provisional || tentative);
+    if (commitOnEnd && latestFinal && !tentative) provisional = false;
     onText?.(latestText, true, {...latestMetadata, provisional});
     if (provisional && !continuous) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
   };
@@ -2750,7 +2755,17 @@ function setTranslatorMicFeedback(message="",needsConfirmation=false,keyboardOpt
   keyboard.hidden=!keyboardOption;
 }
 
-function startInputMicrophone() {
+function composeDictationText(existing, recognized, append=false) {
+  // A recognition callback contains a cumulative draft for *this session*.
+  // Replace only that session's contribution, never the earlier text.
+  const fresh=String(recognized||"").trim();
+  if (!append || !String(existing||"").trim()) return fresh;
+  if (!fresh) return String(existing);
+  const prefix=String(existing).trimEnd();
+  return prefix + (/\n$/.test(prefix) ? "" : "\n") + fresh;
+}
+
+function startInputMicrophone({append=false}={}) {
   const button = $("#input-mic");
   // The native layout moves this same editor into Music. Its microphone must
   // use the live capture pipeline rather than waiting for dictation to end.
@@ -2767,6 +2782,7 @@ function startInputMicrophone() {
   // a capture attempt, NOT proof that the speech engine decoded the words.
   const locale=sourceSpeechLocale();
   const label=languageLabel(sourceLanguage);
+  const priorText=append ? ($("#translator-input")?.value || "") : "";
   let receivedWords=false,failed=false;
   setTranslatorMicFeedback("Starting microphone… " + label);
   startListening({way:direction,lang:locale,button,
@@ -2779,7 +2795,10 @@ function startInputMicrophone() {
       setTranslatorMicFeedback(recognitionErrorMessage(error),false,true);
     },
     onEnd:()=>{
-      if (!receivedWords && !failed) setTranslatorMicFeedback("No words recognized. Try again or use your phone's keyboard microphone.",false,true);
+      if (!receivedWords && !failed) {
+        setTranslatorMicFeedback("No words recognized. Existing words are preserved. Try again or use keyboard dictation.",false,true);
+        if(append) $("#translator-input").value=priorText;
+      }
     },
     onText:(text,final,metadata={})=>{
       musicFullTranslation = null;
@@ -2790,9 +2809,16 @@ function startInputMicrophone() {
       preservedCulturalContext = null;
       if (!text.trim()) return;
       receivedWords=true;
-      $("#translator-input").value = text;
+      $("#translator-input").value = composeDictationText(priorText,text,append);
       if (!final) {
-        setTranslatorMicFeedback("Partial words heard. Checking the final transcript…");
+        // Never show an old translation alongside an unfinished new source.
+        translationRequest += 1;
+        translatorDictationNeedsReview=true;
+        const result=$("#translation-result");
+        if(result)result.hidden=true;
+        setTranslatorMicFeedback(append
+          ? "Adding recognized words below the original. Still listening; check for omissions."
+          : "Partial words heard. Checking the final transcript…");
       } else if (metadata.provisional) {
         // iOS/Safari can end with only an unconfirmed fragment ("Sí" instead
         // of "¿Cómo estás?"). Keep it editable, but never translate it as fact.
@@ -2801,10 +2827,10 @@ function startInputMicrophone() {
         const result=$("#translation-result"),empty=$("#translation-empty-target");
         if (result) result.hidden=true;
         if (empty) empty.hidden=false;
-        setTranslatorMicFeedback("Only a partial transcript was received. Check the words before translating.",true,true);
+        setTranslatorMicFeedback("Some dictated words are unconfirmed. Check the complete source; add any missing words before translating.",true,true);
       } else {
         translatorDictationNeedsReview = false;
-        setTranslatorMicFeedback("Recognized words received. Check the transcription.");
+        setTranslatorMicFeedback("Recognized words received. Check for missing or changed words. Use Add missing words to continue.");
         renderTranslation();
       }
     }
@@ -5413,6 +5439,13 @@ function init() {
     else translationTimer = setTimeout(renderTranslation, 550);
   });
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
+  $("#translator-mic-add")?.addEventListener("click", event=>{
+    event.preventDefault();
+    if(recognition && activeRecognitionButton===$("#input-mic"))return stopListening();
+    // This mode intentionally preserves source text and appends the next
+    // recognizer session. It never guesses missing content.
+    startInputMicrophone({append:true});
+  });
   $("#translator-mic-confirm")?.addEventListener("click",()=>{
     if (!$("#translator-input")?.value.trim()) return;
     translatorDictationNeedsReview = false;
