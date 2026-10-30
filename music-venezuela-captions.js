@@ -86,7 +86,9 @@ function draw(force){
  const enabled=lang.value!=='off';
  const text=enabled&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
  caption.hidden=!text;caption.textContent=text;
- reading.textContent=text||(enabled?'No caption verified for this moment.':'English captions off.');
+ reading.textContent=text||(sourceMode==='none'
+  ?'English lyric translations are ready below. Choose a saved screen recording to follow them during playback.'
+  :enabled?'No caption verified for this moment.':'English captions off.');
  confidence.textContent=cue?(cue[4]?'Listener-supplied wording · approximate timing':'Provisional auto-caption-based draft · needs review'):'No timed line';
  confidence.classList.toggle('ve-reviewed',Boolean(cue&&cue[4]));
 }
