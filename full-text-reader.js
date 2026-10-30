@@ -28,9 +28,9 @@ function syncTarget(){
  const available=!$("#translation-result")?.hidden;
  const editable=available && original.getAttribute("contenteditable")==="true";
  const value=available ? original.textContent||"" : "";
- const error=$("#no-result");
+ const error=$("#no-result"),warning=$("#source-language-warning");
  $("#full-reader-translation-state").textContent=editable ? "" : error && !error.hidden
-  ? error.textContent.trim() : available ? "Translating… / Traduciendo…" : "Tap Translate to prepare this text. / Toca Traducir para preparar este texto.";
+  ? error.textContent.trim() : warning && !warning.hidden ? warning.textContent.trim() : available ? "Translating… / Traduciendo…" : "Tap Translate to prepare this text. / Toca Traducir para preparar este texto.";
  $("#full-reader-copy-target").disabled=!editable;
  $("#full-reader-hear").disabled=!editable;
  $("#full-reader-reverse").disabled=!editable;
@@ -128,6 +128,8 @@ function make(){
  }
  const translate=makeButton("Translate / Traducir","full-reader-translate");
  translate.addEventListener("click",()=>{
+  const warning=$("#source-language-warning");
+  if(warning && !warning.hidden){$("#correct-source-language")?.click();syncTarget();return;}
   const confirm=$("#translator-mic-confirm");
   (confirm && !confirm.hidden ? confirm : $("#retry-translation"))?.click();
   syncTarget();
@@ -195,7 +197,7 @@ function make(){
  });
  document.body.append(dialog);
  watching=new MutationObserver(syncTarget);
- for(const selector of ["#natural-result","#translation-result","#no-result"]){
+ for(const selector of ["#natural-result","#translation-result","#no-result","#source-language-warning"]){
   const live=$(selector);if(live)watching.observe(live,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["contenteditable","hidden"]});
  }
 }
