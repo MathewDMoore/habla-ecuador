@@ -1,6 +1,6 @@
 {
-  "version": "0.26.63",
-  "build": 173,
+  "version": "0.26.64",
+  "build": 174,
   "released": "2026-10-29",
-  "notes": "Prevent automatic YouTube handoff; support importing a saved recording for reliable in-app English captions."
+  "notes": "Native 0.1.5 now supports inline YouTube video in Music, retaining in-app English captions."
 }
