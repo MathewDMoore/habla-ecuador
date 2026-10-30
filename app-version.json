@@ -1,6 +1,6 @@
 {
-  "version": "0.26.66",
-  "build": 176,
+  "version": "0.26.67",
+  "build": 177,
   "released": "2026-10-29",
-  "notes": "Add missing words by dictation without erasing existing source; review unconfirmed iPhone speech instead of automatically translating."
+  "notes": "Show BYE BYE video and English companion captions visibly above native Music translation controls; preserve iPhone song identification and speech."
 }
