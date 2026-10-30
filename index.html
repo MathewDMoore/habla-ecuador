@@ -163,7 +163,15 @@
               </div>
               <video id="ve-local-video" controls playsinline webkit-playsinline preload="metadata" aria-label="Imported video with Habla English captions" hidden></video>
               <iframe id="ve-youtube-frame" title="BYE BYE — Johnny Jab featuring Somerflex" data-src="https://www.youtube.com/embed/zucN-uBedlg?enablejsapi=1&amp;playsinline=1&amp;fs=0&amp;cc_lang_pref=en&amp;origin=https%3A%2F%2Fmathewdmoore.github.io" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
-              <div id="ve-caption-overlay" class="ve-caption-overlay" aria-live="off" hidden></div>
+              <div class="ve-in-video-switch" role="group" aria-label="Habla English subtitles on the video">
+                <label for="ve-in-video-language">🇺🇸 EN · Habla</label>
+                <select id="ve-in-video-language" aria-label="In-video subtitles language">
+                  <option value="en-US">🇺🇸 English on</option>
+                  <option value="en-GB">🇬🇧 UK English on</option>
+                  <option value="off">Subtitles off</option>
+                </select>
+              </div>
+              <div id="ve-caption-overlay" class="ve-caption-overlay" lang="en" aria-label="Habla's English translation on the video" aria-live="off" hidden></div>
             </div>
             <div class="ve-theater-caption" aria-label="English captions during playback">
               <p class="ve-theater-caption-label">🇺🇸 ENGLISH · HABLA TRANSLATION (DRAFT)</p>
