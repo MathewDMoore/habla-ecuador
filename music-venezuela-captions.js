@@ -67,7 +67,17 @@ caption=id('caption-overlay'),reading=id('caption-reading'),
 lang=id('caption-language'),source=id('source-choice'),status=id('video-status'),
 confidence=id('caption-confidence'),timing=id('video-time'),timeLabel=id('video-time-label'),
 offsetInput=id('caption-offset'),offsetLabel=id('offset-value'),passages=id('lyric-comparison'),
-list=id('caption-cue-list');
+list=id('caption-cue-list'),sizeSelect=id('caption-size');
+function applyCaptionSize(value){
+ const next=['standard','large','extra'].includes(value)?value:'large';
+ host.dataset.captionSize=next;
+ sizeSelect.value=next;
+ try{root.localStorage?.setItem('habla-ve-caption-size-v1',next);}catch{}
+}
+let savedCaptionSize='large';
+try{savedCaptionSize=root.localStorage?.getItem('habla-ve-caption-size-v1') || 'large';}catch{}
+applyCaptionSize(savedCaptionSize);
+sizeSelect.addEventListener('change',()=>applyCaptionSize(sizeSelect.value));
 let player,ready=false,manual=0,offset=0,last=-2,sourceMode='none',localUrl=null,youtubeStarted=false;
 const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 function position(){
