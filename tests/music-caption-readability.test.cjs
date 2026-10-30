@@ -60,7 +60,7 @@ test('user-controlled caption size updates both caption surfaces and remembers c
 test('high-contrast caption remains outside YouTube iframe as complete text',()=>{
  assert.match(html,/id="ve-caption-overlay"/);
  assert.match(html,/id="ve-caption-reading"/);
- assert.match(script,/caption\.textContent=text/);
+ assert.match(script,/caption\.textContent=overlayText/);
  assert.match(script,/reading\.textContent=text/);
  assert.match(css,/\.ve-caption-overlay[^}]*z-index:10/);
  assert.match(css,/\.ve-reading-text[^}]*overflow-wrap:anywhere/);
