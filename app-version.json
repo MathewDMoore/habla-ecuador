@@ -1,6 +1,6 @@
 {
   "version": "0.26.63",
-  "build": "173",
+  "build": 173,
   "released": "2026-10-29",
   "notes": "Prevent automatic YouTube handoff; support importing a saved recording for reliable in-app English captions."
 }
