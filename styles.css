@@ -1084,3 +1084,42 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 
 .lesson-tutorial-button { display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:10px 14px;margin:8px 0 12px;border:1px solid #b5d4c2;border-radius:12px;background:#e6f3eb;color:#173f35;font-size:13px;font-weight:850;white-space:normal;text-align:center; }
 .lesson-tutorial-button:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
+
+
+/* Venezuelan song captions: high contrast, iPhone-first, no video rehosting */
+.ve-lesson { border:1px solid #b0cbb5; border-radius:15px; padding:14px; background:#fffefa; }
+.ve-lesson > h2 { margin:5px 0 8px; font-size:1.15rem; }
+.ve-stage { margin:13px 0; padding:13px 10px 14px; border:2px solid #f6c26a; border-radius:15px; background:radial-gradient(ellipse at top,#35493f,#101d17 66%,#060e0b); color:#fff; box-shadow:0 8px 20px #0004; }
+.ve-stage-label { color:#f6e8c6; font-weight:750; font-size:.86rem; margin:0 0 10px; }
+.ve-video-box { position:relative; min-height:200px; aspect-ratio:16/9; width:100%; background:#000; border:3px solid #1e1e1e; border-radius:9px; overflow:hidden; box-shadow:0 0 0 1px #f2ce84; }
+.ve-video-box iframe { position:absolute; inset:0; width:100%; height:100%; border:0; display:block; }
+.ve-caption-overlay { position:absolute; bottom:32px; left:7px; right:7px; z-index:2; padding:6px 8px; border-radius:6px; background:rgba(0,0,0,.90); color:#fff; text-shadow:0 1px 2px #000; text-align:center; font-size:clamp(.83rem,3.5vw,1.06rem); line-height:1.3; font-weight:700; pointer-events:none; }
+.ve-caption-overlay[hidden] { display:none; }
+.ve-video-status { color:#d9e7db; font-size:.82rem; margin:10px 2px; line-height:1.45; }
+.ve-youtube-link { color:#ffe1a2; font-weight:700; font-size:.87rem; display:inline-block; padding:6px 2px; }
+.ve-controls { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+.ve-controls label { display:block; font-size:.83rem; font-weight:700; }
+.ve-controls select { width:100%; margin-top:5px; padding:9px 7px; border:1px solid #bdcfbe; border-radius:8px; background:#fff; color:#18382e; }
+.ve-reading { padding:12px; border-radius:12px; border:1px solid #bad4c6; background:#f1f7f1; }
+.ve-reading-heading { margin:0 0 7px; font-weight:800; font-size:.84rem; color:#194734; }
+.ve-reading-text { padding:13px 10px; min-height:68px; border-radius:9px; margin:0 0 8px; background:#143a2d; color:#fff; line-height:1.48; font-size:1.04rem; }
+.ve-confidence { color:#825322; font-size:.81rem; margin:7px 0; }
+.ve-confidence.ve-reviewed { color:#16633a; font-weight:650; }
+.ve-playback-row { display:flex; align-items:center; gap:10px; justify-content:space-between; margin:12px 0 8px; }
+.ve-playback-row button { background:#fff; color:#19543d; padding:7px 10px; border:1px solid #b8d1bd; border-radius:8px; font-weight:700; }
+.ve-playback-row label { font-size:.86rem; }
+.ve-reading input[type="range"] { width:100%; display:block; margin:8px 0 15px; accent-color:#1b6a48; }
+.ve-offset-label { display:block; font-size:.81rem; color:#53695b; font-weight:600; }
+.ve-transcript { border:1px solid #d4dfd3; border-radius:11px; padding:11px 13px; margin:13px 0; background:#fff; }
+.ve-transcript summary { font-weight:800; color:#145f40; cursor:pointer; }
+.ve-verse { border-top:1px solid #e3e9e3; margin-top:14px; padding-top:11px; }
+.ve-verse-pair { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.ve-verse-pair > div { border-radius:9px; padding:11px; background:#e8f1e9; min-width:0; }
+.ve-verse-pair > div + div { background:#fff2de; }
+.ve-verse-pair strong { font-size:.82rem; }
+.ve-verse-pair p { line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; margin:7px 0 0; }
+.ve-note { font-size:.82rem; color:#596a5c; line-height:1.5; margin:11px 0; }
+.ve-caption-list { display:grid; gap:5px; padding-top:10px; max-height:300px; overflow-y:auto; }
+.ve-caption-list button { padding:9px 10px; text-align:left; border:1px solid #d8e4d9; border-radius:8px; background:#f5f7f2; color:#263a2a; font-size:.83rem; }
+.ve-caption-list button:focus-visible { outline:2px solid #236a4e; }
+@media(max-width:410px) { .ve-controls,.ve-verse-pair { grid-template-columns:1fr; } .ve-lesson { padding:10px; } .ve-video-box { min-height:200px; } }
