@@ -19,6 +19,7 @@ async function run(browser,mode,width){
   return route.fulfill({path:file}).catch(error=>{if(!route.request().failure())throw error;});
  });
  if(mode==='optional-error')await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{
+  if(window!==window.top)return; // Inject the optional app failure only in the app frame.
   window.HablaRecordedPractice.render=()=>{throw Error('Injected optional recording widget failure');};
  }));
  await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
