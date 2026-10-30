@@ -152,21 +152,32 @@
           <p>Johnny Jab ft. Somerflex · Venezuela (city unknown). Watch a saved recording with Habla's English caption companion. YouTube inline playback is optional.</p>
           <div class="ve-stage">
             <p class="ve-stage-label">🎬 Video original · English companion captions / Subtítulos acompañantes</p>
+            <div class="ve-theater-toolbar" aria-label="Habla player controls">
+              <span>🎬 Habla · English captions / Subtítulos en inglés</span>
+              <button id="ve-theater-close" type="button" aria-label="Close Habla video and return to Music">✕ Close / Cerrar</button>
+            </div>
             <div class="ve-video-box">
               <div id="ve-player-start" class="ve-player-start">
                 <strong>Video and English captions, together.</strong>
                 <p>Choose a saved recording from your iPhone for reliable captions in Habla. The YouTube embed is optional because iPhone playback may switch apps.</p>
               </div>
               <video id="ve-local-video" controls playsinline webkit-playsinline preload="metadata" aria-label="Imported video with Habla English captions" hidden></video>
-              <iframe id="ve-youtube-frame" title="BYE BYE — Johnny Jab featuring Somerflex" data-src="https://www.youtube.com/embed/zucN-uBedlg?enablejsapi=1&amp;playsinline=1&amp;cc_lang_pref=en&amp;origin=https%3A%2F%2Fmathewdmoore.github.io" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
+              <iframe id="ve-youtube-frame" title="BYE BYE — Johnny Jab featuring Somerflex" data-src="https://www.youtube.com/embed/zucN-uBedlg?enablejsapi=1&amp;playsinline=1&amp;fs=0&amp;cc_lang_pref=en&amp;origin=https%3A%2F%2Fmathewdmoore.github.io" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
               <div id="ve-caption-overlay" class="ve-caption-overlay" aria-live="off" hidden></div>
+            </div>
+            <div class="ve-theater-caption" aria-label="English captions during playback">
+              <p class="ve-theater-caption-label">🇺🇸 ENGLISH · HABLA TRANSLATION (DRAFT)</p>
+              <p id="ve-theater-english" class="ve-theater-english" aria-live="off">Tap Play to follow the English captions.</p>
+              <p class="ve-theater-disclaimer">Approximate timing and unverified lines. If you see Spanish in the video, those are YouTube captions; turn off YouTube CC to avoid two tracks.</p>
             </div>
             <div class="ve-source-actions">
               <label class="ve-import-file" for="ve-local-file">📱 Use my saved video / Usar mi grabación</label>
               <input id="ve-local-file" type="file" accept="video/*,.mp4,.mov,.m4v" aria-label="Choose a video saved on your iPhone">
               <button id="ve-youtube-try" type="button">Try YouTube inside Habla</button>
+              <button id="ve-habla-theater" type="button" aria-pressed="false">▶ Watch with English captions / Ver con subtítulos en inglés</button>
             </div>
             <p id="ve-video-status" class="ve-video-status" role="status">Ready to import a saved recording. The video stays on your device; English captions remain visible in Habla.</p>
+            <p class="ve-theater-help">For English captions while watching, use <strong>Watch with English captions</strong> instead of YouTube fullscreen. YouTube fullscreen cannot display Habla's separate translations.</p>
             <a class="ve-youtube-link" href="https://youtu.be/zucN-uBedlg" rel="noopener noreferrer" target="_blank">Open original on YouTube (opens separately)</a>
           </div>
           <div class="ve-controls">
