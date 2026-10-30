@@ -1203,3 +1203,5 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 #full-reader-alternatives-list {display:grid;gap:8px;overflow-wrap:anywhere;}
 #full-reader-alternatives-list button {min-height:44px;white-space:normal;text-align:left;padding:10px;border:1px solid #a9cabc;border-radius:10px;background:white;color:#173f35;}
 #translate-panel > .language-picker-row {position:sticky;top:0;z-index:4;background:var(--cream);padding:8px 0;}
+/* Stable touch target during rapid reversal; color feedback does not move it. */
+#full-reader-reverse,#full-reader-reverse.is-pressed,#full-reader-reverse:active,#swap-button,#swap-button.is-pressed,#swap-button:active {transform:none!important;transition:none!important;animation:none!important;}
