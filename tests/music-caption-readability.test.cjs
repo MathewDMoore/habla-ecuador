@@ -31,7 +31,7 @@ test('high-contrast white text on nearly black background beats AAA text thresho
  const reading=rule('.ve-reading-text');
  for(const [name,declarations] of [['overlay',overlay],['full-size reading panel',reading]]){
   const bg=declarations.match(/background:(#[0-9a-fA-F]{3,6})/)[1];
-  const fg=declarations.match(/(?:^|;)\\s*color:(#[0-9a-fA-F]{3,6})/)[1];
+  const fg=declarations.match(/color:(#[0-9a-fA-F]{3,6})/)[1];
   assert.ok(contrast(bg,fg)>=7,name+' must exceed WCAG AAA 7:1');
   assert.match(declarations,/font-weight:(?:800|850|900)/);
  }
