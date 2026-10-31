@@ -3,14 +3,26 @@ import WebKit
 
 @main
 struct HablaEcuadorApp: App {
+    @State private var widgetRoute: URL?
+
     var body: some Scene {
-        WindowGroup { TranslatorView().ignoresSafeArea(.container, edges: .bottom) }
+        WindowGroup {
+            TranslatorView(widgetRoute: widgetRoute)
+                .ignoresSafeArea(.container, edges: .bottom)
+                .onOpenURL { url in
+                    guard url.scheme?.lowercased() == "hablaecuador" else { return }
+                    widgetRoute = url
+                }
+        }
     }
 }
 
 struct TranslatorView: UIViewControllerRepresentable {
+    var widgetRoute: URL?
     func makeUIViewController(context: Context) -> TranslatorController { TranslatorController() }
-    func updateUIViewController(_ controller: TranslatorController, context: Context) {}
+    func updateUIViewController(_ controller: TranslatorController, context: Context) {
+        controller.openWidgetRoute(widgetRoute)
+    }
 }
 
 private final class WeakSpeechHandler: NSObject, WKScriptMessageHandler {
@@ -25,6 +37,24 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
+    private var lastWidgetRoute: String?
+
+    func openWidgetRoute(_ route: URL?) {
+        guard let route,
+              route.scheme?.lowercased() == "hablaecuador",
+              let destination = route.host?.lowercased(),
+              ["translate", "practice", "dictionary"].contains(destination),
+              lastWidgetRoute != route.absoluteString else { return }
+        lastWidgetRoute = route.absoluteString
+        // Use the full hosted app for Dictionary and Practice because the
+        // default native translator shell intentionally hides bottom tabs.
+        var url = URLComponents(string: "https://mathewdmoore.github.io/habla-ecuador/index.html")!
+        url.queryItems = [URLQueryItem(name: "start", value: destination)]
+        guard let target = url.url else { return }
+        loadViewIfNeeded()
+        speech?.abortActive()
+        webView?.load(URLRequest(url: target))
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
