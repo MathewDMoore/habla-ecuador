@@ -1273,6 +1273,11 @@ body.ve-theater-open {overflow:hidden !important;}
  .ve-video-box > .ve-caption-overlay:not([hidden]) {bottom:30px; font-size:var(--ve-overlay-font,1.4rem);}
 }
 
+.ve-caption-dock {display:grid;gap:8px;margin:12px 0;min-width:0;}
+.ve-caption-dock > .ve-in-video-switch {position:static;display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%;padding:8px;border:1px solid #ffe18d;border-radius:9px;background:#050505;color:#fff;}
+.ve-caption-dock > .ve-caption-overlay:not([hidden]) {position:static;inset:auto;z-index:auto;max-height:none;overflow:visible;pointer-events:none;margin:0;font-size:var(--ve-overlay-font,1.4rem);}
+.ve-caption-dock > .ve-in-video-switch[hidden],.ve-caption-dock > .ve-caption-overlay[hidden] {display:none;}
+
 /* Compact translation flow. The reverse stays in the sticky language row,
    outside every expandable alternative, in both the main and full reader. */
 #translate-panel {overflow:visible;}

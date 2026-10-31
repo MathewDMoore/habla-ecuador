@@ -668,6 +668,7 @@ async function main() {
   assert.equal(orangeCapture.continuous,true);
   assert.equal(orangeMic['aria-pressed'],'true','orange control reflects active capture');
   orangeCapture.emit('Jump down. Please.',false,{confirmedText:'',tentativeText:'Jump down. Please.'});
+  assert.equal(timerDelays.get(run('musicListening.live.timer')),250,'first quick preview avoids the normal three-second translation throttle');
   timers.get(run('musicListening.live.timer'))();await flush();
   assert.deepEqual(orangeRequests,['Jump down. Please.'],'quick translation starts while native words are still tentative');
   assert.equal(element('#music-live-draft').value,'Baja de ahí.');

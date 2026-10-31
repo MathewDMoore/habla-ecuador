@@ -70,6 +70,14 @@ offsetInput=id('caption-offset'),offsetLabel=id('offset-value'),passages=id('lyr
 list=id('caption-cue-list'),sizeSelect=id('caption-size'),
 theaterButton=id('habla-theater'),theaterClose=id('theater-close'),
 theaterEnglish=id('theater-english'),inVideoLanguage=id('in-video-language');
+// Keep the original nodes/listeners, but reserve a caption area outside the
+// embedded player's rectangle. YouTube owns its controls and their positions.
+const captionDock=document.createElement('div');
+captionDock.className='ve-caption-dock';
+captionDock.setAttribute('aria-label','English captions and language');
+const videoBox=frame.closest('.ve-video-box');
+videoBox.after(captionDock);
+captionDock.append(inVideoLanguage.closest('.ve-in-video-switch'),caption);
 function applyCaptionSize(value){
  const next=['standard','large','extra'].includes(value)?value:'large';
  host.dataset.captionSize=next;
