@@ -1,9 +1,15 @@
 import SwiftUI
 import WebKit
 
+// A fresh id ensures a second tap on the SAME widget destination is handled.
+struct WidgetLaunchRequest {
+    let id = UUID()
+    let url: URL
+}
+
 @main
 struct HablaEcuadorApp: App {
-    @State private var widgetRoute: URL?
+    @State private var widgetRoute: WidgetLaunchRequest?
 
     var body: some Scene {
         WindowGroup {
@@ -11,14 +17,14 @@ struct HablaEcuadorApp: App {
                 .ignoresSafeArea(.container, edges: .bottom)
                 .onOpenURL { url in
                     guard url.scheme?.lowercased() == "hablaecuador" else { return }
-                    widgetRoute = url
+                    widgetRoute = WidgetLaunchRequest(url: url)
                 }
         }
     }
 }
 
 struct TranslatorView: UIViewControllerRepresentable {
-    var widgetRoute: URL?
+    var widgetRoute: WidgetLaunchRequest?
     func makeUIViewController(context: Context) -> TranslatorController { TranslatorController() }
     func updateUIViewController(_ controller: TranslatorController, context: Context) {
         controller.openWidgetRoute(widgetRoute)
@@ -37,19 +43,21 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
-    private var lastWidgetRoute: String?
+    private var lastWidgetRouteID: UUID?
 
-    func openWidgetRoute(_ route: URL?) {
-        guard let route,
-              route.scheme?.lowercased() == "hablaecuador",
-              let destination = route.host?.lowercased(),
-              ["translate", "practice", "dictionary"].contains(destination),
-              lastWidgetRoute != route.absoluteString else { return }
-        lastWidgetRoute = route.absoluteString
-        // Use the full hosted app for Dictionary and Practice because the
-        // default native translator shell intentionally hides bottom tabs.
+    func openWidgetRoute(_ request: WidgetLaunchRequest?) {
+        guard let request,
+              request.url.scheme?.lowercased() == "hablaecuador",
+              let destination = request.url.host?.lowercased(),
+              ["translate", "practice", "dictionary", "tutorial"].contains(destination),
+              lastWidgetRouteID != request.id else { return }
+        lastWidgetRouteID = request.id
+        // The native translator shell deliberately hides the bottom tabs.
+        // Direct widget links load the appropriate screen in the full app.
         var url = URLComponents(string: "https://mathewdmoore.github.io/habla-ecuador/index.html")!
-        url.queryItems = [URLQueryItem(name: "start", value: destination)]
+        url.queryItems = destination == "tutorial"
+            ? [URLQueryItem(name: "tour", value: "1")]
+            : [URLQueryItem(name: "start", value: destination)]
         guard let target = url.url else { return }
         loadViewIfNeeded()
         speech?.abortActive()

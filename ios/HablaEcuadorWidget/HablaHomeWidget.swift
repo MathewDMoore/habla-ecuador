@@ -66,7 +66,7 @@ private struct HablaLandscape: View {
 }
 
 private enum HablaDestination: String {
-    case translate, practice, dictionary
+    case translate, practice, dictionary, tutorial
 
     var url: URL {
         URL(string: "hablaecuador://\(rawValue)")!
@@ -170,10 +170,11 @@ struct HablaHomeWidgetView: View {
                     .minimumScaleFactor(0.7)
             }
             Spacer(minLength: 0)
-            VStack(spacing: 9) {
+            VStack(spacing: 5) {
                 shortcut("Translate", symbol: "arrow.left.arrow.right", to: .translate)
                 shortcut("Practice", symbol: "mic.fill", to: .practice)
                 shortcut("Dictionary", symbol: "book.closed.fill", to: .dictionary)
+                shortcut("Tutorial", symbol: "questionmark.circle.fill", to: .tutorial)
             }
             .frame(width: 112)
         }
@@ -192,7 +193,7 @@ struct HablaHomeWidgetView: View {
             }
             .font(.system(size: 11, weight: .semibold))
             .padding(.horizontal, 9)
-            .frame(height: 34)
+            .frame(height: 29)
             .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 9))
         }
         .buttonStyle(.plain)

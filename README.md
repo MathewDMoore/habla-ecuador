@@ -2,6 +2,45 @@
 
 An Ecuadorian-first Spanish practice and translation app. This repository contains a lightweight browser prototype with no build step or runtime dependency.
 
+## Native iPhone Home Screen widget (WidgetKit)
+
+The optional **HablaEcuador** native iPhone app includes a real WidgetKit Home Screen
+extension. Unlike the hosted website / Safari Home Screen bookmark, this widget
+requires **the signed native iOS app installed through Xcode**. Publishing a new
+GitHub Pages web build will not install or update the iOS extension.
+
+- **Small widget:** Habla Ecuador artwork, “¿Cómo estás? / How are you?” and
+  a tap to open Translate.
+- **Medium widget:** the same branding and phrase plus four working shortcuts
+  to **Translate**, **Practice**, **Dictionary**, and **Tutorial**. Tutorial
+  explicitly reopens the bilingual guide even if the user completed it.
+- These are static learning/launch widgets, not a live voice recorder or
+  continuously updating vocabulary feed. Microphone access remains within the app.
+
+**Install on your own iPhone using your Mac:**
+
+1. Open `ios/HablaEcuador.xcodeproj` in Xcode; select the **HablaEcuador**
+   app scheme (not the extension scheme).
+2. In Signing & Capabilities, choose your development team for the
+   **HablaEcuador app and HablaEcuadorWidget extension**. Keep the extension
+   bundle identifier nested under the app's bundle identifier, and resolve
+   any personal-team identifier conflicts without resetting the repository.
+3. Choose the connected iPhone as run destination, then build and run the
+   app. The widget extension is embedded in the native app.
+4. On the iPhone Home Screen, press and hold a blank area, choose **Edit →
+   Add Widget** (or the Add Widget control available on that iOS version),
+   search for **Habla Ecuador**, choose Small or Medium, and tap Add Widget.
+5. Tap the shortcuts. If Habla Ecuador is absent from the widget gallery,
+   confirm the **native Xcode-installed app** is on the iPhone and that the
+   widget extension target was included in the app build.
+
+The native deep-link scheme is `hablaecuador://`. Its supported widget
+destinations are `translate`, `practice`, `dictionary`, and `tutorial`.
+The iOS native app forwards these to the hosted app's explicit routes.
+Every widget tap gets a fresh launch request, including two successive taps
+on the same shortcut. A successful GitHub Actions **simulator compile** confirms
+source compatibility but does not install or sign a build for an iPhone.
+
 ## Run it
 
 Serve this folder with a static web server, then open the local URL. The app loads vocabulary and source references from JSON files; fetching those files may not work when opening `index.html` directly as a file.
