@@ -32,7 +32,7 @@ class Recognition {
   }
 }
 const context = vm.createContext({
-  console, AbortController,
+  console, AbortController, Event,
   setTimeout(fn,delay) { const id=++nextTimer; timers.set(id,fn); timerDelays.set(id,delay); return id; },
   clearTimeout(id) { timers.delete(id); },
   localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
@@ -682,6 +682,27 @@ async function main() {
   run('startInputMicrophone()');
   assert.equal(recordings.at(-1).continuous,false,'ordinary translator dictation retains its existing behavior');
   run('cancelListening()');
+  // An unavailable on-device locale is a service failure, not a denied mic.
+  assert.match(run('recognitionErrorMessage("service-not-allowed")'),/service is unavailable/);
+  context.window.webkit={messageHandlers:{hablaSpeech:{}}};
+  const nativeMode=element('#native-speech-details select');
+  nativeMode.options=[{value:'auto'},{value:'legacy-on-device'},{value:'apple-service'}];
+  nativeMode.value='legacy-on-device';nativeMode.disabled=false;nativeMode.dispatchEvent=()=>{};
+  run('newMusicSong();startMusicListening()');
+  const unsupported=recordings.at(-1),attempts=recordings.length;
+  unsupported.onerror({error:'service-not-allowed'});
+  assert.equal(element('#music-capture-recovery').hidden,false);
+  assert.equal(element('#music-retry-service').disabled,true,'retry waits for failed-session cleanup');
+  assert.equal(recordings.length,attempts,'no silent service/network fallback');
+  unsupported.onend();
+  assert.equal(element('#music-retry-service').disabled,false);
+  assert.equal(musicButton.textContent,'Listen to music');
+  run('retryMusicRecognition("apple-service")');
+  assert.equal(nativeMode.value,'apple-service');assert.equal(recordings.length,attempts+1);
+  assert.equal(element('#music-capture-recovery').hidden,true);
+  run('cancelMusicListening()');
+  delete context.window.webkit;
+  run('showMusicCaptureRecovery("service-not-allowed")');assert.equal(element('#music-capture-recovery').hidden,true,'browser failures do not show native-only controls');
   console.log('Music listening tests passed: live draft throttling, route ownership, stale responses, offline/online limits and mic independence');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,7 +1,7 @@
 /* Local OCR: image bytes are passed to a browser worker, never uploaded. */
 const HablaScreenshot = (() => {
   const BASE="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/";
-  let loading, sequence=0, activeWorker, queue=Promise.resolve(), clearUi=()=>{};
+  let loading, sequence=0, activeWorker, queue=Promise.resolve(), clearUi=()=>{}, readImage=()=>{};
   function cropBounds(width,height,{top=0,bottom=100}={}) {
     top=Math.max(0,Math.min(99,Number(top)||0));
     bottom=Math.max(top+1,Math.min(100,Number(bottom)||100));
@@ -123,10 +123,14 @@ const HablaScreenshot = (() => {
         finally{if(id===sequence)cancel.hidden=true;}
       });
     }
+    readImage=read;
     choose.addEventListener('click',()=>fileInput.click());
     fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
     document.addEventListener('paste',event=>{
       if(!['translator-input','full-reader-source'].includes(event.target?.id))return;
+      // A copied video can also include an image thumbnail. Let the recording
+      // importer keep the actual movie instead of reading only its thumbnail.
+      if(typeof HablaRecording!=='undefined'&&HablaRecording.videoFromClipboard(event.clipboardData))return;
       const file=imageFromClipboard(event.clipboardData);
       if(file){event.preventDefault();read(file);}
     });
@@ -146,6 +150,6 @@ const HablaScreenshot = (() => {
     }
     clearUi=()=>{sequence++;controller?.abort();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
-  return {bind,extract,validate,imageFromClipboard,cropBounds,improveContrast,clear:()=>clearUi()};
+  return {bind,extract,validate,imageFromClipboard,cropBounds,improveContrast,read:file=>readImage(file),clear:()=>clearUi()};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=HablaScreenshot;
