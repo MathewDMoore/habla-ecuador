@@ -32,7 +32,7 @@ test('Opening and closing theater preserves YouTube player and restores focus',(
  const exit={focus(){focused++;}};
  const prior={focus(){restored++;}};
  const context={host:{classList:classes},document:{body:{classList:classes},activeElement:prior},
-  theaterButton:button,theaterClose:exit,previousFocus:null,draw(){draws++;}};
+  expandPlayer:button,expandedStage:{hasAttribute:()=>false},theaterButton:button,theaterClose:exit,previousFocus:null,draw(){draws++;}};
  vm.createContext(context);
  vm.runInContext('let theaterOpen=false;\n'+m[0]+'\nsetTheater(true);',context);
  assert.equal(pressed,'true');
