@@ -25,6 +25,7 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
    if(entry==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();
    await page.locator('#translator-input').fill('Keep my original.');
    assert.equal(await page.locator('#translation-setup').evaluate(n=>n.open),false);
+   await page.locator('#music-session-settings').evaluate(panel=>panel.open=true);
    const fileChooser=page.waitForEvent('filechooser');
    await page.locator('#music-choose-recording').click();
    await(await fileChooser).setFiles(recording);
