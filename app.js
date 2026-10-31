@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.81 · build 191";
+const APP_VERSION = "0.26.82 · build 192";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2635,6 +2635,7 @@ function startMusicListening() {
   resetMusicLivePreview();
   if (session.live.enabled && $("#music-live-status")) $("#music-live-status").textContent = "Live draft on. Waiting for captured words…";
   musicListening = session;
+  if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.start(baseText);
   syncMusicReview();
   musicTranscriptReview = true;
   button.textContent = "Starting… tap to cancel";
@@ -2663,6 +2664,7 @@ function startMusicListening() {
       else if (session.live.enabled) $("#music-live-status").textContent = "Capture stopped before a live draft was ready. Captured words, if any, remain above.";
     }
     musicListening = null;
+    if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.stop(session.error?"Capture error — see status":"Paused");
     updateMusicLiveRetry(null);
     syncMusicReview();
     button.disabled = false;
@@ -2700,6 +2702,7 @@ function startMusicSegment(session) {
     onStart:() => {
       if (session.stopping) return;
       $("#music-listen").textContent = "Stop listening";
+      if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.phase("Listening — waiting for words");
       const duration = session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
       status.textContent = session.systemAudio
         ? `Capturing this iPhone's audio… ${duration}. You can switch to the playback app; tap Stop listening when finished.`
@@ -2719,6 +2722,7 @@ function startMusicSegment(session) {
       }
       preservedCulturalContext = null;
       $("#translator-input").value = [session.baseText,text].filter(Boolean).join("\n");
+      if(typeof HablaMusicWorkspace!=="undefined"){HablaMusicWorkspace.words($("#translator-input").value);HablaMusicWorkspace.phase("Receiving words");}
       lastCompletedTranslation = null;
       activeTranslationEdit = null;
       $("#translation-result").hidden = true;
@@ -5434,6 +5438,7 @@ function init() {
     bindTranslationTextTools();
     initializeOptionalFeature("complete text viewer",()=>HablaFullReader.bind());
     if(typeof HablaTranslationControls!=="undefined")HablaTranslationControls.bind();
+    if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.bind();
   });
   bindAppSharing();
   bindRegionalSearchRecovery();
@@ -5558,7 +5563,7 @@ function init() {
       : "Using the selected From language for music translation.";
     if(musicListening) refreshMusicLiveRoute();
   });
-  if($("#music-live-update-mode"))$("#music-live-update-mode").value=localStorage.getItem("habla-ecuador-music-live-update-v1") === "quick" ? "quick" : "confirmed";
+  if($("#music-live-update-mode"))$("#music-live-update-mode").value=localStorage.getItem("habla-ecuador-music-live-update-v1") === "confirmed" ? "confirmed" : "quick";
   $("#music-live-update-mode")?.addEventListener("change",event=>setMusicLiveUpdateMode(event.target.value));
   $("#music-live-retry")?.addEventListener("click",retryMusicLiveDraft);
   $("#music-review-passage")?.addEventListener("change", event => {
@@ -5789,7 +5794,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=191", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=192", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
