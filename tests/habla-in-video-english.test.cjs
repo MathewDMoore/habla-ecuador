@@ -55,7 +55,7 @@ test('unconfirmed iframe time displays a syncing message, not invented synchroni
  assert.doesNotMatch(rendered.caption.textContent,/English draft for demonstration/);
 });
 
-test('English option appears directly inside the video frame, above YouTube iframe',()=>{
+test('authored English controls move into a dedicated dock outside the player',()=>{
  const iframe=html.indexOf('id="ve-youtube-frame"');
  const control=html.indexOf('id="ve-in-video-language"');
  const overlay=html.indexOf('id="ve-caption-overlay"');
@@ -66,7 +66,8 @@ test('English option appears directly inside the video frame, above YouTube ifra
  assert.match(html,/value="off">Subtitles off/);
  assert.match(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{z-index:24;\}/);
  assert.doesNotMatch(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{display:none !important;\}/);
- assert.match(css,/\.ve-video-box > \.ve-in-video-switch \{[\s\S]*?z-index:28/);
+ assert.ok(script.includes('videoBox.after(captionDock)'));
+ assert.ok(script.includes("captionDock.append(inVideoLanguage.closest('.ve-in-video-switch'),caption)"));
 });
 
 test('in-video dropdown is connected to existing US/UK/Off caption selector',()=>{
