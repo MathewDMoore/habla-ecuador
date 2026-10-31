@@ -1,5 +1,8 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "🎙 Practise translation": "🎙 Practicar traducción",
+  "Translation speaking practice": "Práctica oral de la traducción",
+  "Microphone diagnostics": "Diagnóstico del micrófono",
   "Invite for Cuba: starter dictionary entries; Holguín / Oriente-specific review pending.": "Invitación para Cuba: primeras entradas del diccionario; falta revisión específica de Holguín / Oriente.",
   "Cuba · dictionary": "Cuba · diccionario",
   "Country-attested; Holguín / Oriente-specific review pending.": "Documentado para Cuba; falta revisión específica de Holguín / Oriente.",
