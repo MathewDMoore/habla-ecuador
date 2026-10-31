@@ -1337,3 +1337,8 @@ body.ve-theater-open {overflow:hidden !important;}
  .ve-lesson.ve-theater-mode .ve-theater-caption {grid-column:2;grid-row:2;}
  .ve-lesson.ve-theater-mode .ve-video-box {grid-column:1;grid-row:2;}
 }
+#translation-action-dock{padding:12px;margin:10px 0;border:1px solid #b4d1c0;border-radius:12px;background:#fff;color:#173f35;}
+#translation-action-dock button,#translation-action-dock summary{min-height:44px;padding:9px 12px;border:1px solid #b4d1c0;border-radius:10px;background:#fff;color:#173f35;-webkit-text-fill-color:#173f35;font:inherit;font-size:14px;}
+#translation-action-dock #translate-now{background:#173f35;color:#fff;-webkit-text-fill-color:#fff;font-weight:800;}
+#translation-action-dock button:disabled{opacity:1;background:#e2e9e5;color:#4a5e54;-webkit-text-fill-color:#4a5e54;}
+#translation-action-dock p{color:#4a5e54;font-size:13px;}
