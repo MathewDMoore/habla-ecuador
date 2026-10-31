@@ -1326,3 +1326,14 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-result .result-speed-control .speed-slider-row {color:var(--green);}
 #translation-result .translation-text-options > summary {border:1px solid #b4d1c0;}
 #translation-result .result-actions {margin:8px 0;}
+/* Expanded Habla playback uses the top layer without replacing the player. */
+#ve-player-expand {display:block;width:100%;min-height:48px;padding:12px;margin:12px 0;border:2px solid #d4a741;border-radius:12px;background:#173f35;color:#fff;font:inherit;font-weight:800;}
+.ve-lesson.ve-theater-mode .ve-stage:popover-open {inset:0;margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;}
+.ve-stage::backdrop {background:#050706;}
+.ve-theater-mode .ve-caption-dock {width:100%;max-width:900px;margin:0;flex:none;}
+.ve-theater-mode .ve-caption-dock > .ve-caption-overlay {display:none !important;}
+@media(orientation:landscape) and (max-height:600px){
+ .ve-lesson.ve-theater-mode .ve-caption-dock {grid-column:1 / -1;grid-row:3;}
+ .ve-lesson.ve-theater-mode .ve-theater-caption {grid-column:2;grid-row:2;}
+ .ve-lesson.ve-theater-mode .ve-video-box {grid-column:1;grid-row:2;}
+}

@@ -3,9 +3,9 @@ const {buildNumber,release}=require('../app-updates.js'),{metadata}=require('../
 assert.equal(buildNumber('0.26.47 · build 157'),157);assert.equal(buildNumber('invalid'),0);
 for(const bad of [null,{}, {version:'bad',build:157},{version:'0.26.47',build:'128'},{version:'0.26.47',build:-1}])assert.equal(release(bad),null);
 assert.deepEqual(release({version:'0.26.47',build:157,other:'ignored'}),{version:'0.26.47',build:157});
-assert.deepEqual(metadata(require('node:path').resolve(__dirname,'..')),{version:'0.26.79',build:189});
+assert.deepEqual(metadata(require('node:path').resolve(__dirname,'..')),{version:'0.26.80',build:190});
 assert.ok(fs.readFileSync('.github/workflows/deploy-pages.yml','utf8').includes('node scripts/write-release.cjs'));
-for(const f of ['index.html','translator.html','sw.js'])assert.ok(fs.readFileSync(f,'utf8').includes('app-updates.js?v=189'));
+for(const f of ['index.html','translator.html','sw.js'])assert.ok(fs.readFileSync(f,'utf8').includes('app-updates.js?v=190'));
 const app=fs.readFileSync('app.js','utf8');for(const flag of ['dictionaryPracticeSession','musicListening','importedDocument','HablaOffline.busy','turns.length'])assert.ok(app.includes(flag));
 const sw=fs.readFileSync('sw.js','utf8');assert.ok(sw.indexOf('app-version.json')<sw.indexOf('event.respondWith'));
 console.log('Automatic updates: release schema, generated build metadata, deployment wiring, offline shell and work protection hooks passed');

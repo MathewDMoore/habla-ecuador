@@ -90,18 +90,36 @@ applyCaptionSize(savedCaptionSize);
 sizeSelect.addEventListener('change',()=>applyCaptionSize(sizeSelect.value));
 let player,ready=false,manual=0,offset=0,last=-2,sourceMode='none',localUrl=null,youtubeStarted=false;
 let theaterOpen=false,previousFocus=null;
+const expandedStage=host.querySelector('.ve-stage');
+const expandPlayer=document.createElement('button');
+expandPlayer.id='ve-player-expand';expandPlayer.type='button';
+expandPlayer.textContent='⛶ Expand video + English / Ampliar video + inglés';
+expandPlayer.setAttribute('aria-expanded','false');
+expandedStage.before(expandPlayer);
+expandPlayer.addEventListener('click',()=>theaterButton.click());
 function setTheater(open){
  if(Boolean(open)===theaterOpen)return;
  theaterOpen=Boolean(open);
  host.classList.toggle('ve-theater-mode',theaterOpen);
  document.body.classList.toggle('ve-theater-open',theaterOpen);
  theaterButton.setAttribute('aria-pressed',String(theaterOpen));
+ expandPlayer.setAttribute('aria-expanded',String(theaterOpen));
  if(theaterOpen){
   previousFocus=document.activeElement;
+  // The top layer escapes clipping/transforms injected by the signed shell,
+  // keeping the same iframe and its caption nodes alive in their original DOM.
+  if(typeof expandedStage.showPopover==='function'){
+   expandedStage.setAttribute('popover','manual');
+   try{expandedStage.showPopover();}catch{expandedStage.removeAttribute('popover');}
+  }
   // The YouTube iframe stays inline, so its fullscreen view never hides
   // Habla's separately rendered English caption track.
   theaterClose.focus();
  }else{
+  if(expandedStage.hasAttribute('popover')){
+   try{expandedStage.hidePopover();}catch{}
+   expandedStage.removeAttribute('popover');
+  }
   previousFocus?.focus?.();
   previousFocus=null;
  }
