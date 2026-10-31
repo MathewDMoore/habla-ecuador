@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.76 · build 186";
+const APP_VERSION = "0.26.77 · build 187";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1996,7 +1996,8 @@ function setListeningButton(button, listening, finishing=false) {
 }
 
 function recognitionErrorMessage(error) {
-  if (error === "not-allowed" || error === "service-not-allowed") return "Microphone access is blocked for this page. Allow microphone access, then tap again.";
+  if (error === "not-allowed") return "Microphone access is blocked for this page. Allow microphone access, then tap again.";
+  if (error === "service-not-allowed") return "The selected speech recognition service is unavailable for this language or device. Choose another recognition mode, or import a recording or screenshot.";
   if (error === "audio-capture") return "No microphone was available to the browser.";
   if (error === "no-speech") return "No speech was detected. Tap the microphone, start speaking, then tap again when finished.";
   if (error === "network") return "Speech recognition could not reach the free browser service. Please try again.";
@@ -2603,6 +2604,7 @@ function stopMusicListening() {
 
 function startMusicListening() {
   if (musicListening) return stopMusicListening();
+  if ($("#music-capture-recovery")) $("#music-capture-recovery").hidden = true;
   const button = $("#music-listen"), status = $("#music-listening-status");
   if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
     status.textContent = "Microphone recognition is unavailable in this browser. Try Safari or Chrome, or import a lyrics screenshot.";
@@ -2634,7 +2636,7 @@ function startMusicListening() {
   musicListening = session;
   syncMusicReview();
   musicTranscriptReview = true;
-  button.textContent = "Stop listening";
+  button.textContent = "Starting… tap to cancel";
   button.setAttribute("aria-pressed", "true");
   $("#music-capture-length").disabled = true;
   if ($("#music-playback-source")) $("#music-playback-source").disabled = true;
@@ -2663,6 +2665,7 @@ function startMusicListening() {
     updateMusicLiveRetry(null);
     syncMusicReview();
     button.disabled = false;
+    for (const id of ["#music-retry-local", "#music-retry-service"]) if ($(id)) $(id).disabled = false;
     button.setAttribute("aria-pressed", "false");
     $("#music-capture-length").disabled = false;
     if ($("#music-playback-source")) $("#music-playback-source").disabled = false;
@@ -2695,6 +2698,7 @@ function startMusicSegment(session) {
   startListening({lang:session.lang, button:$("#music-listen"), continuous:true, correctTranscript:false,
     onStart:() => {
       if (session.stopping) return;
+      $("#music-listen").textContent = "Stop listening";
       const duration = session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
       status.textContent = session.systemAudio
         ? `Capturing this iPhone's audio… ${duration}. You can switch to the playback app; tap Stop listening when finished.`
@@ -2725,6 +2729,7 @@ function startMusicSegment(session) {
     },
     onError:error => {
       if (error === "aborted") return;
+      showMusicCaptureRecovery(error);
       session.error = error === "no-speech"
         ? session.phoneBluetooth
           ? "No words detected. Check music is still playing on the Bluetooth speaker; iOS may pause playback or change the route when the microphone starts."
@@ -2746,6 +2751,29 @@ function startMusicSegment(session) {
     },
     onCancel:session.finish
   });
+}
+
+function showMusicCaptureRecovery(error) {
+  const recovery = $("#music-capture-recovery");
+  if (!recovery) return;
+  const select = $("#native-speech-details select");
+  const native = Boolean(select && window.webkit?.messageHandlers?.hablaSpeech);
+  recovery.hidden = !native || !["service-not-allowed", "language-not-supported", "native-recognition", "network"].includes(error);
+  if (recovery.hidden) return;
+  const local = $("#music-retry-local"), service = $("#music-retry-service");
+  if (local) local.hidden = select.value === "auto";
+  if (service) service.hidden = select.value === "apple-service";
+  if (local) local.disabled = Boolean(musicListening || recognition);
+  if (service) service.disabled = Boolean(musicListening || recognition);
+}
+
+function retryMusicRecognition(mode) {
+  if (musicListening || recognition) return;
+  const select = $("#native-speech-details select");
+  if (!select || select.disabled || !Array.from(select.options).some(option => option.value === mode)) return;
+  select.value = mode;
+  select.dispatchEvent(new Event("change", {bubbles:true}));
+  startMusicListening();
 }
 
 function stopListening() {
@@ -5513,6 +5541,8 @@ function init() {
     $("#translator-input")?.focus();
   });
   $("#music-listen")?.addEventListener("click", startMusicListening);
+  $("#music-retry-local")?.addEventListener("click", () => retryMusicRecognition("auto"));
+  $("#music-retry-service")?.addEventListener("click", () => retryMusicRecognition("apple-service"));
   $("#new-music-song")?.addEventListener("click", newMusicSong);
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
@@ -5756,7 +5786,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=186", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=187", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

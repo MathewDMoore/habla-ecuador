@@ -8,33 +8,34 @@
   <title>Habla Ecuador Translator</title>
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg">
-  <link rel="stylesheet" href="styles.css?v=186">
-  <script src="interface-es.js?v=186" defer></script>
-  <script src="interface-language.js?v=186" defer></script>
-  <script src="research-reference.js?v=186" defer></script>
-  <script src="document-import.js?v=186" defer></script>
-  <script src="whole-document.js?v=186" defer></script>
-  <script src="saved-paper.js?v=186" defer></script>
-  <script src="offline-device.js?v=186" defer></script>
-  <script src="english-varieties.js?v=186" defer></script>
-  <script src="mixed-language-translation.js?v=186" defer></script>
-  <script src="screenshot-import.js?v=186" defer></script>
-  <script src="regional-vocabulary.js?v=186" defer></script>
-  <script src="spanish-context.js?v=186" defer></script>
-  <script src="language-community-terms.js?v=186" defer></script>
-  <script src="bilingual-music.js?v=186" defer></script>
-  <script src="button-feedback.js?v=186" defer></script>
-  <script src="regional-practice.js?v=186" defer></script>
-  <script src="recorded-transcripts.js?v=186" defer></script>
-  <script src="recorded-practice.js?v=186" defer></script>
-  <script src="quick-lessons.js?v=186" defer></script>
-  <script src="slang-contributions.js?v=186" defer></script>
-  <script src="app-feedback.js?v=186" defer></script>
-  <script src="app-updates.js?v=186" defer></script>
-  <script src="whatsapp-audio.js?v=186" defer></script>
-  <script src="tutorial.js?v=186" defer></script>
-  <script src="full-text-reader.js?v=186" defer></script>
-  <script src="app.js?v=186" defer></script>
+  <link rel="stylesheet" href="styles.css?v=187">
+  <script src="interface-es.js?v=187" defer></script>
+  <script src="interface-language.js?v=187" defer></script>
+  <script src="research-reference.js?v=187" defer></script>
+  <script src="document-import.js?v=187" defer></script>
+  <script src="whole-document.js?v=187" defer></script>
+  <script src="saved-paper.js?v=187" defer></script>
+  <script src="offline-device.js?v=187" defer></script>
+  <script src="english-varieties.js?v=187" defer></script>
+  <script src="mixed-language-translation.js?v=187" defer></script>
+  <script src="screenshot-import.js?v=187" defer></script>
+  <script src="recording-import.js?v=187" defer></script>
+  <script src="regional-vocabulary.js?v=187" defer></script>
+  <script src="spanish-context.js?v=187" defer></script>
+  <script src="language-community-terms.js?v=187" defer></script>
+  <script src="bilingual-music.js?v=187" defer></script>
+  <script src="button-feedback.js?v=187" defer></script>
+  <script src="regional-practice.js?v=187" defer></script>
+  <script src="recorded-transcripts.js?v=187" defer></script>
+  <script src="recorded-practice.js?v=187" defer></script>
+  <script src="quick-lessons.js?v=187" defer></script>
+  <script src="slang-contributions.js?v=187" defer></script>
+  <script src="app-feedback.js?v=187" defer></script>
+  <script src="app-updates.js?v=187" defer></script>
+  <script src="whatsapp-audio.js?v=187" defer></script>
+  <script src="tutorial.js?v=187" defer></script>
+  <script src="full-text-reader.js?v=187" defer></script>
+  <script src="app.js?v=187" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -43,7 +44,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.76 · build 186</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.26.77 · build 187</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -252,6 +253,8 @@
               <button id="choose-document" type="button">Document</button>
               <button id="choose-screenshot" type="button">Screenshot</button>
               <button id="paste-screenshot" type="button">Paste image</button>
+              <button id="choose-recording" type="button">Recording</button>
+              <button id="paste-recording" type="button">Paste recording</button>
             </div>
             <details id="screenshot-review" class="compact-info" hidden>
               <summary>Image area</summary>
@@ -263,6 +266,13 @@
               <button id="read-screenshot-area" type="button">Read selected area</button>
               <p>Keep the text between the shaded areas, then reread. This can leave out the time, song title and player controls. Text stays editable; check faded lettering.</p>
             </details>
+            <input id="recording-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm" hidden>
+            <section id="recording-review" class="result-card" aria-label="Screen recording preview" hidden>
+              <video id="recording-preview" controls playsinline preload="auto" style="width:100%;max-height:420px;background:#111" aria-label="Your recording; pause at the text to read"></video>
+              <div class="import-actions"><button id="read-recording-frame" type="button" disabled>Read text at this moment</button><button id="clear-recording" type="button">Close recording</button></div>
+              <p>Play or scrub to a moment with readable words, then pause. Read one moment at a time; each read replaces the text preview. Audio is not transcribed. Your recording stays on this device.</p>
+            </section>
+            <p id="recording-status" class="import-status" role="status" aria-live="polite"></p>
             <input id="screenshot-file" type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
             <p id="screenshot-status" class="import-status" role="status" aria-live="polite"></p>
             <button id="cancel-screenshot" type="button" hidden>Cancel reading</button>
@@ -313,8 +323,15 @@
               <button id="music-listen" type="button" aria-pressed="false">Listen to music</button>
               <button id="translate-music" type="button" disabled>Translate captured words</button>
               <button id="new-music-song" type="button">New song</button>
+              <button id="music-choose-recording" type="button">Recording</button>
+              <button id="music-paste-recording" type="button">Paste recording</button>
             </div>
             <p id="music-listening-status" class="import-status" role="status" aria-live="polite"></p>
+            <section id="music-capture-recovery" class="result-card" aria-label="Music capture retry" hidden>
+              <p>Capture could not start or continue with the selected recognizer. Try another mode:</p>
+              <div class="import-actions"><button id="music-retry-local" type="button">Retry on-device speech</button><button id="music-retry-service" type="button">Retry with Apple service</button></div>
+              <p>Apple service may send audio to Apple over the internet. You can also use Recording or Screenshot above to read visible words.</p>
+            </section>
             <details class="compact-info"><summary>Music listening help</summary>
               <p>If your installed iPhone app offers This iPhone’s audio, allow the capture picker, then switch to the app playing the audio. Return to Habla to review the words and tap Stop listening when finished. Some playback apps may supply silence. Other input choices use the microphone and need Habla to stay open.</p>
               <p>Choose where music is playing above. For this phone and a Bluetooth speaker, open the Bluetooth setup help. Choose the song’s language in From, select Whole song, then tap Listen to music. Keep this screen open; tap Stop listening at the end. Live translation shows the latest captured passage while listening. Stop to edit that draft or translate the collected words together. Continue listening adds more words; New song clears the current source text. Nothing is published.</p>
