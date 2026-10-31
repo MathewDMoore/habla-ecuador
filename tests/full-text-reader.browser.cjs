@@ -124,10 +124,10 @@ async function run(browser,file,width){
  await page.locator('#full-reader-alternatives summary').first().click();
  await page.waitForFunction(()=>document.querySelector('.full-reader-alternative-card'));
  assert.equal(await page.locator('.full-reader-alternative-card').count(),1);
- await page.locator('#full-reader-alternatives-toggle').click();
+ await page.locator('#full-reader-alternatives-list-toggle').click();
  assert.equal(await page.locator('.full-reader-alternative-card').getAttribute('open'),null);
  assert.equal(await page.locator('#full-reader-reverse').isVisible(),true);
- await page.locator('#full-reader-alternatives-toggle').click();
+ await page.locator('#full-reader-alternatives-list-toggle').click();
  await page.locator('.full-reader-alternative-card button').filter({hasText:'Use this'}).click();
  assert.equal(await page.locator('#translator-input').inputValue(),'Do you want to go fishing with me?');
  assert.equal(await page.locator('#full-reader-result').textContent(),'¿Quieres ir a pescar conmigo?');
