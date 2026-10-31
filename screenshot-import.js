@@ -89,7 +89,7 @@ const HablaScreenshot = (() => {
     const input=document.querySelector('#translator-input'),fileInput=document.querySelector('#screenshot-file');
     const choose=document.querySelector('#choose-screenshot'),paste=document.querySelector('#paste-screenshot'),cancel=document.querySelector('#cancel-screenshot'),status=document.querySelector('#screenshot-status');
     if(!input||!fileInput||!choose||!paste) return;
-    const report=text=>{status.textContent=text;};
+    const report=text=>{status.textContent=text;const expanded=document.querySelector('#full-reader-image-status');if(expanded)expanded.textContent=text;};
     const review=document.querySelector('#screenshot-review'),preview=document.querySelector('#screenshot-preview');
     const top=document.querySelector('#screenshot-top'),bottom=document.querySelector('#screenshot-bottom'),shade=document.querySelector('#screenshot-shade');
     let controller,currentFile,imageUrl;
@@ -125,7 +125,11 @@ const HablaScreenshot = (() => {
     }
     choose.addEventListener('click',()=>fileInput.click());
     fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
-    input.addEventListener('paste',event=>{const file=imageFromClipboard(event.clipboardData);if(file){event.preventDefault();read(file);}});
+    document.addEventListener('paste',event=>{
+      if(!['translator-input','full-reader-source'].includes(event.target?.id))return;
+      const file=imageFromClipboard(event.clipboardData);
+      if(file){event.preventDefault();read(file);}
+    });
     paste.addEventListener('click',async()=>{
       if(!navigator.clipboard?.read){report('Use Paste in the text box, or choose the screenshot from Photos. This browser does not offer an image clipboard button.');return;}
       try{
