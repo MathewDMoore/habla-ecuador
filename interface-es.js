@@ -1,5 +1,18 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Copy / share text": "Copiar / compartir texto",
+  "Include": "Incluir",
+  "Translation only": "Solo la traducción",
+  "Input only": "Solo el original",
+  "Input + translation": "Original + traducción",
+  "Copy selected text": "Copiar texto seleccionado",
+  "Share selected text": "Compartir texto seleccionado",
+  "Selected text to copy": "Texto seleccionado para copiar",
+  "Enter some input text first.": "Primero introduce el texto original.",
+  "The input changed. Translate it again before sharing both texts.": "El original cambió. Vuelve a traducirlo antes de compartir ambos textos.",
+  "Selected text handed to your sharing app.": "Texto seleccionado enviado a tu aplicación para compartir.",
+  "Selected text copied. Paste it into your chosen app.": "Texto seleccionado copiado. Pégalo en la aplicación que prefieras.",
+  "Clipboard access is unavailable. Select and copy the text below.": "No se puede acceder al portapapeles. Selecciona y copia el texto de abajo.",
   "🎙 Practise translation": "🎙 Practicar traducción",
   "Translation speaking practice": "Práctica oral de la traducción",
   "Microphone diagnostics": "Diagnóstico del micrófono",

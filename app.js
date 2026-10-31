@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.84 · build 194";
+const APP_VERSION = "0.26.85 · build 195";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5164,6 +5164,47 @@ function bindDictionaryPractice(root) {
   });
 }
 
+function buildTranslationExport({scope="translation",source="",translation="",sourceLabel="",targetLabel="",ready=false,pairedSource=""}={}) {
+  if (!["input","translation","both"].includes(scope)) scope="translation";
+  if (scope === "input") return source.trim() ? {text:source,scope} : {error:"Enter some input text first."};
+  if (!ready || !translation.trim()) return {error:"Translate some text first, then copy the completed draft."};
+  if (scope === "translation") return {text:translation,scope};
+  if (!source.trim() || source.trim() !== pairedSource.trim()) return {error:"The input changed. Translate it again before sharing both texts."};
+  return {text:`Original (${sourceLabel}):\n${source}\n\nTranslation (${targetLabel}):\n${translation}`,scope};
+}
+
+function bindTranslationExport() {
+  const select=$("#translation-export-scope"),status=$("#translation-export-status"),fallback=$("#translation-export-fallback");
+  if (!select || !status || !fallback) return;
+  let pending=false;
+  const report=text=>{status.textContent=text;};
+  const perform=async share=>{
+    if(pending)return;
+    const draft=$("#natural-result"),result=$("#translation-result"),edit=activeTranslationEdit;
+    const payload=buildTranslationExport({scope:select.value,source:$("#translator-input").value,
+      translation:renderedTranslationText(),sourceLabel:languageLabel(edit?.sourceLanguage || sourceLanguage),targetLabel:languageLabel(edit?.targetLanguage || targetLanguage),
+      ready:Boolean(edit && !result.hidden && draft.getAttribute("contenteditable")==="true"),pairedSource:edit?.source || ""});
+    fallback.hidden=true;fallback.value="";
+    if(payload.error){report(payload.error);return;}
+    pending=true;
+    try {
+      if(share && typeof navigator.share === "function"){
+        try { await navigator.share({title:"Habla Ecuador",text:payload.text});report("Selected text handed to your sharing app.");return; }
+        catch(error){if(error?.name==="AbortError"){report("Sharing cancelled.");return;}}
+      }
+      let copied=false;
+      if(typeof navigator.clipboard?.writeText === "function")try{await navigator.clipboard.writeText(payload.text);copied=true;}catch{}
+      if(!copied)copied=legacyCopyTranslation(payload.text);
+      if(copied){report("Selected text copied. Paste it into your chosen app.");return;}
+      fallback.value=payload.text;fallback.hidden=false;fallback.focus();fallback.select();
+      report("Clipboard access is unavailable. Select and copy the text below.");
+    }finally{pending=false;}
+  };
+  $("#copy-selected-text").addEventListener("click",()=>perform(false));
+  $("#share-selected-text").addEventListener("click",()=>perform(true));
+  select.addEventListener("change",()=>{fallback.hidden=true;fallback.value="";report("");});
+}
+
 function bindTranslationPractice() {
   const result = $("#translation-result"), text = $("#natural-result");
   const button = $("#practice-translation"), host = $("#translation-speaking-practice");
@@ -5504,6 +5545,7 @@ function init() {
     });
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
+  initializeOptionalFeature("translation text export",bindTranslationExport);
   initializeOptionalFeature("translation speaking practice",bindTranslationPractice);
   initializeOptionalFeature("document import",bindDocumentTools);
   initializeOptionalFeature("document translation",bindWholeDocumentTools);
@@ -5842,7 +5884,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=194", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=195", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

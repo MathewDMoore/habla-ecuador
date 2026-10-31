@@ -6,5 +6,5 @@ const source=fs.readFileSync('recorded-transcripts.js','utf8');
 assert.match(source,/requestGeneralTranslation\(source.text,'ec-en'/);assert.match(source,/purpose:'everyday'/);
 assert.ok(!/getUserMedia|MediaRecorder|localStorage|sendBeacon|fetch\(/.test(source),'no new audio capture, persistence or translation provider');
 assert.ok(!/VTTCue|addTextTrack|timeupdate/.test(source),'no unverified timing presented as captions');
-for(const f of ['index.html','translator.html','sw.js'])assert.match(fs.readFileSync(f,'utf8'),/recorded-transcripts\.js\?v=194/);
+for(const f of ['index.html','translator.html','sw.js'])assert.match(fs.readFileSync(f,'utf8'),/recorded-transcripts\.js\?v=195/);
 console.log('Regional transcripts: four complete source hashes, bounded public Spanish text, source/license metadata, existing translation engine, safe output and offline shell passed');
