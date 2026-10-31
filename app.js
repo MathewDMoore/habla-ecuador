@@ -5873,6 +5873,10 @@ function init() {
   } else if (launchQuery.get("start") === "music") {
     // Direct link to BYE BYE's music player, including in the native web companion.
     openView("music-view");
+  } else if (!standaloneTranslator && launchQuery.get("start") === "practice") {
+    openView("lesson-view");
+  } else if (!standaloneTranslator && launchQuery.get("start") === "dictionary") {
+    openView("dictionary-view");
   } else if (standaloneTranslator || launchQuery.get("start") === "translate") {
     openView("translator-view");
     setMode("translate");
