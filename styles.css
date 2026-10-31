@@ -1281,12 +1281,29 @@ body.ve-theater-open {overflow:hidden !important;}
 #shared-translation-workspace > .input-card {padding:12px 0;background:transparent;}
 #shared-translation-workspace > .input-card textarea {height:96px;min-height:96px;max-height:none;line-height:1.4;font-size:24px;}
 #shared-translation-workspace > .result-card {padding:14px 0;background:transparent;color:var(--ink);border-top:2px solid #6da68f;}
+#translation-result {--translation-support-ink:#d7e9e0;--translation-body-ink:#fff;}
+#shared-translation-workspace > #translation-result {--translation-support-ink:#4b6358;--translation-body-ink:var(--ink);}
 #shared-translation-workspace > #translation-result > #natural-result {max-height:none;overflow:visible;font-size:var(--translation-text-size,24px);line-height:1.4;color:var(--green);white-space:pre-wrap;}
-#translation-result .result-label {color:var(--muted);font-size:12px;letter-spacing:.04em;}
+#translation-result .result-label {color:var(--translation-support-ink);font-size:12px;letter-spacing:.04em;}
 #translation-result .translation-text-tools,#translation-result .result-actions {gap:6px;flex-wrap:wrap;}
 #translation-result .translation-text-tools button,#translation-result .result-actions button,#source-full-text,#translator-mic-add {min-height:44px;padding:8px 10px;font-size:13px;border:1px solid #b4d1c0;border-radius:10px;background:transparent;color:var(--green);}
-#translation-result .translation-edit-status {color:var(--muted);}
-#translation-result .result-notes {color:var(--ink);}
+/* The signed companion moves the result outside the light shared workspace.
+   Give actions their own opaque surface so text survives either card theme. */
+#translation-result .translation-text-tools button,
+#translation-result .result-actions button,
+#translation-result .translation-text-options > summary {
+  background:#fff;color:#173f35;-webkit-text-fill-color:#173f35;font-weight:800;
+  touch-action:manipulation;
+}
+#translation-result .translation-text-tools button:disabled,
+#translation-result .result-actions button:disabled {
+  background:#e2e9e5;color:#4a5e54;-webkit-text-fill-color:#4a5e54;opacity:1;
+  border-color:#a6b9ae;
+}
+#translation-result button:focus-visible,#translation-result summary:focus-visible {outline:3px solid #d66927;outline-offset:3px;}
+#translation-result .translation-edit-status {color:var(--translation-support-ink);}
+#translation-result .speech-action-status {flex-basis:100%;margin:2px 0 0;padding:8px 10px;border-radius:8px;background:#edf5f0;color:#173f35;-webkit-text-fill-color:#173f35;font-size:13px;}
+#translation-result .result-notes,#translation-result .native-translation-tools {color:var(--translation-body-ink);}
 .inline-translation-alternatives {margin:12px 0;border:1px solid #89ae9e;border-radius:14px;padding:0 12px;color:var(--ink);background:white;}
 .inline-translation-alternatives > summary {cursor:pointer;min-height:48px;padding:13px 0;font-size:15px;font-weight:750;color:var(--green);}
 #inline-alternatives-list {display:grid;gap:10px;padding-bottom:12px;overflow-wrap:anywhere;}
@@ -1302,5 +1319,5 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-result .result-speed-control .speed-control-heading label,
 #translation-result .result-speed-control .speed-control-heading output,
 #translation-result .result-speed-control .speed-slider-row {color:var(--green);}
-#translation-result .translation-text-options > summary {border:1px solid #b4d1c0;background:transparent;color:var(--green);}
+#translation-result .translation-text-options > summary {border:1px solid #b4d1c0;}
 #translation-result .result-actions {margin:8px 0;}
