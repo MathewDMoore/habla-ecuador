@@ -238,8 +238,14 @@ function make(){
  const sourceCopy=makeButton("Copy source / Copiar original","full-reader-copy-source");
  sourceCopy.addEventListener("click",()=>copy(source.value,sourceCopy));
  const originalActions=element("div",null,"full-reader-section-actions");
- originalActions.append(sourceCopy);
- original.append(originalHeader,source,originalActions);
+ const pasteImage=makeButton("Paste image / Pegar imagen","full-reader-paste-image");
+ pasteImage.addEventListener("click",()=>$("#paste-screenshot")?.click());
+ const chooseImage=makeButton("Choose image / Elegir imagen","full-reader-choose-image");
+ chooseImage.addEventListener("click",()=>$("#choose-screenshot")?.click());
+ originalActions.append(sourceCopy,pasteImage,chooseImage);
+ const imageStatus=element("p","full-reader-image-status","full-reader-status",$("#screenshot-status")?.textContent||"");
+ imageStatus.setAttribute("role","status");imageStatus.setAttribute("aria-live","polite");
+ original.append(originalHeader,source,originalActions,imageStatus);
  const translated=element("section","full-reader-target-section","full-reader-section");
  const translationTitle=element("h3","full-reader-target-title","","Translation / Traducción");
  const translationNote=element("p","full-reader-translation-state","full-reader-status","");
@@ -297,7 +303,9 @@ function bind(){
  sourceButton.setAttribute("aria-haspopup","dialog");
  sourceButton.setAttribute("aria-controls","full-text-reader");
  sourceButton.addEventListener("click",()=>open("source",sourceButton));
- editor.after(sourceButton);
+ const pasteImage=makeButton("Paste image / Pegar imagen","source-paste-image");
+ pasteImage.addEventListener("click",()=>$("#paste-screenshot")?.click());
+ editor.after(sourceButton,pasteImage);
  targetButton=makeButton("Full text / Texto completo","translation-full-text");
  targetButton.setAttribute("aria-haspopup","dialog");
  targetButton.setAttribute("aria-controls","full-text-reader");
