@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.83 · build 193";
+const APP_VERSION = "0.26.84 · build 194";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4999,6 +4999,7 @@ function bindDictionaryPractice(root) {
       <div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-hear">🔊 Hear model</button><button type="button" class="dictionary-practice-mic push-to-talk" aria-pressed="false" aria-keyshortcuts="Space Enter" aria-label="Hold to speak; release to finish. Enter or screen reader: start or stop.">🎙 Hold to speak</button></div>
       <p class="dictionary-practice-status" role="status"></p>
       <div class="dictionary-practice-response" hidden><small>I heard</small><p class="dictionary-practice-heard" lang="es"></p><p class="dictionary-practice-feedback"></p><p class="dictionary-practice-score" aria-live="polite" hidden></p><p class="dictionary-practice-progress-label"></p><div class="dictionary-practice-progress"></div><div class="dictionary-practice-coach" hidden><p></p><div class="dictionary-practice-actions"><button type="button" class="dictionary-practice-focus-hear">🔊 Hear this part</button><button type="button" class="dictionary-practice-focus-try">Practice this part</button></div></div></div>
+      <details class="compact-info practice-diagnostics"><summary>Microphone diagnostics</summary><pre class="practice-diagnostics-data"></pre></details>
       <p class="dictionary-practice-limit">Word scoring checks recognized words, including order, omissions and extras; it does not grade accent or individual sounds.</p>`;
     const audioControls = card.querySelector(".dictionary-audio");
     if (audioControls) audioControls.after(panel);
@@ -5019,6 +5020,7 @@ function bindDictionaryPractice(root) {
       $(".dictionary-practice-choice",panel).hidden = Boolean(card.dataset.practiceText && prompts.length === 1);
       target.textContent = prompt.text;
       target.lang = prompt.lang;
+      heard.lang = prompt.lang;
       whole.hidden = !prompt.fullText; whole.textContent = prompt.fullText ? `Full prompt: ${prompt.fullText}` : "";
       coach.hidden = true; focusText = ""; progress.replaceChildren(); progressLabel.textContent = "";
       response.hidden = true; score.hidden = true; score.textContent = ""; heard.textContent = feedback.textContent = "";
@@ -5053,10 +5055,18 @@ function bindDictionaryPractice(root) {
       if (!available()) return refresh();
       const prompt = prompts[Number(select.value) || 0];
       const session = {panel,mic,error:"",heard:false,ready:false,finishing:false,startTimer:null,timer:null,endTimer:null};
+      const startedAt = Date.now(), events = [];
+      const diagnostics = $(".practice-diagnostics-data",panel);
+      const logCapture = (event, extra={}) => {
+        events.push({event,ms:Date.now()-startedAt,...extra});
+        if (diagnostics) diagnostics.textContent = JSON.stringify({engine:typeof window.__hablaNativeSpeech === "function" ? "native" : "browser",requestedLanguage:prompt.lang,events:events.slice(-30)},null,2);
+      };
+      logCapture("start-request");
       const current = () => dictionaryPracticeSession === session && panel.isConnected;
       session.finish = message => {
         if (dictionaryPracticeSession !== session) return;
         clearTimeout(session.startTimer); clearTimeout(session.timer); clearTimeout(session.endTimer);
+        logCapture("finished",{hadTranscript:session.heard,error:session.error});
         dictionaryPracticeSession = null;
         releaseHold();
         select.disabled = false; mic.disabled = false;
@@ -5066,6 +5076,7 @@ function bindDictionaryPractice(root) {
       session.stop = () => {
         if (!current() || session.finishing) return;
         session.finishing = true;
+        logCapture("stop-request",{ready:session.ready});
         clearTimeout(session.startTimer);
         if (!session.ready) {
           session.error ||= "The microphone was still starting. This attempt was not scored.";
@@ -5080,6 +5091,7 @@ function bindDictionaryPractice(root) {
       const microphoneReady = () => {
         if (!current() || session.finishing || session.ready) return;
         session.ready = true;
+        logCapture("microphone-ready");
         clearTimeout(session.startTimer);
         session.timer = setTimeout(session.stop,20000);
         mic.dataset.captureReady = "true";
@@ -5114,6 +5126,7 @@ function bindDictionaryPractice(root) {
           if (!current()) return;
           microphoneReady();
           session.heard = Boolean(text.trim());
+          logCapture("transcript",{characters:text.length,final:Boolean(final),provisional:Boolean(metadata.provisional)});
           if (session.heard && !session.finishing) status.textContent = "Words received. Release when you finish speaking.";
           heard.textContent = text; response.hidden = !session.heard;
           const comparison = dictionaryPracticeComparison(prompt.text,text);
@@ -5138,7 +5151,7 @@ function bindDictionaryPractice(root) {
               ? "Recognized words match the prompt. Compare your pronunciation with the model."
               : "The recognized words differ. Hear the model and try again; recognition can miss regional words.";
         },
-        onError:error => { if (current() && error !== "aborted") { session.error = practiceError(error); session.stop(); } },
+        onError:error => { if (current() && error !== "aborted") { logCapture("error",{error}); session.error = practiceError(error); session.stop(); } },
         onEnd:() => session.finish(),
         onCancel:() => session.finish(session.error || "Practice stopped. Your prompt and heard words are kept.")
       });
@@ -5149,6 +5162,40 @@ function bindDictionaryPractice(root) {
       cancel:() => cancelDictionaryPractice(panel)
     });
   });
+}
+
+function bindTranslationPractice() {
+  const result = $("#translation-result"), text = $("#natural-result");
+  const button = $("#practice-translation"), host = $("#translation-speaking-practice");
+  if (!result || !text || !button || !host) return;
+  let signature = "";
+  const current = () => {
+    const words = (text.innerText ?? text.textContent ?? "").trim();
+    const lang = activeTranslationEdit?.targetLanguage || targetLanguage;
+    const ready = !result.hidden && text.getAttribute("contenteditable") === "true" && Boolean(activeTranslationEdit && words);
+    return {words,lang,ready,key:ready ? lang+"\n"+words : ""};
+  };
+  const sync = () => {
+    const state = current();
+    if (button.disabled !== !state.ready) button.disabled = !state.ready;
+    if (signature !== state.key) {
+      cancelDictionaryPractice(host);
+      host.replaceChildren(); host.hidden = true; signature = state.key;
+    }
+  };
+  button.addEventListener("click", () => {
+    sync(); const state = current(); if (!state.ready) return;
+    cancelDictionaryPractice(host); host.replaceChildren();
+    const card = document.createElement("article");
+    card.className = "expression-card translation-speaking-card";
+    card.dataset.practiceText = state.words; card.dataset.practiceLang = state.lang;
+    host.append(card); host.hidden = false;
+    bindDictionaryPractice(host);
+    const panel = card.querySelector(".dictionary-practice");
+    if (panel) { panel.open = true; panel.scrollIntoView?.({block:"nearest",behavior:"smooth"}); }
+  });
+  new MutationObserver(sync).observe(result,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["hidden","contenteditable","lang"]});
+  sync();
 }
 
 function bindDictionaryAudio() {
@@ -5457,6 +5504,7 @@ function init() {
     });
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
+  initializeOptionalFeature("translation speaking practice",bindTranslationPractice);
   initializeOptionalFeature("document import",bindDocumentTools);
   initializeOptionalFeature("document translation",bindWholeDocumentTools);
   initializeOptionalFeature("saved papers",() => window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause}));
@@ -5794,7 +5842,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=193", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=194", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
