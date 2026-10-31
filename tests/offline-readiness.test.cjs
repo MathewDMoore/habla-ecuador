@@ -12,17 +12,19 @@ function harness(supported=true){
  return{node,saved,messages,run,breakValidation(){broken=true;}};
 }
 async function main(){
- const h=harness();await h.run('HablaOffline.bind()');
+ const h=harness();h.saved.set('habla-ecuador-offline-enabled-v1','yes');await h.run('HablaOffline.bind()');
  assert.match(h.node('#offline-status').textContent,/validated in both directions/,'file presence is not a successful inference check');
  assert.equal(h.run('HablaOffline.shouldUse()'),false);
  await h.node('#offline-download').events.click();
  assert.deepEqual(h.messages.map(m=>m.type),['validate','validate']);assert.match(h.node('#offline-status').textContent,/validated in both directions/);
- assert.equal(h.node('#offline-use').checked,true);assert.equal(h.run('HablaOffline.shouldUse()'),true);
+ assert.equal(h.node('#offline-use').checked,false);assert.equal(h.run('HablaOffline.shouldUse()'),false);
+ h.run('HablaOffline.reportOnlineSuccess()');assert.match(h.node('#translation-engine-badge').textContent,/confirmed/);
+ h.node('#offline-use').checked=true;h.node('#offline-use').events.change();assert.equal(h.run('HablaOffline.shouldUse()'),true);
  assert.equal(await h.run('HablaOffline.translate("New words", "en-ec")'),'Una traducción nueva.');
  h.breakValidation();await h.node('#offline-download').events.click();assert.match(h.node('#offline-status').textContent,/not ready/);
  assert.equal(h.run('HablaOffline.shouldUse()'),true,'failed validation never opts a privacy request into online translation');
  await assert.rejects(h.run('HablaOffline.translate("Private words", "en-ec")'),e=>e.code==='offline_engine');
- const unavailable=harness(false);unavailable.saved.set('habla-ecuador-offline-enabled-v1','yes');await unavailable.run('HablaOffline.bind()');
+ const unavailable=harness(false);unavailable.saved.set('habla-ecuador-offline-only-v2','yes');await unavailable.run('HablaOffline.bind()');
  assert.equal(unavailable.node('#offline-download').disabled,true);assert.match(unavailable.node('#offline-status').textContent,/offline-support update/);
  assert.equal(unavailable.run('HablaOffline.shouldUse()'),true);assert.equal(unavailable.node('#translation-engine-badge').textContent,'On-device unavailable');
  await assert.rejects(unavailable.run('HablaOffline.translate("Private words", "en-ec")'),e=>e.code==='offline_pack');

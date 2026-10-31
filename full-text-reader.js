@@ -114,6 +114,7 @@ function copy(value,button){
 function refreshAlternatives(box=$("#full-reader-alternatives-list")){
  if(!box)return;
  box.replaceChildren();
+ try {
  const choices=typeof window.translationWordingAlternatives==="function" ? window.translationWordingAlternatives() : [];
  const compare=$("#compare-english");
  if(compare && !compare.disabled){
@@ -148,6 +149,7 @@ function refreshAlternatives(box=$("#full-reader-alternatives-list")){
    cards.forEach(card=>card.open=expand);toggle.textContent=expand?"Collapse all / Contraer todas":"Expand all / Ampliar todas";
   });box.prepend(toggle);
  } else box.append(element("p",null,"","No additional wording available for this draft. / No hay variantes adicionales para este texto."));
+ } catch(error){box.replaceChildren(element("p",null,"","Alternatives could not load. Close and reopen to retry. / No se pudieron cargar las alternativas. Cierra y abre para reintentar."));console.warn("Alternative wording unavailable",error);}
 }
 
 

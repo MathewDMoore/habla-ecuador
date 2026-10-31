@@ -9,9 +9,10 @@ const HablaOffline = (() => {
     "ec-en": {id:"Xenova/opus-mt-es-en", revision:"eadfd7c658a9d8929ac3b8e996b68a68e2c7d480"}
   };
   const FILES = ["config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"];
+  let onlineConfirmed = false;
   let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null, startup = null;
   // Match the cached app release instead of leaving the worker on an older build.
-  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=184";
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=185";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
@@ -48,7 +49,7 @@ const HablaOffline = (() => {
   }
   function updateModeBadge() {
     const badge = document.querySelector("#translation-engine-badge");
-    if (badge) badge.textContent = shouldUse() ? (ready ? "On device · validated" : supportProblem() ? "On-device unavailable" : validating ? "Validating offline pack" : "On-device pack needed") : navigator.onLine === false ? "Offline" : "Online service";
+    if (badge) badge.textContent = shouldUse() ? (ready ? "On device · validated" : supportProblem() ? "On-device unavailable" : validating ? "Validating offline pack" : "On-device pack needed") : navigator.onLine === false ? "Offline" : onlineConfirmed ? "Online service · confirmed" : "Connection detected · online preferred";
   }
   const status = text => { const node = document.querySelector("#offline-status"); if (node) node.textContent = text; updateModeBadge(); };
   async function checkPack() {
@@ -126,9 +127,7 @@ const HablaOffline = (() => {
         await call("install");
       }
       await validate(controller);
-      enabled = true;
-      try { localStorage.setItem("habla-ecuador-offline-enabled-v1", "yes"); } catch {}
-      document.querySelector("#offline-use").checked = true;
+      document.querySelector("#offline-use").checked = enabled;
       try {await navigator.storage?.persist?.();} catch {}
     } catch (error) {
       ready=false;
@@ -155,14 +154,14 @@ const HablaOffline = (() => {
     const button = document.querySelector("#offline-download"), checkbox = document.querySelector("#offline-use");
     if (!button || !checkbox) return;
     button.addEventListener("click", install);
-    try { enabled = localStorage.getItem("habla-ecuador-offline-enabled-v1") === "yes"; } catch {}
+    try { enabled = localStorage.getItem("habla-ecuador-offline-only-v2") === "yes"; } catch {}
     checkbox.checked = enabled;
     updateModeBadge();
-    globalThis.addEventListener?.("online",updateModeBadge);
-    globalThis.addEventListener?.("offline",updateModeBadge);
+    globalThis.addEventListener?.("online",()=>{onlineConfirmed=false;updateModeBadge();});
+    globalThis.addEventListener?.("offline",()=>{onlineConfirmed=false;updateModeBadge();});
     checkbox.addEventListener("change", () => {
       enabled = checkbox.checked;
-      try { localStorage.setItem("habla-ecuador-offline-enabled-v1", enabled ? "yes" : "no"); } catch {}
+      try { localStorage.setItem("habla-ecuador-offline-only-v2", enabled ? "yes" : "no"); } catch {}
       status(enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
     });
     const problem=supportProblem();
@@ -179,5 +178,5 @@ const HablaOffline = (() => {
       finally {button.disabled=false;}
     } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
-  return {get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
+  return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();
