@@ -1,13 +1,14 @@
 // No real share sheet, message or email is sent. Browser APIs are mocked.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {chromium}=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
+const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io',home=origin+'/habla-ecuador/index.html';
 async function run(browser,native,width=390){
- const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:"block"});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
  await page.addInitScript(()=>{
+  localStorage.setItem("habla-tutorial-seen-v2","1");
   window.testShares=[];window.testCopies=[];window.testMessages=[];
   Object.defineProperty(navigator,'share',{configurable:true,writable:true,value:data=>{window.testShares.push(data);return new Promise(resolve=>window.finishShare=resolve);}});
   Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.testCopies.push(text);}}});
@@ -18,12 +19,12 @@ async function run(browser,native,width=390){
  await page.evaluate(()=>{document.querySelector('#translator-input').value='Private translation source';localStorage.setItem('private-fixture','Private saved note');});
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC','ordinary startup remains Ecuadorian first');
  const panel=page.locator('.app-sharing');await panel.locator('summary').click();
- assert.equal(await page.locator('#app-share-link').inputValue(),home+'?ui=es');
+ assert.equal(await page.locator('#app-share-link').inputValue(),home+'?ui=es&tour=home-screen');
  await page.locator('#app-share-region').selectOption('monterrey');
  await page.locator('#app-share-language').selectOption('en');assert.equal(new URL(await page.locator('#app-share-link').inputValue()).searchParams.get('ui'),'en');
  await page.locator('#app-share-language').selectOption('es');
  const monterrey=await page.locator('#app-share-link').inputValue();
- assert.equal(monterrey,home+'?start=dictionary&region=monterrey&ui=es');
+ assert.equal(monterrey,home+'?start=dictionary&region=monterrey&ui=es&tour=home-screen');
  await page.locator('#share-app').click();
  assert.equal(await page.locator('#share-app').isDisabled(),true);assert.equal(await page.locator('#app-share-region').isDisabled(),true);
  await page.evaluate(()=>shareApp());assert.equal(await page.evaluate(()=>window.testShares.length),1,'duplicate sharing guarded');
@@ -52,12 +53,13 @@ async function run(browser,native,width=390){
  assert.ok(!await page.evaluate(()=>window.testMessages.some(m=>m.action==='share-translation')),'app sharing never borrows the native translation bridge');
  assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width,width));
  for(const [url,region] of [[monterrey,'monterrey'],[venezuela,'es-VE']]){
-  await page.goto(url);assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
+  await page.goto(url);await page.locator('#tutorial-close').click();assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
   assert.equal(await page.locator('#regional-slang-region').inputValue(),region);
   assert.ok(await page.locator('#regional-slang-results .regional-slang-card').count()>0);
   assert.equal(await page.locator('#target-language-select').inputValue(),'es-EC','shared dictionary choice does not rewrite translator defaults');
  }
- await page.goto(home+'?start=dictionary&region=es-VE&city=caracas&ui=es');
+ await page.goto(home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
+ await page.locator('#tutorial-close').click();
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-VE');
  assert.match(await page.locator('#shared-app-context').textContent(),/La revisión específica de Caracas está pendiente/);
  await page.locator('#regional-slang-region').selectOption('es-BO');assert.equal(await page.locator('#shared-app-context').isVisible(),false);
@@ -65,13 +67,13 @@ async function run(browser,native,width=390){
  await page.locator('#regional-slang-region').selectOption('es-MX');
  await page.locator('#home-button').click();await page.locator('.app-sharing summary').click();
  await page.locator('#app-share-region').selectOption('caracas');
- assert.equal(await page.locator('#app-share-link').inputValue(),home+'?start=dictionary&region=es-VE&city=caracas&ui=es');
+ assert.equal(await page.locator('#app-share-link').inputValue(),home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
  await page.goto(home+'?start=dictionary&region=unknown');
- assert.equal(await page.locator('#home-view').evaluate(el=>el.classList.contains('active')),true);
+ assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true,'an unsupported dictionary invitation retains the existing Ecuadorian dictionary default');
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC');
  await page.goto(home.replace('index.html','translator.html'));
  if(!native){assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true);await page.locator('#home-button').click();await page.locator('.app-sharing summary').click();assert.equal(await page.locator('#share-app').isVisible(),true);}
  else await page.waitForURL('**/index.html?start=translate');
  assert.deepEqual(errors,[]);await context.close();console.log(`${native?'Native bridge JavaScript':'Browser'} ${width}px: share/cancel/copy/manual, privacy, duplicate guard, regional invitations and standalone launch passed`);
 }
-(async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';const b=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

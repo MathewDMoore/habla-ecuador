@@ -44,6 +44,26 @@ const routes = [['translate','translator-view'],['practice','lesson-view'],['dic
   await page.locator('#tutorial-close').click();
   assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
   assert.deepEqual(errors,[],'widget Tutorial route has no JS error');
+  for(const file of ['index.html','translator.html']){
+   await page.goto(origin+'/habla-ecuador/'+file+'?tour=home-screen&ui=es');
+   await page.waitForSelector('#tutorial-overlay:not([hidden])');
+   assert.equal(await page.locator('#tutorial-progress').textContent(),'1 / 2');
+   assert.equal(await page.locator('#home-screen-preview img').evaluate(el=>el.complete&&el.naturalWidth>0),true);
+   assert.match(await page.locator('#tutorial-spanish').textContent(),/Safari/);
+   await page.locator('#tutorial-next').click();
+   assert.equal(await page.locator('#tutorial-progress').textContent(),'2 / 2');
+   assert.equal(await page.locator('#home-screen-preview').getAttribute('data-art'),'widget');
+   assert.match(await page.locator('#tutorial-english').textContent(),/native app must be installed first/);
+   assert.match(await page.locator('#tutorial-spanish').textContent(),/Todavía no hay un enlace público/);
+   await page.locator('#tutorial-next').click();
+   assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
+   await page.locator('#home-button').click();
+   await page.locator('.app-sharing summary').click();
+   await page.locator('[data-home-screen-help]').click();
+   assert.equal(await page.locator('#tutorial-progress').textContent(),'1 / 2');
+   await page.locator('#tutorial-close').click();
+   assert.deepEqual(errors,[],'shared setup guide has no JS error');
+  }
   await context.close();
   console.log('Widget shortcut Translate/Practice/Dictionary/Tutorial routes passed in '+engine);
  }finally{await browser.close();}

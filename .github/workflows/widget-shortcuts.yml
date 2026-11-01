@@ -5,12 +5,20 @@ on:
     paths:
       - 'ios/**'
       - 'app.js'
+      - 'tutorial.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'styles.css'
       - 'tests/widget*'
       - '.github/workflows/widget-shortcuts.yml'
   push:
     paths:
       - 'ios/**'
       - 'app.js'
+      - 'tutorial.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'styles.css'
       - 'tests/widget*'
       - '.github/workflows/widget-shortcuts.yml'
 
@@ -34,6 +42,10 @@ jobs:
       - run: npm install --prefix "$RUNNER_TEMP/habla-widget-browser" --no-package-lock --no-save playwright@1.62.1
       - run: node "$RUNNER_TEMP/habla-widget-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
       - run: node tests/widget-deep-links.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-widget-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node tests/app-sharing.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-widget-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}

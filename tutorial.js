@@ -36,8 +36,17 @@ const STEPS=[
   body:"Find an incorrect translation or regional expression? Tap the speech bubble to suggest a correction. Nothing is sent automatically.",
   esp:"¿Encontraste una traducción o expresión regional incorrecta? Toca el globo de diálogo para sugerir una corrección. Nada se envía automáticamente."}
 ];
+const HOME_SCREEN_STEPS=[
+ {view:"home-view",target:"#home-title",symbol:"🇪🇨",en:"Keep Habla on your Home Screen",es:"Lleva Habla a tu pantalla de inicio",art:"icon",
+ body:"On iPhone, open this link in Safari. Tap Share, then Add to Home Screen (you may need to scroll or tap More). Confirm the name and tap Add. Look for our mountain, sun and pink flower. If this link opened inside WhatsApp, first choose Open in Safari. On Android, use your browser menu and choose Install app or Add to Home screen.",
+ esp:"En iPhone, abre este enlace en Safari. Toca Compartir y luego Agregar a pantalla de inicio (quizá debas desplazarte o tocar Más). Confirma el nombre y toca Agregar. Busca nuestra montaña, sol y flor rosada. Si abriste el enlace en WhatsApp, elige primero Abrir en Safari. En Android, usa el menú del navegador y elige Instalar aplicación o Agregar a pantalla de inicio."},
+ {view:"home-view",target:"#home-title",symbol:"🧩",en:"Add the iPhone widget",es:"Agrega el widget del iPhone",art:"widget",
+ body:"With the native Habla Ecuador iPhone app installed, open it once. Hold an empty area of your Home Screen, tap Edit → Add Widget, and search Habla Ecuador. Choose small or medium, then Add Widget → Done. The medium widget opens Translate, Practice, Dictionary and Tutorial. This link includes the guide and artwork; adding the website icon does not install the native widget. If Habla is missing from the widget list, the native app must be installed first. A public native-app install link is not available yet.",
+ esp:"Con la aplicación nativa Habla Ecuador instalada en tu iPhone, ábrela una vez. Mantén pulsada una zona vacía de la pantalla de inicio, toca Editar → Agregar widget y busca Habla Ecuador. Elige pequeño o mediano y toca Agregar widget → Listo. El widget mediano abre Traducir, Practicar, Diccionario y Tutorial. Este enlace incluye la guía y el diseño; agregar el icono del sitio web no instala el widget nativo. Si Habla no aparece en la lista de widgets, primero debes instalar la aplicación nativa. Todavía no hay un enlace público para instalarla."}
+];
 const $=s=>document.querySelector(s);
 function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
+let currentMode="full";
 let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,spotFrame=0,observer=null;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
@@ -70,7 +79,9 @@ function make(){
  next.addEventListener("click",()=>index===steps.length-1?finish():move(1));
  controls.append(skip,back,next);
  const content=document.createElement("div");content.className="tutorial-content";content.tabIndex=0;
- content.append(symbol,title,english,divider,spanishTitle,spanish,note);
+ const preview=document.createElement("figure");preview.id="home-screen-preview";preview.hidden=true;
+ preview.innerHTML='<div class="home-brand-preview"><img src="app-icon-192.png?brand=20261031" width="72" height="72" alt="Habla Ecuador: mountain, sun and pink flower"><div><strong>Habla Ecuador 🇪🇨</strong><p>¿Cómo estás?<br>How are you?</p></div><div class="home-widget-shortcuts" aria-hidden="true">Translate · Traducir<br>Practice · Practicar<br>Dictionary · Diccionario<br>Tutorial</div></div><figcaption></figcaption>';
+ content.append(symbol,title,preview,english,divider,spanishTitle,spanish,note);
  panel.append(top,content,controls);
  overlay.append(panel);document.body.append(overlay);
 }
@@ -137,6 +148,9 @@ function trackSpotlight(){if(active){spotlight();spotFrame=requestAnimationFrame
 function render(){
  if(!active)return;
  const step=steps[index];go(step.view);
+ const preview=$("#home-screen-preview");preview.hidden=!step.art;
+ preview.dataset.art=step.art||"";
+ preview.querySelector("figcaption").textContent=step.art==="widget" ? "Widget preview · Vista previa del widget" : "Our Home Screen icon · Nuestro icono de inicio";
  $("#tutorial-progress").textContent=(index+1)+" / "+steps.length;
  $("#tutorial-symbol").textContent=step.symbol;
  $("#tutorial-title").textContent=step.en;$("#tutorial-english").textContent=step.body;
@@ -153,7 +167,8 @@ function move(n){if(active){index=Math.max(0,Math.min(steps.length-1,index+n));r
 function open(opener,mode="full"){
  if(active)return;
  make();
- steps=mode==="lessons"
+ currentMode=mode;
+ steps=mode==="home-screen" ? HOME_SCREEN_STEPS : mode==="lessons"
   ? STEPS.filter(s=>s.view==="lesson-view")
   : STEPS.filter(s=>!s.fullOnly||Boolean($("#music-view")));
  index=0;active=true;
@@ -165,7 +180,7 @@ function open(opener,mode="full"){
 function finish(){
  if(!active)return;
  active=false;cancelAnimationFrame(spotFrame);cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
- remember();$("#tutorial-invitation")?.remove();go(previousView);
+ if(currentMode!=="home-screen")remember();$("#tutorial-invitation")?.remove();go(previousView);
  if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }
 function keyboard(event){
@@ -182,6 +197,7 @@ function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
  document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
  document.querySelectorAll("button[data-lesson-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b,"lessons")));
+ document.querySelectorAll("button[data-home-screen-help]").forEach(b=>b.addEventListener("click",()=>open(b,"home-screen")));
  document.addEventListener("keydown",keyboard);
  window.addEventListener("resize",scheduleLayout);
  window.visualViewport?.addEventListener("resize",scheduleLayout);
@@ -191,10 +207,11 @@ function bind({navigate:route,launchQuery}={}){
  // Open the actual walkthrough, not an invitation card, on first launch.
  // A shared ?tour=1 link always reopens it, even after closing before.
  const params=launchQuery||new URLSearchParams(location.search);
- if(params.get("tour")==="lessons")open($("button[data-lesson-tutorial-open]"),"lessons");
+ if(params.get("tour")==="home-screen")open($("button[data-home-screen-help]"),"home-screen");
+ else if(params.get("tour")==="lessons")open($("button[data-lesson-tutorial-open]"),"lessons");
  else if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
 }
 const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
-if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,api};
+if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,HOME_SCREEN_STEPS,api};
 root.HablaTutorial=api;
 })(typeof window==="object"?window:globalThis);
