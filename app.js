@@ -4006,7 +4006,7 @@ function previewScreenshotText(extracted,guard) {
   // same request cancellation protects the learner if they change the text.
   const imageDocument=importedDocument;
   const extractedText=$("#translator-input").value.trim();
-  queueMicrotask(async()=>{
+  Promise.resolve().then(async()=>{
     if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
     await renderTranslation({allowImported:true});
     if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
@@ -4016,6 +4016,11 @@ function previewScreenshotText(extracted,guard) {
       : "Image words recognized, but the translation could not finish. Check the source, then tap Translate image text to retry.";
     const quick=$("#quick-image-status");
     if(quick)quick.textContent=$("#document-status").textContent;
+  }).catch(()=>{
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    const message="Image text recognized but translation failed. Check the words and tap Translate image text to retry.";
+    $("#document-status").textContent=message;
+    if($("#quick-image-status"))$("#quick-image-status").textContent=message;
   });
   return true;
 }
