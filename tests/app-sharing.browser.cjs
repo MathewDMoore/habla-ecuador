@@ -1,6 +1,6 @@
 // No real share sheet, message or email is sent. Browser APIs are mocked.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {chromium}=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
+const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io',home=origin+'/habla-ecuador/index.html';
 async function run(browser,native,width=390){
  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
@@ -8,6 +8,7 @@ async function run(browser,native,width=390){
  await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
  await page.addInitScript(()=>{
+  localStorage.setItem("habla-tutorial-seen-v2","1");
   window.testShares=[];window.testCopies=[];window.testMessages=[];
   Object.defineProperty(navigator,'share',{configurable:true,writable:true,value:data=>{window.testShares.push(data);return new Promise(resolve=>window.finishShare=resolve);}});
   Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.testCopies.push(text);}}});
@@ -75,4 +76,4 @@ async function run(browser,native,width=390){
  else await page.waitForURL('**/index.html?start=translate');
  assert.deepEqual(errors,[]);await context.close();console.log(`${native?'Native bridge JavaScript':'Browser'} ${width}px: share/cancel/copy/manual, privacy, duplicate guard, regional invitations and standalone launch passed`);
 }
-(async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';const b=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});try{await run(b);await run(b,null,320);if(process.env.HABLA_NATIVE_SCRIPT)await run(b,process.env.HABLA_NATIVE_SCRIPT);}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

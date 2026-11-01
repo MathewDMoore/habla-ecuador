@@ -57,6 +57,7 @@ const routes = [['translate','translator-view'],['practice','lesson-view'],['dic
    assert.match(await page.locator('#tutorial-spanish').textContent(),/Todavía no hay un enlace público/);
    await page.locator('#tutorial-next').click();
    assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
+   await page.locator('#home-button').click();
    await page.locator('.app-sharing summary').click();
    await page.locator('[data-home-screen-help]').click();
    assert.equal(await page.locator('#tutorial-progress').textContent(),'1 / 2');
