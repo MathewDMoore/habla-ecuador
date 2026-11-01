@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io',home=origin+'/habla-ecuador/index.html';
 async function run(browser,native,width=390){
- const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
+ const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true,serviceWorkers:"block"});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
@@ -69,7 +69,7 @@ async function run(browser,native,width=390){
  await page.locator('#app-share-region').selectOption('caracas');
  assert.equal(await page.locator('#app-share-link').inputValue(),home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
  await page.goto(home+'?start=dictionary&region=unknown');
- assert.equal(await page.locator('#home-view').evaluate(el=>el.classList.contains('active')),true);
+ assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true,'an unsupported dictionary invitation retains the existing Ecuadorian dictionary default');
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC');
  await page.goto(home.replace('index.html','translator.html'));
  if(!native){assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true);await page.locator('#home-button').click();await page.locator('.app-sharing summary').click();assert.equal(await page.locator('#share-app').isVisible(),true);}
