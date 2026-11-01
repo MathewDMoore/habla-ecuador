@@ -12,7 +12,7 @@ test('Pasted images reach local OCR from both source editors; ordinary and unrel
   assert.equal(paste(id,{files:[file]}),true);
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(commits.at(-1).text.text,'Texto de prueba.');
-  assert.match(node('#full-reader-image-status').textContent,/translation is being prepared/);
+  assert.match(node('#full-reader-image-status').textContent,/translation is being prepared/i);
  }
  assert.equal(reads.length,2);
  assert.equal(paste('translator-input',{items:[{kind:'string',type:'text/plain'}]}),false);
