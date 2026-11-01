@@ -4000,7 +4000,23 @@ function previewScreenshotText(extracted,guard) {
   $("#document-preview").hidden = false;
   $("#translate-document").disabled = false;
   selectDocumentSection(0);
-  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters read. Edit the text below to remove anything you do not want translated.`;
+  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters recognized. Preparing translation automatically; please check the original words.`;
+  // An image is a translation request, not merely a document import. Begin
+  // translation automatically after OCR commits the editable source. The
+  // same request cancellation protects the learner if they change the text.
+  const imageDocument=importedDocument;
+  const extractedText=$("#translator-input").value.trim();
+  queueMicrotask(async()=>{
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    await renderTranslation({allowImported:true});
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    const ready=lastCompletedTranslation?.source===extractedText;
+    $("#document-status").textContent=ready
+      ? "Image translation ready. Check the recognized original carefully. Edit any misread words, then choose Translate image text to update."
+      : "Image words recognized, but the translation could not finish. Check the source, then tap Translate image text to retry.";
+    const quick=$("#quick-image-status");
+    if(quick)quick.textContent=$("#document-status").textContent;
+  });
   return true;
 }
 
