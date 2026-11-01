@@ -22,14 +22,27 @@ const HablaScreenshot = (() => {
   async function prepareImage(file,crop) {
     if(typeof createImageBitmap!=='function'&&typeof Image==='undefined')return file;
     let bitmap,url;
-    if(typeof createImageBitmap==='function')bitmap=await createImageBitmap(file);
-    else {bitmap=new Image();url=URL.createObjectURL(file);await new Promise((resolve,reject)=>{bitmap.onload=resolve;bitmap.onerror=()=>reject(new Error('This image could not be opened. Try saving a PNG or JPEG copy.'));bitmap.src=url;}).catch(error=>{URL.revokeObjectURL(url);throw error;});}
+    if(typeof createImageBitmap==='function'){
+      try{bitmap=await createImageBitmap(file);}catch{bitmap=null;}
+    }
+    if(!bitmap){
+      if(typeof Image==='undefined')throw new Error('This photo format cannot be opened here. Try a screenshot or JPEG.');
+      bitmap=new Image();url=URL.createObjectURL(file);
+      await new Promise((resolve,reject)=>{bitmap.onload=resolve;bitmap.onerror=()=>reject(new Error('This image could not be opened. Try saving a PNG or JPEG copy.'));bitmap.src=url;});
+    }
     try {
       const width=bitmap.naturalWidth||bitmap.width,height=bitmap.naturalHeight||bitmap.height;
-      if(width*height>16000000)throw new Error('This image is too large to read on a phone. Crop it to the text and try again.');
+      if(!width||!height)throw new Error('This photo has no readable pixels.');
       const bounds=cropBounds(width,height,crop);
-      const canvas=document.createElement('canvas');canvas.width=bounds.width;canvas.height=bounds.height;
+      // Modern iPhone photos can be 24MP or 48MP. Downscale in memory rather
+      // than rejecting perfectly usable pictures because they exceed 16MP.
+      // Upsample small screenshot lettering modestly for better OCR detail.
+      const factor=Math.min(1.6,2800/Math.max(bounds.width,bounds.height),Math.sqrt(10000000/(bounds.width*bounds.height)));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(bounds.width*factor));
+      canvas.height=Math.max(1,Math.round(bounds.height*factor));
       const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      if(!ctx)throw new Error('The browser could not prepare this photo. Try a smaller screenshot.');
       ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.drawImage(bitmap,bounds.x,bounds.y,bounds.width,bounds.height,0,0,canvas.width,canvas.height);
       const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
@@ -38,7 +51,8 @@ const HablaScreenshot = (() => {
     } finally {bitmap.close?.();if(url)URL.revokeObjectURL(url);}
   }
   function validate(file) {
-    if (!file || !/^image\/(?:png|jpeg|webp|bmp)$/.test(file.type)) throw new Error("Choose a PNG, JPEG or WebP screenshot. For HEIC, save or copy it as a screenshot first.");
+    const format=file?.type || (/\.(?:heic|heif)$/i.test(file?.name||"")?"image/heic":"");
+    if (!file || !/^image\/(?:png|jpeg|webp|bmp|heic|heif)$/.test(format)) throw new Error("Choose a photo or screenshot (PNG, JPEG, WebP or HEIC).");
     if (file.size>10*1024*1024) throw new Error("Choose an image smaller than 10 MB.");
     return file;
   }
@@ -88,8 +102,13 @@ const HablaScreenshot = (() => {
   function bind({begin,commit}) {
     const input=document.querySelector('#translator-input'),fileInput=document.querySelector('#screenshot-file');
     const choose=document.querySelector('#choose-screenshot'),paste=document.querySelector('#paste-screenshot'),cancel=document.querySelector('#cancel-screenshot'),status=document.querySelector('#screenshot-status');
+    const quickChoose=document.querySelector('#quick-choose-image'),quickPaste=document.querySelector('#quick-paste-image');
     if(!input||!fileInput||!choose||!paste) return;
-    const report=text=>{status.textContent=text;const expanded=document.querySelector('#full-reader-image-status');if(expanded)expanded.textContent=text;};
+    const report=text=>{
+      status.textContent=text;
+      const quick=document.querySelector('#quick-image-status');if(quick)quick.textContent=text;
+      const expanded=document.querySelector('#full-reader-image-status');if(expanded)expanded.textContent=text;
+    };
     const review=document.querySelector('#screenshot-review'),preview=document.querySelector('#screenshot-preview');
     const top=document.querySelector('#screenshot-top'),bottom=document.querySelector('#screenshot-bottom'),shade=document.querySelector('#screenshot-shade');
     let controller,currentFile,imageUrl;
@@ -117,14 +136,19 @@ const HablaScreenshot = (() => {
             if(id===sequence&&progress.status==='recognizing text')report(`Reading screenshot… ${Math.round((progress.progress||0)*100)}%`);
           }});
           if(id!==sequence||!result)return;
-          if(!commit(result,guard)){report('Your input changed while the screenshot was read. It has been kept; choose the screenshot again when ready.');return;}
-          report('Image text ready. Review it below, then tap Translate image text. Use Image area to leave out screen controls.');
+          if(!commit(result,guard)){report('Your input changed while the image was read. Your text was kept. Choose the photo again when ready.');return;}
+          const confidence=Number(result.confidence);
+          report(Number.isFinite(confidence)&&confidence<65
+            ? 'Image imported, but some lettering was unclear. Check and correct the recognized words below; translation is being prepared.'
+            : 'Image text recognized. Translation is being prepared. Check the original words before sharing.');
         }catch(error){if(id===sequence)report(error.message||'Screenshot could not be read. Try a clearer image.');}
         finally{if(id===sequence)cancel.hidden=true;}
       });
     }
     readImage=read;
-    choose.addEventListener('click',()=>fileInput.click());
+    const choosePhoto=()=>fileInput.click();
+    choose.addEventListener('click',choosePhoto);
+    quickChoose?.addEventListener('click',choosePhoto);
     fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
     document.addEventListener('paste',event=>{
       if(!['translator-input','full-reader-source'].includes(event.target?.id))return;
@@ -134,14 +158,20 @@ const HablaScreenshot = (() => {
       const file=imageFromClipboard(event.clipboardData);
       if(file){event.preventDefault();read(file);}
     });
-    paste.addEventListener('click',async()=>{
-      if(!navigator.clipboard?.read){report('Use Paste in the text box, or choose the screenshot from Photos. This browser does not offer an image clipboard button.');return;}
+    const pastePhoto=async()=>{
+      if(!navigator.clipboard?.read){
+        report('iPhone image clipboard unavailable. Opening Photos so you can choose the picture itself.');
+        // File picker must be opened directly within this tap's user gesture.
+        choosePhoto();return;
+      }
       try{
         const items=await navigator.clipboard.read();
         for(const item of items){const type=item.types.find(type=>type.startsWith('image/'));if(type){read(await item.getType(type));return;}}
-        report('No image on the clipboard. Copy a screenshot first, or choose one from Photos.');
-      }catch{report('Clipboard access was not available. Use Paste in the text box, or choose the screenshot from Photos.');}
-    });
+        report('Clipboard has no picture. Tap Choose photo / Elegir foto to select it from Photos.');
+      }catch{report('Image clipboard access was denied. Tap Choose photo / Elegir foto instead.');}
+    };
+    paste.addEventListener('click',pastePhoto);
+    quickPaste?.addEventListener('click',pastePhoto);
     cancel.addEventListener('click',()=>{sequence++;controller?.abort();cancel.hidden=true;report('Screenshot reading cancelled. Your text has been kept.');if(activeWorker)activeWorker.terminate().catch(()=>{});});
     if(review){
       top.addEventListener('input',()=>{if(+top.value>=+bottom.value)bottom.value=String(+top.value+1);range();});

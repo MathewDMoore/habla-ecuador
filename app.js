@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.87 · build 197";
+const APP_VERSION = "0.26.88 · build 198";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4000,7 +4000,28 @@ function previewScreenshotText(extracted,guard) {
   $("#document-preview").hidden = false;
   $("#translate-document").disabled = false;
   selectDocumentSection(0);
-  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters read. Edit the text below to remove anything you do not want translated.`;
+  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters recognized. Preparing translation automatically; please check the original words.`;
+  // An image is a translation request, not merely a document import. Begin
+  // translation automatically after OCR commits the editable source. The
+  // same request cancellation protects the learner if they change the text.
+  const imageDocument=importedDocument;
+  const extractedText=$("#translator-input").value.trim();
+  Promise.resolve().then(async()=>{
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    await renderTranslation({allowImported:true});
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    const ready=lastCompletedTranslation?.source===extractedText;
+    $("#document-status").textContent=ready
+      ? "Image translation ready. Check the recognized original carefully. Edit any misread words, then choose Translate image text to update."
+      : "Image words recognized, but the translation could not finish. Check the source, then tap Translate image text to retry.";
+    const quick=$("#quick-image-status");
+    if(quick)quick.textContent=$("#document-status").textContent;
+  }).catch(()=>{
+    if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
+    const message="Image text recognized but translation failed. Check the words and tap Translate image text to retry.";
+    $("#document-status").textContent=message;
+    if($("#quick-image-status"))$("#quick-image-status").textContent=message;
+  });
   return true;
 }
 
@@ -5889,7 +5910,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=197", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=198", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

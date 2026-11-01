@@ -96,15 +96,20 @@ async function main() {
   assert.equal(get('#comparison-us').value,'I live in an apartment.');
   assert.match(get('#comparison-notes').innerHTML,/Housing: flat \/ apartment/);
   assert.equal(network,0,'context-aware comparison remains local');
+  // Imported photos should immediately start an editable translation.
+  // Stub the network-facing renderer to test that scheduling separately.
+  run('globalThis.__autoImageTranslations=0; renderTranslation=async ({allowImported}={})=>{if(allowImported){globalThis.__autoImageTranslations++; lastCompletedTranslation={source:$("#translator-input").value.trim()};}}');
   get('#translator-input').value='Existing input';
   const screenshotGuard=run('beginScreenshotImport()');context.screenshotGuard=screenshotGuard;
   context.screenshotText={text:'El agua está limpia.\n\nSegunda oración.'};
   assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),true);
   assert.equal(get('#translator-input').value,context.screenshotText.text);
-  assert.equal(run('documentImportActive'),true,'OCR preview blocks automatic translation');
+  assert.equal(run('documentImportActive'),true,'OCR source remains editable while automatic translation runs');
   assert.equal(get('#translate-document').textContent,'Translate image text');
   assert.equal(get('#document-section-controls').hidden,true,'single images do not show document-section controls');
-  assert.equal(network,0,'screenshot OCR preview never sends text to translation service');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(run('globalThis.__autoImageTranslations'),1,'successful image recognition starts translation automatically');
+  assert.equal(network,0,'mocked image translation does not contact the actual provider');
   context.screenshotGuard=run('beginScreenshotImport()');get('#translator-input').value='New user input';
   assert.equal(run('previewScreenshotText(screenshotText,screenshotGuard)'),false);
   assert.equal(get('#translator-input').value,'New user input','slow OCR cannot overwrite typing');
