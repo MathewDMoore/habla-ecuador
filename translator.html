@@ -114,11 +114,6 @@
           <div class="input-card">
             <label class="sr-only" for="translator-input">Text to translate</label>
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
-            <div id="image-quick-actions" class="image-quick-actions" role="group" aria-label="Translate text from an image / Traducir texto de una imagen">
-              <button id="quick-choose-image" type="button">📷 Choose photo / Elegir foto</button>
-              <button id="quick-paste-image" type="button">Paste image / Pegar imagen</button>
-            </div>
-            <p id="quick-image-status" class="import-status quick-image-status" role="status" aria-live="polite"></p>
             <div class="translator-mic-actions">
               <button id="translator-mic-add" type="button" aria-label="Add missing dictated words while keeping the existing source text">＋ Add missing words / Añadir palabras</button>
               <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Start fresh dictation; tap again to finish">🎙</button>
@@ -129,6 +124,11 @@
               <button id="translator-mic-keyboard" type="button" hidden>Use keyboard dictation</button>
             </div>
           </div>
+          <div id="image-quick-actions" class="image-quick-actions" role="group" aria-label="Translate text from an image / Traducir texto de una imagen">
+            <button id="quick-choose-image" type="button">📷 Choose photo / Elegir foto</button>
+            <button id="quick-paste-image" type="button">Paste image / Pegar imagen</button>
+          </div>
+          <p id="quick-image-status" class="import-status quick-image-status" role="status" aria-live="polite"></p>
           <div id="source-language-warning" class="source-language-warning" role="alert" hidden>
             <p id="source-language-warning-message"></p>
             <button id="correct-source-language" type="button"></button>
