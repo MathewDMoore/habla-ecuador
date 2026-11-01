@@ -28,7 +28,7 @@ async function test(browser,entry){
  await page.goto(origin+'/habla-ecuador/'+entry+'?start=translate&ui=en');
  await page.locator('#source-language-select').selectOption('es-EC');
  await page.locator('#target-language-select').selectOption('en-US');
- await page.waitForFunction(()=>Boolean(window.HablaScreenshot)&&Boolean(document.querySelector('#quick-choose-image')));
+ await page.waitForFunction(()=>typeof HablaScreenshot==='object'&&Boolean(document.querySelector('#quick-choose-image')));
  assert.equal(await page.locator('#quick-choose-image').isVisible(),true,'Choose photo must be visible without opening import setup');
  assert.equal(await page.locator('#quick-paste-image').isVisible(),true,'Image paste control is visible');
  // Even when iOS blocks clipboard.read(), tapping Paste image should open
