@@ -1362,3 +1362,10 @@ body.ve-theater-open {overflow:hidden !important;}
 .home-widget-shortcuts {font-size:11px;line-height:1.9;color:#ffdc65;}
 #home-screen-preview[data-art="icon"] .home-widget-shortcuts {display:none;}
 #home-screen-preview figcaption {font-size:11px;line-height:1.4;margin-top:5px;}
+
+/* Photo import belongs beside the source editor, not only in hidden import tools. */
+.image-quick-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 2px}
+.image-quick-actions button{flex:1 1 145px;min-height:44px;padding:10px 11px;border:1px solid #a9cabc;border-radius:12px;background:#edf7f0;color:#173f35;font:inherit;font-size:13px;font-weight:800;white-space:normal;overflow-wrap:anywhere}
+#quick-choose-image{background:#174b3b;color:#fff;border-color:#174b3b}
+.quick-image-status:empty{display:none}
+.quick-image-status{margin:7px 0 10px;color:#345648;line-height:1.4;font-size:13px;overflow-wrap:anywhere}
