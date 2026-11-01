@@ -102,6 +102,8 @@ const HablaSpanishContext = (() => {
     if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return [];
     const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
     const option=(id,text,label)=>({id,text,label});
+    const contributed=contributedEntries.find(entry=>entry.regions.includes(source)&&entry.lookupAliases.includes(word));
+    if(contributed)return contributed.lookupSenses.map(sense=>option("contributed-"+sense.id,target==='en-GB'?sense.uk:sense.us,sense.label));
     if(word==='chinga'||word==='chingar') {
       const options=[option('chingar-bother','bother / annoy','Bother / annoy'),option('chingar-sex','fuck (sexual sense)','Sexual meaning')];
       if(source==='es-MX'&&word==='chinga')options.push(option('chinga-burden','a punishing chore / a fucking grind','Punishing task'),option('chinga-beating','a beating','Beating'));
@@ -119,6 +121,13 @@ const HablaSpanishContext = (() => {
       const meanings=wordMeanings(text,{source,target,purpose});
       const detail='Chinga can be a form of chingar, not just a noun. RAE records bothering/annoying and a sexual sense; in Mexico, chinga can also be a punishing obligation or beating, and en chinga means quickly. Mexican sexual senses can involve assault; do not infer consent. The full sentence and source variety decide the reading. Neutral bother/annoy can understate vulgar force; fuck with someone may fit a vulgar rebuke.';
       findings.push({term:'chingar / chinga',kind:meanings.length?'word-senses':'ambiguous-slang',detail,url:'https://dle.rae.es/chingar',references:[{name:'Mexican verb senses · DEM',url:'https://dem.colmex.mx/ver/chingar'},{name:'Mexican noun / speed · ASALE',url:asale('chinga')}],choices:meanings.length>1?meanings.map(item=>item.id):[],choiceLabels:Object.fromEntries(meanings.map(item=>[item.id,item.label]))});
+    }
+    const contributed=wordMeanings(text,{source,target,purpose});
+    if(contributed.length && contributed.every(item=>item.id.startsWith('contributed-'))){
+      const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
+      const entry=contributedEntries.find(item=>item.lookupAliases.includes(word)&&item.regions.includes(source));
+      if(entry)findings.push({term:entry.term,kind:'word-senses',detail:entry.note,url:entry.url,
+        choices:contributed.map(item=>item.id),choiceLabels:Object.fromEntries(contributed.map(item=>[item.id,item.label]))});
     }
     if(address.test(value))add('corazón','Likely an affectionate address: sweetheart or darling. This use is shared across Spanish-speaking regions; it does not identify a country.','https://www.rae.es/gramática/sintaxis/las-formas-de-tratamiento-ii-sustantivos-y-grupos-nominales');
     if(causalAddress(value))add('que after an invitation','Here que introduces a reason for the invitation: because or for. Other uses of que can mean that or which.','https://dle.rae.es/que');
@@ -187,6 +196,245 @@ const HablaSpanishContext = (() => {
   // Shared literal/clinical entries indicate availability, not local slang evidence.
   const sharedRegions = Object.keys(dictionaryRegions).filter(code=>code!=='es-CU');
   const nci = term => `https://www.cancer.gov/espanol/publicaciones/diccionarios/diccionario-cancer/def/${term}`;
+  const contributedEntries = [
+  {
+    "id": "contribution-20261101-culo",
+    "term": "culo (anatomy)",
+    "speech": "culo",
+    "category": "slang",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU"
+    ],
+    "register": "Vulgar / colloquial anatomy",
+    "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+    "us": "ass / buttocks",
+    "uk": "arse / buttocks",
+    "note": "The source gloss is ass. Arse is the corresponding British spelling for the vulgar body-part sense; buttocks is neutral. Object-bottom and idiomatic uses require context.",
+    "url": "https://dle.rae.es/culo",
+    "sourceName": "RAE · Diccionario de la lengua española",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Culo - ass",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "culo"
+    ],
+    "lookupSenses": [
+      {
+        "id": "culo-anatomy",
+        "us": "ass / buttocks",
+        "uk": "arse / buttocks",
+        "label": "Body part · vulgar / neutral"
+      }
+    ],
+    "searchAliases": []
+  },
+  {
+    "id": "contribution-20261101-verga",
+    "term": "verga (vulgar anatomy)",
+    "speech": "verga",
+    "category": "slang",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU"
+    ],
+    "register": "Vulgar anatomical usage",
+    "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+    "us": "dick / cock; neutral clinical word: penis",
+    "uk": "dick / cock; neutral clinical word: penis",
+    "note": "The source gloss is cock. This anatomical sense is separate from the sailing spar and fixed expressions such as me vale verga. A full sentence determines the reading.",
+    "url": "https://dle.rae.es/verga",
+    "sourceName": "RAE · Diccionario de la lengua española",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Verga -cock",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "verga"
+    ],
+    "lookupSenses": [
+      {
+        "id": "verga-anatomy",
+        "us": "dick / cock (vulgar); penis (neutral)",
+        "uk": "dick / cock (vulgar); penis (neutral)",
+        "label": "Anatomy · vulgar / neutral"
+      },
+      {
+        "id": "verga-spar",
+        "us": "yard / spar (sailing)",
+        "uk": "yard / spar (sailing)",
+        "label": "Sailing · literal"
+      }
+    ],
+    "searchAliases": []
+  },
+  {
+    "id": "contribution-20261101-panocha",
+    "term": "panocha (anatomy)",
+    "speech": "panocha",
+    "category": "slang",
+    "regions": [
+      "es-EC",
+      "es-MX",
+      "es-CO",
+      "es-CU"
+    ],
+    "register": "Vulgar / taboo anatomical usage",
+    "scope": "ASALE anatomical sense attested in Ecuador, Mexico, Costa Rica, Cuba, Puerto Rico, Colombia, Honduras and El Salvador. Other senses and countries need separate context.",
+    "us": "pussy (vulgar anatomical sense); vulva (neutral)",
+    "uk": "pussy (vulgar anatomical sense); vulva (neutral)",
+    "note": "The source gloss is pussy. ASALE records the vulva sense in Ecuador and several other countries. Panocha can also name foods or sugar; Bolivia has a documented corn-cake sense. Do not assume every use is anatomical or translate it as the internal vagina.",
+    "url": "https://www.asale.org/damer/panocha",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Panocha -pussy",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "panocha"
+    ],
+    "lookupSenses": [
+      {
+        "id": "panocha-anatomy",
+        "us": "pussy (vulgar); vulva (neutral)",
+        "uk": "pussy (vulgar); vulva (neutral)",
+        "label": "Anatomy · regional context required"
+      }
+    ],
+    "searchAliases": []
+  },
+  {
+    "id": "contribution-20261101-puta",
+    "term": "puta (noun / insult)",
+    "speech": "puta",
+    "category": "slang",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU"
+    ],
+    "register": "Vulgar / offensive gendered insult",
+    "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+    "us": "whore; bitch (contextual insult)",
+    "uk": "whore; bitch (contextual insult)",
+    "note": "The source gloss is bitch; it can fit an insult in context, but is not universal. The noun can mean whore, while sex worker is neutral wording with a different register. Exclamations and intensifiers need separate translation; never replace puta mechanically inside a sentence.",
+    "url": "https://dle.rae.es/puto",
+    "sourceName": "RAE · Diccionario de la lengua española",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Puta -bitch",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "puta"
+    ],
+    "lookupSenses": [
+      {
+        "id": "puta-noun",
+        "us": "whore (vulgar noun)",
+        "uk": "whore (vulgar noun)",
+        "label": "Vulgar noun"
+      },
+      {
+        "id": "puta-insult",
+        "us": "bitch (possible contextual insult)",
+        "uk": "bitch (possible contextual insult)",
+        "label": "Insult · depends on context"
+      }
+    ],
+    "searchAliases": []
+  },
+  {
+    "id": "contribution-20261101-afeminado",
+    "term": "afeminado / afeminada",
+    "speech": "afeminado",
+    "category": "literal",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU"
+    ],
+    "register": "Descriptive adjective; potentially offensive / derogatory",
+    "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+    "us": "effeminate",
+    "uk": "effeminate",
+    "note": "The source gloss effeminate describes gender expression. It can be disparaging when applied to someone. This entry does not infer sexual orientation and does not treat gay as an automatic equivalent.",
+    "url": "https://dle.rae.es/afeminado",
+    "sourceName": "RAE · Diccionario de la lengua española",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Afeminado-effeminate",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "afeminado",
+      "afeminada"
+    ],
+    "lookupSenses": [
+      {
+        "id": "afeminado-expression",
+        "us": "effeminate",
+        "uk": "effeminate",
+        "label": "Gender-expression description · potentially derogatory"
+      }
+    ],
+    "searchAliases": []
+  },
+  {
+    "id": "contribution-20261101-malparido",
+    "term": "malparido / malparida",
+    "speech": "malparido",
+    "category": "slang",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-VE",
+      "es-CO",
+      "es-PE",
+      "es-CU"
+    ],
+    "register": "Offensive / contemptuous insult",
+    "scope": "ASALE contemptuous-person sense attested in Ecuador, Bolivia, Venezuela, Colombia, Peru and Cuba, among other countries.",
+    "us": "bastard (insult); contemptible person",
+    "uk": "bastard (insult); contemptible person",
+    "note": "The source spells this mal parido; the dictionary headword is malparido. Bastard is a possible English insult, not a claim about parentage. Force depends on speaker and context. The literal participle of malparir is a separate grammatical reading.",
+    "url": "https://www.asale.org/damer/malparido",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "contributionId": "2026-11-01-user-vocabulary",
+    "originalContribution": "Mal parido-bastard",
+    "nativeSpeakerReviewed": false,
+    "lookupAliases": [
+      "malparido",
+      "malparida",
+      "mal parido",
+      "mal parida"
+    ],
+    "lookupSenses": [
+      {
+        "id": "malparido-insult",
+        "us": "bastard (insult)",
+        "uk": "bastard (insult)",
+        "label": "Contemptuous insult"
+      }
+    ],
+    "searchAliases": [
+      "mal parido",
+      "bastard"
+    ]
+  }
+];
   const recordingEntries = [
     {id:'mamon-insult-counterpart',term:'mamón (insult)',speech:'mamón',category:'slang',regions:sharedRegions,shared:true,register:'Vulgar / offensive insult',scope:'General bilingual dictionary counterpart; Ecuadorian and other country-specific naturalness review pending. No city attestation is claimed.',us:'cocksucker (insult, not a literal sexual description)',uk:'cocksucker (insult, not a literal sexual description)',searchAliases:['cock sucker','cock-sucker'],note:'One possible Spanish insult counterpart in a bilingual dictionary, not a universal replacement. The English headword can also describe a person performing oral sex; that literal reading needs a separate translation. This entry covers contempt or abuse only. Mamón has other Spanish senses, so the complete sentence and intended meaning must be checked.',url:'https://www.wordreference.com/es/translation.asp?tranword=cocksucker',sourceName:'WordReference · English–Spanish',references:[{name:'Merriam-Webster · English meaning and register',url:'https://www.merriam-webster.com/dictionary/cocksucker'},{name:'Collins · U.S. and U.K. English senses',url:'https://www.collinsdictionary.com/dictionary/english/cocksucker'}],uncertainty:'Bilingual insult counterpart supported; regional suitability remains unverified. It is not a translation of the literal sexual act.'},
     {term:'me vale verga',category:'slang',regions:['es-EC','es-BO','es-MX'],register:'Strong vulgarity',scope:'ASALE records valerle verga for complete indifference in Ecuador, Bolivia and Mexico, among other countries.',us:"I don't give a fuck",uk:"I don't give a fuck",note:'Me identifies the person who does not care. This expression is different from saying something is worthless. Strong source register is retained, including when quoted in research.',url:'https://www.asale.org/damer/valer'},
@@ -268,7 +516,7 @@ const HablaSpanishContext = (() => {
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...vocabularyBatch].filter(entry => {
+    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116' ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));

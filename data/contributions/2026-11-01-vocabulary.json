@@ -1,0 +1,255 @@
+{
+  "id": "2026-11-01-user-vocabulary",
+  "sourceType": "user-supplied message screenshot",
+  "contributorCountry": null,
+  "contributorCity": null,
+  "receivedOn": "2026-11-01",
+  "originalLines": [
+    "Culo - ass",
+    "Verga -cock",
+    "Panocha -pussy",
+    "Puta -bitch",
+    "Afeminado-effeminate",
+    "Mal parido-bastard"
+  ],
+  "note": "Original spellings and glosses are preserved as supplied. Editorial entries below distinguish meaning, register and attested regional scope; contributor origin is not inferred.",
+  "editorialEntries": [
+    {
+      "id": "contribution-20261101-culo",
+      "term": "culo (anatomy)",
+      "speech": "culo",
+      "category": "slang",
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-MX",
+        "es-VE",
+        "es-PE",
+        "es-CO",
+        "es-CU"
+      ],
+      "register": "Vulgar / colloquial anatomy",
+      "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+      "us": "ass / buttocks",
+      "uk": "arse / buttocks",
+      "note": "The source gloss is ass. Arse is the corresponding British spelling for the vulgar body-part sense; buttocks is neutral. Object-bottom and idiomatic uses require context.",
+      "url": "https://dle.rae.es/culo",
+      "sourceName": "RAE · Diccionario de la lengua española",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Culo - ass",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "culo"
+      ],
+      "lookupSenses": [
+        {
+          "id": "culo-anatomy",
+          "us": "ass / buttocks",
+          "uk": "arse / buttocks",
+          "label": "Body part · vulgar / neutral"
+        }
+      ],
+      "searchAliases": []
+    },
+    {
+      "id": "contribution-20261101-verga",
+      "term": "verga (vulgar anatomy)",
+      "speech": "verga",
+      "category": "slang",
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-MX",
+        "es-VE",
+        "es-PE",
+        "es-CO",
+        "es-CU"
+      ],
+      "register": "Vulgar anatomical usage",
+      "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+      "us": "dick / cock; neutral clinical word: penis",
+      "uk": "dick / cock; neutral clinical word: penis",
+      "note": "The source gloss is cock. This anatomical sense is separate from the sailing spar and fixed expressions such as me vale verga. A full sentence determines the reading.",
+      "url": "https://dle.rae.es/verga",
+      "sourceName": "RAE · Diccionario de la lengua española",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Verga -cock",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "verga"
+      ],
+      "lookupSenses": [
+        {
+          "id": "verga-anatomy",
+          "us": "dick / cock (vulgar); penis (neutral)",
+          "uk": "dick / cock (vulgar); penis (neutral)",
+          "label": "Anatomy · vulgar / neutral"
+        },
+        {
+          "id": "verga-spar",
+          "us": "yard / spar (sailing)",
+          "uk": "yard / spar (sailing)",
+          "label": "Sailing · literal"
+        }
+      ],
+      "searchAliases": []
+    },
+    {
+      "id": "contribution-20261101-panocha",
+      "term": "panocha (anatomy)",
+      "speech": "panocha",
+      "category": "slang",
+      "regions": [
+        "es-EC",
+        "es-MX",
+        "es-CO",
+        "es-CU"
+      ],
+      "register": "Vulgar / taboo anatomical usage",
+      "scope": "ASALE anatomical sense attested in Ecuador, Mexico, Costa Rica, Cuba, Puerto Rico, Colombia, Honduras and El Salvador. Other senses and countries need separate context.",
+      "us": "pussy (vulgar anatomical sense); vulva (neutral)",
+      "uk": "pussy (vulgar anatomical sense); vulva (neutral)",
+      "note": "The source gloss is pussy. ASALE records the vulva sense in Ecuador and several other countries. Panocha can also name foods or sugar; Bolivia has a documented corn-cake sense. Do not assume every use is anatomical or translate it as the internal vagina.",
+      "url": "https://www.asale.org/damer/panocha",
+      "sourceName": "ASALE · Diccionario de americanismos",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Panocha -pussy",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "panocha"
+      ],
+      "lookupSenses": [
+        {
+          "id": "panocha-anatomy",
+          "us": "pussy (vulgar); vulva (neutral)",
+          "uk": "pussy (vulgar); vulva (neutral)",
+          "label": "Anatomy · regional context required"
+        }
+      ],
+      "searchAliases": []
+    },
+    {
+      "id": "contribution-20261101-puta",
+      "term": "puta (noun / insult)",
+      "speech": "puta",
+      "category": "slang",
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-MX",
+        "es-VE",
+        "es-PE",
+        "es-CO",
+        "es-CU"
+      ],
+      "register": "Vulgar / offensive gendered insult",
+      "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+      "us": "whore; bitch (contextual insult)",
+      "uk": "whore; bitch (contextual insult)",
+      "note": "The source gloss is bitch; it can fit an insult in context, but is not universal. The noun can mean whore, while sex worker is neutral wording with a different register. Exclamations and intensifiers need separate translation; never replace puta mechanically inside a sentence.",
+      "url": "https://dle.rae.es/puto",
+      "sourceName": "RAE · Diccionario de la lengua española",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Puta -bitch",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "puta"
+      ],
+      "lookupSenses": [
+        {
+          "id": "puta-noun",
+          "us": "whore (vulgar noun)",
+          "uk": "whore (vulgar noun)",
+          "label": "Vulgar noun"
+        },
+        {
+          "id": "puta-insult",
+          "us": "bitch (possible contextual insult)",
+          "uk": "bitch (possible contextual insult)",
+          "label": "Insult · depends on context"
+        }
+      ],
+      "searchAliases": []
+    },
+    {
+      "id": "contribution-20261101-afeminado",
+      "term": "afeminado / afeminada",
+      "speech": "afeminado",
+      "category": "literal",
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-MX",
+        "es-VE",
+        "es-PE",
+        "es-CO",
+        "es-CU"
+      ],
+      "register": "Descriptive adjective; potentially offensive / derogatory",
+      "scope": "General Spanish reference; listed availability does not claim country-specific frequency or local endorsement.",
+      "us": "effeminate",
+      "uk": "effeminate",
+      "note": "The source gloss effeminate describes gender expression. It can be disparaging when applied to someone. This entry does not infer sexual orientation and does not treat gay as an automatic equivalent.",
+      "url": "https://dle.rae.es/afeminado",
+      "sourceName": "RAE · Diccionario de la lengua española",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Afeminado-effeminate",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "afeminado",
+        "afeminada"
+      ],
+      "lookupSenses": [
+        {
+          "id": "afeminado-expression",
+          "us": "effeminate",
+          "uk": "effeminate",
+          "label": "Gender-expression description · potentially derogatory"
+        }
+      ],
+      "searchAliases": []
+    },
+    {
+      "id": "contribution-20261101-malparido",
+      "term": "malparido / malparida",
+      "speech": "malparido",
+      "category": "slang",
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-VE",
+        "es-CO",
+        "es-PE",
+        "es-CU"
+      ],
+      "register": "Offensive / contemptuous insult",
+      "scope": "ASALE contemptuous-person sense attested in Ecuador, Bolivia, Venezuela, Colombia, Peru and Cuba, among other countries.",
+      "us": "bastard (insult); contemptible person",
+      "uk": "bastard (insult); contemptible person",
+      "note": "The source spells this mal parido; the dictionary headword is malparido. Bastard is a possible English insult, not a claim about parentage. Force depends on speaker and context. The literal participle of malparir is a separate grammatical reading.",
+      "url": "https://www.asale.org/damer/malparido",
+      "sourceName": "ASALE · Diccionario de americanismos",
+      "contributionId": "2026-11-01-user-vocabulary",
+      "originalContribution": "Mal parido-bastard",
+      "nativeSpeakerReviewed": false,
+      "lookupAliases": [
+        "malparido",
+        "malparida",
+        "mal parido",
+        "mal parida"
+      ],
+      "lookupSenses": [
+        {
+          "id": "malparido-insult",
+          "us": "bastard (insult)",
+          "uk": "bastard (insult)",
+          "label": "Contemptuous insult"
+        }
+      ],
+      "searchAliases": [
+        "mal parido",
+        "bastard"
+      ]
+    }
+  ]
+}
