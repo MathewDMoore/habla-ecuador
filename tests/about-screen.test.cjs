@@ -28,7 +28,7 @@ test('Hosted release version matches service worker and both HTML entry points',
   const {metadata} = require('../scripts/write-release.cjs');
   const {version, build} = metadata(root);
   assert.equal(version, '0.26.88');
-  assert.equal(build, 197);
+  assert.equal(build, 198);
 });
 
 test('Web icon is a square vector asset with Ecuador colors', () => {
