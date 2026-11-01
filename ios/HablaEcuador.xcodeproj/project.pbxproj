@@ -318,7 +318,7 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>6</string>
+				<string>12</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
@@ -326,7 +326,7 @@
 				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
 				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.5</string>
+				<string>0.1.11</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -370,7 +370,7 @@
 				<key>CODE_SIGN_STYLE</key>
 				<string>Automatic</string>
 				<key>CURRENT_PROJECT_VERSION</key>
-				<string>6</string>
+				<string>12</string>
 				<key>GENERATE_INFOPLIST_FILE</key>
 				<string>NO</string>
 				<key>INFOPLIST_FILE</key>
@@ -378,7 +378,7 @@
 				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
 				<string>AppIcon</string>
 				<key>MARKETING_VERSION</key>
-				<string>0.1.5</string>
+				<string>0.1.11</string>
 				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
 				<string>com.mathewdmoore.HablaEcuador</string>
 				<key>PRODUCT_NAME</key>
@@ -506,11 +506,11 @@
 			<key>buildSettings</key><dict>
 <key>APPLICATION_EXTENSION_API_ONLY</key><string>YES</string>
 <key>CODE_SIGN_STYLE</key><string>Automatic</string>
-<key>CURRENT_PROJECT_VERSION</key><string>6</string>
+<key>CURRENT_PROJECT_VERSION</key><string>12</string>
 <key>GENERATE_INFOPLIST_FILE</key><string>NO</string>
 <key>INFOPLIST_FILE</key><string>HablaEcuadorWidget/Info.plist</string>
 <key>IPHONEOS_DEPLOYMENT_TARGET</key><string>17.0</string>
-<key>MARKETING_VERSION</key><string>0.1.5</string>
+<key>MARKETING_VERSION</key><string>0.1.11</string>
 <key>PRODUCT_BUNDLE_IDENTIFIER</key><string>com.mathewdmoore.HablaEcuador.widget</string>
 <key>PRODUCT_NAME</key><string>$(TARGET_NAME)</string>
 <key>SKIP_INSTALL</key><string>YES</string>
@@ -527,11 +527,11 @@
 			<key>buildSettings</key><dict>
 <key>APPLICATION_EXTENSION_API_ONLY</key><string>YES</string>
 <key>CODE_SIGN_STYLE</key><string>Automatic</string>
-<key>CURRENT_PROJECT_VERSION</key><string>6</string>
+<key>CURRENT_PROJECT_VERSION</key><string>12</string>
 <key>GENERATE_INFOPLIST_FILE</key><string>NO</string>
 <key>INFOPLIST_FILE</key><string>HablaEcuadorWidget/Info.plist</string>
 <key>IPHONEOS_DEPLOYMENT_TARGET</key><string>17.0</string>
-<key>MARKETING_VERSION</key><string>0.1.5</string>
+<key>MARKETING_VERSION</key><string>0.1.11</string>
 <key>PRODUCT_BUNDLE_IDENTIFIER</key><string>com.mathewdmoore.HablaEcuador.widget</string>
 <key>PRODUCT_NAME</key><string>$(TARGET_NAME)</string>
 <key>SKIP_INSTALL</key><string>YES</string>
