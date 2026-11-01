@@ -5,12 +5,20 @@ on:
     paths:
       - 'ios/**'
       - 'app.js'
+      - 'tutorial.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'styles.css'
       - 'tests/widget*'
       - '.github/workflows/widget-shortcuts.yml'
   push:
     paths:
       - 'ios/**'
       - 'app.js'
+      - 'tutorial.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'styles.css'
       - 'tests/widget*'
       - '.github/workflows/widget-shortcuts.yml'
 

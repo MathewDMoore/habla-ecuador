@@ -18,12 +18,12 @@ async function run(browser,native,width=390){
  await page.evaluate(()=>{document.querySelector('#translator-input').value='Private translation source';localStorage.setItem('private-fixture','Private saved note');});
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC','ordinary startup remains Ecuadorian first');
  const panel=page.locator('.app-sharing');await panel.locator('summary').click();
- assert.equal(await page.locator('#app-share-link').inputValue(),home+'?ui=es');
+ assert.equal(await page.locator('#app-share-link').inputValue(),home+'?ui=es&tour=home-screen');
  await page.locator('#app-share-region').selectOption('monterrey');
  await page.locator('#app-share-language').selectOption('en');assert.equal(new URL(await page.locator('#app-share-link').inputValue()).searchParams.get('ui'),'en');
  await page.locator('#app-share-language').selectOption('es');
  const monterrey=await page.locator('#app-share-link').inputValue();
- assert.equal(monterrey,home+'?start=dictionary&region=monterrey&ui=es');
+ assert.equal(monterrey,home+'?start=dictionary&region=monterrey&ui=es&tour=home-screen');
  await page.locator('#share-app').click();
  assert.equal(await page.locator('#share-app').isDisabled(),true);assert.equal(await page.locator('#app-share-region').isDisabled(),true);
  await page.evaluate(()=>shareApp());assert.equal(await page.evaluate(()=>window.testShares.length),1,'duplicate sharing guarded');
@@ -52,12 +52,13 @@ async function run(browser,native,width=390){
  assert.ok(!await page.evaluate(()=>window.testMessages.some(m=>m.action==='share-translation')),'app sharing never borrows the native translation bridge');
  assert.ok(await page.evaluate(width=>document.documentElement.scrollWidth<=width,width));
  for(const [url,region] of [[monterrey,'monterrey'],[venezuela,'es-VE']]){
-  await page.goto(url);assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
+  await page.goto(url);await page.locator('#tutorial-close').click();assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
   assert.equal(await page.locator('#regional-slang-region').inputValue(),region);
   assert.ok(await page.locator('#regional-slang-results .regional-slang-card').count()>0);
   assert.equal(await page.locator('#target-language-select').inputValue(),'es-EC','shared dictionary choice does not rewrite translator defaults');
  }
- await page.goto(home+'?start=dictionary&region=es-VE&city=caracas&ui=es');
+ await page.goto(home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
+ await page.locator('#tutorial-close').click();
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-VE');
  assert.match(await page.locator('#shared-app-context').textContent(),/La revisión específica de Caracas está pendiente/);
  await page.locator('#regional-slang-region').selectOption('es-BO');assert.equal(await page.locator('#shared-app-context').isVisible(),false);
@@ -65,7 +66,7 @@ async function run(browser,native,width=390){
  await page.locator('#regional-slang-region').selectOption('es-MX');
  await page.locator('#home-button').click();await page.locator('.app-sharing summary').click();
  await page.locator('#app-share-region').selectOption('caracas');
- assert.equal(await page.locator('#app-share-link').inputValue(),home+'?start=dictionary&region=es-VE&city=caracas&ui=es');
+ assert.equal(await page.locator('#app-share-link').inputValue(),home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
  await page.goto(home+'?start=dictionary&region=unknown');
  assert.equal(await page.locator('#home-view').evaluate(el=>el.classList.contains('active')),true);
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-EC');
