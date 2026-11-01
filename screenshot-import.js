@@ -22,14 +22,27 @@ const HablaScreenshot = (() => {
   async function prepareImage(file,crop) {
     if(typeof createImageBitmap!=='function'&&typeof Image==='undefined')return file;
     let bitmap,url;
-    if(typeof createImageBitmap==='function')bitmap=await createImageBitmap(file);
-    else {bitmap=new Image();url=URL.createObjectURL(file);await new Promise((resolve,reject)=>{bitmap.onload=resolve;bitmap.onerror=()=>reject(new Error('This image could not be opened. Try saving a PNG or JPEG copy.'));bitmap.src=url;}).catch(error=>{URL.revokeObjectURL(url);throw error;});}
+    if(typeof createImageBitmap==='function'){
+      try{bitmap=await createImageBitmap(file);}catch{bitmap=null;}
+    }
+    if(!bitmap){
+      if(typeof Image==='undefined')throw new Error('This photo format cannot be opened here. Try a screenshot or JPEG.');
+      bitmap=new Image();url=URL.createObjectURL(file);
+      await new Promise((resolve,reject)=>{bitmap.onload=resolve;bitmap.onerror=()=>reject(new Error('This image could not be opened. Try saving a PNG or JPEG copy.'));bitmap.src=url;});
+    }
     try {
       const width=bitmap.naturalWidth||bitmap.width,height=bitmap.naturalHeight||bitmap.height;
-      if(width*height>16000000)throw new Error('This image is too large to read on a phone. Crop it to the text and try again.');
+      if(!width||!height)throw new Error('This photo has no readable pixels.');
       const bounds=cropBounds(width,height,crop);
-      const canvas=document.createElement('canvas');canvas.width=bounds.width;canvas.height=bounds.height;
+      // Modern iPhone photos can be 24MP or 48MP. Downscale in memory rather
+      // than rejecting perfectly usable pictures because they exceed 16MP.
+      // Upsample small screenshot lettering modestly for better OCR detail.
+      const factor=Math.min(1.6,2800/Math.max(bounds.width,bounds.height),Math.sqrt(10000000/(bounds.width*bounds.height)));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(bounds.width*factor));
+      canvas.height=Math.max(1,Math.round(bounds.height*factor));
       const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      if(!ctx)throw new Error('The browser could not prepare this photo. Try a smaller screenshot.');
       ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.drawImage(bitmap,bounds.x,bounds.y,bounds.width,bounds.height,0,0,canvas.width,canvas.height);
       const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
