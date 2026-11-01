@@ -1,9 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-// Habla Ecuador's original visual identity, translated into a native widget:
-// turquoise Andean sky, rising sun, mountain peaks, tropical leaf and the
-// yellow-blue-red Ecuadorian flag. No new logo or remote graphics.
+// Shared artwork from the approved About-screen design.
 private enum HablaPalette {
     static let forest = Color(red: 0.09, green: 0.25, blue: 0.21)
     static let mint = Color(red: 0.74, green: 0.91, blue: 0.82)
@@ -15,53 +13,11 @@ private enum HablaPalette {
 
 private struct HablaLandscape: View {
     var body: some View {
-        GeometryReader { bounds in
-            let w = bounds.size.width
-            let h = bounds.size.height
-            ZStack {
-                LinearGradient(colors: [HablaPalette.sky, HablaPalette.mint],
-                               startPoint: .top, endPoint: .bottom)
-                Circle()
-                    .fill(HablaPalette.yellow)
-                    .frame(width: w * 0.33, height: h * 0.33)
-                    .position(x: w * 0.29, y: h * 0.26)
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: h * 0.72))
-                    p.addLine(to: CGPoint(x: w * 0.39, y: h * 0.21))
-                    p.addLine(to: CGPoint(x: w * 0.56, y: h * 0.49))
-                    p.addLine(to: CGPoint(x: w * 0.76, y: h * 0.19))
-                    p.addLine(to: CGPoint(x: w, y: h * 0.70))
-                    p.addLine(to: CGPoint(x: w, y: h))
-                    p.addLine(to: CGPoint(x: 0, y: h))
-                    p.closeSubpath()
-                }.fill(Color(red: 0.96, green: 0.97, blue: 0.92))
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: h * 0.79))
-                    p.addQuadCurve(to: CGPoint(x: w, y: h * 0.79),
-                                   control: CGPoint(x: w * 0.48, y: h * 0.48))
-                    p.addLine(to: CGPoint(x: w, y: h))
-                    p.addLine(to: CGPoint(x: 0, y: h))
-                    p.closeSubpath()
-                }.fill(Color(red: 0.16, green: 0.50, blue: 0.43))
-                // The leaf stays simple so it remains legible at widget size.
-                Image(systemName: "leaf.fill")
-                    .font(.system(size: w * 0.32, weight: .black))
-                    .foregroundStyle(HablaPalette.forest)
-                    .rotationEffect(.degrees(-35))
-                    .position(x: w * 0.79, y: h * 0.57)
-                VStack(spacing: 0) {
-                    HablaPalette.yellow
-                    HablaPalette.blue
-                    HablaPalette.red
-                }
-                .frame(height: h * 0.22)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-            }
-            .frame(width: w, height: h)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: w * 0.23, style: .continuous))
-        }
-        .accessibilityHidden(true)
+        Image("HablaBrand")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 

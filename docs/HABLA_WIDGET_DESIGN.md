@@ -1,8 +1,10 @@
 # Habla Ecuador 🇪🇨: Home Screen widget design, version 1
 
-## Design is established, not a new logo
+## Approved About-screen artwork
 
-The original `app-icon.svg` is the reference: Andean mountains, sunrise, tropical leaf and Ecuadorian yellow/blue/red stripes. **Do not replace or redesign the installed app icon for this widget.** Widget code draws the same visual language in SwiftUI, so it is native and doesn't download remote images.
+The approved About-screen design is the reference: snow-capped Andean mountain, golden sun, orange tropical leaves, Ecuadorian yellow/blue/red waves and a pink flower. `app-icon.svg` is the editable source. The native app icon, widget `HablaBrand` asset, and web Home Screen PNGs are rendered from that one source. The widget bundles its artwork and does not download images.
+
+To regenerate PNGs, run `node scripts/render-brand-icons.cjs` with `sharp` available. Native icons are opaque full-bleed squares; iOS applies the corner mask. Safari entry points include an explicit 180px apple-touch-icon. Existing Home Screen web bookmarks may need to be added again for iOS to use updated artwork.
 
 - Base: dark Ecuador green (`#173F35`) for text contrast.
 - Accents: sunrise gold, turquoise sky, mint, and Ecuadorian tricolor.
