@@ -12,7 +12,9 @@ async function main(){
  const varied=new Uint8ClampedArray([0,0,0,255,50,100,200,255,255,255,255,255]);const original=Array.from(varied);
  assert.equal(helper.improveContrast(varied),false);assert.deepEqual(Array.from(varied),original,'mixed backgrounds are not thresholded');
  assert.equal(helper.validate(file),file);
- assert.throws(()=>helper.validate({type:'image/heic',size:1}),/HEIC/);
+ assert.equal(helper.validate({type:'image/heic',size:1,name:'photo.heic'}).type,'image/heic','iPhone HEIC photos are accepted for browser decoding');
+ assert.equal(helper.validate({type:'',size:1,name:'photo.heic'}).name,'photo.heic','HEIC photos without a MIME type are accepted');
+ assert.throws(()=>helper.validate({type:'application/pdf',size:1}),/photo or screenshot/);
  assert.throws(()=>helper.validate({type:'image/png',size:11*1024*1024}),/10 MB/);
  const imageItem={kind:'file',type:'image/png',getAsFile:()=>file};
  assert.equal(helper.imageFromClipboard({items:[imageItem]}),file);
