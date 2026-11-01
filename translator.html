@@ -114,6 +114,11 @@
           <div class="input-card">
             <label class="sr-only" for="translator-input">Text to translate</label>
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <div id="image-quick-actions" class="image-quick-actions" role="group" aria-label="Translate text from an image / Traducir texto de una imagen">
+              <button id="quick-choose-image" type="button">📷 Choose photo / Elegir foto</button>
+              <button id="quick-paste-image" type="button">Paste image / Pegar imagen</button>
+            </div>
+            <p id="quick-image-status" class="import-status quick-image-status" role="status" aria-live="polite"></p>
             <div class="translator-mic-actions">
               <button id="translator-mic-add" type="button" aria-label="Add missing dictated words while keeping the existing source text">＋ Add missing words / Añadir palabras</button>
               <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Start fresh dictation; tap again to finish">🎙</button>
@@ -287,12 +292,12 @@
               <p>Play or scrub to a moment with readable words, then pause. Read one moment at a time; each read replaces the text preview. Audio is not transcribed. Your recording stays on this device.</p>
             </section>
             <p id="recording-status" class="import-status" role="status" aria-live="polite"></p>
-            <input id="screenshot-file" type="file" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
+            <input id="screenshot-file" type="file" accept="image/*,.heic,.heif" hidden>
             <p id="screenshot-status" class="import-status" role="status" aria-live="polite"></p>
             <button id="cancel-screenshot" type="button" hidden>Cancel reading</button>
             <input id="document-file" type="file" accept=".docx,.doc,.pdf,.txt" hidden>
             <details class="compact-info"><summary>Restore document progress</summary><button id="import-document-progress" type="button">Open progress backup</button><input id="document-progress-file" type="file" accept=".json,application/json" hidden></details>
-            <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Copy a screenshot and tap Paste image, or paste into the text box. Images are read locally. The reader may need an internet connection to download its files; choose the From language and check extracted text before translating. Open Image area to exclude screen controls.</p></details>
+            <details class="compact-info import-help"><summary>Import help</summary><p>Choose Word (.docx), PDF, text or a screenshot, up to 10 MB. On iPhone, choose Files or Photos.</p><p>Choose Photo to read the image itself. On iPhone, Paste image may be blocked; use Choose Photo instead. Copying text from a screenshot can introduce errors. Images are read locally. The reader may need an internet connection to download its files; choose the From language and check extracted text before translating. Open Image area to exclude screen controls.</p></details>
             <p id="document-status" role="status" aria-live="polite"></p>
 
             <details class="compact-info"><summary>How imported text is handled</summary><p>Files and screenshot reading stay on your device. Online translation sends selected text to MyMemory; on-device translation keeps it here. Word/PDF formatting and images are not retained.</p></details>
