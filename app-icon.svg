@@ -1,22 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">Habla Ecuador</title>
-  <desc id="desc">Andean mountain and tropical leaf beneath a sunrise, with Ecuador's yellow, blue, and red colors</desc>
+  <desc id="desc">Andean mountain, golden sun, orange tropical leaves, Ecuadorian yellow-blue-red waves and a pink flower</desc>
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#49b9ae"/><stop offset="1" stop-color="#b7e0c9"/>
+      <stop stop-color="#68d2c5"/><stop offset="1" stop-color="#e2edb5"/>
     </linearGradient>
-    <clipPath id="frame"><rect width="512" height="512" rx="110"/></clipPath>
+    <clipPath id="frame"><rect width="512" height="512"/></clipPath>
+    <path id="petal" d="M0 0C-25-8-48-39-27-55-2-73 18-32 0 0Z"/>
   </defs>
   <g clip-path="url(#frame)">
     <rect width="512" height="512" fill="url(#sky)"/>
     <circle cx="154" cy="154" r="83" fill="#ffdd62"/>
-    <path d="M-40 355 195 124l73 76 79-87 205 242v170H-40z" fill="#fdf8ec"/>
-    <path d="m-40 355 235-231 36 38-36-10-46 63-27-12-162 162z" fill="#d5e9e4"/>
-    <path d="m268 200 79-87 205 242v170H268l-45-192 63-76 44 27 32-53z" fill="#b6d6cb"/>
+    <path d="M-20 346 134 244 191 266 268 140 367 253 439 283 532 355V512H-20Z" fill="#225f86"/>
+    <path d="m188 272 80-132 91 105-44-12-22-38-13 34-22-16-24 45-18-15Z" fill="#fffdf0"/>
+    <path d="m268 140 22 46-10 43-22-16-24 45-18-15 27-31Z" fill="#d5eeea"/>
     <path d="M-30 362q125-55 267 0t305-2v165H-30z" fill="#2a806d"/>
-    <path d="M386 275q37-70 100-89-18 46-82 73 47-13 101-4-39 36-97 34 45 9 75 41-49 10-92-28-6 37-1 76h-25q8-45-4-90-47-6-85-38 57-15 102 17-26-42-25-95 43 28 45 103z" fill="#184c3e"/>
-    <path d="M0 389q138 25 256 0t256 0v49q-117-25-256 0T0 438z" fill="#f5d844"/>
-    <path d="M0 438q129-26 256 0t256 0v45q-124-25-256 0T0 483z" fill="#245caa"/>
-    <path d="M0 482q122 26 256 0t256 0v30H0z" fill="#df3e49"/>
+    <path d="M395 304q24-102-16-226" fill="none" stroke="#397448" stroke-width="11" stroke-linecap="round"/>
+    <path d="M399 221q-61-34-62-98 44 22 62 98Z" fill="#ed9d22"/>
+    <path d="M393 174q-42-42-34-100 38 34 34 100Z" fill="#ffbe34"/>
+    <path d="M402 232q47-41 42-99-39 30-42 99Z" fill="#e78223"/>
+    <path d="M392 176q42-36 33-87-31 29-33 87Z" fill="#f6a626"/>
+    <path d="M394 298q-51-15-74-57 48-1 74 57ZM398 280q50-8 71-50-48-6-71 50Z" fill="#62a74a"/>
+    <path d="M0 356q122 3 240-25t272 21v71H0Z" fill="#f5d844"/>
+    <path d="M0 405q130-25 261-2t251-1v72H0Z" fill="#245caa"/>
+    <path d="M0 463q121-28 250-4t262-1v54H0Z" fill="#df3e49"/>
+    <path d="M371 442q-46 10-60-22 40-20 60 22M405 427q4-47 43-52 8 39-43 52" fill="#62a74a"/>
+    <g transform="translate(408 409)" fill="#ef8290" stroke="#fff0d3" stroke-width="5" stroke-linejoin="round">
+      <use href="#petal"/><use href="#petal" transform="rotate(72)"/>
+      <use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/>
+      <use href="#petal" transform="rotate(288)"/>
+      <circle r="13" fill="#ffce4a" stroke-width="4"/>
+    </g>
   </g>
 </svg>

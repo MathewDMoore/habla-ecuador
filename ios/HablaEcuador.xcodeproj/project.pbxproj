@@ -399,6 +399,7 @@
 			<key>children</key><array>
 				<string>000000000000000000000103</string>
 				<string>000000000000000000000104</string>
+				<string>000000000000000000000112</string>
 			</array>
 			<key>path</key><string>HablaEcuadorWidget</string>
 			<key>sourceTree</key><string>&lt;group&gt;</string>
@@ -454,9 +455,21 @@
 		<dict>
 			<key>isa</key><string>PBXResourcesBuildPhase</string>
 			<key>buildActionMask</key><string>2147483647</string>
-			<key>files</key><array/>
+			<key>files</key><array><string>000000000000000000000113</string></array>
 			<key>runOnlyForDeploymentPostprocessing</key><string>0</string>
 		</dict>
+        <key>000000000000000000000112</key>
+        <dict>
+            <key>isa</key><string>PBXFileReference</string>
+            <key>lastKnownFileType</key><string>folder.assetcatalog</string>
+            <key>path</key><string>Assets.xcassets</string>
+            <key>sourceTree</key><string>&lt;group&gt;</string>
+        </dict>
+        <key>000000000000000000000113</key>
+        <dict>
+            <key>isa</key><string>PBXBuildFile</string>
+            <key>fileRef</key><string>000000000000000000000112</string>
+        </dict>
 		<key>00000000000000000000010A</key>
 		<dict>
 			<key>isa</key><string>PBXCopyFilesBuildPhase</string>
