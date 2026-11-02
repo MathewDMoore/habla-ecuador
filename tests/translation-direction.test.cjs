@@ -61,6 +61,29 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  assert.equal(run('sourceLanguage'),'es-CU');
  assert.equal(select('#translator-input').value,raw);
  assert.equal(select('#natural-result').textContent,english);
+ // Previously reported iPhone error: Reverse must not promote a stale,
+ // automatically generated "Vol." for the exact term "Caldo" into source text.
+ run('sourceLanguage="es-EC";targetLanguage="en-US";syncLanguagePair({persist:false});');
+ select('#translator-input').value='Caldo';
+ run('setEditableTranslation("Caldo","Vol.")');
+ select('#translation-result').hidden=false;
+ run('swapDirection()');
+ assert.equal(select('#translator-input').value,'broth','known bad machine result is repaired before Reverse');
+ assert.equal(select('#natural-result').textContent,'Caldo','the genuine original is preserved');
+ assert.match(select('#translation-result .result-label').textContent,/preserved pair/);
+ run('swapDirection()');
+ assert.equal(select('#translator-input').value,'Caldo');
+ assert.equal(select('#natural-result').textContent,'broth');
+ // Explicit user edits are never silently overwritten, even when they conflict
+ // with a dictionary-backed suggestion. The screen identifies them as such.
+ select('#translator-input').value='Caldo';
+ run('sourceLanguage="es-EC";targetLanguage="en-US";syncLanguagePair({persist:false});');
+ run('setEditableTranslation("Caldo","broth")');
+ select('#natural-result').textContent='Vol.';
+ run('saveActiveTranslationEdit()');
+ run('swapDirection()');
+ assert.equal(select('#translator-input').value,'Vol.','personal edit preserved as personal edit');
+ assert.match(select('#translation-result .result-label').textContent,/personal edit/);
  // An edited source invalidates the old pair; never promote its stale translation.
  select('#translator-input').value='New text';
  run('swapDirection()');
