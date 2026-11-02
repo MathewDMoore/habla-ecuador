@@ -46,7 +46,7 @@ async function run(browser,file,native,width=390,height=844){
  assert.ok(expanded>collapsed*1.4,`expanded height ${expanded} > compact height ${collapsed}`);
  assert.equal(await expand.getAttribute('aria-expanded'),'true');
  assert.equal(await expand.textContent(),'Collapse');
- assert.equal(await target.evaluate(el=>getComputedStyle(el).overflowY),'visible','expanded text displays its entire passage in page flow');
+ assert.ok(await target.evaluate(el=>el.scrollHeight<=el.clientHeight+2),'expanded text displays its entire passage without internal clipping');
  await page.locator('#translation-more-actions > summary').click();
  await page.locator('.translation-text-options summary').click();
  await page.locator('#translation-text-larger').click();assert.equal(await size(),baseSize+2);
