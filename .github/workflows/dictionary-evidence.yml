@@ -21,5 +21,5 @@ jobs:
       - name: Validate source claims and independent review states
         run: node scripts/check-regional-evidence.cjs
       - name: Verify regional meanings, filters and preserved vocabulary
-        run: node --test tests/regional-evidence.test.cjs tests/regional-sources.test.cjs tests/regional-vocabulary.test.cjs tests/regional-usage.test.cjs tests/spanish-context.test.cjs tests/dictionary-recovery.test.cjs
+        run: node --test tests/regional-evidence.test.cjs tests/regional-sources.test.cjs tests/dictionary-source-loading.test.cjs tests/regional-vocabulary.test.cjs tests/regional-usage.test.cjs tests/spanish-context.test.cjs tests/dictionary-recovery.test.cjs
 

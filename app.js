@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.91 · build 201";
+const APP_VERSION = "0.26.92 · build 202";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -275,6 +275,7 @@ let evidenceFilter = "all";
 let expressionFilter = "all";
 let evidenceEntries = [];
 let evidenceSources = new Map();
+let evidenceCollections = new Map();
 let reviewQueue = new Map();
 let comparisonIndex = new Map();
 let reviewIndex = 0;
@@ -4469,13 +4470,21 @@ async function loadEvidence() {
       "data/review-queue.json",
       "data/ecuador-bolivia-comparisons-v1.json"
     ];
-    const responses = await Promise.all(paths.map(path => fetch(path, {cache:"no-cache",signal:controller.signal})));
-    if (responses.some(response => !response.ok)) throw new Error("source file unavailable");
-    const [learner, vocabulary, candidates, sources, queue, comparisons] = await Promise.all(responses.map(response => response.json()));
-    evidenceSources = new Map(sources.map(source => [source.id, source]));
+    // Load independently: an unavailable candidate list must not hide the source catalogue.
+    const results = await Promise.allSettled(paths.map(async path => {
+      const response = await fetch(path, {cache:"no-cache",signal:controller.signal});
+      if (!response.ok) throw new Error("reference unavailable");
+      const values = await response.json();
+      if (!Array.isArray(values)) throw new Error("invalid reference collection");
+      if (values.some(value => !value || typeof value !== "object" || Array.isArray(value))) throw new Error("invalid reference record");
+      return values;
+    }));
+    results.forEach((result,index) => { if (result.status === "fulfilled") evidenceCollections.set(paths[index],result.value); });
+    const [learner, vocabulary, candidates, sources, queue, comparisons] = paths.map(path => evidenceCollections.get(path) || []);
+    if (results[3].status === "fulfilled") evidenceSources = new Map(sources.map(source => [source.id, source]));
     renderRegionalSourceCoverage();
-    reviewQueue = new Map(queue.map(item => [item.entryId, item]));
-    comparisonIndex = new Map(comparisons.map(item => [item.entryId, item]));
+    if (results[4].status === "fulfilled") reviewQueue = new Map(queue.map(item => [item.entryId, item]));
+    if (results[5].status === "fulfilled") comparisonIndex = new Map(comparisons.map(item => [item.entryId, item]));
 
     const combined = [
       ...learner.map(item => ({...item, origin:"learner-ready"})),
@@ -4491,9 +4500,12 @@ async function loadEvidence() {
     evidenceEntries = [...merged.values()].sort((a,b) => (a.spanish || "").localeCompare(b.spanish || "", "es"));
     $("#evidence-counts").innerHTML = `
       <article><strong>${learner.length}</strong><span>Learner-ready</span></article>
-      <article><strong>${sources.length}</strong><span>Named sources</span></article>
+      <article><strong>${evidenceSources.size}</strong><span>Named sources</span></article>
       <article><strong>${queue.length}</strong><span>Review queue</span></article>`;
-    status.hidden = true;
+    const labels = ["Learner examples","Project vocabulary","Candidate entries","Source catalogue","Review queue","Country comparisons"];
+    const unavailable = labels.filter((label,index) => results[index].status === "rejected");
+    status.hidden = !unavailable.length;
+    status.textContent = unavailable.length ? `Some reference collections could not load: ${unavailable.join(" · ")}. Previously loaded information is retained where available. Dictionary entries and their direct source links remain usable. Reload to retry.` : "";
     renderDictionary();
     // If the learner typed while references were loading, retry only an exact
     // documented example; request cancellation protects against late drafts.
@@ -4611,7 +4623,7 @@ function renderRegionalSourceCoverage() {
   const root = $("#regional-source-coverage");
   const selector = $("#regional-slang-region");
   if (!root || !selector) return;
-  const cities = {quito:"es-EC",monterrey:"es-MX","mexico-city":"es-MX",bogota:"es-CO"};
+  const cities = {quito:"es-EC",monterrey:"es-MX","mexico-city":"es-MX",bogota:"es-CO","la-paz":"es-BO"};
   const city = cities[selector.value];
   const english = selector.value.startsWith("en-");
   const country = city || (english ? $("#regional-slang-target")?.value || "all" : selector.value);
@@ -4620,13 +4632,18 @@ function renderRegionalSourceCoverage() {
   const indexed = HablaSpanishContext.dictionary({region:city ? selector.value : country});
   const idioms = indexed.filter(entry => entry.usage.type === "idiom").length;
   const figurative = indexed.filter(entry => entry.figurative === true).length;
+  const evidence = indexed.map(entry => HablaSpanishContext.evidenceSummary(entry,country));
+  const nationalChecked = evidence.filter(item => item.nationalCountries.length).length;
+  const regionalStudies = evidence.filter(item => item.regionalStudyCountries.length).length;
+  const nativeApproved = evidence.filter(item => item.nativeApproved).length;
   const references = [...evidenceSources.values()].filter(source => source.dictionaryReference && (country === "all" || source.regions?.includes(country)));
   const national = references.filter(source => ["national","regional-research"].includes(source.coverageRole));
   const statusLabels = {reference:"Reference available / Referencia disponible","research-lead":"Research lead / Por consultar","access-limited":"Access limited / Acceso limitado"};
   root.innerHTML = `<summary>Sources &amp; coverage / Fuentes y cobertura · ${escapeHtml(label)}</summary>
     <p><strong>${indexed.length} indexed senses / acepciones</strong> · ${idioms} idioms / modismos · ${figurative} figurative senses / sentidos figurados. The last two counts can overlap.</p>
+    <p><b>Logged checks / Comprobaciones registradas:</b> ${nationalChecked} with national dictionary evidence · ${regionalStudies} with regional-study evidence · ${nativeApproved} with native-speaker approval. Unlogged or pending checks are not counted as approvals.</p>
     <p>Growing curated collection / Colección en desarrollo. These counts describe Habla’s entries; linked dictionaries have not been imported in full. Figurative labels and English examples are editorial.</p>
-    ${city ? "<p>Country references do not establish use in this city. Only entries with separate city evidence appear in the city view.</p>" : ""}
+    ${city ? "<p>Only entries with separate city evidence appear here. A scholarly or historical city attestation does not establish current frequency or native-speaker approval.</p>" : ""}
     ${country !== "all" && !national.length && evidenceSources.size ? "<p><b>National-source review pending / Revisión de fuentes nacionales pendiente.</b> Shared references below do not establish local usage.</p>" : ""}
     ${references.length ? `<ul class="regional-source-list">${references.map(source => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a><small>${escapeHtml(source.kind)} · ${escapeHtml(statusLabels[source.accessStatus] || statusLabels.reference)}</small><p>${escapeHtml(source.use)}</p>${source.limits ? `<p class="regional-search-help">${escapeHtml(source.limits)}</p>` : ""}${source.documentationUrl ? `<a href="${escapeHtml(source.documentationUrl)}" target="_blank" rel="noreferrer">Official resource description / Descripción oficial</a>` : ""}</li>`).join("")}</ul>` : "<p>Source catalogue unavailable or loading. Bundled dictionary entries still show their own sources. / Catálogo de fuentes no disponible o cargando; cada entrada conserva su fuente.</p>"}
     <p>Dictionary attestation, corpus checks and native-speaker review are separate. A country label is not a city label, and a missing entry does not mean a phrase is unused.</p>`;
@@ -4659,6 +4676,8 @@ function renderRegionalSlang() {
   root.innerHTML = entries.map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
+    const evidenceCountry = ({quito:"es-EC",monterrey:"es-MX","mexico-city":"es-MX",bogota:"es-CO","la-paz":"es-BO"}[spanishRegion] || spanishRegion);
+    const checkedEvidence = HablaSpanishContext.evidenceSummary(entry,evidenceCountry);
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
     const sources = [{name:entry.sourceName || (entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms"), url:entry.url}, ...(entry.references || [])];
     return `<article class="expression-card regional-slang-card">
@@ -4669,6 +4688,9 @@ function renderRegionalSlang() {
       <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || (entry.category === "literal" && !entry.regionalSenseAttested) || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
       ${entry.figurative ? `<p class="regional-usage-scope"><b>Figurative meaning / Sentido figurado</b>${entry.literalUs ? ` · Literal learning aid: ${escapeHtml(englishVariant === "uk" ? entry.literalUk : entry.literalUs)}` : ""}</p>` : ""}
       ${entry.subregions?.length ? `<p class="regional-usage-scope"><b>Regional evidence:</b> ${escapeHtml(entry.subregions.map(item => item.label + " (" + item.sourceCode + ")").join(" · "))}</p>` : ""}
+      ${checkedEvidence.nationalCountries.length ? `<p class="regional-usage-scope"><b>National dictionary checked / Diccionario nacional comprobado</b> · ${escapeHtml(checkedEvidence.nationalCountries.map(code => entry.usage.countries[entry.regions.indexOf(code)] || code).join(" · "))}. Corpus and native review are separate.</p>` : ""}
+      ${checkedEvidence.componentOnlyCountries.length ? `<p class="regional-usage-scope"><b>Related word checked; full idiom check pending.</b> A component match does not verify the complete expression.</p>` : ""}
+      ${entry.cityEvidence?.length ? `<p class="regional-usage-scope"><b>Evidence period:</b> ${escapeHtml([...new Set(entry.cityEvidence.map(city => city.period))].join(" · "))}</p>` : ""}
       ${entry.usage.cities.length ? `<p class="regional-usage-scope"><b>City evidence:</b> ${escapeHtml(entry.usage.cities.join(" · "))} · not an exclusivity claim</p>` : ""}
       <p class="regional-usage-scope"><b>Meaning by country / region:</b> ${escapeHtml(entry.scope)}</p>
       ${entry.shared ? `<p class="expression-note">Shared Spanish · country review pending</p>` : ""}
@@ -4682,6 +4704,8 @@ function renderRegionalSlang() {
       <details class="compact-info"><summary>Context &amp; sources</summary>
         <p>${escapeHtml(entry.scope)}</p><p>${escapeHtml(entry.note)}</p>
         ${entry.sourceSense ? `<p class="regional-search-help">Source sense: ${escapeHtml(entry.sourceSense)} · checked ${escapeHtml(entry.sourceChecked)}</p>` : ""}
+        ${(entry.attestations || []).map(check => `<p class="regional-search-help"><b>${escapeHtml(check.support === "component-only" ? "Related component only" : check.kind === "national-dictionary" ? "National sense check" : "Regional study check")}</b> · ${escapeHtml(entry.usage.countries[entry.regions.indexOf(check.country)] || check.country)} · ${escapeHtml(check.locator)} · ${escapeHtml(check.checked)}. ${escapeHtml(check.finding)}${check.disagreement ? " " + escapeHtml(check.disagreement) : ""}<br><a href="${escapeHtml(check.url)}" target="_blank" rel="noreferrer">Open checked source / Abrir fuente comprobada</a></p>`).join("")}
+        ${entry.registerEvidence?.length ? `<p class="regional-search-help"><b>Source register labels:</b> ${escapeHtml(entry.registerEvidence.map(item => (evidenceSources.get(item.sourceId)?.name || {asale_damer:"ASALE",colmex_dem:"DEM"}[item.sourceId] || "Source") + ": " + item.label).join(" · "))}</p>` : ""}
         ${sources.map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
       </details>
       <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">Report this entry</button>
@@ -5936,7 +5960,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=201", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=202", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

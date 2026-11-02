@@ -64,7 +64,7 @@ assert.match(coverage('es-CO','Colombia'),/Access limited/);
 assert.match(coverage('es-GQ','Equatorial Guinea'),/National-source review pending/);
 assert.match(coverage('en-GB','U.K. English'),/Atlas lingüístico de Cuba/);
 assert.doesNotMatch(coverage('en-GB','U.K. English'),/DiPerú/);
-assert.match(coverage('quito','Quito'),/do not establish use in this city/);
+assert.match(coverage('quito','Quito'),/separate city evidence/);
 assert.match(coverage('all','All'),/DiPerú/);
 context.evidenceSources.clear();
 assert.match(coverage('es-PE','Peru'),/unavailable or loading/);

@@ -2,6 +2,10 @@
 
 An Ecuadorian-first Spanish practice and translation app. This repository contains a lightweight browser prototype with no build step or runtime dependency.
 
+## Dictionary evidence and checkpoints — build 202
+
+National-entry checks now verify ten senses across Mexico and Peru; three La Paz uses have explicit scholarly scope and current-use limits. Dictionary shows logged national/regional checks separately from native approval. A reference-file failure preserves other available collections and the last usable data. Source-claim validation and dictionary regressions now run before Pages publishing. See [saved checkpoints](docs/DICTIONARY_CHECKPOINTS_2026-11-02.md).
+
 ## Country and regional dictionary sources — build 201
 
 Dictionary now includes 24 additional ASALE-attested idiom and figurative senses, bringing the regional collection to 111 cards. Bolivia, Mexico, Venezuela, Peru, Colombia and Cuba have national or regional reference routes alongside Ecuador’s AEL/CORPHA sources. The 26-source catalogue shows country coverage, research leads and access limits; it does not represent complete imported dictionaries or completed corpus/native review. The figurative filter overlaps with idioms, and each country-specific sense remains separate. See [coverage and evidence contract](docs/COUNTRY_REGIONAL_DICTIONARIES.md).

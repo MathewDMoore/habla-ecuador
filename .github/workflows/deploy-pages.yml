@@ -28,6 +28,11 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Validate dictionary evidence before publishing
+        run: |
+          node scripts/check-regional-evidence.cjs
+          node --test tests/regional-evidence.test.cjs tests/regional-sources.test.cjs tests/dictionary-source-loading.test.cjs tests/regional-vocabulary.test.cjs tests/regional-usage.test.cjs tests/spanish-context.test.cjs tests/dictionary-recovery.test.cjs
+
       - name: Generate public release metadata
         run: node scripts/write-release.cjs
 
@@ -39,3 +44,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
