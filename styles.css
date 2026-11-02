@@ -1469,3 +1469,18 @@ body.ve-theater-open {overflow:hidden !important;}
   max-height: clamp(92px,24svh,220px) !important;
   overflow-y: auto !important;
 }
+
+@media print {
+  #shared-translation-workspace #translator-input,
+  #native-translation-workspace #translator-input {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  #shared-translation-workspace > #translation-result > #natural-result,
+  #native-translation-workspace > #translation-result > #natural-result {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}
