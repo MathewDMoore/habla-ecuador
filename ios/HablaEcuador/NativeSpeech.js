@@ -26,22 +26,31 @@
       event.preventDefault();
       event.stopImmediatePropagation();
       const request = ++pasteRequest, original = sourceState();
-      if (typeof HablaScreenshot === "undefined" || typeof HablaScreenshot.read !== "function") {
+      if (typeof beginScreenshotImport !== "function" || typeof previewScreenshotText !== "function") {
         reportPaste("The image reader is still loading. Wait a moment, then tap Paste image again.");
         return;
       }
-      reportPaste("Reading the copied image… Allow Paste if your iPhone asks.");
+      if (typeof HablaScreenshot !== "undefined") HablaScreenshot.clear?.();
+      const guard = beginScreenshotImport();
+      reportPaste("Reading image text on your iPhone… Allow Paste if asked.");
       try {
-        const result = await clipboard.postMessage({action:"readImage"});
+        const result = await clipboard.postMessage({action:"recognizeImage"});
         if (request !== pasteRequest) return;
         if (original !== sourceState()) {
           reportPaste("Your text or language changed. Tap Paste image again when ready.");
           return;
         }
-        if (result?.type !== "image/png" || typeof result.base64 !== "string" || !result.base64.length || result.base64.length > 14 * 1024 * 1024)
-          throw new Error("The copied image could not be opened. Try Choose photo.");
-        const bytes = Uint8Array.from(atob(result.base64), character => character.charCodeAt(0));
-        HablaScreenshot.read(new File([bytes], "Pasted image.png", {type:"image/png"}));
+        if (result?.engine !== "apple-vision" || typeof result.text !== "string" ||
+            !result.text.trim() || result.text.length > 200000 ||
+            !Number.isFinite(result.confidence) || result.confidence < 65)
+          throw new Error("The image text could not be read clearly. Your original text was kept. Try a closer photo with less glare.");
+        if (!previewScreenshotText({text:result.text, name:"Pasted image", confidence:result.confidence}, guard)) {
+          reportPaste("Your input changed. Your text was kept. Paste the image again when ready.");
+          return;
+        }
+        reportPaste(result.excludedLines > 0
+          ? "Image text recognized; unclear fragments were omitted. Check the words and translation before sharing."
+          : "Image text recognized on your iPhone. Check the words and translation before sharing.");
       } catch (error) {
         if (request === pasteRequest) reportPaste(error?.message || String(error) || "Image paste failed. Try Choose photo.");
       }

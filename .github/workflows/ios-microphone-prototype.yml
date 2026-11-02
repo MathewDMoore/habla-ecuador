@@ -36,6 +36,13 @@ jobs:
         run: python3 tests/run-native-transcript-state.py
       - name: Verify converted audio and queue diagnostics
         run: python3 tests/run-native-audio-stats.py
+      - name: Verify native image OCR on synthetic colored and Spanish labels
+        run: python3 tests/run-native-image-ocr.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify image paste and weak-recognition handling
+        run: node --test tests/native-image-paste.test.cjs
       - name: Compile without signing or installing
         run: >-
           xcodebuild -project ios/HablaEcuador.xcodeproj

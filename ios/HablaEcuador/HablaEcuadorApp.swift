@@ -1,5 +1,36 @@
 import SwiftUI
 import WebKit
+import Vision
+
+// BEGIN NATIVE IMAGE OCR
+// Shared with the macOS Vision regression harness. No image leaves the device.
+private enum NativeImageOCR {
+    static func recognize(_ data: Data) throws -> [String: Any] {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["en-US", "es-ES"]
+        request.automaticallyDetectsLanguage = true
+        request.usesLanguageCorrection = true
+        try VNImageRequestHandler(data: data, options: [:]).perform([request])
+        let observations = request.results ?? []
+        let candidates = observations.compactMap { $0.topCandidates(1).first }
+        // Confidence is a recognition estimate, not a guarantee of correctness.
+        // Do not commit weak fragments as if they were usable translation input.
+        let accepted = candidates.filter { candidate in
+            candidate.confidence >= 0.65 &&
+            candidate.string.range(of: #"\p{L}{3,}"#, options: .regularExpression) != nil
+        }
+        let text = accepted.map { $0.string }.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, text.count <= 200_000 else {
+            throw NSError(domain: "HablaImageOCR", code: 1, userInfo: [NSLocalizedDescriptionKey:
+                "The image text could not be read clearly. Your original text was kept. Try a closer photo with less glare."])
+        }
+        let confidence = accepted.reduce(Float(0)) { $0 + $1.confidence } / Float(accepted.count)
+        return ["text": text, "confidence": Double(confidence) * 100,
+                "excludedLines": candidates.count - accepted.count, "engine": "apple-vision"]
+    }
+}
+// END NATIVE IMAGE OCR
 
 // A fresh id ensures a second tap on the SAME widget destination is handled.
 struct WidgetLaunchRequest {
@@ -50,7 +81,8 @@ private final class ClipboardImageHandler: NSObject, WKScriptMessageHandlerWithR
               origin.host == "mathewdmoore.github.io", origin.port == 0 || origin.port == 443,
               message.frameInfo.request.url?.path.hasPrefix("/habla-ecuador/") == true,
               let body = message.body as? [String: Any],
-              body["action"] as? String == "readImage" else {
+              let action = body["action"] as? String,
+              ["readImage", "recognizeImage"].contains(action) else {
             replyHandler(nil, "Image paste is available only in Habla Ecuador.")
             return
         }
@@ -78,7 +110,19 @@ private final class ClipboardImageHandler: NSObject, WKScriptMessageHandlerWithR
             replyHandler(nil, "This copied image is too large. Copy a smaller screenshot or use Choose photo.")
             return
         }
-        replyHandler(["base64": data.base64EncodedString(), "type": "image/png"], nil)
+        if action == "recognizeImage" {
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let result = try NativeImageOCR.recognize(data)
+                    DispatchQueue.main.async { replyHandler(result, nil) }
+                } catch {
+                    let message = error.localizedDescription
+                    DispatchQueue.main.async { replyHandler(nil, message) }
+                }
+            }
+        } else {
+            replyHandler(["base64": data.base64EncodedString(), "type": "image/png"], nil)
+        }
     }
 }
 

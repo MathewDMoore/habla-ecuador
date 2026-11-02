@@ -50,7 +50,7 @@ git status --short
 habla_patch=$(mktemp "${TMPDIR:-/tmp}/habla-image-paste.XXXXXX")
 trap 'rm -f "$habla_patch"' EXIT
 git fetch --no-tags https://github.com/MathewDMoore/habla-ecuador.git refs/heads/fix/widget-companion-image-paste
-git diff d94be24da496c18ef4bf1d1d62413baa45c10756 FETCH_HEAD -- ios/HablaEcuador/HablaEcuadorApp.swift ios/HablaEcuador/NativeSpeech.js > "$habla_patch"
+git diff 92f1571969be0e6b16ce978ce91d19515ff14045 FETCH_HEAD -- ios/HablaEcuador/HablaEcuadorApp.swift ios/HablaEcuador/NativeSpeech.js > "$habla_patch"
 if [ ! -s "$habla_patch" ]; then
   echo 'No clipboard patch was retrieved. Stopping.'
   exit 1
@@ -69,7 +69,7 @@ with tempfile.TemporaryDirectory(prefix='habla-native-merge-') as folder:
         base=folder/f'{number}-base'
         repaired=folder/f'{number}-repaired'
         current.write_bytes(original)
-        base.write_bytes(subprocess.check_output(['git','show','d94be24da496c18ef4bf1d1d62413baa45c10756:'+name]))
+        base.write_bytes(subprocess.check_output(['git','show','92f1571969be0e6b16ce978ce91d19515ff14045:'+name]))
         repaired.write_bytes(subprocess.check_output(['git','show','FETCH_HEAD:'+name]))
         # merge-file -p writes ONLY stdout. Conflicts never touch the project
         # or its index; both complete results are checked before either write.
