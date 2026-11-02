@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 for(const file of ['index.html','translator.html']){
  const page=fs.readFileSync(file,'utf8');
  for(const id of ['slang-contribution-form','slang-contribution-prompt','slang-contribution-list','slang-contribution-export','slang-contribution-share'])assert.equal(page.split('id="'+id+'"').length-1,1);
- assert.match(page,/slang-contributions\.js\?v=198/);
+ assert.match(page,new RegExp('slang-contributions[.]js[?]v='+require('../app-version.json').build));
  assert.match(page,/Contributions remain unverified/);
  assert.ok(page.includes('<option>Venezuela</option>')&&page.includes('Monterrey, Nuevo León / Caracas'));
 }
