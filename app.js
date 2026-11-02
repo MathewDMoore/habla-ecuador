@@ -4248,7 +4248,12 @@ function swapDirection() {
     && lastCompletedTranslation.sourceLanguage===sourceLanguage && lastCompletedTranslation.targetLanguage===targetLanguage);
   if(currentPair && originalGloss && !manuallyEdited
     && ![originalGloss.text,...originalGloss.alternatives].some(value=>normalize(value)===normalize(currentDraft))){
+    // This is an automatic correction, not a personal edit. Keep the newly
+    // checked answer as the generated baseline before saving or reversing.
+    if(activeTranslationEdit)activeTranslationEdit.generated=originalGloss.text;
     $("#natural-result").textContent=originalGloss.text;
+    if(lastCompletedTranslation)lastCompletedTranslation={...lastCompletedTranslation,
+      target:originalGloss.text,edited:false};
     // Preserve source text but repair an unedited, clearly mismatching provider
     // draft before the pair is reversed. A user-saved edit is never auto-replaced.
     showToast("Replaced an unverified old result with a dictionary-checked term. / Se corrigió una traducción antigua sin verificar.");
