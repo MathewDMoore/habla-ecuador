@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-11-02",
+  "baselineCommit": "f21ea66bcdec8b8ea929c4cc4a3f3307d909f256",
+  "status": "source-audit-complete; integration and validation pending",
+  "checks": [
+    {
+      "id": "check-20261102-01",
+      "checked": "2026-11-02",
+      "entryId": "p201-dar-avion",
+      "country": "es-MX",
+      "sourceId": "colmex_dem",
+      "url": "https://dem.colmex.mx/ver/avi%C3%B3n",
+      "locator": "avión, sense 4: darle el avión a alguien",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "The national dictionary supports the pretend-to-listen sense.",
+      "registerLabel": "Popular"
+    },
+    {
+      "id": "check-20261102-02",
+      "checked": "2026-11-02",
+      "entryId": "p201-echar-hueva",
+      "country": "es-MX",
+      "sourceId": "colmex_dem",
+      "url": "https://dem.colmex.mx/ver/hueva",
+      "locator": "hueva², sense 3: echar la hueva",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "Sense agrees with ASALE; DEM marks the hueva² entry Groser.",
+      "registerLabel": "Groser",
+      "registerCaution": true,
+      "disagreement": "ASALE locution label: popular; DEM headword label: Groser. Preserve both labels and expose the caution."
+    },
+    {
+      "id": "check-20261102-03",
+      "checked": "2026-11-02",
+      "entryId": "p201-estar-aguja",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=231",
+      "locator": "aguja, colloquial adjective and estar usage; cross-reference to misio, sense 2",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "The adjective and its estar construction are documented; the followed cross-reference establishes the no-money sense.",
+      "crossReferences": [
+        {
+          "url": "https://diperu.apl.org.pe/buscar?entrada=4727",
+          "locator": "misio, sia, sense 2"
+        }
+      ],
+      "registerLabel": "coloq."
+    },
+    {
+      "id": "check-20261102-04",
+      "checked": "2026-11-02",
+      "entryId": "p201-meter-floro",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+      "locator": "floro, noun, sense 1",
+      "kind": "national-dictionary",
+      "support": "component-only",
+      "finding": "The noun supports the word family. This page does not define the complete meter floro locution; do not mark the complete idiom nationally corroborated."
+    },
+    {
+      "id": "check-20261102-05",
+      "checked": "2026-11-02",
+      "entryId": "p202-floro-persuasion",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+      "locator": "floro, noun, sense 1",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "Persuasive talk."
+    },
+    {
+      "id": "check-20261102-06",
+      "checked": "2026-11-02",
+      "entryId": "p202-floro-excuse",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+      "locator": "floro, noun, sense 2",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "A fabricated story used as an excuse."
+    },
+    {
+      "id": "check-20261102-07",
+      "checked": "2026-11-02",
+      "entryId": "p202-floro-compliment",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+      "locator": "floro, noun, sense 3",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "A flattering compliment."
+    },
+    {
+      "id": "check-20261102-08",
+      "checked": "2026-11-02",
+      "entryId": "p202-al-toque",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+      "locator": "a, complex entry al toque",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "Immediately."
+    },
+    {
+      "id": "check-20261102-09",
+      "checked": "2026-11-02",
+      "entryId": "p202-a-la-champa",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+      "locator": "a, complex entry a la champa",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "In a slapdash, improvised manner."
+    },
+    {
+      "id": "check-20261102-10",
+      "checked": "2026-11-02",
+      "entryId": "p202-hora-loros",
+      "country": "es-PE",
+      "sourceId": "apl_diperu",
+      "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+      "locator": "a, complex entry a la hora de los loros",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "At the moment when the truth is revealed."
+    },
+    {
+      "id": "check-20261102-11",
+      "checked": "2026-11-02",
+      "entryId": "p202-irse-avion",
+      "country": "es-MX",
+      "sourceId": "colmex_dem",
+      "url": "https://dem.colmex.mx/ver/avi%C3%B3n",
+      "locator": "avión, sense 5: írsele el avión a alguien",
+      "kind": "national-dictionary",
+      "support": "sense",
+      "finding": "Momentarily lose one’s train of thought."
+    },
+    {
+      "id": "check-20261102-12",
+      "checked": "2026-11-02",
+      "entryId": "p202-yaaaa",
+      "country": "es-BO",
+      "city": "la-paz",
+      "sourceId": "coello_bolivia",
+      "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+      "locator": "pp. 92–93, prolonged ¡yaaaa!: incredulity",
+      "kind": "regional-study",
+      "support": "sense",
+      "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+    },
+    {
+      "id": "check-20261102-13",
+      "checked": "2026-11-02",
+      "entryId": "p202-acaso",
+      "country": "es-BO",
+      "city": "la-paz",
+      "sourceId": "coello_bolivia",
+      "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+      "locator": "p. 92, interjection ¡¿acaso?!: disbelief",
+      "kind": "regional-study",
+      "support": "sense",
+      "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+    },
+    {
+      "id": "check-20261102-14",
+      "checked": "2026-11-02",
+      "entryId": "p202-alalay",
+      "country": "es-BO",
+      "city": "la-paz",
+      "sourceId": "coello_bolivia",
+      "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+      "locator": "pp. 92–93, ¡alalay!: feeling cold",
+      "kind": "regional-study",
+      "support": "sense",
+      "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+    }
+  ],
+  "accessFindings": [
+    {
+      "sourceId": "coello_bolivia",
+      "state": "full-text-inspected",
+      "locator": "La Paz chapter, pp. 83–94; specifically pp. 92–93",
+      "limits": "A scholarly reprint does not establish present-day frequency. No book text or source examples imported."
+    },
+    {
+      "sourceId": "cuba_geolectal",
+      "state": "full-text-methodology-inspected",
+      "url": "https://signoslinguisticos.izt.uam.mx/index.php/SL/article/download/374/332/",
+      "locator": "pp. 195–197",
+      "limits": "The article describes data collected 1989–1996 and locality-linked mapping. The atlas/dictionary application itself remains unaccessed; no Cuban city sense added from the article."
+    },
+    {
+      "sourceId": "coello_bolivian_lexicon",
+      "state": "temporarily-unavailable",
+      "limits": "The Cervantes page redirected to a maintenance notice. The ASALE-hosted book is available separately."
+    },
+    {
+      "sourceId": "aml_online",
+      "state": "partial-access",
+      "limits": "Refranero page returned 403; no proverb sense promoted from its catalogue or an indexed snippet."
+    }
+  ]
+}
