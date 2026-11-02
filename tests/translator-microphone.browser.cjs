@@ -68,7 +68,8 @@ async function run(browser,file,width,native){
  assert.equal(messages.length,2,'tap works again after prior session ends');
  assert.equal(messages[1].lang,'es-EC','dictation follows the changed source language');
  // Safari may report only 'Sí' when the actual sentence was '¿Cómo estás?'.
- // A non-final fragment must NEVER be translated as a trustworthy result.
+ // Interim words never translate during capture. An ended session automatically
+ // translates a provisional editable draft with an explicit uncertainty warning.
  await page.evaluate(()=>{window.translationsStarted=0;renderTranslation=()=>{window.translationsStarted++;};});
  const spanishMicTop=await relativeMicTop();
  await page.evaluate(({native,id})=>{
@@ -79,18 +80,15 @@ async function run(browser,file,width,native){
  assert.match(await page.locator('#translator-mic-status').textContent(),/(Partial words heard|palabras parciales)/i);
  assert.ok(Math.abs((await relativeMicTop())-spanishMicTop)<4,
   'interim transcript cannot move the microphone within its card');
+ assert.equal(await page.evaluate(()=>translationsStarted),0,'interim Spanish words never submit a translation');
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
- assert.equal(await page.evaluate(()=>translationsStarted),0,'partial Spanish output must not auto-translate');
- assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),true,'unconfirmed transcript remains pending review');
- assert.equal(await page.locator('#translator-mic-confirm').isVisible(),true,'review action shown for unconfirmed fragment');
- assert.match(await page.locator('#translator-mic-status').textContent(),/(Only a partial transcript|transcripción parcial)/i);
- assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden');
- await page.locator('#translator-mic-confirm').click();
- assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'manual acceptance unlocks translation');
- assert.equal(await page.evaluate(()=>translationsStarted),1,'manual approval requests translation');
- assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false);
+ assert.equal(await page.evaluate(()=>translationsStarted),1,'ended session automatically requests provisional translation');
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'provisional draft stays editable without a confirmation step');
+ assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false,'no manual approval required after session ends');
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Translating this draft automatically|Traduciendo este borrador automáticamente)/i);
+ assert.equal(await page.locator('#translation-result').isVisible(),false,'old target is hidden until new draft completes');
  // An empty English recognition must explain the failure, not erase the draft.
  await page.locator('#source-language-select').selectOption('en-US');
  const beforeSilence=await page.evaluate(()=>translationsStarted);
