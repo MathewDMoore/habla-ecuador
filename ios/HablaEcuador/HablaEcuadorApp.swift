@@ -16,7 +16,7 @@ struct HablaEcuadorApp: App {
             TranslatorView(widgetRoute: widgetRoute)
                 .ignoresSafeArea(.container, edges: .bottom)
                 .onOpenURL { url in
-                    guard url.scheme?.lowercased() == "hablaecuador" else { return }
+                    guard url.isFileURL || url.scheme?.lowercased() == "hablaecuador" else { return }
                     widgetRoute = WidgetLaunchRequest(url: url)
                 }
         }
@@ -44,8 +44,20 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var speech: NativeSpeechCapture!
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
     private var lastWidgetRouteID: UUID?
+    private var promptedAudio = Set<String>()
+    private var audioGeneration = UUID()
+    private var deliveringAudio = false
 
     func openWidgetRoute(_ request: WidgetLaunchRequest?) {
+        if let request, request.url.isFileURL, lastWidgetRouteID != request.id {
+            lastWidgetRouteID = request.id
+            loadViewIfNeeded()
+            let scoped = request.url.startAccessingSecurityScopedResource()
+            defer { if scoped { request.url.stopAccessingSecurityScopedResource() } }
+            do { try SharedAudioInbox.save(request.url); checkSharedAudio() }
+            catch { showAudioError(error.localizedDescription) }
+            return
+        }
         guard let request,
               request.url.scheme?.lowercased() == "hablaecuador",
               let destination = request.url.host?.lowercased(),
@@ -68,11 +80,14 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         super.viewDidLoad()
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
-        if let scriptURL = Bundle.main.url(forResource: "NativeSpeech", withExtension: "js"),
-           let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
-            configuration.userContentController.addUserScript(WKUserScript(
-                source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        for resource in ["NativeSpeech", "SharedAudio"] {
+            if let scriptURL = Bundle.main.url(forResource: resource, withExtension: "js"),
+               let script = try? String(contentsOf: scriptURL, encoding: .utf8) {
+                configuration.userContentController.addUserScript(WKUserScript(
+                    source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            }
         }
+        configuration.userContentController.add(WeakSpeechHandler(self), name: "hablaAudio")
         configuration.userContentController.add(WeakSpeechHandler(self), name: "hablaSpeech")
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
@@ -92,18 +107,120 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
         NotificationCenter.default.addObserver(self, selector: #selector(suspendCapture),
             name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(checkSharedAudio),
+            name: UIApplication.didBecomeActiveNotification, object: nil)
         webView.load(URLRequest(url: site))
     }
 
-    @objc private func suspendCapture() { speech?.abortActive() }
+    @objc private func suspendCapture() {
+        speech?.abortActive()
+        audioGeneration = UUID()
+        deliveringAudio = false
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        checkSharedAudio()
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { checkSharedAudio() }
+
+    @objc private func checkSharedAudio() {
+        guard viewIfLoaded?.window != nil, UIApplication.shared.applicationState == .active,
+              !webView.isLoading, !deliveringAudio, presentedViewController == nil,
+              let url = webView.url, isTrustedAppPage(url),
+              let notes = try? SharedAudioInbox.notes(),
+              notes.contains(where: { !promptedAudio.contains($0.id) }) else { return }
+        showAudioInbox()
+    }
+
+    private func showAudioError(_ message: String) {
+        let alert = UIAlertController(title: "Audio · Habla Ecuador", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func showAudioInbox() {
+        guard !deliveringAudio, presentedViewController == nil else { return }
+        do {
+            let notes = try SharedAudioInbox.notes()
+            promptedAudio.formUnion(notes.map(\.id))
+            let alert = UIAlertController(title: "Audios compartidos / Shared voice notes",
+                message: notes.isEmpty ? "No hay audios. / No saved audio." : "Elige un audio para abrir en Traducir. / Choose audio to open in Translate.", preferredStyle: .actionSheet)
+            for note in notes {
+                alert.addAction(UIAlertAction(title: note.name, style: .default) { [weak self] _ in self?.deliverAudio(note) })
+            }
+            if !notes.isEmpty {
+                alert.addAction(UIAlertAction(title: "Eliminar audios guardados / Delete saved audio", style: .destructive) { [weak self] _ in
+                    guard let self else { return }
+                    let confirmation = UIAlertController(title: "Delete saved voice notes?", message: "This removes audio saved in Habla. WhatsApp's original messages stay in WhatsApp.", preferredStyle: .alert)
+                    confirmation.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    confirmation.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in
+                        do { for note in notes { try SharedAudioInbox.remove(note) } }
+                        catch { self.showAudioError(error.localizedDescription) }
+                    })
+                    self.present(confirmation, animated: true)
+                })
+            }
+            alert.addAction(UIAlertAction(title: "Cerrar / Close", style: .cancel))
+            alert.popoverPresentationController?.sourceView = view
+            alert.popoverPresentationController?.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+            present(alert, animated: true)
+        } catch { showAudioError(error.localizedDescription) }
+    }
+
+    private func deliverAudio(_ note: SharedAudioInbox.Note) {
+        guard !deliveringAudio, let url = webView.url, isTrustedAppPage(url), !webView.isLoading else { return }
+        do {
+            let file = try SharedAudioInbox.fileURL(note)
+            let handle = try FileHandle(forReadingFrom: file)
+            let generation = UUID()
+            audioGeneration = generation
+            deliveringAudio = true
+            speech?.abortActive()
+            func send(_ message: [String: Any], completion: @escaping (Bool) -> Void) {
+                guard let data = try? JSONSerialization.data(withJSONObject: message),
+                      let json = String(data: data, encoding: .utf8) else { completion(false); return }
+                guard self.audioGeneration == generation, let url = self.webView.url,
+                      self.isTrustedAppPage(url) else { completion(false); return }
+                webView.evaluateJavaScript("window.__hablaSharedAudio?.(\(json))") { result, error in
+                    completion(error == nil && (result as? Bool) == true)
+                }
+            }
+            func finish(_ success: Bool) {
+                try? handle.close()
+                guard self.audioGeneration == generation else { return }
+                self.deliveringAudio = false
+                if !success { self.showAudioError("Could not open audio. Reopen Habla online and try Shared voice notes again. Your saved note is retained.") }
+            }
+            func nextChunk() {
+                guard self.audioGeneration == generation else { try? handle.close(); return }
+                do {
+                    if let data = try handle.read(upToCount: 192 * 1024), !data.isEmpty {
+                        send(["action": "chunk", "id": note.id, "data": data.base64EncodedString()]) { ok in
+                            if ok { nextChunk() } else { finish(false) }
+                        }
+                    } else { send(["action": "end", "id": note.id], completion: finish) }
+                } catch { finish(false) }
+            }
+            send(["action": "begin", "id": note.id, "name": note.name, "type": note.type]) { ok in
+                if ok { nextChunk() } else { finish(false) }
+            }
+        } catch { showAudioError(error.localizedDescription) }
+    }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let origin = message.frameInfo.securityOrigin
         guard message.frameInfo.isMainFrame, origin.protocol == "https",
               origin.host == site.host, origin.port == 0 || origin.port == 443,
               webView.url?.path.hasPrefix("/habla-ecuador/") == true,
-              let body = message.body as? [String: Any], let id = body["id"] as? String,
+              let body = message.body as? [String: Any],
               let action = body["action"] as? String else { return }
+        if message.name == "hablaAudio" {
+            if action == "inbox" { showAudioInbox() }
+            return
+        }
+        guard let id = body["id"] as? String else { return }
         switch action {
         case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto")
         case "stop": speech.stop(id: id)
@@ -147,6 +264,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         if isTrustedAppPage(url) {
             // Retain the existing speech bridge's main-frame navigation cleanup.
             speech?.abortActive()
+            audioGeneration = UUID()
+            deliveringAudio = false
             decisionHandler(.allow)
             return
         }

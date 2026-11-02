@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - 'ios/**'
+      - 'tests/shared-audio-project.py'
+      - 'tests/whatsapp-audio.test.cjs'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
@@ -13,6 +15,8 @@ on:
   pull_request:
     paths:
       - 'ios/**'
+      - 'tests/shared-audio-project.py'
+      - 'tests/whatsapp-audio.test.cjs'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
@@ -29,9 +33,16 @@ concurrency:
 jobs:
   compile:
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify shared audio and target configuration
+        run: |
+          node --test tests/whatsapp-audio.test.cjs
+          python3 tests/shared-audio-project.py
       - name: Verify native phrase accumulation
         run: python3 tests/run-native-transcript-state.py
       - name: Verify converted audio and queue diagnostics
@@ -43,3 +54,28 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           -configuration Debug -derivedDataPath /tmp/habla-ios-build
           CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO build
+
+      - name: Archive for iPhone without signing
+        run: >-
+          xcodebuild -project ios/HablaEcuador.xcodeproj
+          -scheme HablaEcuador -sdk iphoneos
+          -destination 'generic/platform=iOS'
+          -configuration Release -derivedDataPath /tmp/habla-ios-device
+          -archivePath /tmp/HablaEcuador.xcarchive
+          CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO archive
+      - name: Verify embedded iPhone extensions
+        run: |
+          test -f /tmp/HablaEcuador.xcarchive/Products/Applications/HablaEcuador.app/Info.plist
+          test -f /tmp/HablaEcuador.xcarchive/Products/Applications/HablaEcuador.app/PlugIns/HablaEcuadorShare.appex/Info.plist
+          test -f /tmp/HablaEcuador.xcarchive/Products/Applications/HablaEcuador.app/PlugIns/HablaEcuadorWidget.appex/Info.plist
+          ditto -c -k --sequesterRsrc --keepParent /tmp/HablaEcuador.xcarchive /tmp/HablaEcuador-iPhone-unsigned.zip
+      - name: Save unsigned iPhone archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: HablaEcuador-iPhone-unsigned-${{ github.run_number }}
+          path: /tmp/HablaEcuador-iPhone-unsigned.zip
+          if-no-files-found: error
+          retention-days: 14
+      - name: Explain installation status
+        run: |
+          echo 'iPhone archive built with app, Share extension, and widget. This archive is unsigned; installation and TestFlight distribution require the existing Apple Developer signing setup on the Mac.' >> "$GITHUB_STEP_SUMMARY"

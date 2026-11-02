@@ -1,3 +1,48 @@
+# WhatsApp voice-note sharing — native 0.1.6 (7), web build 201
+
+Habla now includes an embedded **HablaEcuadorShare** extension and a private,
+durable audio inbox. In WhatsApp, select **one voice message → Forward → Share
+→ Habla Ecuador** (look in **More** if necessary), save, then open Habla. The inbox
+offers the saved note; selecting it opens the local player in Translate. The
+**Shared voice notes** button reopens saved notes, including after a failed web
+load or relaunch. **Delete saved audio** asks before deleting Habla's saved copies.
+Removing the player does not delete the inbox. Nothing is uploaded.
+
+The accompanying WhatsApp text/contact URL is not used as the audio source.
+Audio files opened through Files also enter the inbox. Notes must be 1 byte–50 MB;
+the inbox holds at most 20 notes / 200 MB. Unsupported playback formats show a
+message. Automatic audio transcription remains unimplemented: paste a transcript
+into Translate to translate it. The sender's phone number is never needed.
+
+**This requires a new signed iPhone install or TestFlight build.** Updating the
+hosted website cannot install an extension. The extension saves and dismisses;
+open Habla afterward. It does not use unsupported APIs to force-launch its app.
+A WhatsApp → share sheet → Habla acceptance test on the actual iPhone is still
+required; an unsigned simulator build cannot establish share-sheet behavior.
+
+## Signing the new target in the existing Mac checkout
+
+Preserve local edits and signing settings before integrating this change. It adds
+project target membership, a target dependency, embedding, two entitlements, and
+shared source files; refreshing only the old three native files is insufficient.
+Open the existing project and use the same Apple Developer team for the app,
+widget, and **HablaEcuadorShare**. In the project build settings, set
+`HABLA_APP_BUNDLE_IDENTIFIER` to the **existing app's** identifier. It defaults to
+`com.mathewdmoore.HablaEcuador`. The share target derives its `.share` identifier;
+keep the existing widget identifier. Set `HABLA_APP_GROUP` to one registered group
+(default `group.$(HABLA_APP_BUNDLE_IDENTIFIER)`) and enable that **same App Group**
+for the main app and Share target in Signing & Capabilities. Automatic signing
+must provision the new target and App Group. Keep any already-published app
+identifier and use an unused, matching build number for all targets when uploading.
+
+Run the HablaEcuador scheme on the phone without uninstalling. Verify the native
+disclosure says **0.1.6 (7)**, the web app says **build 201**, then share a short
+M4A voice note from WhatsApp. Confirm the extension saves, reopen Habla, choose the
+note and play it. Close/reopen Habla, use **Shared voice notes** to replay it, and
+confirm a second note is separately selectable. Test Files → Open in Habla too.
+Verify original translation text is retained and saved-audio deletion leaves the
+WhatsApp original untouched. OPUS/OGG playback depends on iOS's decoder support.
+
 # Native video playback in Habla Ecuador — 0.1.5 (6)
 
 This release fixes the installed app opening YouTube externally instead of
