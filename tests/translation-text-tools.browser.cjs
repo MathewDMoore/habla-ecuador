@@ -37,6 +37,7 @@ async function run(browser,file,native,width=390,height=844){
  const size=()=>target.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
  await expand.waitFor({state:'visible'});
  const baseSize=await size(),collapsed=await target.evaluate(el=>el.getBoundingClientRect().height);
+ assert.ok(await target.evaluate(el=>{el.scrollTop=120;return el.scrollTop>0;}),'collapsed long translation scrolls vertically');
  assert.equal(await page.locator('#translation-text-tools').evaluate(el=>!!el.closest('.native-translation-tools')),false,'new tools are not hidden by native disclosure');
  assert.equal(await expand.isVisible(),true);
  assert.equal(await expand.getAttribute('aria-expanded'),'false');
@@ -45,7 +46,7 @@ async function run(browser,file,native,width=390,height=844){
  assert.ok(expanded>collapsed*1.4,`expanded height ${expanded} > compact height ${collapsed}`);
  assert.equal(await expand.getAttribute('aria-expanded'),'true');
  assert.equal(await expand.textContent(),'Collapse');
- assert.ok(await target.evaluate(el=>{el.scrollTop=120;return el.scrollTop>0;}),'long translation scrolls vertically');
+ assert.equal(await target.evaluate(el=>getComputedStyle(el).overflowY),'visible','expanded text displays its entire passage in page flow');
  await page.locator('#translation-more-actions > summary').click();
  await page.locator('.translation-text-options summary').click();
  await page.locator('#translation-text-larger').click();assert.equal(await size(),baseSize+2);
