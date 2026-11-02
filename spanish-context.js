@@ -519,8 +519,9 @@ const HablaSpanishContext = (() => {
     return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
-      const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116' ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
-      return regionMatches && (usage==='all'||usageMetadata(entry).type===usage) && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
+      // Contrast notes and literal learning aids must not become English equivalents.
+      const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116'||entry.searchNotes===false ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
+      return regionMatches && (usage==='all'||(usage==='metaphor' ? entry.figurative===true : usageMetadata(entry).type===usage)) && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
     }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
       const {pattern,aliases,requireExclamation,...publicEntry}=entry;
       publicEntry.usage = usageMetadata(entry);
@@ -530,3 +531,4 @@ const HablaSpanishContext = (() => {
   return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
+

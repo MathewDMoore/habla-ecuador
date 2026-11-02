@@ -2,6 +2,12 @@
 
 Habla Ecuador is Ecuador-first, but it must distinguish evidence from assumption.
 
+## Equal evidence standard for every country
+
+National and regional varieties follow the same evidence standard as Ecuador: inspect a sense-specific dictionary entry, preserve its country/subregion and register, then seek logged corpus evidence and local native-speaker review. A catalogue reference, publisher announcement or reviewer’s nationality does not validate every word or city. Idioms, figurative senses, proverbs and collocations require their own sense records and context; do not infer a locution from the meanings of its component words.
+
+Dictionary attestation, national-source corroboration, corpus checks, native review and city validation are independent states. Keep incomplete states explicit. Source access and licensing limits remain visible; adding a reference is not importing a dictionary. See [Country and regional dictionaries](COUNTRY_REGIONAL_DICTIONARIES.md) for the implemented source routes, pilot boundaries and expansion contract.
+
 ## Source hierarchy
 
 1. **Academia Ecuatoriana de la Lengua (AEL)** for Ecuador-focused lexicography.
@@ -35,3 +41,4 @@ US and UK English should be translated independently for naturalness. They may b
 ## Comparison policy
 
 Bolivia is the primary comparison variety. Panama and other countries should be added when they reveal a useful contrast, false friend, register difference, or culturally meaningful usage.
+

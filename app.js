@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.90 · build 200";
+const APP_VERSION = "0.26.91 · build 201";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4473,6 +4473,7 @@ async function loadEvidence() {
     if (responses.some(response => !response.ok)) throw new Error("source file unavailable");
     const [learner, vocabulary, candidates, sources, queue, comparisons] = await Promise.all(responses.map(response => response.json()));
     evidenceSources = new Map(sources.map(source => [source.id, source]));
+    renderRegionalSourceCoverage();
     reviewQueue = new Map(queue.map(item => [item.entryId, item]));
     comparisonIndex = new Map(comparisons.map(item => [item.entryId, item]));
 
@@ -4500,6 +4501,7 @@ async function loadEvidence() {
   } catch (error) {
     status.hidden = false;
     status.textContent = "Source files could not load. Ecuadorian expressions are available; learner entries and additional evidence are unavailable. Reload to retry.";
+    renderRegionalSourceCoverage();
   } finally {
     clearTimeout(timer);
   }
@@ -4605,6 +4607,31 @@ function bindRegionalSearchRecovery() {
   });
 }
 
+function renderRegionalSourceCoverage() {
+  const root = $("#regional-source-coverage");
+  const selector = $("#regional-slang-region");
+  if (!root || !selector) return;
+  const cities = {quito:"es-EC",monterrey:"es-MX","mexico-city":"es-MX",bogota:"es-CO"};
+  const city = cities[selector.value];
+  const english = selector.value.startsWith("en-");
+  const country = city || (english ? $("#regional-slang-target")?.value || "all" : selector.value);
+  const label = city ? selector.selectedOptions[0].textContent + " · country references" : country === "all" ? "All countries / Todos los países" : (english ? $("#regional-slang-target") : selector).selectedOptions[0].textContent;
+  // Coverage counts are independent of search/tone filters and exclude city inference.
+  const indexed = HablaSpanishContext.dictionary({region:city ? selector.value : country});
+  const idioms = indexed.filter(entry => entry.usage.type === "idiom").length;
+  const figurative = indexed.filter(entry => entry.figurative === true).length;
+  const references = [...evidenceSources.values()].filter(source => source.dictionaryReference && (country === "all" || source.regions?.includes(country)));
+  const national = references.filter(source => ["national","regional-research"].includes(source.coverageRole));
+  const statusLabels = {reference:"Reference available / Referencia disponible","research-lead":"Research lead / Por consultar","access-limited":"Access limited / Acceso limitado"};
+  root.innerHTML = `<summary>Sources &amp; coverage / Fuentes y cobertura · ${escapeHtml(label)}</summary>
+    <p><strong>${indexed.length} indexed senses / acepciones</strong> · ${idioms} idioms / modismos · ${figurative} figurative senses / sentidos figurados. The last two counts can overlap.</p>
+    <p>Growing curated collection / Colección en desarrollo. These counts describe Habla’s entries; linked dictionaries have not been imported in full. Figurative labels and English examples are editorial.</p>
+    ${city ? "<p>Country references do not establish use in this city. Only entries with separate city evidence appear in the city view.</p>" : ""}
+    ${country !== "all" && !national.length && evidenceSources.size ? "<p><b>National-source review pending / Revisión de fuentes nacionales pendiente.</b> Shared references below do not establish local usage.</p>" : ""}
+    ${references.length ? `<ul class="regional-source-list">${references.map(source => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a><small>${escapeHtml(source.kind)} · ${escapeHtml(statusLabels[source.accessStatus] || statusLabels.reference)}</small><p>${escapeHtml(source.use)}</p>${source.limits ? `<p class="regional-search-help">${escapeHtml(source.limits)}</p>` : ""}${source.documentationUrl ? `<a href="${escapeHtml(source.documentationUrl)}" target="_blank" rel="noreferrer">Official resource description / Descripción oficial</a>` : ""}</li>`).join("")}</ul>` : "<p>Source catalogue unavailable or loading. Bundled dictionary entries still show their own sources. / Catálogo de fuentes no disponible o cargando; cada entrada conserva su fuente.</p>"}
+    <p>Dictionary attestation, corpus checks and native-speaker review are separate. A country label is not a city label, and a missing entry does not mean a phrase is unused.</p>`;
+}
+
 function renderRegionalSlang() {
   const root = $("#regional-slang-results");
   cancelDictionaryPractice(root);
@@ -4616,6 +4643,7 @@ function renderRegionalSlang() {
   $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Spanish term, English meaning, or city…";
   const options = {query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,usage:$("#regional-usage-type")?.value || "all",target:englishLead?$("#regional-slang-target").value:"all"};
   const entries = HablaSpanishContext.dictionary(options);
+  renderRegionalSourceCoverage();
   const recovery = regionalSearchRecovery(options,entries);
   const emptyMessage = recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
     : recovery.kind === "region" ? `No entries match this regional view. ${recovery.count} indexed matches are available in other regional views.`
@@ -4639,6 +4667,8 @@ function renderRegionalSlang() {
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || (entry.category === "literal" && !entry.regionalSenseAttested) || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
+      ${entry.figurative ? `<p class="regional-usage-scope"><b>Figurative meaning / Sentido figurado</b>${entry.literalUs ? ` · Literal learning aid: ${escapeHtml(englishVariant === "uk" ? entry.literalUk : entry.literalUs)}` : ""}</p>` : ""}
+      ${entry.subregions?.length ? `<p class="regional-usage-scope"><b>Regional evidence:</b> ${escapeHtml(entry.subregions.map(item => item.label + " (" + item.sourceCode + ")").join(" · "))}</p>` : ""}
       ${entry.usage.cities.length ? `<p class="regional-usage-scope"><b>City evidence:</b> ${escapeHtml(entry.usage.cities.join(" · "))} · not an exclusivity claim</p>` : ""}
       <p class="regional-usage-scope"><b>Meaning by country / region:</b> ${escapeHtml(entry.scope)}</p>
       ${entry.shared ? `<p class="expression-note">Shared Spanish · country review pending</p>` : ""}
@@ -5906,7 +5936,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=200", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=201", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
@@ -5923,3 +5953,4 @@ function init() {
 
 document.addEventListener("DOMContentLoaded", initDictionary);
 document.addEventListener("DOMContentLoaded", init);
+

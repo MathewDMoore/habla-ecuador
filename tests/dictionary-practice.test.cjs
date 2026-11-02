@@ -26,10 +26,12 @@ assert.equal(compare('','').wordScore,null,'empty target has no percentage');
 assert.equal(compare('hola '.repeat(201),'hola '.repeat(201)).wordScore,null,'bounded alignment never reports a percentage for truncated input');
 console.log('Recognized-word percentage: omissions, extras, repeated words, order, empty and oversized input passed');
 
-const cuba=require('../spanish-context.js').dictionary({region:'es-CU'});
+// Sentence-practice batches, not later contributed headwords without examples.
+const cuba=require('../spanish-context.js').dictionary({region:'es-CU'}).filter(entry=>['cuba-154','regional-phraseology-201'].includes(entry.batch));
 for(const entry of cuba){
  assert.ok(entry.speech&&!entry.speech.includes('(Cuba)'));
  assert.ok(entry.exampleEs&&entry.exampleUs&&entry.exampleUk,'regional words have sentence practice');
 }
 assert.equal(cuba.find(e=>e.term==='guagua (Cuba)').speech,'guagua');
 assert.equal(cuba.find(e=>e.term==='jaba (Cuba)').speech,'jaba');
+

@@ -12,7 +12,7 @@ const HablaOffline = (() => {
   let onlineConfirmed = false;
   let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null, startup = null;
   // Match the cached app release instead of leaving the worker on an older build.
-  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=200";
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=201";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
@@ -180,3 +180,4 @@ const HablaOffline = (() => {
   }
   return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();
+

@@ -823,6 +823,969 @@ const HablaRegionalVocabulary = [
       }
     ],
     "sourceSense": "chingón I.1, Mexico; DEM I.2"
+  },
+  {
+    "id": "p201-dar-avion",
+    "batch": "regional-phraseology-201",
+    "term": "dar el avión",
+    "headword": "dar",
+    "speech": "dar el avión",
+    "regions": [
+      "es-MX"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "pretend to listen / pretend to agree",
+    "uk": "pretend to listen / pretend to agree",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Mexico: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "Me respondió «ajá», pero solo me estaba dando el avión.",
+    "exampleUs": "He said “uh-huh,” but he was only pretending to listen.",
+    "exampleUk": "He said “uh-huh,” but he was only pretending to listen.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar el avión · h⁵",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "give the airplane",
+    "literalUk": "give the aeroplane"
+  },
+  {
+    "id": "p201-echar-hueva",
+    "batch": "regional-phraseology-201",
+    "term": "echar la hueva",
+    "headword": "echar",
+    "speech": "echar la hueva",
+    "regions": [
+      "es-MX"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "laze around / loaf around",
+    "uk": "laze about / loaf about",
+    "url": "https://www.asale.org/damer/echar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Mexico: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "ASALE marks this sense popular, not explicitly vulgar. Some speakers may find hueva coarse; tone and relationship matter. It is not an anatomical reading.",
+    "exampleEs": "Pasamos la tarde echando la hueva en casa.",
+    "exampleUs": "We spent the afternoon lazing around at home.",
+    "exampleUk": "We spent the afternoon lazing about at home.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "echar · echar la hueva · x³.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    }
+  },
+  {
+    "id": "p201-frito-sin-manteca",
+    "batch": "regional-phraseology-201",
+    "term": "estar frito y sin manteca",
+    "headword": "estar",
+    "speech": "estar frito y sin manteca",
+    "regions": [
+      "es-MX"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "be in a fix with nothing going for you",
+    "uk": "be in a fix with nothing going for you",
+    "url": "https://www.asale.org/damer/estar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Mexico: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "Sin trabajo y con tantas deudas, estoy frito y sin manteca.",
+    "exampleUs": "With no job and so much debt, I’m in a fix with nothing going for me.",
+    "exampleUk": "With no job and so much debt, I’m in a fix with nothing going for me.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "estar · estar frito y sin manteca · formula c",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "be fried and without lard",
+    "literalUk": "be fried and without lard"
+  },
+  {
+    "id": "p201-al-tacho",
+    "batch": "regional-phraseology-201",
+    "term": "¡al tacho!",
+    "headword": "tacho",
+    "speech": "¡al tacho!",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "exclamation",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "Forget it! / Out with it!",
+    "uk": "Forget it! / Out with it!",
+    "url": "https://www.asale.org/damer/tacho",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Bolivia: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "¿Aceptar esas condiciones? ¡Al tacho!",
+    "exampleUs": "Accept those terms? Forget it!",
+    "exampleUk": "Accept those terms? Forget it!",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "tacho · ¡al tacho! · a",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "into the trash can!",
+    "literalUk": "into the bin!"
+  },
+  {
+    "id": "p201-tacho-colorado",
+    "batch": "regional-phraseology-201",
+    "term": "tacho colorado",
+    "headword": "tacho",
+    "speech": "tacho colorado",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "hell",
+    "uk": "hell",
+    "url": "https://www.asale.org/damer/tacho",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Eastern Bolivia (ASALE Bo:E): a name for hell. Do not generalize the label to all Bolivia or a particular city.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "En el cuento, el personaje termina en el tacho colorado.",
+    "exampleUs": "In the story, the character ends up in hell.",
+    "exampleUk": "In the story, the character ends up in hell.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "tacho · tacho colorado · b · Bo:E",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "subregions": [
+      {
+        "country": "es-BO",
+        "label": "Eastern Bolivia / Oriente boliviano",
+        "sourceCode": "Bo:E"
+      }
+    ],
+    "literalUs": "red bucket",
+    "literalUk": "red bucket"
+  },
+  {
+    "id": "p201-cachuchas-money",
+    "batch": "regional-phraseology-201",
+    "term": "estar a las cachuchas (money)",
+    "headword": "estar",
+    "speech": "estar a las cachuchas",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "be in financial trouble",
+    "uk": "be in financial trouble",
+    "url": "https://www.asale.org/damer/estar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Bolivia: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "This record covers the financial sense. ASALE separately lists a physical or emotional low; that is not the English meaning recorded here.",
+    "exampleEs": "Este mes estoy a las cachuchas; no puedo gastar más.",
+    "exampleUs": "I’m in financial trouble this month; I can’t spend any more.",
+    "exampleUk": "I’m in financial trouble this month; I can’t spend any more.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "estar · estar a las cachuchas · i.i → estar a dos dobles y un repique",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-gallo-business",
+    "batch": "regional-phraseology-201",
+    "term": "gallo (unscrupulous)",
+    "headword": "gallo",
+    "speech": "gallo",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Colloquial · disapproving",
+    "us": "crafty and unscrupulous, especially in business",
+    "uk": "crafty and unscrupulous, especially in business",
+    "url": "https://www.asale.org/damer/gallo",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Eastern Bolivia (ASALE Bo:E): describes an unscrupulous, crafty person, especially in business. This is a separate sense from the animal or a skilled person.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "En esos negocios es gallo: busca ganar sin escrúpulos.",
+    "exampleUs": "He’s crafty and unscrupulous in those deals: he’ll do anything to win.",
+    "exampleUk": "He’s crafty and unscrupulous in those deals: he’ll do anything to win.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "gallo · XI.2 · Bo:E",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "subregions": [
+      {
+        "country": "es-BO",
+        "label": "Eastern Bolivia / Oriente boliviano",
+        "sourceCode": "Bo:E"
+      }
+    ],
+    "literalUs": "rooster",
+    "literalUk": "cockerel"
+  },
+  {
+    "id": "p201-lucha-locha",
+    "batch": "regional-phraseology-201",
+    "term": "aquí, en la lucha por la locha",
+    "headword": "lucha",
+    "speech": "aquí, en la lucha por la locha",
+    "regions": [
+      "es-VE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "hanging in there / just getting by",
+    "uk": "hanging in there / just getting by",
+    "url": "https://www.asale.org/damer/lucha",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Venezuela: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "A greeting response meaning things are only so-so. Its wordplay is not a literal claim about a fight or an exact amount of money.",
+    "exampleEs": "—¿Cómo estás? —Aquí, en la lucha por la locha.",
+    "exampleUs": "“How are you?” “Hanging in there.”",
+    "exampleUk": "“How are you?” “Hanging in there.”",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "lucha · aquí, en la lucha por la locha · formula a",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-papaya-easy",
+    "batch": "regional-phraseology-201",
+    "term": "papaya (easy task)",
+    "headword": "papaya",
+    "speech": "papaya",
+    "regions": [
+      "es-VE"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "a piece of cake / something easy to do",
+    "uk": "a piece of cake / something easy to do",
+    "url": "https://www.asale.org/damer/papaya",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Venezuela: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "This noun sense is Venezuelan in ASALE. Similar easy-task uses under papayo/papaya have different country and grammatical labels; do not copy this record to every country.",
+    "exampleEs": "Para ella, resolver ese ejercicio fue una papaya.",
+    "exampleUs": "For her, solving that exercise was a piece of cake.",
+    "exampleUk": "For her, solving that exercise was a piece of cake.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "papaya · V.1 → papayo, -a · I.1",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "papaya fruit",
+    "literalUk": "papaya fruit",
+    "references": [
+      {
+        "name": "ASALE · papayo, -a",
+        "url": "https://www.asale.org/damer/papayo"
+      }
+    ]
+  },
+  {
+    "id": "p201-venezolano-arepa",
+    "batch": "regional-phraseology-201",
+    "term": "más venezolano que la arepa",
+    "headword": "venezolano",
+    "speech": "más venezolano que la arepa",
+    "regions": [
+      "es-VE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "Venezuelan through and through",
+    "uk": "Venezuelan through and through",
+    "url": "https://www.asale.org/damer/venezolano",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Venezuela: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "An emphatic cultural comparison about a person. This is an expression, not a test of anyone’s nationality or a claim that all Venezuelans behave alike.",
+    "exampleEs": "Dice que su abuelo es más venezolano que la arepa.",
+    "exampleUs": "She says her grandfather is Venezuelan through and through.",
+    "exampleUk": "She says her grandfather is Venezuelan through and through.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "venezolano · más venezolano que la arepa · a",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "more Venezuelan than the arepa",
+    "literalUk": "more Venezuelan than the arepa"
+  },
+  {
+    "id": "p201-mamar-gallo-tease",
+    "batch": "regional-phraseology-201",
+    "term": "mamar gallo (teasing)",
+    "headword": "mamar",
+    "speech": "mamar gallo",
+    "regions": [
+      "es-CO",
+      "es-VE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "pull someone’s leg / tease someone",
+    "uk": "pull someone’s leg / tease someone",
+    "url": "https://www.asale.org/damer/mamar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Colombia · Venezuela: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "The teasing sense is documented in Colombia and Venezuela (also Honduras). ASALE marks this locution colloquial, not automatically with the vulgar register of the standalone verb.",
+    "exampleEs": "No te enojes, solo te estoy mamando gallo.",
+    "exampleUs": "Don’t get upset; I’m just pulling your leg.",
+    "exampleUk": "Don’t get upset; I’m just pulling your leg.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "mamar · mamar gallo · d.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-mamar-gallo-evade",
+    "batch": "regional-phraseology-201",
+    "term": "mamar gallo (false promises)",
+    "headword": "mamar",
+    "speech": "mamar gallo",
+    "regions": [
+      "es-CO"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "fob someone off / string someone along",
+    "uk": "fob someone off / string someone along",
+    "url": "https://www.asale.org/damer/mamar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Colombia: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "A separate Colombian sense involving evasions or false promises. Do not assign it to Venezuela merely because the teasing sense is also attested there.",
+    "exampleEs": "Me promete pagar cada semana, pero me está mamando gallo.",
+    "exampleUs": "He promises to pay every week, but he’s stringing me along.",
+    "exampleUk": "He promises to pay every week, but he’s stringing me along.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "mamar · mamar gallo · d.ii",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-dar-papaya",
+    "batch": "regional-phraseology-201",
+    "term": "dar papaya",
+    "headword": "dar",
+    "speech": "dar papaya",
+    "regions": [
+      "es-CO",
+      "es-VE",
+      "es-EC"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "give someone an opening to take advantage",
+    "uk": "give someone an opening to take advantage",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Colombia · Venezuela · Ecuador: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Used about creating an opportunity another person can exploit. The expression does not excuse wrongdoing or make a victim responsible for it.",
+    "exampleEs": "No compartas tu contraseña; no des papaya.",
+    "exampleUs": "Don’t share your password; don’t give anyone an opening to take advantage.",
+    "exampleUk": "Don’t share your password; don’t give anyone an opening to take advantage.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar papaya · d¹²",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "give papaya",
+    "literalUk": "give papaya"
+  },
+  {
+    "id": "p201-de-papaya",
+    "batch": "regional-phraseology-201",
+    "term": "de papaya",
+    "headword": "papaya",
+    "speech": "de papaya",
+    "regions": [
+      "es-CO"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "at just the right moment / opportunely",
+    "uk": "at just the right moment / opportunely",
+    "url": "https://www.asale.org/damer/papaya",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Colombia: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
+    "exampleEs": "Llegaste de papaya: justo necesitábamos ayuda.",
+    "exampleUs": "You arrived at just the right moment: we needed help.",
+    "exampleUk": "You arrived at just the right moment: we needed help.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "papaya · de papaya · a",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-meter-floro",
+    "batch": "regional-phraseology-201",
+    "term": "meter floro",
+    "headword": "meter",
+    "speech": "meter floro",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "sweet-talk / talk someone into doing a favor",
+    "uk": "sweet-talk / talk someone into doing a favour",
+    "url": "https://www.asale.org/damer/meter",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "Persuasive talk aimed at convincing someone or obtaining a favor. The context decides whether the speaker means charm, empty talk, or manipulation.",
+    "exampleEs": "Me metió floro para que le prestara mi bicicleta.",
+    "exampleUs": "He sweet-talked me into lending him my bike.",
+    "exampleUk": "He sweet-talked me into lending him my bike.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "meter · meter floro · f²",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-estar-aguja",
+    "batch": "regional-phraseology-201",
+    "term": "estar aguja",
+    "headword": "estar",
+    "speech": "estar aguja",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "be broke / have no money",
+    "uk": "be skint / have no money",
+    "url": "https://www.asale.org/damer/estar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "The money sense belongs to Peru in this source. Honduras has a different sense of estar aguja—being alert—which this entry does not establish for Peru.",
+    "exampleEs": "Hoy estoy aguja; mejor caminamos.",
+    "exampleUs": "I’m broke today; let’s walk instead.",
+    "exampleUk": "I’m skint today; let’s walk instead.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "estar · estar aguja · k¹.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "be a needle",
+    "literalUk": "be a needle"
+  },
+  {
+    "id": "p201-por-huevas-vain",
+    "batch": "regional-phraseology-201",
+    "term": "por las huevas (in vain)",
+    "headword": "hueva",
+    "speech": "por las huevas",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Popular · may sound coarse",
+    "us": "in vain / for nothing",
+    "uk": "in vain / for nothing",
+    "url": "https://www.asale.org/damer/hueva",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "This Peruvian sense means the effort was futile. ASALE marks this locution popular; the anatomical headword is vulgar. Register can depend on the speaker and setting.",
+    "exampleEs": "Fuimos por las huevas: la oficina estaba cerrada.",
+    "exampleUs": "We went for nothing: the office was closed.",
+    "exampleUk": "We went for nothing: the office was closed.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "hueva · por las huevas · f.ii",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-por-huevas-reason",
+    "batch": "regional-phraseology-201",
+    "term": "por las huevas (without reason)",
+    "headword": "hueva",
+    "speech": "por las huevas",
+    "regions": [
+      "es-EC",
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial · may sound coarse",
+    "us": "for no good reason / without justification",
+    "uk": "for no good reason / without justification",
+    "url": "https://www.asale.org/damer/hueva",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Ecuador · Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "This Ecuador/Peru sense concerns an unjustified reason. It is separate from the Peruvian in-vain sense; the whole sentence determines the reading.",
+    "exampleEs": "No discutan por las huevas.",
+    "exampleUs": "Don’t argue for no good reason.",
+    "exampleUk": "Don’t argue for no good reason.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "hueva · por las huevas · f.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-bola-pica",
+    "batch": "regional-phraseology-201",
+    "term": "la bola pica y extiende",
+    "headword": "bola",
+    "speech": "la bola pica y extiende",
+    "regions": [
+      "es-CU"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "this is going on longer than expected",
+    "uk": "this is going on longer than expected",
+    "url": "https://www.asale.org/damer/bola",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "The continuing-situation sense is documented for Cuba and Nicaragua. The additional Nicaragua-only consequence sense is not imported into the Cuban record.",
+    "exampleEs": "Llevamos tres reuniones y la bola pica y extiende.",
+    "exampleUs": "We’ve had three meetings, and this is going on longer than expected.",
+    "exampleUk": "We’ve had three meetings, and this is going on longer than expected.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "bola · la bola pica y extiende · formula a.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "the ball bounces and carries on",
+    "literalUk": "the ball bounces and carries on"
+  },
+  {
+    "id": "p201-dar-muela-persuade",
+    "batch": "regional-phraseology-201",
+    "term": "dar muela (persuading)",
+    "headword": "dar",
+    "speech": "dar muela",
+    "regions": [
+      "es-CU"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "try to talk someone into something",
+    "uk": "try to talk someone into something",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "This record covers persuasion, documented for Cuba and the Dominican Republic. Habla’s initial country expansion records the Cuban view; it is not an exclusivity claim.",
+    "exampleEs": "Me dio muela para que me quedara un rato más.",
+    "exampleUs": "She tried to talk me into staying a little longer.",
+    "exampleUk": "She tried to talk me into staying a little longer.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar muela · s¹¹.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-dar-muela-talk",
+    "batch": "regional-phraseology-201",
+    "term": "dar muela (talking a lot)",
+    "headword": "dar",
+    "speech": "dar muela",
+    "regions": [
+      "es-CU"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "talk a lot / go on and on",
+    "uk": "talk a lot / go on and on",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "A separate Cuban sense referring to quantity of talk. It does not by itself say that the person is persuading, lying, or flirting.",
+    "exampleEs": "Nos dio muela toda la tarde.",
+    "exampleUs": "He went on and on all afternoon.",
+    "exampleUk": "He went on and on all afternoon.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar muela · s¹¹.ii",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-dar-bola-ride",
+    "batch": "regional-phraseology-201",
+    "term": "dar bola (a ride)",
+    "headword": "dar",
+    "speech": "dar bola",
+    "regions": [
+      "es-CU"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "give someone a free ride",
+    "uk": "give someone a lift for free",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "The free-transport sense is documented for Cuba and the Dominican Republic. It is separate from attention or romance in other countries.",
+    "exampleEs": "Mi vecina me dio bola hasta la estación.",
+    "exampleUs": "My neighbor gave me a free ride to the station.",
+    "exampleUk": "My neighbour gave me a lift to the station for free.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar bola · b¹.iv",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "searchAliases": [
+      "lift",
+      "ride"
+    ]
+  },
+  {
+    "id": "p201-dar-bola-attention",
+    "batch": "regional-phraseology-201",
+    "term": "dar bola (attention)",
+    "headword": "dar",
+    "speech": "dar bola",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "pay attention to someone",
+    "uk": "pay attention to someone",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Ecuador · Bolivia · Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "The attention sense is documented in these countries and several others. Compare the separate Cuban free-ride record; one headword is not one universal translation.",
+    "exampleEs": "Le expliqué el problema, pero no me dio bola.",
+    "exampleUs": "I explained the problem, but she paid no attention to me.",
+    "exampleUk": "I explained the problem, but she paid no attention to me.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar bola · b¹.i",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
+  },
+  {
+    "id": "p201-dar-bola-romance",
+    "batch": "regional-phraseology-201",
+    "term": "dar bola (romantic interest)",
+    "headword": "dar",
+    "speech": "dar bola",
+    "regions": [
+      "es-PE",
+      "es-BO"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "accept someone’s romantic advances",
+    "uk": "accept someone’s romantic advances",
+    "url": "https://www.asale.org/damer/dar",
+    "sourceName": "ASALE · Diccionario de americanismos",
+    "sourceIds": [
+      "asale_damer"
+    ],
+    "scope": "Peru · Bolivia: this sense is dictionary-attested; not an exclusivity or city claim.",
+    "note": "ASALE documents this accepting-advances sense for Peru and Bolivia, among other countries. An Ecuador flirting sense has a different source marker and is not silently merged here.",
+    "exampleEs": "La invitó a salir y ella le dio bola.",
+    "exampleUs": "He asked her out, and she accepted his advances.",
+    "exampleUk": "He asked her out, and she accepted his advances.",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "sourceSense": "dar · dar bola · b¹.ii",
+    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "searchNotes": false,
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true
   }
 ];
 if (typeof module !== "undefined" && module.exports) module.exports = HablaRegionalVocabulary;
+

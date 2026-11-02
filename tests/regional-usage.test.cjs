@@ -3,7 +3,7 @@ const current=require('../spanish-context.js'),snapshots=[];
 for(const region of ['all','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','en-US','en-GB','quito','monterrey','mexico-city','bogota'])for(const category of ['all','slang','literal','clinical'])for(const tone of ['all','mild','caution']){
  const options={region,category,tone};
  const entries=current.dictionary(options);
- snapshots.push(entries.filter(entry=>entry.id!=='mamon-insult-counterpart'&&entry.batch!=='regional-vocabulary-116'&&entry.batch!=='cuba-154').map(({usage,...entry})=>entry));
+ snapshots.push(entries.filter(entry=>entry.id!=='mamon-insult-counterpart'&&entry.batch!=='regional-vocabulary-116'&&entry.batch!=='cuba-154'&&entry.batch!=='regional-phraseology-201'&&!entry.contributionId).map(({usage,...entry})=>entry));
  const allTypes=['idiom','exclamation','familiar','culture','vocabulary','usage','literal','clinical'];
  assert.equal(allTypes.reduce((n,usage)=>n+current.dictionary({...options,usage}).length,0),entries.length,'usage groups partition existing collection');
 }
@@ -15,8 +15,9 @@ assert.equal(find('chuta').usage.type,'exclamation');assert.equal(find('guagua')
 assert.match(find('me vale verga').register,/vulgarity/);assert.deepEqual(find('me vale verga').regions,['es-EC','es-BO','es-MX']);
 assert.match(find('chiro / chira').scope,/Ecuador: without money. Mexico: pretty/);
 assert.deepEqual(find('huerco / huerca').usage.cities,['Monterrey, Nuevo León']);assert.deepEqual(find('chamo / chama').usage.cities,[]);assert.match(find('chamo / chama').scope,/Caracas-specific review pending/);
-assert.equal(current.dictionary({region:'es-VE',usage:'idiom'}).length,0,'empty coverage is not invented');
+assert.equal(current.dictionary({region:'es-VE',usage:'idiom'}).filter(e=>e.batch!=='regional-phraseology-201').length,0,'old coverage is not invented');
 assert.equal(current.dictionary({region:'es-EC',usage:'nonexistent'}).length,0);
 for(const text of ['que ya','cono','unchingado','ordinary unrelated word'])assert.deepEqual(current.slang(text),[]);
 assert.equal(current.translateIndifferenceExpression('no me vale verga'),null);
 console.log('Regional usage: 168 region/category/tone combinations unchanged; independent type partitions, idiom/register distinction, country meanings, city evidence and negative cases passed');
+

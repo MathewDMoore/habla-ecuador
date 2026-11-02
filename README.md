@@ -2,6 +2,12 @@
 
 An Ecuadorian-first Spanish practice and translation app. This repository contains a lightweight browser prototype with no build step or runtime dependency.
 
+## Country and regional dictionary sources — build 201
+
+Dictionary now includes 24 additional ASALE-attested idiom and figurative senses, bringing the regional collection to 111 cards. Bolivia, Mexico, Venezuela, Peru, Colombia and Cuba have national or regional reference routes alongside Ecuador’s AEL/CORPHA sources. The 26-source catalogue shows country coverage, research leads and access limits; it does not represent complete imported dictionaries or completed corpus/native review. The figurative filter overlaps with idioms, and each country-specific sense remains separate. See [coverage and evidence contract](docs/COUNTRY_REGIONAL_DICTIONARIES.md).
+
+Validation: `node tests/regional-sources.test.cjs`, existing regional vocabulary/usage preservation checks, dictionary search regressions, and translation/dictation/offline-retention regressions. Physical iPhone behavior remains unverified.
+
 ## Native iPhone Home Screen widget (WidgetKit)
 
 The optional **HablaEcuador** native iPhone app includes a real WidgetKit Home Screen
@@ -270,3 +276,4 @@ Research samples are two-sentence excerpts. “Read full paper” opens the sele
 ### Import a document (build 58)
 
 Open the translator, tap **Choose document**, then **Browse** on iPhone and select the Word `.docx` in Files. Preview its extracted text; UK English is selected automatically. Tap **Translate this section**, then **Compare U.K. / U.S. English** to edit both spelling adaptations of that draft without spending more service quota. Use the section selector to continue through a long document. PDF (selectable text) and UTF-8 text also work. Older `.doc` files must first be saved as `.docx`. Formatting/images are not imported. Extraction is local; only text explicitly selected for translation goes to MyMemory. Limits: 10 MB, 200,000 extracted characters, 100 PDF pages. Documents are not retained after closing/reloading. Readers load on demand from pinned jsDelivr distributions: Mammoth 1.11.0 (BSD-2-Clause) and PDF.js 6.3.289 (Apache-2.0).
+

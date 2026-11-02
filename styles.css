@@ -1369,3 +1369,9 @@ body.ve-theater-open {overflow:hidden !important;}
 #quick-choose-image{background:#174b3b;color:#fff;border-color:#174b3b}
 .quick-image-status:empty{display:none}
 .quick-image-status{margin:7px 0 10px;color:#345648;line-height:1.4;font-size:13px;overflow-wrap:anywhere}
+
+.regional-source-coverage { margin-block: 1rem; overflow-wrap: anywhere; }
+.regional-source-list { padding-inline-start: 1.2rem; }
+.regional-source-list li { margin-block: 1rem; }
+.regional-source-list small { display: block; margin-block: .35rem; }
+.regional-source-list p { margin-block: .4rem; }

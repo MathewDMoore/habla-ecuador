@@ -4,97 +4,433 @@
     "name": "Academia Ecuatoriana de la Lengua — Diccionario académico de ecuatorianismos",
     "kind": "Ecuador-focused dictionary",
     "url": "https://www.academiaecuatorianadelalengua.org/diccionario-academico-de-ecuatorianismos/",
-    "use": "Primary Ecuador lexicon reference. Use to identify regional senses and regional labels; paraphrase entries and write original examples rather than copying definitions or example sentences."
+    "use": "Primary Ecuador lexicon reference. Use to identify regional senses and regional labels; paraphrase entries and write original examples rather than copying definitions or example sentences.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "reference"
   },
   {
     "id": "minedu_dae",
     "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
     "kind": "Searchable Ecuador dictionary",
     "url": "https://recursos.educacion.gob.ec/diccionario/",
-    "use": "Searchable entry pages for Ecuadorian words, including guagua, guambra, yapa, yapar, ñañería, and atatay. Use as a source of leads and confirm the current entry before adding it."
+    "use": "Searchable entry pages for Ecuadorian words, including guagua, guambra, yapa, yapar, ñañería, and atatay. Use as a source of leads and confirm the current entry before adding it.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "reference"
   },
   {
     "id": "corpha",
     "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
     "kind": "Regional corpus",
     "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
-    "use": "Check authentic contexts, region, date, source type, and repeated occurrences. Each app entry should record an actual corpus query before claiming corpus evidence; none of the new entries in this initial update has a logged CORPHA query."
+    "use": "Check authentic contexts, region, date, source type, and repeated occurrences. Each app entry should record an actual corpus query before claiming corpus evidence; none of the new entries in this initial update has a logged CORPHA query.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "corpus",
+    "accessStatus": "reference"
   },
   {
     "id": "asale_damer",
     "name": "ASALE — Diccionario de americanismos",
     "kind": "Cross-country dictionary",
     "url": "https://www.asale.org/damer/",
-    "use": "Compare country-tagged meanings and register across Spanish varieties. Useful comparisons here include bacán, guagua, atatay, guambra, canguil, and yapa."
+    "use": "Compare country-tagged meanings and register across Spanish varieties. Useful comparisons here include bacán, guagua, atatay, guambra, canguil, and yapa.",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU",
+      "es-AR",
+      "es-CL",
+      "es-CR",
+      "es-DO",
+      "es-SV",
+      "es-GT",
+      "es-HN",
+      "es-NI",
+      "es-PA",
+      "es-PY",
+      "es-PR",
+      "es-UY"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "comparative",
+    "accessStatus": "reference"
   },
   {
     "id": "cordova",
     "name": "Carlos Joaquín Córdova — El habla del Ecuador",
     "kind": "Historical and cultural reference",
     "url": "https://biblioteca.casadelacultura.gob.ec/bib/10317",
-    "use": "Bibliographic lead for deeper Ecuadorian vocabulary history and usage. Consult the work directly; do not reproduce its entries."
+    "use": "Bibliographic lead for deeper Ecuadorian vocabulary history and usage. Consult the work directly; do not reproduce its entries.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "research-lead"
   },
   {
     "id": "hablemos_ecuatoriano",
     "name": "Hablemos Ecuatoriano, de chulla vida a YOLO",
     "kind": "Contemporary Ecuadorian expressions",
     "url": "https://www.cec-epn.edu.ec/instructora-del-cec-epn-publica-innovador-libro-de-ecuatorianismos/",
-    "use": "A contemporary reference to explore colloquial phrases. Treat it as a discovery source; create original app explanations and examples."
+    "use": "A contemporary reference to explore colloquial phrases. Treat it as a discovery source; create original app explanations and examples.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "research-lead"
   },
   {
     "id": "dialnet_phraseology",
     "name": "Ecuadorian phraseology study — coastal and Manabí expressions",
     "kind": "Regional phraseology research",
     "url": "https://dialnet.unirioja.es/servlet/articulo?codigo=6680897",
-    "use": "Research lead for fixed expressions and cultural context, with emphasis on the Ecuadorian coast and Manabí. Use the paper as scholarship, not as a pool of text to copy."
+    "use": "Research lead for fixed expressions and cultural context, with emphasis on the Ecuadorian coast and Manabí. Use the paper as scholarship, not as a pool of text to copy.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "research-lead"
   },
   {
     "id": "kichwa_contact",
     "name": "Ecuadorian Spanish and Quichua contact — phraseology study",
     "kind": "Language-contact research",
     "url": "https://dialnet.unirioja.es/servlet/articulo?codigo=6680895",
-    "use": "Research lead on Quichua words in Ecuadorian Spanish phraseological units. Check linguistic and community context before adding etymology or cultural claims."
+    "use": "Research lead on Quichua words in Ecuadorian Spanish phraseological units. Check linguistic and community context before adding etymology or cultural claims.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "national",
+    "accessStatus": "research-lead"
   },
   {
     "id": "mitad_user_material",
     "name": "Mitad — Spanish Dictionary for Ecuador",
     "kind": "Ecuador reference app",
     "url": "https://play.google.com/store/apps/details?id=com.jrigg.spanish.dictionary.ecuador",
-    "use": "The project owner supplied MITAD sunrise and sunset vocabulary and example structures. Use as a cited lead; reuse permissions for its dictionary content are not established."
+    "use": "The project owner supplied MITAD sunrise and sunset vocabulary and example structures. Use as a cited lead; reuse permissions for its dictionary content are not established.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": false,
+    "coverageRole": "national",
+    "accessStatus": "reference"
   },
   {
     "id": "ael_diatopic_corrections",
     "name": "AEL — Fichero de correcciones, precisiones y adendas a la marcación diatópica",
     "kind": "Geographic-label quality control",
     "url": "https://www.academiaecuatorianadelalengua.org/fichero-de-correcciones-precisiones-y-adendas-a-la-marcacion-diatopica-de-ecuatorianismos-en-los-repertorios-academicos/",
-    "use": "Use to catch omissions or inaccurate Ecuador geographic labels in broader RAE/ASALE repertories before assigning an Ecuador-specific or regional tag."
+    "use": "Use to catch omissions or inaccurate Ecuador geographic labels in broader RAE/ASALE repertories before assigning an Ecuador-specific or regional tag.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "methodology",
+    "accessStatus": "reference"
   },
   {
     "id": "ael_dae_method",
     "name": "AEL — Method notes for the Diccionario académico del habla del Ecuador",
     "kind": "Lexicographic methodology",
     "url": "https://www.academiaecuatorianadelalengua.org/elaboracion-de-un-diccionario-regional-descriptivo-contrastivo-por-dona-valeria-guzman/",
-    "use": "Documents AEL's evidence workflow: CORPHA first, then additional Ecuadorian sources when corpus evidence is insufficient. Use as a model for Habla Ecuador verification."
+    "use": "Documents AEL's evidence workflow: CORPHA first, then additional Ecuadorian sources when corpus evidence is insufficient. Use as a model for Habla Ecuador verification.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "methodology",
+    "accessStatus": "reference"
   },
   {
     "id": "sellers-espinoza-2017-cuenca-air-quality",
     "name": "Cuenca air-quality research — Sellers & Espinoza (2017)",
     "kind": "Ecuadorian bilingual scientific reference",
     "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/300/2521/13087",
-    "use": "Two credited Spanish/English abstract sentence pairs power local research-reference retrieval. CC BY 3.0; English is editorially adapted, with subject-expert review pending. Source metadata and license evidence are in data/research-source-manifest.json."
+    "use": "Two credited Spanish/English abstract sentence pairs power local research-reference retrieval. CC BY 3.0; English is editorially adapted, with subject-expert review pending. Source metadata and license evidence are in data/research-source-manifest.json.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": false,
+    "coverageRole": "national",
+    "accessStatus": "reference"
   },
   {
     "id": "anaguano-2017-sangay-fishes",
     "name": "Sangay · fish diversity — 2017 research",
     "kind": "Ecuadorian bilingual scientific reference",
     "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/294/2468",
-    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance."
+    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": false,
+    "coverageRole": "national",
+    "accessStatus": "reference"
   },
   {
     "id": "fernandez-2017-morona-bat",
     "name": "Morona Santiago · bat specimen — 2017 research",
     "kind": "Ecuadorian bilingual scientific reference",
     "url": "https://revistas.usfq.edu.ec/index.php/avances/en/article/download/770/2471",
-    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance."
+    "use": "Two credited abstract sentence pairs for local research translation memory. Article-specific CC BY 3.0; English adapted; subject-expert review pending. See data/research-source-manifest.json for provenance.",
+    "regions": [
+      "es-EC"
+    ],
+    "dictionaryReference": false,
+    "coverageRole": "national",
+    "accessStatus": "reference"
+  },
+  {
+    "id": "colmex_dem",
+    "name": "El Colegio de México — Diccionario del español de México (DEM)",
+    "kind": "National dictionary",
+    "url": "https://dem.colmex.mx/Presentacion",
+    "regions": [
+      "es-MX"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Corpus-based reference for Mexican meanings, grammar, register and multiword expressions.",
+    "limits": "Presentation verified. Check the actual sense before marking an entry corroborated. CC BY-NC-ND 4.0: registering this link does not authorize a bulk import or adapted definitions.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "colmex_coem",
+    "name": "El Colegio de México — Corpus oral del español de México (COEM)",
+    "kind": "Regional spoken-corpus research",
+    "url": "https://lef.colmex.mx/corpus_oral_del_espanol_de_mexico.html",
+    "regions": [
+      "es-MX"
+    ],
+    "coverageRole": "corpus",
+    "accessStatus": "research-lead",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Research route for spoken variation across Mexican regions and cities.",
+    "limits": "Project description verified; no query or city-specific entry is validated by the project’s existence.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "aml_online",
+    "name": "Academia Mexicana de la Lengua — online reference works",
+    "kind": "National dictionary and proverb references",
+    "url": "https://academia.org.mx/",
+    "regions": [
+      "es-MX"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Entry point to the academy’s Refranero Mexicano and Diccionario breve de mexicanismos.",
+    "limits": "Resources listed by the academy; no entire work imported and no phrase attestation inferred from the catalogue alone.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "apl_diperu",
+    "name": "Academia Peruana de la Lengua — DiPerú",
+    "kind": "National dictionary",
+    "url": "https://diperu.apl.org.pe/pagina/manejo-de-diperu",
+    "regions": [
+      "es-PE"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Peruvian senses, geographic/register labels, and alphabetically indexed locutions; follow cross-references to the defined sense.",
+    "limits": "Platform instructions verified. Each actual entry and its labels still need a logged check before national-dictionary corroboration is claimed.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "acl_bdc",
+    "name": "Academia Colombiana de la Lengua — Breve diccionario de colombianismos",
+    "kind": "National dictionary",
+    "url": "https://www.academiacolombianadelalengua.co/bdc/",
+    "regions": [
+      "es-CO"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Academy reference for Colombian words and meanings alongside sense-specific ASALE comparisons.",
+    "limits": "Academy resource page verified. Embedded dictionary access is separate from an individual sense check.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "icc_colombianismos",
+    "name": "Instituto Caro y Cuervo — Diccionario de colombianismos",
+    "kind": "National and regional dictionary",
+    "url": "https://colombianismos.caroycuervo.gov.co/",
+    "regions": [
+      "es-CO"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "access-limited",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Priority regional Colombian reference for vocabulary and expressions.",
+    "limits": "Official Colombian embassy description verified; dictionary endpoint returned 403 during this audit. No entries were extracted or marked checked against it.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported.",
+    "documentationUrl": "https://peru.embajada.gov.co/sala-de-prensa/noticias/la-embajada-de-colombia-en-peru-realizo-el-conversatorio-entre-patas-y-parceros"
+  },
+  {
+    "id": "venezuela_visual",
+    "name": "Fundación Empresas Polar — Diccionario visual del español de Venezuela",
+    "kind": "National illustrated vocabulary reference",
+    "url": "https://bibliofep.fundacionempresaspolar.org/publicaciones/digitales/diccionario-visual-del-espa%C3%B1ol-de-venezuela-version-en-linea/",
+    "regions": [
+      "es-VE"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "research-lead",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Publisher-documented, academy-endorsed Venezuelan reference across 14 semantic fields.",
+    "limits": "Publisher record verified: 268 voices. It is a bounded visual vocabulary, not comprehensive idiom coverage; publication in Caracas is not city usage evidence.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "coello_bolivia",
+    "name": "Carlos Coello Vila / ASALE — Tres estudios sobre el español boliviano",
+    "kind": "Bolivian linguistic research",
+    "url": "https://www.asale.org/obras-academicas/clasicos-asale/tres-estudios-sobre-el-espanol-boliviano",
+    "regions": [
+      "es-BO"
+    ],
+    "coverageRole": "national",
+    "accessStatus": "research-lead",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Research and bibliography for Bolivian variation, language contact and differential lexicography.",
+    "limits": "ASALE publication description verified; full referenced dictionaries were not accessed or imported.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "coello_bolivian_lexicon",
+    "name": "Carlos Coello Vila — El español de Bolivia",
+    "kind": "Regional lexicon and language-contact study",
+    "url": "https://cvc.cervantes.es/obref/congresos/valladolid/ponencias/unidad_diversidad_del_espanol/2_el_espanol_de_america/coello_c.htm",
+    "regions": [
+      "es-BO"
+    ],
+    "coverageRole": "regional-research",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Primary scholarly discussion of Bolivian vocabulary and regional variation.",
+    "limits": "Historical research supports context, not present-day frequency or automatic city labels.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "cuba_geolectal",
+    "name": "Elisa García González — Atlas lingüístico de Cuba y Diccionario geolectal",
+    "kind": "Cuban regional lexicography research",
+    "url": "https://signoslinguisticos.izt.uam.mx/index.php/SL/article/view/374",
+    "regions": [
+      "es-CU"
+    ],
+    "coverageRole": "regional-research",
+    "accessStatus": "research-lead",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Author’s account of the Atlas lingüístico de Cuba and the Diccionario geolectal de Cuba.",
+    "limits": "Article abstract and publication metadata verified. Atlas and geolectal entries not accessed; no Holguín or other city evidence inferred. DOI: 10.24275/sling.v18n35.06.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "rae_corpes",
+    "name": "RAE / ASALE — CORPES XXI",
+    "kind": "Pan-Hispanic corpus",
+    "url": "https://www.rae.es/banco-de-datos/corpes-xxi",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU",
+      "es-AR",
+      "es-CL",
+      "es-CR",
+      "es-DO",
+      "es-SV",
+      "es-GT",
+      "es-HN",
+      "es-NI",
+      "es-PA",
+      "es-PY",
+      "es-PR",
+      "es-UY",
+      "es-ES",
+      "es-GQ"
+    ],
+    "coverageRole": "corpus",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Corroborate phrase use with country, date, genre and spoken/written context; record actual query and concordances.",
+    "limits": "A corpus link is not a completed query. None of the new phraseology records claims corpus frequency or city validation.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "cvc_refranero",
+    "name": "Instituto Cervantes — Refranero multilingüe",
+    "kind": "Proverbs and proverbial expressions",
+    "url": "https://cvc.cervantes.es/lengua/refranero/observaciones.htm",
+    "regions": [
+      "es-EC",
+      "es-BO",
+      "es-MX",
+      "es-VE",
+      "es-PE",
+      "es-CO",
+      "es-CU",
+      "es-AR",
+      "es-CL",
+      "es-CR",
+      "es-DO",
+      "es-SV",
+      "es-GT",
+      "es-HN",
+      "es-NI",
+      "es-PA",
+      "es-PY",
+      "es-PR",
+      "es-UY",
+      "es-ES",
+      "es-GQ"
+    ],
+    "coverageRole": "phraseology",
+    "accessStatus": "reference",
+    "dictionaryReference": true,
+    "checked": "2026-11-02",
+    "use": "Compare proverbial meanings, variants, pragmatic intent, source contexts and English equivalents.",
+    "limits": "Shared proverb reference; does not establish that a saying is specific to, or common in, any particular country.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported."
   }
 ]
+
