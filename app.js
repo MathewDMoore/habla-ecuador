@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.89 · build 199";
+const APP_VERSION = "0.26.90 · build 200";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2879,14 +2879,12 @@ function startInputMicrophone({append=false}={}) {
           ? "Adding recognized words below the original. Still listening; check for omissions."
           : "Partial words heard. Checking the final transcript…");
       } else if (metadata.provisional) {
-        // iOS/Safari can end with only an unconfirmed fragment ("Sí" instead
-        // of "¿Cómo estás?"). Keep it editable, but never translate it as fact.
+        // Translate an ended session automatically, retaining its uncertainty
+        // and the editable original rather than requiring a confirmation tap.
         translationRequest += 1;
-        translatorDictationNeedsReview = true;
-        const result=$("#translation-result"),empty=$("#translation-empty-target");
-        if (result) result.hidden=true;
-        if (empty) empty.hidden=false;
-        setTranslatorMicFeedback("Only a partial transcript was received. Check the complete source; add missing words before translating.",true,true);
+        translatorDictationNeedsReview = false;
+        setTranslatorMicFeedback("Translating this draft automatically. Recognition may be incomplete; check the words or use Add missing words. / Traduciendo este borrador automáticamente. El dictado puede estar incompleto; revisa el texto o añade palabras.",false,true);
+        renderTranslation();
       } else {
         translatorDictationNeedsReview = false;
         setTranslatorMicFeedback("Recognized words received. Check for missing or changed words. Use Add missing words to continue.");
@@ -3645,7 +3643,7 @@ function showTranslationLanguageWarning(family) {
     : "Use English as source / Usar inglés como origen";
 }
 
-function correctTranslationSourceLanguage() {
+function correctTranslationSourceLanguage({automatic=false}={}) {
   const input = $("#translator-input")?.value || "";
   const detected = translationInputLanguageMismatch(input);
   if (!detected) return;
@@ -3660,7 +3658,9 @@ function correctTranslationSourceLanguage() {
   translationRequest += 1;
   syncLanguagePair();
   // Intentionally preserve the original words verbatim.
-  renderTranslation();
+  showTranslationLanguageWarning(null);
+  if(automatic)showToast('Source language detected; translating automatically. / Idioma detectado; traduciendo automáticamente.');
+  return renderTranslation();
 }
 
 async function renderTranslation({allowImported=false, allowMusic=false}={}) {
@@ -3708,15 +3708,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   }
   const wrongSourceFamily = !allowImported && !musicInput ? translationInputLanguageMismatch(sourceText) : null;
   showTranslationLanguageWarning(wrongSourceFamily);
-  if (wrongSourceFamily) {
-    lastCompletedTranslation = null;
-    activeTranslationEdit = null;
-    $("#natural-result").removeAttribute("contenteditable");
-    updateTranslationEditUi();
-    result.hidden = true;
-    missing.hidden = true;
-    return;
-  }
+  if (wrongSourceFamily) return correctTranslationSourceLanguage({automatic:true});
   if (languageFamily(sourceLanguage) === languageFamily(targetLanguage) && !autoMusic) {
     renderRegionalTranslation(sourceText,result,missing);
     return;
@@ -5603,6 +5595,8 @@ function init() {
   $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
+    // New input owns the next automatic translation; invalidate older replies.
+    translationRequest += 1;
     // Editing the words is an explicit review of an uncertain dictated draft.
     translatorDictationNeedsReview = false;
     setTranslatorMicFeedback("");
@@ -5637,8 +5631,10 @@ function init() {
     if (preservedCulturalContext && normalize($("#translator-input").value) !== normalize(preservedCulturalContext.input)) preservedCulturalContext = null;
     clearTimeout(translationTimer);
     const local = translationPurpose === "academic" ? null : matchPhrase($("#translator-input").value);
-    if (local) renderTranslation();
-    else translationTimer = setTimeout(renderTranslation, 550);
+    const allowImported=documentImportActive && importedDocument?.kind==="image";
+    const translate=()=>renderTranslation({allowImported});
+    if (local) translate();
+    else translationTimer = setTimeout(translate, 550);
   });
   $("#input-mic")?.addEventListener("click", event => { event.preventDefault(); startInputMicrophone(); });
   $("#translator-mic-add")?.addEventListener("click", event=>{
@@ -5910,7 +5906,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=199", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=200", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

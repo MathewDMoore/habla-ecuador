@@ -5,15 +5,17 @@ const HablaTranslationControls=(()=>{
   if(!result||!input||document.querySelector('#translation-action-dock'))return;
   const nodes=['#translation-text-tools','#translation-copy-status','#translation-copy-fallback','#translation-result .result-actions','#translation-share-status','#translation-edit-status'].map(s=>document.querySelector(s)).filter(Boolean);
   const dock=document.createElement('section');dock.id='translation-action-dock';dock.setAttribute('aria-label','Translation actions');
-  const translate=document.createElement('button');translate.type='button';translate.id='translate-now';translate.textContent='Translate / Traducir';
-  const hint=document.createElement('p');hint.setAttribute('role','status');hint.textContent='Translate to enable Copy, Hear and Share.';
+  const translate=document.createElement('button');translate.type='button';translate.id='translate-now';translate.textContent='Retry translation / Reintentar traducción';
+  const hint=document.createElement('p');hint.setAttribute('role','status');hint.textContent='Type, paste or finish speaking to translate automatically. / Escribe, pega o termina de hablar para traducir automáticamente.';
   dock.append(translate,hint);result.after(dock);
   translate.addEventListener('click',()=>{if(typeof retryTranslation==='function')retryTranslation();});
   const targetButtons=['copy-result','share-result','hear-result','translation-full-text','translation-expand','translation-text-smaller','translation-text-larger','translation-text-reset','translation-select-all'];
   let wasEmpty=null;
   function sync(){
    const empty=result.hidden||document.querySelector('#natural-result')?.getAttribute('contenteditable')!=='true';
-   translate.disabled=!input.value.trim();hint.hidden=!empty;
+   const failed=document.querySelector('#no-result')?.hidden===false;
+   translate.hidden=!failed;translate.disabled=!input.value.trim();hint.hidden=!empty;
+   hint.textContent=failed ? 'Translation could not finish. Your text is kept; retry when ready. / No se pudo terminar la traducción. Tu texto se conserva; puedes reintentar.' : 'Type, paste or finish speaking to translate automatically. / Escribe, pega o termina de hablar para traducir automáticamente.';
    if(empty===wasEmpty)return;
    wasEmpty=empty;
    if(empty){for(const node of nodes)dock.append(node);for(const id of targetButtons){const b=document.getElementById(id);if(b){b.dataset.emptyWasDisabled=String(b.disabled);b.disabled=true;}}}
@@ -26,6 +28,8 @@ const HablaTranslationControls=(()=>{
    if(typeof updateSpeechPauseControls==='function')updateSpeechPauseControls();
   }
   new MutationObserver(sync).observe(result,{attributes:true,subtree:true,attributeFilter:['hidden','contenteditable']});
+  const failure=document.querySelector('#no-result');
+  if(failure)new MutationObserver(sync).observe(failure,{attributes:true,attributeFilter:['hidden']});
   input.addEventListener('input',sync);sync();
  }
  return{bind};
