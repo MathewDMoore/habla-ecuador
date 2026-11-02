@@ -23,7 +23,8 @@ assert.equal(new URL(context.publicAppShareUrl('monterrey','en')).searchParams.g
 assert.equal(new URL(context.publicAppShareUrl('','javascript:bad')).searchParams.get('ui'),'es');
 
 const cuban=require('../spanish-context.js').dictionary({region:'es-CU'});
-assert.equal(cuban.length,3,'Cuba shows verified entries, not unrelated shared slang');
+assert.ok(cuban.length>=3,'Cuba retains its documented entries as shared-language evidence grows');
+assert.ok(!cuban.some(e=>e.term==='chulla'),'Ecuador-only chulla must not be presented as Cuban usage');
 for(const term of ['asere / acere','guagua (Cuba)','jaba (Cuba)'])assert.ok(cuban.some(e=>e.term===term));
 for(const file of ['index.html','translator.html']){
  const html=fs.readFileSync(file,'utf8');

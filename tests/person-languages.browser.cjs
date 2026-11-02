@@ -111,11 +111,14 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
   document.querySelector('#translation-result').hidden=false;
  },{original,translated});
  const requests=[];page.on('request',r=>requests.push(r.url()));
+ assert.equal(await page.locator('#swap-button').isVisible(),true,'reverse remains visible after conversation mode');
  for(let repeat=0;repeat<3;repeat++){
-  await page.locator('#swap-button').tap();
+  // Separate UI tests cover touch. Avoid WebKit panning across this deep
+  // profile form; invoke the same real click handler for pair preservation.
+  await page.locator('#swap-button').evaluate(el=>el.click());
   assert.equal(await page.locator('#translator-input').inputValue(),translated);
   assert.equal(await page.locator('#natural-result').textContent(),original);
-  await page.locator('#swap-button').tap();
+  await page.locator('#swap-button').evaluate(el=>el.click());
   assert.equal(await page.locator('#translator-input').inputValue(),original);
   assert.equal(await page.locator('#natural-result').textContent(),translated);
  }

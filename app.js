@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.91 · build 201";
+const APP_VERSION = "0.26.92 · build 202";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3013,6 +3013,31 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
   }),text);
 }
 
+// Small source-checked culinary glossary. Exact matches only, never prose.
+// https://dictionary.cambridge.org/dictionary/spanish-english/caldo
+// https://dictionary.cambridge.org/dictionary/english-spanish/broth
+function trustedCulinaryGloss(text, {source=sourceLanguage,target=targetLanguage}={}) {
+  const word=String(text||"").trim().normalize("NFC").toLocaleLowerCase("es");
+  const entries=[
+    {es:"caldo",en:"broth",alternatives:["stock"]},
+    {es:"caldo de res",en:"beef broth",alternatives:["beef stock"]},
+    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock"]}
+  ];
+  if(source.startsWith("es-")&&target.startsWith("en-")){
+    const entry=entries.find(item=>item.es===word);
+    return entry ? {text:entry.en,alternatives:entry.alternatives,
+      reference:"https://dictionary.cambridge.org/dictionary/spanish-english/caldo"} : null;
+  }
+  if(source.startsWith("en-")&&target.startsWith("es-")){
+    // Stock can mean inventory, shares or cooking liquid; never treat an
+    // English alternative as an unambiguous reverse dictionary entry.
+    const entry=entries.find(item=>item.en===word);
+    return entry ? {text:entry.es,alternatives:[],
+      reference:"https://dictionary.cambridge.org/dictionary/english-spanish/broth"} : null;
+  }
+  return null;
+}
+
 function translationFailure(code, detail="", status=0) {
   const error = new Error(detail || code);
   error.code = code;
@@ -3107,6 +3132,12 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
 
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
+  // Reliable exact matches outrank the free service and its cached guesses.
+  const trustedGloss=trustedCulinaryGloss(text,{source,target});
+  if(trustedGloss){
+    if(!isCurrent())throw translationFailure("superseded");
+    return trustedGloss.text;
+  }
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
     if (musicTranslationRequestCost(text,source,target,purpose) > 20) throw translationFailure("research_limit");
@@ -3357,6 +3388,12 @@ function clearTranslationCopyFallback() {
   // handles can remain attached to an invisible, horizontally scrolled editor.
   if(field){if(document.activeElement===field){field.setSelectionRange(0,0);field.blur();}field.value='';}
   if(fallback)fallback.hidden=true;
+  // WebKit may scroll document.body horizontally while window.scrollX stays 0.
+  // Reset that offset after dismissing selected fallback text; retain scrollY.
+  if(document.body)document.body.scrollLeft=0;
+  if(document.documentElement)document.documentElement.scrollLeft=0;
+  if(typeof window==="object" && typeof window.scrollTo==="function" && window.scrollX>0)
+    window.scrollTo({left:0,top:window.scrollY,behavior:"instant"});
 }
 
 function renderedTranslationText() {
@@ -3369,7 +3406,7 @@ function legacyCopyTranslation(text) {
   const ranges=selection ? Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange()) : [];
   const caret=active && typeof active.selectionStart==='number' ? [active.selectionStart,active.selectionEnd,active.selectionDirection] : null;
   const field=document.createElement('textarea');field.value=text;field.readOnly=true;
-  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:-10000px;top:0;opacity:0;pointer-events:none;font-size:16px';
+  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none;font-size:16px';
   document.body.append(field);
   try{field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);return document.execCommand?.('copy')===true;}
   catch{return false;}
@@ -3714,7 +3751,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     return;
   }
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
-  const phrase = translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
+  const trustedGloss=trustedCulinaryGloss(sourceText,{source:sourceLanguage,target:targetLanguage});
+  const phrase = trustedGloss || translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
     const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
     const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
@@ -3733,7 +3771,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
       const inputType=importedDocument?.kind==='image'?'image':musicInput?'music':undefined;
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
+      const translated = trustedGloss?.text ?? await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
       if (!current()) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
@@ -3798,7 +3836,17 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#literal-result").textContent = "Local editorial expression · source register retained";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localIndifference.register)}</strong><span>${escapeHtml(localIndifference.note)} ${escapeHtml(localIndifference.scope)} <a href="${escapeHtml(localIndifference.url)}" target="_blank" rel="noreferrer">Usage: ASALE</a></span>`;
       }
-      if (onDevice && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
+      if (trustedGloss) {
+        const personalEdit=lastCompletedTranslation?.edited===true;
+        $("#translation-result .result-label").textContent=personalEdit
+          ? `${languageLabel(targetLanguage)} · saved personal wording`
+          : `${languageLabel(targetLanguage)} · dictionary-checked term`;
+        $("#literal-result").textContent=personalEdit
+          ? `Dictionary suggestion: ${trustedGloss.text} · Restore generated to use it`
+          : `Dictionary-checked meaning${trustedGloss.alternatives.length ? " · Other possible wording: "+trustedGloss.alternatives.join(", ") : ""}`;
+        $("#usage-note").innerHTML=`<strong>${personalEdit ? "Your saved edit is shown, not independently checked" : "Exact culinary term · context matters"}</strong><span>Source: <a href="${trustedGloss.reference}" target="_blank" rel="noopener noreferrer">Cambridge Dictionary</a>. Cooking-liquid and prepared-dish meanings can differ. Complete sentences still use the translation service.</span>`;
+      }
+      if (onDevice && !trustedGloss && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
@@ -4176,6 +4224,14 @@ function translationWordingAlternatives() {
     || completed.source!==$("#translator-input").value.trim()
     || completed.sourceLanguage!==sourceLanguage || completed.targetLanguage!==targetLanguage)return [];
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
+  const checked=trustedCulinaryGloss(completed.source,{source:sourceLanguage,target:targetLanguage});
+  if(checked){
+    const seen=new Set([$("#natural-result").textContent.trim().toLowerCase()]);
+    return checked.alternatives.filter(value=>!seen.has(value.toLowerCase())).map(value=>({
+      text:value,label:"Dictionary alternative / Alternativa del diccionario",
+      note:"Meaning depends on cooking-liquid versus prepared-dish context. / Depende del contexto culinario."
+    }));
+  }
   const phrase=localRoute ? matchPhrase(completed.source) : null;
   if(!phrase)return [];
   const choices=phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
@@ -4190,8 +4246,28 @@ function translationWordingAlternatives() {
 
 function swapDirection() {
   cancelMusicListening();
+  // A known provider error should not be promoted to source text by Reverse.
+  // Never override an explicitly edited word: preserve it and mark it unverified.
+  const input=$("#translator-input");
+  const originalGloss=trustedCulinaryGloss(input.value,{source:sourceLanguage,target:targetLanguage});
+  const currentDraft=$("#natural-result")?.textContent.trim() || "";
+  const manuallyEdited=Boolean(activeTranslationEdit && currentDraft !== activeTranslationEdit.generated);
+  const currentPair=Boolean(lastCompletedTranslation && lastCompletedTranslation.source===input.value.trim()
+    && lastCompletedTranslation.sourceLanguage===sourceLanguage && lastCompletedTranslation.targetLanguage===targetLanguage);
+  if(currentPair && originalGloss && !manuallyEdited
+    && ![originalGloss.text,...originalGloss.alternatives].some(value=>normalize(value)===normalize(currentDraft))){
+    // This is an automatic correction, not a personal edit. Keep the newly
+    // checked answer as the generated baseline before saving or reversing.
+    if(activeTranslationEdit)activeTranslationEdit.generated=originalGloss.text;
+    $("#natural-result").textContent=originalGloss.text;
+    if(lastCompletedTranslation)lastCompletedTranslation={...lastCompletedTranslation,
+      target:originalGloss.text,edited:false};
+    // Preserve source text but repair an unedited, clearly mismatching provider
+    // draft before the pair is reversed. A user-saved edit is never auto-replaced.
+    showToast("Replaced an unverified old result with a dictionary-checked term. / Se corrigió una traducción antigua sin verificar.");
+  }
   saveActiveTranslationEdit();
-  const input=$("#translator-input"), completed=lastCompletedTranslation;
+  const completed=lastCompletedTranslation;
   const paired=activeTranslationEdit && completed && !$("#translation-result").hidden
     && completed.source===input.value.trim()
     && completed.sourceLanguage===sourceLanguage && completed.targetLanguage===targetLanguage
@@ -4209,9 +4285,14 @@ function swapDirection() {
     setEditableTranslation(translated.trim(),original,{swapPair:true});
     $("#translation-result").hidden=false;
     $("#no-result").hidden=true;
-    $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+" · preserved text / texto conservado";
+    const unverifiedEdit=completed.edited===true;
+    $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+(unverifiedEdit
+      ? " · preserved personal edit / edición personal conservada"
+      : " · preserved pair / par conservado");
     $("#literal-result").textContent="Original text preserved / Texto original conservado";
-    $("#usage-note").textContent="The completed text pair was switched without retranslating. / Se intercambió el par de textos sin volver a traducir.";
+    $("#usage-note").textContent=unverifiedEdit
+      ? "This is a saved personal wording, not a verified translation. The pair switched without retranslating. / Es un texto personal guardado, no una traducción verificada. Se invirtió el par sin volver a traducir."
+      : "The completed text pair was switched without retranslating. Preserved does not mean independently verified. / Se invirtió el par sin volver a traducir. Conservado no significa verificado.";
     if($("#english-comparison"))$("#english-comparison").hidden=true;
   } else {
     // Before a translation completes, only the language selectors can switch.
@@ -5936,7 +6017,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=201", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=202", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
