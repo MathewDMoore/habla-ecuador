@@ -3019,9 +3019,9 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
 function trustedCulinaryGloss(text, {source=sourceLanguage,target=targetLanguage}={}) {
   const word=String(text||"").trim().normalize("NFC").toLocaleLowerCase("es");
   const entries=[
-    {es:"caldo",en:"broth",alternatives:["stock"]},
-    {es:"caldo de res",en:"beef broth",alternatives:["beef stock"]},
-    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock"]}
+    {es:"caldo",en:"broth",alternatives:["stock","soup"]},
+    {es:"caldo de res",en:"beef broth",alternatives:["beef stock","beef soup"]},
+    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock","chicken soup"]}
   ];
   if(source.startsWith("es-")&&target.startsWith("en-")){
     const entry=entries.find(item=>item.es===word);
@@ -4238,8 +4238,23 @@ function translationWordingAlternatives() {
 
 function swapDirection() {
   cancelMusicListening();
+  // A known provider error should not be promoted to source text by Reverse.
+  // Never override an explicitly edited word: preserve it and mark it unverified.
+  const input=$("#translator-input");
+  const originalGloss=trustedCulinaryGloss(input.value,{source:sourceLanguage,target:targetLanguage});
+  const currentDraft=$("#natural-result")?.textContent.trim() || "";
+  const manuallyEdited=Boolean(activeTranslationEdit && currentDraft !== activeTranslationEdit.generated);
+  const currentPair=Boolean(lastCompletedTranslation && lastCompletedTranslation.source===input.value.trim()
+    && lastCompletedTranslation.sourceLanguage===sourceLanguage && lastCompletedTranslation.targetLanguage===targetLanguage);
+  if(currentPair && originalGloss && !manuallyEdited
+    && ![originalGloss.text,...originalGloss.alternatives].some(value=>normalize(value)===normalize(currentDraft))){
+    $("#natural-result").textContent=originalGloss.text;
+    // Preserve source text but repair an unedited, clearly mismatching provider
+    // draft before the pair is reversed. A user-saved edit is never auto-replaced.
+    showToast("Replaced an unverified old result with a dictionary-checked term. / Se corrigió una traducción antigua sin verificar.");
+  }
   saveActiveTranslationEdit();
-  const input=$("#translator-input"), completed=lastCompletedTranslation;
+  const completed=lastCompletedTranslation;
   const paired=activeTranslationEdit && completed && !$("#translation-result").hidden
     && completed.source===input.value.trim()
     && completed.sourceLanguage===sourceLanguage && completed.targetLanguage===targetLanguage
@@ -4257,9 +4272,14 @@ function swapDirection() {
     setEditableTranslation(translated.trim(),original,{swapPair:true});
     $("#translation-result").hidden=false;
     $("#no-result").hidden=true;
-    $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+" · preserved text / texto conservado";
+    const unverifiedEdit=completed.edited===true;
+    $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+(unverifiedEdit
+      ? " · preserved personal edit / edición personal conservada"
+      : " · preserved pair / par conservado");
     $("#literal-result").textContent="Original text preserved / Texto original conservado";
-    $("#usage-note").textContent="The completed text pair was switched without retranslating. / Se intercambió el par de textos sin volver a traducir.";
+    $("#usage-note").textContent=unverifiedEdit
+      ? "This is a saved personal wording, not a verified translation. The pair switched without retranslating. / Es un texto personal guardado, no una traducción verificada. Se invirtió el par sin volver a traducir."
+      : "The completed text pair was switched without retranslating. Preserved does not mean independently verified. / Se invirtió el par sin volver a traducir. Conservado no significa verificado.";
     if($("#english-comparison"))$("#english-comparison").hidden=true;
   } else {
     // Before a translation completes, only the language selectors can switch.
