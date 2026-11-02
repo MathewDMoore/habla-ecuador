@@ -10,10 +10,10 @@ const HablaTranslationControls=(()=>{
    const button=document.getElementById(id);if(button)quick.append(button);
   }
   const more=document.createElement('details');more.id='translation-more-actions';
-  const summary=document.createElement('summary');summary.textContent='More actions / Más opciones';
+  const summary=document.createElement('summary');summary.textContent='More · Photos & settings / Fotos y ajustes';
   const moreBody=document.createElement('div');moreBody.className='translation-more-content';
   more.append(summary,moreBody);
-  for(const selector of ['#translation-text-tools','#translation-result .result-actions','#translation-result .native-translation-tools','#translation-result .result-notes','#translation-edit-status']){
+  for(const selector of ['#translation-text-tools','#translation-result .result-actions','#translation-result .native-translation-tools','#translation-result .result-notes','#translation-edit-status','#image-quick-actions','#quick-image-status','#shared-translation-workspace .translation-export']){
    const node=document.querySelector(selector);if(node)moreBody.append(node);
   }
   const nodes=[quick,more,...['#inline-translation-alternatives','#translation-speaking-practice','#translation-copy-status','#translation-copy-fallback','#translation-share-status'].map(s=>document.querySelector(s)).filter(Boolean)];
