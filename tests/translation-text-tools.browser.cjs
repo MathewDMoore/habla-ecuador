@@ -28,6 +28,7 @@ async function run(browser,file,native,width=390,height=844){
  },text);
  const target=page.locator('#natural-result'),expand=page.locator('#translation-expand');
  const size=()=>target.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+ await expand.waitFor({state:'visible'});
  const baseSize=await size(),collapsed=await target.evaluate(el=>el.getBoundingClientRect().height);
  assert.equal(await page.locator('#translation-text-tools').evaluate(el=>!!el.closest('.native-translation-tools')),false,'new tools are not hidden by native disclosure');
  assert.equal(await expand.isVisible(),true);
