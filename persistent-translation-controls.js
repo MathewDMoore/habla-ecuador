@@ -3,6 +3,11 @@ const HablaTranslationControls=(()=>{
  function bind(){
   const result=document.querySelector('#translation-result'),input=document.querySelector('#translator-input');
   if(!result||!input||document.querySelector('#translation-action-dock'))return;
+  // Language mistakes need to remain beside the source, not push a hidden
+  // element between the original and its result.
+  const sourceCard=input.closest('.input-card');
+  const warning=document.querySelector('#source-language-warning');
+  if(sourceCard&&warning)sourceCard.append(warning);
   // Existing controls keep their IDs and listeners. Only their presentation
   // changes: four frequent actions stay beside the draft; the rest fold away.
   const quick=document.createElement('div');quick.id='translation-quick-actions';quick.setAttribute('role','group');quick.setAttribute('aria-label','Quick translation actions');
