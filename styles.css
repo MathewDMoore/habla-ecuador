@@ -1454,3 +1454,18 @@ body.ve-theater-open {overflow:hidden !important;}
 @media print {
   #translation-quick-actions,#translation-more-actions { display:none !important; }
 }
+
+/* The small editor is a comparison surface, not the full-document reader.
+   Long source and translated passages scroll locally until Expand/Full text. */
+#shared-translation-workspace #translator-input,
+#native-translation-workspace #translator-input {
+  height: clamp(86px,14svh,130px) !important;
+  min-height: 86px;
+  max-height: 22svh !important;
+  overflow-y: auto !important;
+}
+#shared-translation-workspace > #translation-result > #natural-result:not(.translation-expanded),
+#native-translation-workspace > #translation-result > #natural-result:not(.translation-expanded) {
+  max-height: clamp(92px,24svh,220px) !important;
+  overflow-y: auto !important;
+}
