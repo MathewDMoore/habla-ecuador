@@ -39,8 +39,8 @@ const origin='https://mathewdmoore.github.io',root=path.resolve(__dirname,'..');
     document.querySelector('#translation-result').hidden=false;
     document.querySelector('#translation-result .result-label').textContent='Mexican Spanish translation';
    },{source,draft});
-   // Check actual rendered text-fill/background contrast, including disabled
-   // Pause, rather than accepting an outlined box or an accessible name alone.
+   await page.locator('#translation-more-actions > summary').click();
+   // Check actual rendered contrast; disabled Pause stays out of the idle row.
    const colors=await page.evaluate(()=>{
     const rgb=value=>(value.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
     const luminance=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
@@ -50,7 +50,13 @@ const origin='https://mathewdmoore.github.io',root=path.resolve(__dirname,'..');
      return{id,text:button.textContent.trim(),ratio:contrast(s.webkitTextFillColor||s.color,s.backgroundColor),background:s.backgroundColor,height:box.height,inNotes:!!button.closest('.native-translation-tools'),opacity:s.opacity};
     });
    });
-   for(const button of colors){assert.ok(button.text.length>2,JSON.stringify(button));assert.ok(button.ratio>=4.5,JSON.stringify(button));assert.ok(button.height>=44,JSON.stringify(button));assert.equal(button.inNotes,false,JSON.stringify(button));assert.equal(button.opacity,'1');}
+   for(const button of colors){
+    assert.ok(button.text.length>2,JSON.stringify(button));
+    assert.equal(button.inNotes,false,JSON.stringify(button));
+    if(button.id==='pause-result'){assert.equal(button.height,0,'disabled Pause is hidden until needed');continue;}
+    assert.ok(button.ratio>=4.5,JSON.stringify(button));
+    assert.ok(button.height>=44,JSON.stringify(button));assert.equal(button.opacity,'1');
+   }
    if(native){const heading=await page.locator('#translation-result .result-label').evaluate(el=>({color:getComputedStyle(el).color,bg:getComputedStyle(el.parentElement).backgroundColor}));assert.notEqual(heading.color,heading.bg);}
    await page.locator('#copy-result').tap();assert.equal(await page.evaluate(()=>__copied.at(-1)),draft);
    assert.equal(await page.locator('#translation-copy-status').isVisible(),true);
