@@ -4,7 +4,7 @@ for(const id of ['copy-result','hear-result','share-result','translation-full-te
 await p.locator('#translator-input').fill('Can you say it more slowly?');
 // Translation happens automatically. Retry stays hidden unless an error
 // occurs; simulate the actual retry-visible state to test its handler.
-await p.evaluate(()=>{window.requests=0;retryTranslation=()=>requests++;document.querySelector('#translate-now').hidden=false;});
+await p.evaluate(()=>{window.requests=0;retryTranslation=()=>requests++;document.querySelector('#no-result').hidden=false;});
 await p.locator('#translate-now').click();assert.equal(await p.evaluate(()=>requests),1);
 await p.evaluate(()=>{setEditableTranslation('Can you say it more slowly?','¿Puedes decirlo más despacio?');document.querySelector('#translation-result').hidden=false;});
 await p.waitForFunction(()=>!document.querySelector('#copy-result').disabled);for(const id of ['copy-result','hear-result','share-result','translation-full-text']){assert.equal(await p.locator('#'+id).count(),1);assert.equal(await p.locator('#'+id).isVisible(),true);}
