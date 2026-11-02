@@ -3,6 +3,50 @@
   if (location.origin !== "https://mathewdmoore.github.io"
       || !location.pathname.startsWith("/habla-ecuador/")
       || !window.webkit?.messageHandlers?.hablaSpeech) return;
+  // Capture the existing hosted buttons before their browser-only handlers.
+  // This ships in the signed app, so testing needs no hosted-page deployment.
+  const clipboard = window.webkit.messageHandlers.hablaClipboard;
+  if (clipboard) {
+    let pasteRequest = 0;
+    const reportPaste = text => {
+      for (const id of ["#screenshot-status", "#quick-image-status", "#full-reader-image-status"]) {
+        const node = document.querySelector(id);
+        if (node) node.textContent = text;
+      }
+    };
+    const sourceState = () => ["#translator-input", "#full-reader-source", "#source-language-select", "#target-language-select"]
+      .map(id => document.querySelector(id)?.value || "").join("\u0000");
+    for (const type of ["input", "change"]) document.addEventListener(type, () => { pasteRequest++; }, true);
+    document.addEventListener("click", async event => {
+      const button = event.target?.closest?.("#quick-paste-image, #paste-screenshot");
+      if (!button) {
+        if (event.target?.closest?.("#cancel-screenshot, #close-document")) pasteRequest++;
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const request = ++pasteRequest, original = sourceState();
+      if (typeof HablaScreenshot === "undefined" || typeof HablaScreenshot.read !== "function") {
+        reportPaste("The image reader is still loading. Wait a moment, then tap Paste image again.");
+        return;
+      }
+      reportPaste("Reading the copied image… Allow Paste if your iPhone asks.");
+      try {
+        const result = await clipboard.postMessage({action:"readImage"});
+        if (request !== pasteRequest) return;
+        if (original !== sourceState()) {
+          reportPaste("Your text or language changed. Tap Paste image again when ready.");
+          return;
+        }
+        if (result?.type !== "image/png" || typeof result.base64 !== "string" || !result.base64.length || result.base64.length > 14 * 1024 * 1024)
+          throw new Error("The copied image could not be opened. Try Choose photo.");
+        const bytes = Uint8Array.from(atob(result.base64), character => character.charCodeAt(0));
+        HablaScreenshot.read(new File([bytes], "Pasted image.png", {type:"image/png"}));
+      } catch (error) {
+        if (request === pasteRequest) reportPaste(error?.message || String(error) || "Image paste failed. Try Choose photo.");
+      }
+    }, true);
+  }
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;

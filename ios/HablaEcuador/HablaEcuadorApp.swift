@@ -39,6 +39,49 @@ private final class WeakSpeechHandler: NSObject, WKScriptMessageHandler {
     }
 }
 
+// Read only after the user taps Paste image. WebKit's browser clipboard API
+// is not a reliable image source inside the native companion.
+private final class ClipboardImageHandler: NSObject, WKScriptMessageHandlerWithReply {
+    func userContentController(_ controller: WKUserContentController,
+                               didReceive message: WKScriptMessage,
+                               replyHandler: @escaping (Any?, String?) -> Void) {
+        let origin = message.frameInfo.securityOrigin
+        guard message.frameInfo.isMainFrame, origin.protocol == "https",
+              origin.host == "mathewdmoore.github.io", origin.port == 0 || origin.port == 443,
+              message.frameInfo.request.url?.path.hasPrefix("/habla-ecuador/") == true,
+              let body = message.body as? [String: Any],
+              body["action"] as? String == "readImage" else {
+            replyHandler(nil, "Image paste is available only in Habla Ecuador.")
+            return
+        }
+        guard let image = UIPasteboard.general.image else {
+            replyHandler(nil, "No accessible image on the clipboard. Copy a photo or screenshot, allow Paste if asked, then try again. You can also use Choose photo.")
+            return
+        }
+        let width = image.size.width * image.scale
+        let height = image.size.height * image.scale
+        guard width > 0, height > 0 else {
+            replyHandler(nil, "This copied image has no readable pixels. Try Choose photo.")
+            return
+        }
+        let factor = min(1, 2800 / max(width, height))
+        let size = CGSize(width: max(1, floor(width * factor)), height: max(1, floor(height * factor)))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let prepared = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        guard let data = prepared.pngData(), data.count <= 10 * 1024 * 1024 else {
+            replyHandler(nil, "This copied image is too large. Copy a smaller screenshot or use Choose photo.")
+            return
+        }
+        replyHandler(["base64": data.base64EncodedString(), "type": "image/png"], nil)
+    }
+}
+
 final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
@@ -77,6 +120,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         }
         configuration.userContentController.add(WeakSpeechHandler(self), name: "hablaSpeech")
+        configuration.userContentController.addScriptMessageHandler(
+            ClipboardImageHandler(), contentWorld: .page, name: "hablaClipboard")
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
         webView.uiDelegate = self
