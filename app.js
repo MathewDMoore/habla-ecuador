@@ -3013,6 +3013,29 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
   }),text);
 }
 
+// Small source-checked culinary glossary. Exact matches only, never prose.
+// https://dictionary.cambridge.org/dictionary/spanish-english/caldo
+// https://dictionary.cambridge.org/dictionary/english-spanish/broth
+function trustedCulinaryGloss(text, {source=sourceLanguage,target=targetLanguage}={}) {
+  const word=String(text||"").trim().normalize("NFC").toLocaleLowerCase("es");
+  const entries=[
+    {es:"caldo",en:"broth",alternatives:["stock"]},
+    {es:"caldo de res",en:"beef broth",alternatives:["beef stock"]},
+    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock"]}
+  ];
+  if(source.startsWith("es-")&&target.startsWith("en-")){
+    const entry=entries.find(item=>item.es===word);
+    return entry ? {text:entry.en,alternatives:entry.alternatives,
+      reference:"https://dictionary.cambridge.org/dictionary/spanish-english/caldo"} : null;
+  }
+  if(source.startsWith("en-")&&target.startsWith("es-")){
+    const entry=entries.find(item=>item.en===word || item.alternatives.includes(word));
+    return entry ? {text:entry.es,alternatives:[],
+      reference:"https://dictionary.cambridge.org/dictionary/english-spanish/broth"} : null;
+  }
+  return null;
+}
+
 function translationFailure(code, detail="", status=0) {
   const error = new Error(detail || code);
   error.code = code;
@@ -3107,6 +3130,12 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
 
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
+  // Reliable exact matches outrank the free service and its cached guesses.
+  const trustedGloss=trustedCulinaryGloss(text,{source,target});
+  if(trustedGloss){
+    if(!isCurrent())throw translationFailure("superseded");
+    return trustedGloss.text;
+  }
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
     if (musicTranslationRequestCost(text,source,target,purpose) > 20) throw translationFailure("research_limit");
@@ -3714,7 +3743,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     return;
   }
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
-  const phrase = translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
+  const trustedGloss=trustedCulinaryGloss(sourceText,{source:sourceLanguage,target:targetLanguage});
+  const phrase = trustedGloss || translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
     const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
     const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
@@ -3733,7 +3763,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
       const inputType=importedDocument?.kind==='image'?'image':musicInput?'music':undefined;
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
+      const translated = trustedGloss?.text ?? await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
       if (!current()) return;
       setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
@@ -3798,7 +3828,17 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#literal-result").textContent = "Local editorial expression · source register retained";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localIndifference.register)}</strong><span>${escapeHtml(localIndifference.note)} ${escapeHtml(localIndifference.scope)} <a href="${escapeHtml(localIndifference.url)}" target="_blank" rel="noreferrer">Usage: ASALE</a></span>`;
       }
-      if (onDevice && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
+      if (trustedGloss) {
+        const personalEdit=lastCompletedTranslation?.edited===true;
+        $("#translation-result .result-label").textContent=personalEdit
+          ? `${languageLabel(targetLanguage)} · saved personal wording`
+          : `${languageLabel(targetLanguage)} · dictionary-checked term`;
+        $("#literal-result").textContent=personalEdit
+          ? `Dictionary suggestion: ${trustedGloss.text} · Restore generated to use it`
+          : `Dictionary-checked meaning${trustedGloss.alternatives.length ? " · Other possible wording: "+trustedGloss.alternatives.join(", ") : ""}`;
+        $("#usage-note").innerHTML=`<strong>${personalEdit ? "Your saved edit is shown, not independently checked" : "Exact culinary term · context matters"}</strong><span>Source: <a href="${trustedGloss.reference}" target="_blank" rel="noopener noreferrer">Cambridge Dictionary</a>. Cooking-liquid and prepared-dish meanings can differ. Complete sentences still use the translation service.</span>`;
+      }
+      if (onDevice && !trustedGloss && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
@@ -4176,6 +4216,14 @@ function translationWordingAlternatives() {
     || completed.source!==$("#translator-input").value.trim()
     || completed.sourceLanguage!==sourceLanguage || completed.targetLanguage!==targetLanguage)return [];
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
+  const checked=trustedCulinaryGloss(completed.source,{source:sourceLanguage,target:targetLanguage});
+  if(checked){
+    const seen=new Set([$("#natural-result").textContent.trim().toLowerCase()]);
+    return checked.alternatives.filter(value=>!seen.has(value.toLowerCase())).map(value=>({
+      text:value,label:"Dictionary alternative / Alternativa del diccionario",
+      note:"Meaning depends on cooking-liquid versus prepared-dish context. / Depende del contexto culinario."
+    }));
+  }
   const phrase=localRoute ? matchPhrase(completed.source) : null;
   if(!phrase)return [];
   const choices=phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
