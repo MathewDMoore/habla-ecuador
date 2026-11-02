@@ -70,7 +70,7 @@ async function run(browser,width,file,nativeLayout){
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  const layout=await page.evaluate(()=>({inner:innerWidth,scroll:document.documentElement.scrollWidth,zoom:visualViewport?.scale,wide:[...document.querySelectorAll('body *')].filter(el=>!el.hidden&&el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({id:el.id,tag:el.tagName,text:el.textContent?.slice(0,60),right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}))}));
  assert.equal(layout.scroll<=Math.max(layout.inner,baseline.scroll),true,JSON.stringify({baseline,layout}));
- const controls=await page.locator('#translation-text-tools').boundingBox();assert.ok(controls.x>=0 && controls.x+controls.width<=layout.inner+1,'Copy controls fit the viewport');
+ const controls=await page.locator('#translation-text-tools').boundingBox();assert.ok(controls.x>=0 && controls.x+controls.width<=layout.inner+1,'Copy controls fit the viewport: '+JSON.stringify({controls,layout,baseline,file,width,nativeLayout}));
  if(baseline.scroll>baseline.inner)console.log('Existing page overflow before Copy:',JSON.stringify({baseline,after:layout.scroll,file,width}));
  assert.deepEqual(errors,[]);
  if(process.env.HABLA_SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`translation-copy-${width}${nativeLayout?'-native':''}-${file}.png`)});
