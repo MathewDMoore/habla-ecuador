@@ -3386,6 +3386,10 @@ function clearTranslationCopyFallback() {
   // handles can remain attached to an invisible, horizontally scrolled editor.
   if(field){if(document.activeElement===field){field.setSelectionRange(0,0);field.blur();}field.value='';}
   if(fallback)fallback.hidden=true;
+  // iOS WebKit can pan sideways after selecting text in the fallback field.
+  // Restore the horizontal origin without disturbing the user's vertical place.
+  if(typeof window==="object" && typeof window.scrollTo==="function" && window.scrollX>0)
+    window.scrollTo({left:0,top:window.scrollY,behavior:"instant"});
 }
 
 function renderedTranslationText() {
@@ -3398,7 +3402,7 @@ function legacyCopyTranslation(text) {
   const ranges=selection ? Array.from({length:selection.rangeCount},(_,i)=>selection.getRangeAt(i).cloneRange()) : [];
   const caret=active && typeof active.selectionStart==='number' ? [active.selectionStart,active.selectionEnd,active.selectionDirection] : null;
   const field=document.createElement('textarea');field.value=text;field.readOnly=true;
-  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:-10000px;top:0;opacity:0;pointer-events:none;font-size:16px';
+  field.setAttribute('aria-hidden','true');field.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none;font-size:16px';
   document.body.append(field);
   try{field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);return document.execCommand?.('copy')===true;}
   catch{return false;}
