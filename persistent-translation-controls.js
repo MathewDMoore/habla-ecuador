@@ -3,7 +3,31 @@ const HablaTranslationControls=(()=>{
  function bind(){
   const result=document.querySelector('#translation-result'),input=document.querySelector('#translator-input');
   if(!result||!input||document.querySelector('#translation-action-dock'))return;
-  const nodes=['#translation-text-tools','#translation-copy-status','#translation-copy-fallback','#translation-result .result-actions','#translation-share-status','#translation-edit-status'].map(s=>document.querySelector(s)).filter(Boolean);
+  // Language mistakes need to remain beside the source, not push a hidden
+  // element between the original and its result.
+  const sourceCard=input.closest('.input-card');
+  const warning=document.querySelector('#source-language-warning');
+  if(sourceCard&&warning)sourceCard.append(warning);
+  // Existing controls keep their IDs and listeners. Only their presentation
+  // changes: four frequent actions stay beside the draft; the rest fold away.
+  const quick=document.createElement('div');quick.id='translation-quick-actions';quick.setAttribute('role','group');quick.setAttribute('aria-label','Quick translation actions');
+  for(const id of ['hear-result','copy-result','translation-expand','translation-full-text','pause-result']){
+   const button=document.getElementById(id);if(button)quick.append(button);
+  }
+  const more=document.createElement('details');more.id='translation-more-actions';
+  const summary=document.createElement('summary');summary.textContent='More · Photos & settings / Fotos y ajustes';
+  const moreBody=document.createElement('div');moreBody.className='translation-more-content';
+  more.append(summary,moreBody);
+  for(const selector of ['#translation-text-tools','#translation-result .result-actions','#translation-result .native-translation-tools','#translation-result .result-notes','#translation-edit-status','#shared-translation-workspace .translation-export']){
+   const node=document.querySelector(selector);if(node)moreBody.append(node);
+  }
+  // Photo buttons remain immediately reachable (including before any output),
+  // but no longer split the original text from its translation.
+  const photos=document.querySelector('#image-quick-actions');
+  const photoStatus=document.querySelector('#quick-image-status');
+  if(photos)result.after(photos);
+  if(photoStatus && photos)photos.after(photoStatus);
+  const nodes=[quick,more,...['#inline-translation-alternatives','#translation-speaking-practice','#translation-copy-status','#translation-copy-fallback','#translation-share-status'].map(s=>document.querySelector(s)).filter(Boolean)];
   const dock=document.createElement('section');dock.id='translation-action-dock';dock.setAttribute('aria-label','Translation actions');
   const translate=document.createElement('button');translate.type='button';translate.id='translate-now';translate.textContent='Retry translation / Reintentar traducción';
   const hint=document.createElement('p');hint.setAttribute('role','status');hint.textContent='Type, paste or finish speaking to translate automatically. / Escribe, pega o termina de hablar para traducir automáticamente.';

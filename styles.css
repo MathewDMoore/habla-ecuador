@@ -1375,3 +1375,114 @@ body.ve-theater-open {overflow:hidden !important;}
 .regional-source-list li { margin-block: 1rem; }
 .regional-source-list small { display: block; margin-block: .35rem; }
 .regional-source-list p { margin-block: .4rem; }
+
+/* iPhone compact Translate, checkpoint 2026-11-02.
+   Keep source and output together. Native WKWebView injects a later stylesheet,
+   so only its card spacing uses !important; editing/scroll gestures are intact. */
+#shared-translation-workspace { margin-block: 6px; }
+#shared-translation-workspace > .input-card { padding-block: 7px 4px; }
+#shared-translation-workspace > #translation-result { padding-block: 8px 5px; }
+#native-translation-workspace > .input-card { padding: 7px 12px 5px !important; }
+#native-translation-workspace > #translation-result { padding: 8px 12px 5px !important; }
+#shared-translation-workspace > #translation-result,
+#native-translation-workspace > #translation-result { border-top: 1px solid #b4d1c0; }
+#shared-translation-workspace #natural-result,
+#native-translation-workspace #natural-result { margin-block: 3px 4px; }
+#shared-translation-workspace .input-card #input-mic,
+#native-translation-workspace .input-card #input-mic { margin-top: 3px; }
+#translation-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  align-items: stretch;
+  gap: 5px;
+  margin: 6px 0 2px;
+}
+#translation-quick-actions button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 3px;
+  border: 1px solid #b4d1c0;
+  border-radius: 10px;
+  background: #fff;
+  color: #173f35;
+  -webkit-text-fill-color: #173f35;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+}
+#translation-quick-actions #pause-result:disabled { display: none; }
+#translation-more-actions { margin: 3px 0 5px; color: var(--green); }
+#translation-more-actions > summary {
+  display: list-item;
+  padding: 7px 3px;
+  min-height: 40px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.translation-more-content { display: grid; gap: 7px; padding: 6px 0 10px; }
+.translation-more-content > .translation-text-tools,
+.translation-more-content > .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.translation-more-content > .translation-export,
+.translation-more-content > .image-quick-actions { margin: 4px 0; }
+#translation-result #translation-more-actions .translation-text-tools button,
+#translation-result #translation-more-actions .result-actions button { min-height: 44px; }
+#music-session-data[hidden] { display: none !important; }
+/* Native WebKit renders the long right-hand country name wider than its
+   select box at 320px. Clip only the closed selector's label content, never
+   the popup menu or the actual selected value. */
+#translate-panel > .language-picker-row label { min-width: 0; max-width: 100%; overflow: hidden; }
+#translate-panel > .language-picker-row select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+/* WebKit retains intrinsic width from the WhatsApp file chooser even while its
+   import disclosure is closed. Keep that hidden input inside the phone width. */
+#whatsapp-audio-import { min-width: 0; max-width: 100%; }
+#whatsapp-audio-import label { display: block; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+#whatsapp-audio-file { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+
+@media (max-width: 350px) {
+  #translation-quick-actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media print {
+  #translation-quick-actions,#translation-more-actions { display:none !important; }
+}
+
+/* The small editor is a comparison surface, not the full-document reader.
+   Long source and translated passages scroll locally until Expand/Full text. */
+#shared-translation-workspace #translator-input,
+#native-translation-workspace #translator-input {
+  height: clamp(86px,14svh,130px) !important;
+  min-height: 86px;
+  max-height: 22svh !important;
+  overflow-y: auto !important;
+}
+#shared-translation-workspace > #translation-result > #natural-result:not(.translation-expanded),
+#native-translation-workspace > #translation-result > #natural-result:not(.translation-expanded) {
+  max-height: clamp(92px,24svh,220px) !important;
+  overflow-y: auto !important;
+}
+
+@media print {
+  #shared-translation-workspace #translator-input,
+  #native-translation-workspace #translator-input {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  #shared-translation-workspace > #translation-result > #natural-result,
+  #native-translation-workspace > #translation-result > #natural-result,
+  #shared-translation-workspace > #translation-result > #natural-result:not(.translation-expanded),
+  #native-translation-workspace > #translation-result > #natural-result:not(.translation-expanded) {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+}

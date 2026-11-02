@@ -1,0 +1,59 @@
+name: Compact translator iPhone layout
+
+on:
+  pull_request:
+    paths:
+      - 'music-workspace.js'
+      - 'persistent-translation-controls.js'
+      - 'styles.css'
+      - 'tests/compact-translate.browser.cjs'
+      - 'tests/music-workspace.browser.cjs'
+      - 'tests/persistent-controls.browser.cjs'
+      - 'tests/translation-actions.browser.cjs'
+      - 'tests/translation-text-tools.browser.cjs'
+      - '.github/workflows/compact-translate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node --check music-workspace.js && node --check persistent-translation-controls.js
+      - run: npm install --prefix "$RUNNER_TEMP/habla-compact-browser" --no-package-lock --no-save playwright@1.62.1
+      - run: node "$RUNNER_TEMP/habla-compact-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - name: Paired iPhone text and folded action layout
+        run: node tests/compact-translate.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-compact-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - name: Music graph and recording controls
+        run: node tests/music-workspace.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-compact-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - name: Persistent translation buttons
+        run: node tests/persistent-controls.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-compact-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - name: Copy, listen, expand, and share actions
+        run: node tests/translation-actions.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-compact-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - name: Reading tools retain selection and editing
+        if: matrix.engine == 'chromium'
+        run: node tests/translation-text-tools.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-compact-browser/node_modules/playwright

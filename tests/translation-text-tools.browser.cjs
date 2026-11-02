@@ -9,6 +9,9 @@ async function run(browser,file,native,width=390,height=844){
   if(u.origin!==origin||!u.pathname.startsWith('/habla-ecuador/')||!fs.existsSync(p)||/\.mp3$/.test(p))return route.abort();
   return route.fulfill({path:p});});
  await page.addInitScript(()=>{
+  // The reading-toolbar regression is not an onboarding walkthrough; a
+  // first-launch tutorial would legitimately intercept tap events.
+  localStorage.setItem('habla-tutorial-seen-v2','1');
   window.testCopied=[];window.testMessages=[];
   Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>window.testCopied.push(text)}});
  });
@@ -18,6 +21,12 @@ async function run(browser,file,native,width=390,height=844){
  }
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate');
  await page.waitForFunction(()=>document.querySelector('#translation-text-tools')?.dataset.bound==='true');
+ // Synthetic reading tests must enter the translator, rather than testing
+ // intentionally hidden controls on the Home screen during onboarding.
+ if(!await page.locator('#translator-view').evaluate(el=>el.classList.contains('active'))) {
+  await page.locator('.bottom-nav [data-open="translator-view"]').click();
+ }
+ assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true);
  assert.equal(await page.locator('#translation-select-all').isDisabled(),true);
  const text=('Neutral translated paragraph with accents: café, mañana, 😊.\n\n').repeat(45);
  await page.evaluate(text=>{
@@ -28,7 +37,9 @@ async function run(browser,file,native,width=390,height=844){
  },text);
  const target=page.locator('#natural-result'),expand=page.locator('#translation-expand');
  const size=()=>target.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+ await expand.waitFor({state:'visible'});
  const baseSize=await size(),collapsed=await target.evaluate(el=>el.getBoundingClientRect().height);
+ assert.ok(await target.evaluate(el=>{el.scrollTop=120;return el.scrollTop>0;}),'collapsed long translation scrolls vertically');
  assert.equal(await page.locator('#translation-text-tools').evaluate(el=>!!el.closest('.native-translation-tools')),false,'new tools are not hidden by native disclosure');
  assert.equal(await expand.isVisible(),true);
  assert.equal(await expand.getAttribute('aria-expanded'),'false');
@@ -37,7 +48,8 @@ async function run(browser,file,native,width=390,height=844){
  assert.ok(expanded>collapsed*1.4,`expanded height ${expanded} > compact height ${collapsed}`);
  assert.equal(await expand.getAttribute('aria-expanded'),'true');
  assert.equal(await expand.textContent(),'Collapse');
- assert.ok(await target.evaluate(el=>{el.scrollTop=120;return el.scrollTop>0;}),'long translation scrolls vertically');
+ assert.ok(await target.evaluate(el=>el.scrollHeight<=el.clientHeight+2),'expanded text displays its entire passage without internal clipping');
+ await page.locator('#translation-more-actions > summary').click();
  await page.locator('.translation-text-options summary').click();
  await page.locator('#translation-text-larger').click();assert.equal(await size(),baseSize+2);
  for(let i=0;i<20;i++)if(await page.locator('#translation-text-larger').isEnabled())await page.locator('#translation-text-larger').click();
