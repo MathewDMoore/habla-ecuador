@@ -55,13 +55,48 @@ if [ ! -s "$habla_patch" ]; then
   echo 'No clipboard patch was retrieved. Stopping.'
   exit 1
 fi
-if git apply --check "$habla_patch"; then
+merge_native_fix() {
+  python3 - <<'PY'
+import pathlib, subprocess, sys, tempfile
+names=['ios/HablaEcuador/HablaEcuadorApp.swift','ios/HablaEcuador/NativeSpeech.js']
+pending=[]
+with tempfile.TemporaryDirectory(prefix='habla-native-merge-') as folder:
+    folder=pathlib.Path(folder)
+    for number,name in enumerate(names):
+        path=pathlib.Path(name)
+        original=path.read_bytes()
+        current=folder/f'{number}-current'
+        base=folder/f'{number}-base'
+        repaired=folder/f'{number}-repaired'
+        current.write_bytes(original)
+        base.write_bytes(subprocess.check_output(['git','show','d5dd4ddce3fa607a53eb9a842440686fabde42ab:'+name]))
+        repaired.write_bytes(subprocess.check_output(['git','show','FETCH_HEAD:'+name]))
+        # merge-file -p writes ONLY stdout. Conflicts never touch the project
+        # or its index; both complete results are checked before either write.
+        result=subprocess.run(['git','merge-file','-p',str(current),str(base),str(repaired)],capture_output=True)
+        if result.returncode:
+            print('Could not merge '+name+' automatically.',file=sys.stderr)
+            sys.exit(1)
+        pending.append((path,original,result.stdout))
+    if any(path.read_bytes()!=original for path,original,_ in pending):
+        sys.exit('Native source changed during preparation. No merge was written.')
+    for path,_,merged in pending:
+        path.write_bytes(merged)
+PY
+}
+if git apply --check "$habla_patch" 2>/dev/null; then
   git apply "$habla_patch"
   echo 'Native image-paste fix applied. Your current branch and signing settings were kept.'
 elif git apply --reverse --check "$habla_patch" 2>/dev/null; then
   echo 'Native image-paste fix is already applied.'
+elif merge_native_fix; then
+  echo 'Native image-paste fix merged with your current native source. Branch and signing settings were kept.'
 else
-  echo 'Your native source differs from the reviewed patch. Nothing was overwritten. Send this output back.'
+  echo 'The native changes need a source-specific patch. No patch was applied. Send the following output back:'
+  git log -1 --format='%H %s'
+  git branch --show-current
+  sed -n '1,95p' ios/HablaEcuador/NativeSpeech.js
+  sed -n '1,125p' ios/HablaEcuador/HablaEcuadorApp.swift
   exit 1
 fi
 git diff --check

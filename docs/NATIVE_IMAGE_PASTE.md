@@ -24,7 +24,12 @@ this branch, applies only the two native-file changes if the patch fits, checks
 JavaScript syntax when Node is present, builds app/widget for Simulator, and
 opens Xcode for the physical-device run. It preserves the current branch,
 version, local source, and signing settings; it does not archive or upload.
-Conflicting local changes cause it to stop without applying the patch.
+When a different committed companion version rejects the direct patch, it first
+checks a three-way merge of both files in a temporary directory. A clean merge
+preserves that version's native code and writes only the repaired working files;
+the Git index is unchanged. Conflicting local
+changes cause it to stop without applying the patch and print the source context
+needed to adapt the fix.
 
 ## Validation
 
