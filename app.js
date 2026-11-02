@@ -3019,9 +3019,9 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
 function trustedCulinaryGloss(text, {source=sourceLanguage,target=targetLanguage}={}) {
   const word=String(text||"").trim().normalize("NFC").toLocaleLowerCase("es");
   const entries=[
-    {es:"caldo",en:"broth",alternatives:["stock","soup"]},
-    {es:"caldo de res",en:"beef broth",alternatives:["beef stock","beef soup"]},
-    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock","chicken soup"]}
+    {es:"caldo",en:"broth",alternatives:["stock"]},
+    {es:"caldo de res",en:"beef broth",alternatives:["beef stock"]},
+    {es:"caldo de pollo",en:"chicken broth",alternatives:["chicken stock"]}
   ];
   if(source.startsWith("es-")&&target.startsWith("en-")){
     const entry=entries.find(item=>item.es===word);
@@ -3029,7 +3029,9 @@ function trustedCulinaryGloss(text, {source=sourceLanguage,target=targetLanguage
       reference:"https://dictionary.cambridge.org/dictionary/spanish-english/caldo"} : null;
   }
   if(source.startsWith("en-")&&target.startsWith("es-")){
-    const entry=entries.find(item=>item.en===word || item.alternatives.includes(word));
+    // Stock can mean inventory, shares or cooking liquid; never treat an
+    // English alternative as an unambiguous reverse dictionary entry.
+    const entry=entries.find(item=>item.en===word);
     return entry ? {text:entry.es,alternatives:[],
       reference:"https://dictionary.cambridge.org/dictionary/english-spanish/broth"} : null;
   }
