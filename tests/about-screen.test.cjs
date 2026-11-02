@@ -27,8 +27,12 @@ test('About mirrors the same dynamically bound web version and has working navig
 test('Hosted release version matches service worker and both HTML entry points', () => {
   const {metadata} = require('../scripts/write-release.cjs');
   const {version, build} = metadata(root);
-  assert.equal(version, '0.26.88');
-  assert.equal(build, 198);
+  const expected = require('../app-version.json');
+  assert.equal(version, expected.version);
+  assert.equal(build, expected.build);
+  for (const page of ['index.html', 'translator.html', 'sw.js']) {
+    assert.ok(read(page).includes(`app-updates.js?v=${build}`), `${page} uses the current release cache key`);
+  }
 });
 
 test('Web icon is a square vector asset with Ecuador colors', () => {
