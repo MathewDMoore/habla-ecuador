@@ -1,4 +1,4 @@
-/* Original editorial glosses/examples for 30 bounded source-attested senses. */
+/* Source-attested regional senses; original editorial English and examples. */
 const HablaRegionalVocabulary = [
   {
     "id": "v116-guambra",
@@ -841,7 +841,8 @@ const HablaRegionalVocabulary = [
     "url": "https://www.asale.org/damer/dar",
     "sourceName": "ASALE · Diccionario de americanismos",
     "sourceIds": [
-      "asale_damer"
+      "asale_damer",
+      "colmex_dem"
     ],
     "scope": "Mexico: this sense is dictionary-attested; not an exclusivity or city claim.",
     "note": "Read the whole sentence before choosing an English equivalent. The literal reading is a learning aid, not a translation recommendation.",
@@ -851,18 +852,39 @@ const HablaRegionalVocabulary = [
     "sourceChecked": "2026-11-02",
     "regionalSenseAttested": true,
     "sourceSense": "dar · dar el avión · h⁵",
-    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "uncertainty": "The sense is supported by ASALE and a logged national dictionary check. English glosses and examples are editorial; corpus frequency, city use and native-speaker review remain pending.",
     "searchNotes": false,
     "verification": {
       "dictionaryAttested": true,
-      "nationalDictionaryChecked": false,
+      "nationalDictionaryChecked": true,
       "corpusChecked": false,
       "nativeSpeakerReviewed": false,
       "cityValidated": false
     },
     "figurative": true,
     "literalUs": "give the airplane",
-    "literalUk": "give the aeroplane"
+    "literalUk": "give the aeroplane",
+    "attestations": [
+      {
+        "id": "check-20261102-01",
+        "checked": "2026-11-02",
+        "entryId": "p201-dar-avion",
+        "country": "es-MX",
+        "sourceId": "colmex_dem",
+        "url": "https://dem.colmex.mx/ver/avi%C3%B3n",
+        "locator": "avión, sense 4: darle el avión a alguien",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "The national dictionary supports the pretend-to-listen sense.",
+        "registerLabel": "Popular"
+      }
+    ],
+    "references": [
+      {
+        "name": "El Colegio de México — Diccionario del español de México (DEM) · checked sense",
+        "url": "https://dem.colmex.mx/ver/avi%C3%B3n"
+      }
+    ]
   },
   {
     "id": "p201-echar-hueva",
@@ -875,31 +897,67 @@ const HablaRegionalVocabulary = [
     ],
     "usageType": "idiom",
     "category": "slang",
-    "register": "Colloquial",
+    "register": "Vulgar / coarse (DEM); popular (ASALE)",
     "us": "laze around / loaf around",
     "uk": "laze about / loaf about",
     "url": "https://www.asale.org/damer/echar",
     "sourceName": "ASALE · Diccionario de americanismos",
     "sourceIds": [
-      "asale_damer"
+      "asale_damer",
+      "colmex_dem"
     ],
     "scope": "Mexico: this sense is dictionary-attested; not an exclusivity or city claim.",
-    "note": "ASALE marks this sense popular, not explicitly vulgar. Some speakers may find hueva coarse; tone and relationship matter. It is not an anatomical reading.",
+    "note": "Source labels differ: ASALE marks this locution popular; DEM labels the hueva² entry Groser. The caution filter follows the coarse label. The meaning remains lazing or loafing around.",
     "exampleEs": "Pasamos la tarde echando la hueva en casa.",
     "exampleUs": "We spent the afternoon lazing around at home.",
     "exampleUk": "We spent the afternoon lazing about at home.",
     "sourceChecked": "2026-11-02",
     "regionalSenseAttested": true,
     "sourceSense": "echar · echar la hueva · x³.i",
-    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "uncertainty": "The sense is supported by ASALE and a logged national dictionary check. English glosses and examples are editorial; corpus frequency, city use and native-speaker review remain pending.",
     "searchNotes": false,
     "verification": {
       "dictionaryAttested": true,
-      "nationalDictionaryChecked": false,
+      "nationalDictionaryChecked": true,
       "corpusChecked": false,
       "nativeSpeakerReviewed": false,
       "cityValidated": false
-    }
+    },
+    "attestations": [
+      {
+        "id": "check-20261102-02",
+        "checked": "2026-11-02",
+        "entryId": "p201-echar-hueva",
+        "country": "es-MX",
+        "sourceId": "colmex_dem",
+        "url": "https://dem.colmex.mx/ver/hueva",
+        "locator": "hueva², sense 3: echar la hueva",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "Sense agrees with ASALE; DEM marks the hueva² entry Groser.",
+        "registerLabel": "Groser",
+        "registerCaution": true,
+        "disagreement": "ASALE locution label: popular; DEM headword label: Groser. Preserve both labels and expose the caution."
+      }
+    ],
+    "references": [
+      {
+        "name": "El Colegio de México — Diccionario del español de México (DEM) · checked sense",
+        "url": "https://dem.colmex.mx/ver/hueva"
+      }
+    ],
+    "registerEvidence": [
+      {
+        "sourceId": "asale_damer",
+        "label": "popular",
+        "caution": false
+      },
+      {
+        "sourceId": "colmex_dem",
+        "label": "Groser",
+        "caution": true
+      }
+    ]
   },
   {
     "id": "p201-frito-sin-manteca",
@@ -1411,10 +1469,11 @@ const HablaRegionalVocabulary = [
     "url": "https://www.asale.org/damer/meter",
     "sourceName": "ASALE · Diccionario de americanismos",
     "sourceIds": [
-      "asale_damer"
+      "asale_damer",
+      "apl_diperu"
     ],
     "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
-    "note": "Persuasive talk aimed at convincing someone or obtaining a favor. The context decides whether the speaker means charm, empty talk, or manipulation.",
+    "note": "Persuasive talk aimed at convincing someone or obtaining a favor. The context decides whether the speaker means charm, empty talk, or manipulation. DiPerú’s floro noun is related evidence only; it does not independently verify the complete locution.",
     "exampleEs": "Me metió floro para que le prestara mi bicicleta.",
     "exampleUs": "He sweet-talked me into lending him my bike.",
     "exampleUk": "He sweet-talked me into lending him my bike.",
@@ -1430,7 +1489,27 @@ const HablaRegionalVocabulary = [
       "nativeSpeakerReviewed": false,
       "cityValidated": false
     },
-    "figurative": true
+    "figurative": true,
+    "attestations": [
+      {
+        "id": "check-20261102-04",
+        "checked": "2026-11-02",
+        "entryId": "p201-meter-floro",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+        "locator": "floro, noun, sense 1",
+        "kind": "national-dictionary",
+        "support": "component-only",
+        "finding": "The noun supports the word family. This page does not define the complete meter floro locution; do not mark the complete idiom nationally corroborated."
+      }
+    ],
+    "references": [
+      {
+        "name": "Academia Peruana de la Lengua — DiPerú · related noun only",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=3238"
+      }
+    ]
   },
   {
     "id": "p201-estar-aguja",
@@ -1449,7 +1528,8 @@ const HablaRegionalVocabulary = [
     "url": "https://www.asale.org/damer/estar",
     "sourceName": "ASALE · Diccionario de americanismos",
     "sourceIds": [
-      "asale_damer"
+      "asale_damer",
+      "apl_diperu"
     ],
     "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
     "note": "The money sense belongs to Peru in this source. Honduras has a different sense of estar aguja—being alert—which this entry does not establish for Peru.",
@@ -1459,18 +1539,45 @@ const HablaRegionalVocabulary = [
     "sourceChecked": "2026-11-02",
     "regionalSenseAttested": true,
     "sourceSense": "estar · estar aguja · k¹.i",
-    "uncertainty": "The dictionary supports this sense and its country labels. English glosses, literal readings and examples are editorial. National-dictionary cross-check, corpus frequency and native-speaker review are pending; no city use is established.",
+    "uncertainty": "The sense is supported by ASALE and a logged national dictionary check. English glosses and examples are editorial; corpus frequency, city use and native-speaker review remain pending.",
     "searchNotes": false,
     "verification": {
       "dictionaryAttested": true,
-      "nationalDictionaryChecked": false,
+      "nationalDictionaryChecked": true,
       "corpusChecked": false,
       "nativeSpeakerReviewed": false,
       "cityValidated": false
     },
     "figurative": true,
     "literalUs": "be a needle",
-    "literalUk": "be a needle"
+    "literalUk": "be a needle",
+    "attestations": [
+      {
+        "id": "check-20261102-03",
+        "checked": "2026-11-02",
+        "entryId": "p201-estar-aguja",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=231",
+        "locator": "aguja, colloquial adjective and estar usage; cross-reference to misio, sense 2",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "The adjective and its estar construction are documented; the followed cross-reference establishes the no-money sense.",
+        "crossReferences": [
+          {
+            "url": "https://diperu.apl.org.pe/buscar?entrada=4727",
+            "locator": "misio, sia, sense 2"
+          }
+        ],
+        "registerLabel": "coloq."
+      }
+    ],
+    "references": [
+      {
+        "name": "Academia Peruana de la Lengua — DiPerú · checked sense",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=231"
+      }
+    ]
   },
   {
     "id": "p201-por-huevas-vain",
@@ -1785,7 +1892,561 @@ const HablaRegionalVocabulary = [
       "cityValidated": false
     },
     "figurative": true
+  },
+  {
+    "id": "p202-floro-persuasion",
+    "batch": "national-regional-evidence-202",
+    "term": "floro (persuasive talk)",
+    "headword": "floro",
+    "speech": "floro",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "smooth talk / persuasive talk",
+    "uk": "smooth talk / persuasive talk",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "floro, noun, sense 1",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "DiPerú separates persuasive talk, a fabricated excuse and a flattering compliment. These records preserve that distinction.",
+    "exampleEs": "Con tanto floro consiguió que le prestaran el auto.",
+    "exampleUs": "With all that smooth talk, he got them to lend him the car.",
+    "exampleUk": "With all that smooth talk, he got them to lend him the car.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-05",
+        "checked": "2026-11-02",
+        "entryId": "p202-floro-persuasion",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+        "locator": "floro, noun, sense 1",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "Persuasive talk."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    }
+  },
+  {
+    "id": "p202-floro-excuse",
+    "batch": "national-regional-evidence-202",
+    "term": "floro (fabricated excuse)",
+    "headword": "floro",
+    "speech": "floro",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "a made-up story / an excuse",
+    "uk": "a made-up story / an excuse",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "floro, noun, sense 2",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "Choose the English wording from the full context. The examples are original practice drafts.",
+    "exampleEs": "Llegó tarde e inventó un floro para justificarse.",
+    "exampleUs": "He arrived late and made up a story to excuse himself.",
+    "exampleUk": "He arrived late and made up a story to excuse himself.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-06",
+        "checked": "2026-11-02",
+        "entryId": "p202-floro-excuse",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+        "locator": "floro, noun, sense 2",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "A fabricated story used as an excuse."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    }
+  },
+  {
+    "id": "p202-floro-compliment",
+    "batch": "national-regional-evidence-202",
+    "term": "floro (flattering compliment)",
+    "headword": "floro",
+    "speech": "floro",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "a flattering compliment",
+    "uk": "a flattering compliment",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "floro, noun, sense 3",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "The noun’s compliment sense does not make every occurrence of meter floro a flirtatious remark.",
+    "exampleEs": "Ese floro sonó a un cumplido exagerado.",
+    "exampleUs": "That compliment sounded over the top.",
+    "exampleUk": "That compliment sounded over the top.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-07",
+        "checked": "2026-11-02",
+        "entryId": "p202-floro-compliment",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=3238",
+        "locator": "floro, noun, sense 3",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "A flattering compliment."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    }
+  },
+  {
+    "id": "p202-al-toque",
+    "batch": "national-regional-evidence-202",
+    "term": "al toque",
+    "headword": "a",
+    "speech": "al toque",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "right away / immediately",
+    "uk": "straight away / immediately",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "a, complex entry al toque",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "Choose the English wording from the full context. The examples are original practice drafts.",
+    "exampleEs": "Te lo mando al toque.",
+    "exampleUs": "I’ll send it to you right away.",
+    "exampleUk": "I’ll send it to you straight away.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-08",
+        "checked": "2026-11-02",
+        "entryId": "p202-al-toque",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+        "locator": "a, complex entry al toque",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "Immediately."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "at the touch",
+    "literalUk": "at the touch"
+  },
+  {
+    "id": "p202-a-la-champa",
+    "batch": "national-regional-evidence-202",
+    "term": "a la champa",
+    "headword": "a",
+    "speech": "a la champa",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Popular / informal",
+    "us": "in a slapdash, improvised way",
+    "uk": "in a slapdash, improvised way",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "a, complex entry a la champa",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "Choose the English wording from the full context. The examples are original practice drafts.",
+    "exampleEs": "Lo armó a la champa y quedó mal.",
+    "exampleUs": "He put it together in a slapdash way, and it turned out badly.",
+    "exampleUk": "He put it together in a slapdash way, and it turned out badly.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-09",
+        "checked": "2026-11-02",
+        "entryId": "p202-a-la-champa",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+        "locator": "a, complex entry a la champa",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "In a slapdash, improvised manner."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    }
+  },
+  {
+    "id": "p202-hora-loros",
+    "batch": "national-regional-evidence-202",
+    "term": "a la hora de los loros",
+    "headword": "a",
+    "speech": "a la hora de los loros",
+    "regions": [
+      "es-PE"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "when the truth comes out",
+    "uk": "when the truth comes out",
+    "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+    "sourceName": "Academia Peruana de la Lengua — DiPerú",
+    "sourceIds": [
+      "apl_diperu"
+    ],
+    "sourceSense": "a, complex entry a la hora de los loros",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Peru: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "Choose the English wording from the full context. The examples are original practice drafts.",
+    "exampleEs": "A la hora de los loros sabremos quién cumplió.",
+    "exampleUs": "When the truth comes out, we’ll know who kept their word.",
+    "exampleUk": "When the truth comes out, we’ll know who kept their word.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-10",
+        "checked": "2026-11-02",
+        "entryId": "p202-hora-loros",
+        "country": "es-PE",
+        "sourceId": "apl_diperu",
+        "url": "https://diperu.apl.org.pe/buscar?entrada=1",
+        "locator": "a, complex entry a la hora de los loros",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "At the moment when the truth is revealed."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "at the parrots’ hour",
+    "literalUk": "at the parrots’ hour"
+  },
+  {
+    "id": "p202-irse-avion",
+    "batch": "national-regional-evidence-202",
+    "term": "írsele el avión a alguien",
+    "headword": "avión",
+    "speech": "írsele el avión a alguien",
+    "regions": [
+      "es-MX"
+    ],
+    "usageType": "idiom",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "lose one’s train of thought",
+    "uk": "lose one’s train of thought",
+    "url": "https://dem.colmex.mx/ver/avi%C3%B3n",
+    "sourceName": "El Colegio de México — Diccionario del español de México (DEM)",
+    "sourceIds": [
+      "colmex_dem"
+    ],
+    "sourceSense": "avión, sense 5: írsele el avión a alguien",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "Mexico: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "DEM records this separately from darle el avión (pretending to listen). This sense is a momentary lapse of thought, not a medical diagnosis.",
+    "exampleEs": "Se me fue el avión y olvidé qué iba a decir.",
+    "exampleUs": "I lost my train of thought and forgot what I was going to say.",
+    "exampleUk": "I lost my train of thought and forgot what I was going to say.",
+    "uncertainty": "English glosses, literal aids and original examples are editorial. Corpus frequency, current local naturalness and native-speaker review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-11",
+        "checked": "2026-11-02",
+        "entryId": "p202-irse-avion",
+        "country": "es-MX",
+        "sourceId": "colmex_dem",
+        "url": "https://dem.colmex.mx/ver/avi%C3%B3n",
+        "locator": "avión, sense 5: írsele el avión a alguien",
+        "kind": "national-dictionary",
+        "support": "sense",
+        "finding": "Momentarily lose one’s train of thought."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": true,
+      "nationalDictionaryChecked": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "figurative": true,
+    "literalUs": "have the airplane go away on you",
+    "literalUk": "have the aeroplane go away on you"
+  },
+  {
+    "id": "p202-yaaaa",
+    "batch": "national-regional-evidence-202",
+    "term": "¡yaaaa! (disbelief)",
+    "headword": "yaaaa",
+    "speech": "¡Yaaaa!",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "exclamation",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "yeah, right! / I don’t believe it!",
+    "uk": "yeah, right! / I don’t believe it!",
+    "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+    "sourceName": "Carlos Coello Vila / ASALE — Tres estudios sobre el español boliviano",
+    "sourceIds": [
+      "coello_bolivia"
+    ],
+    "sourceSense": "pp. 92–93, prolonged ¡yaaaa!: incredulity",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "La Paz, Bolivia: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "The prolonged vowel and intonation matter. Ordinary ya has other meanings; this record is the incredulous La Paz interjection described in the study.",
+    "exampleEs": "¿Terminaste todo en cinco minutos? ¡Yaaaa!",
+    "exampleUs": "You finished everything in five minutes? Yeah, right!",
+    "exampleUk": "You finished everything in five minutes? Yeah, right!",
+    "uncertainty": "The La Paz study documents this use. It is not a current frequency survey or native-speaker approval. English examples are original drafts; corpus and contemporary local review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-12",
+        "checked": "2026-11-02",
+        "entryId": "p202-yaaaa",
+        "country": "es-BO",
+        "city": "la-paz",
+        "sourceId": "coello_bolivia",
+        "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+        "locator": "pp. 92–93, prolonged ¡yaaaa!: incredulity",
+        "kind": "regional-study",
+        "support": "sense",
+        "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": false,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false,
+      "regionalStudyChecked": true
+    },
+    "cityEvidence": [
+      {
+        "id": "la-paz",
+        "name": "La Paz",
+        "country": "es-BO",
+        "sourceId": "coello_bolivia",
+        "locator": "pp. 92–93, prolonged ¡yaaaa!: incredulity",
+        "period": "Scholarly study reprinted in 2024; current frequency unverified."
+      }
+    ]
+  },
+  {
+    "id": "p202-acaso",
+    "batch": "national-regional-evidence-202",
+    "term": "¡¿acaso?! (disbelief)",
+    "headword": "acaso",
+    "speech": "¡¿Acaso?!",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "exclamation",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "really?! / I doubt it!",
+    "uk": "really?! / I doubt it!",
+    "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+    "sourceName": "Carlos Coello Vila / ASALE — Tres estudios sobre el español boliviano",
+    "sourceIds": [
+      "coello_bolivia"
+    ],
+    "sourceSense": "p. 92, interjection ¡¿acaso?!: disbelief",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "La Paz, Bolivia: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "An incredulous interjection in the La Paz study. It is separate from other interrogative or adverbial uses of acaso.",
+    "exampleEs": "—Dice que lo hizo solo. —¡¿Acaso?!",
+    "exampleUs": "“He says he did it alone.” “Really?!”",
+    "exampleUk": "“He says he did it alone.” “Really?!”",
+    "uncertainty": "The La Paz study documents this use. It is not a current frequency survey or native-speaker approval. English examples are original drafts; corpus and contemporary local review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-13",
+        "checked": "2026-11-02",
+        "entryId": "p202-acaso",
+        "country": "es-BO",
+        "city": "la-paz",
+        "sourceId": "coello_bolivia",
+        "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+        "locator": "p. 92, interjection ¡¿acaso?!: disbelief",
+        "kind": "regional-study",
+        "support": "sense",
+        "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": false,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false,
+      "regionalStudyChecked": true
+    },
+    "cityEvidence": [
+      {
+        "id": "la-paz",
+        "name": "La Paz",
+        "country": "es-BO",
+        "sourceId": "coello_bolivia",
+        "locator": "p. 92, interjection ¡¿acaso?!: disbelief",
+        "period": "Scholarly study reprinted in 2024; current frequency unverified."
+      }
+    ]
+  },
+  {
+    "id": "p202-alalay",
+    "batch": "national-regional-evidence-202",
+    "term": "¡alalay! (cold)",
+    "headword": "alalay",
+    "speech": "¡Alalay!",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "exclamation",
+    "category": "slang",
+    "register": "Colloquial",
+    "us": "brr! / it’s cold!",
+    "uk": "brr! / it’s cold!",
+    "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+    "sourceName": "Carlos Coello Vila / ASALE — Tres estudios sobre el español boliviano",
+    "sourceIds": [
+      "coello_bolivia"
+    ],
+    "sourceSense": "pp. 92–93, ¡alalay!: feeling cold",
+    "sourceChecked": "2026-11-02",
+    "regionalSenseAttested": true,
+    "scope": "La Paz, Bolivia: this specific sense is documented by the attached source; no exclusivity claim.",
+    "note": "The La Paz chapter includes this cold reaction. Do not transfer the meanings or country labels of similar-looking interjections without their own evidence.",
+    "exampleEs": "¡Alalay! Voy a cerrar la ventana.",
+    "exampleUs": "Brr! I’m going to close the window.",
+    "exampleUk": "Brr! I’m going to close the window.",
+    "uncertainty": "The La Paz study documents this use. It is not a current frequency survey or native-speaker approval. English examples are original drafts; corpus and contemporary local review remain pending.",
+    "searchNotes": false,
+    "attestations": [
+      {
+        "id": "check-20261102-14",
+        "checked": "2026-11-02",
+        "entryId": "p202-alalay",
+        "country": "es-BO",
+        "city": "la-paz",
+        "sourceId": "coello_bolivia",
+        "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
+        "locator": "pp. 92–93, ¡alalay!: feeling cold",
+        "kind": "regional-study",
+        "support": "sense",
+        "finding": "City use explicitly discussed in the La Paz chapter. Reprinted scholarly evidence; contemporary frequency and local-speaker review remain pending."
+      }
+    ],
+    "verification": {
+      "dictionaryAttested": false,
+      "nationalDictionaryChecked": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false,
+      "regionalStudyChecked": true
+    },
+    "cityEvidence": [
+      {
+        "id": "la-paz",
+        "name": "La Paz",
+        "country": "es-BO",
+        "sourceId": "coello_bolivia",
+        "locator": "pp. 92–93, ¡alalay!: feeling cold",
+        "period": "Scholarly study reprinted in 2024; current frequency unverified."
+      }
+    ]
   }
 ];
-if (typeof module !== "undefined" && module.exports) module.exports = HablaRegionalVocabulary;
-
+if(typeof module!=='undefined' && module.exports)module.exports=HablaRegionalVocabulary;

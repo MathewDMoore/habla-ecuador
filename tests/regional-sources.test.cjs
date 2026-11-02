@@ -12,7 +12,7 @@ const ids = options => dictionary.dictionary(options).filter(e => e.batch === 'r
 for (const e of batch) {
   for (const key of ['id','term','headword','speech','us','uk','scope','note','exampleEs','exampleUs','exampleUk','sourceSense','sourceChecked','uncertainty']) assert.ok(e[key],e.id+' '+key);
   assert.equal(e.sourceChecked,'2026-11-02');
-  assert.deepEqual(e.verification,{dictionaryAttested:true,nationalDictionaryChecked:false,corpusChecked:false,nativeSpeakerReviewed:false,cityValidated:false});
+  assert.deepEqual(e.verification,{dictionaryAttested:true,nationalDictionaryChecked:['p201-dar-avion','p201-echar-hueva','p201-estar-aguja'].includes(e.id),corpusChecked:false,nativeSpeakerReviewed:false,cityValidated:false});
   assert.equal(e.regionalSenseAttested,true);
   assert.equal(e.searchNotes,false);
   assert.ok(e.sourceIds.every(id => sourceIds.has(id)));

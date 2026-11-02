@@ -511,14 +511,19 @@ const HablaSpanishContext = (() => {
       : entry.register === 'Familiar' ? 'familiar' : entry.term === 'chulla' ? 'culture'
       : entry.term.replace(/\s*\([^)]*\)/g,'').split(' / ').every(word=>!word.trim().includes(' ')) ? 'vocabulary' : 'usage');
     return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code]),
-      cities:Object.entries(cityEvidence).filter(([,terms])=>terms.includes(entry.term)).map(([city])=>({quito:'Quito',monterrey:'Monterrey, Nuevo León','mexico-city':'Mexico City',bogota:'Bogotá'}[city]))};
+      cities:[...Object.entries(cityEvidence).filter(([,terms])=>terms.includes(entry.term)).map(([city])=>({quito:'Quito',monterrey:'Monterrey, Nuevo León','mexico-city':'Mexico City',bogota:'Bogotá'}[city])),...(entry.cityEvidence||[]).map(city=>city.name)]};
+  }
+  function evidenceSummary(entry,country='all') {
+    const countries=country==='all'?entry.regions:entry.regions.filter(code=>code===country);
+    const matching=(kind,support)=>countries.filter(code=>(entry.attestations||[]).some(a=>a.country===code&&a.kind===kind&&a.support===support));
+    return {nationalCountries:matching('national-dictionary','sense'),regionalStudyCountries:matching('regional-study','sense'),componentOnlyCountries:matching('national-dictionary','component-only'),corpusChecked:entry.verification?.corpusChecked===true,nativeApproved:entry.verification?.nativeSpeakerReviewed===true};
   }
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
     return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
-      const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
+      const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term)||entry.cityEvidence?.some(city=>city.id===region);
       // Contrast notes and literal learning aids must not become English equivalents.
       const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116'||entry.searchNotes===false ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
       return regionMatches && (usage==='all'||(usage==='metaphor' ? entry.figurative===true : usageMetadata(entry).type===usage)) && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
@@ -528,7 +533,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,evidenceSummary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 

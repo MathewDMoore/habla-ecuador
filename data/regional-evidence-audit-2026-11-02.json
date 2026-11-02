@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "auditDate": "2026-11-02",
   "baselineCommit": "f21ea66bcdec8b8ea929c4cc4a3f3307d909f256",
-  "status": "source-audit-complete; integration and validation pending",
+  "status": "evidence-data-validated; live integration pending",
   "checks": [
     {
       "id": "check-20261102-01",

@@ -211,9 +211,12 @@
     "accessStatus": "reference",
     "dictionaryReference": true,
     "checked": "2026-11-02",
-    "use": "Corpus-based reference for Mexican meanings, grammar, register and multiword expressions.",
-    "limits": "Presentation verified. Check the actual sense before marking an entry corroborated. CC BY-NC-ND 4.0: registering this link does not authorize a bulk import or adapted definitions.",
-    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+    "use": "Mexican national dictionary. Logged checks now include darle el avión, írsele el avión and echar la hueva; the last retains DEM’s coarse-register label alongside ASALE’s different label.",
+    "limits": "Only the recorded senses have been inspected. CC BY-NC-ND 4.0; no complete dictionary, source definitions or examples imported.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported.",
+    "evidenceKinds": [
+      "national-dictionary"
+    ]
   },
   {
     "id": "colmex_coem",
@@ -240,11 +243,11 @@
       "es-MX"
     ],
     "coverageRole": "national",
-    "accessStatus": "reference",
+    "accessStatus": "access-limited",
     "dictionaryReference": true,
     "checked": "2026-11-02",
     "use": "Entry point to the academy’s Refranero Mexicano and Diccionario breve de mexicanismos.",
-    "limits": "Resources listed by the academy; no entire work imported and no phrase attestation inferred from the catalogue alone.",
+    "limits": "Academy catalogue verified; a selected Refranero page returned 403 in the follow-up audit. No proverb was imported from catalogue text or a search snippet.",
     "importStatus": "Reference registered; no complete dictionary or corpus imported."
   },
   {
@@ -259,9 +262,12 @@
     "accessStatus": "reference",
     "dictionaryReference": true,
     "checked": "2026-11-02",
-    "use": "Peruvian senses, geographic/register labels, and alphabetically indexed locutions; follow cross-references to the defined sense.",
-    "limits": "Platform instructions verified. Each actual entry and its labels still need a logged check before national-dictionary corroboration is claimed.",
-    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+    "use": "Peruvian national dictionary. Exact sense checks cover floro’s three noun meanings, al toque, a la champa, a la hora de los loros, and aguja with its misio cross-reference.",
+    "limits": "A headword check does not verify every related locution. DiPerú floro is component-only evidence for meter floro; corpus frequency and local review remain separate.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported.",
+    "evidenceKinds": [
+      "national-dictionary"
+    ]
   },
   {
     "id": "acl_bdc",
@@ -316,17 +322,22 @@
     "id": "coello_bolivia",
     "name": "Carlos Coello Vila / ASALE — Tres estudios sobre el español boliviano",
     "kind": "Bolivian linguistic research",
-    "url": "https://www.asale.org/obras-academicas/clasicos-asale/tres-estudios-sobre-el-espanol-boliviano",
+    "url": "https://www.asale.org/sites/default/files/2025-09/16.Tres%20estudios%20sobre%20el%20espa%C3%B1ol%20boliviano_Carlos%20Coello.pdf",
     "regions": [
       "es-BO"
     ],
     "coverageRole": "national",
-    "accessStatus": "research-lead",
+    "accessStatus": "reference",
     "dictionaryReference": true,
     "checked": "2026-11-02",
-    "use": "Research and bibliography for Bolivian variation, language contact and differential lexicography.",
-    "limits": "ASALE publication description verified; full referenced dictionaries were not accessed or imported.",
-    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+    "use": "Primary regional study of Bolivian Spanish and language contact. The La Paz chapter explicitly documents selected interjections; exact pages are recorded on those entries.",
+    "limits": "Full scholarly text inspected, including pp. 92–93 of the 2024 reprint. This is not a current frequency survey or a complete imported dictionary. Text is all rights reserved; Habla links and records concise factual meanings with original examples.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported.",
+    "documentationUrl": "https://www.asale.org/obras-academicas/clasicos-asale/tres-estudios-sobre-el-espanol-boliviano",
+    "fullTextChecked": true,
+    "evidenceKinds": [
+      "regional-study"
+    ]
   },
   {
     "id": "coello_bolivian_lexicon",
@@ -337,11 +348,11 @@
       "es-BO"
     ],
     "coverageRole": "regional-research",
-    "accessStatus": "reference",
+    "accessStatus": "access-limited",
     "dictionaryReference": true,
     "checked": "2026-11-02",
     "use": "Primary scholarly discussion of Bolivian vocabulary and regional variation.",
-    "limits": "Historical research supports context, not present-day frequency or automatic city labels.",
+    "limits": "The Cervantes page redirected to a maintenance notice on 2026-11-02. Use the separately linked ASALE-hosted Coello book; do not count this page as a completed sense check.",
     "importStatus": "Reference registered; no complete dictionary or corpus imported."
   },
   {
@@ -353,12 +364,15 @@
       "es-CU"
     ],
     "coverageRole": "regional-research",
-    "accessStatus": "research-lead",
+    "accessStatus": "reference",
     "dictionaryReference": true,
     "checked": "2026-11-02",
-    "use": "Author’s account of the Atlas lingüístico de Cuba and the Diccionario geolectal de Cuba.",
-    "limits": "Article abstract and publication metadata verified. Atlas and geolectal entries not accessed; no Holguín or other city evidence inferred. DOI: 10.24275/sling.v18n35.06.",
-    "importStatus": "Reference registered; no complete dictionary or corpus imported."
+    "use": "Primary author’s study of Cuban geolectal lexicography. It describes locality-linked evidence, phraseological cross-references and the distinction between atlas methodology and dictionary entries.",
+    "limits": "Full article inspected, especially pp. 195–197. Its atlas fieldwork dates to 1989–1996; the atlas/dictionary application itself remains unaccessed. No present-day frequency, Holguín sense or current city label is inferred.",
+    "importStatus": "Reference registered; no complete dictionary or corpus imported.",
+    "fullTextChecked": true,
+    "underlyingLexiconAccessed": false,
+    "contentUrl": "https://signoslinguisticos.izt.uam.mx/index.php/SL/article/download/374/332/"
   },
   {
     "id": "rae_corpes",
@@ -433,4 +447,3 @@
     "importStatus": "Reference registered; no complete dictionary or corpus imported."
   }
 ]
-
