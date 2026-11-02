@@ -1437,6 +1437,12 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-result #translation-more-actions .translation-text-tools button,
 #translation-result #translation-more-actions .result-actions button { min-height: 44px; }
 #music-session-data[hidden] { display: none !important; }
+/* WebKit retains intrinsic width from the WhatsApp file chooser even while its
+   import disclosure is closed. Keep that hidden input inside the phone width. */
+#whatsapp-audio-import { min-width: 0; max-width: 100%; }
+#whatsapp-audio-import label { display: block; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+#whatsapp-audio-file { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; }
+
 @media (max-width: 350px) {
   #translation-quick-actions { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
