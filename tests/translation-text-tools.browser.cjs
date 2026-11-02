@@ -23,7 +23,9 @@ async function run(browser,file,native,width=390,height=844){
  await page.waitForFunction(()=>document.querySelector('#translation-text-tools')?.dataset.bound==='true');
  // Synthetic reading tests must enter the translator, rather than testing
  // intentionally hidden controls on the Home screen during onboarding.
- await page.locator('.bottom-nav [data-open="translator-view"]').click();
+ if(!await page.locator('#translator-view').evaluate(el=>el.classList.contains('active'))) {
+  await page.locator('.bottom-nav [data-open="translator-view"]').click();
+ }
  assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true);
  assert.equal(await page.locator('#translation-select-all').isDisabled(),true);
  const text=('Neutral translated paragraph with accents: café, mañana, 😊.\n\n').repeat(45);
