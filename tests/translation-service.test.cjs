@@ -13,6 +13,37 @@ const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseD
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
  fresh();
+ // Regression: a provider returning 'Vol.' must not replace a reliable
+ // dictionary translation for the isolated Ecuadorian culinary term.
+ handler=async()=>ok('Vol.');
+ for(const source of ['es-EC','es-BO','es-MX','es-VE','es-CO'])for(const target of ['en-US','en-GB'])for(const purpose of ['everyday','academic']){
+   assert.equal(await run(`requestGeneralTranslation("Caldo","ec-en",{source:"${source}",target:"${target}",purpose:"${purpose}",onDevice:false})`),'broth');
+   assert.equal(await run(`requestGeneralTranslation("caldo de res","ec-en",{source:"${source}",target:"${target}",purpose:"${purpose}",onDevice:true})`),'beef broth');
+   assert.equal(await run(`requestGeneralTranslation("caldo de pollo","ec-en",{source:"${source}",target:"${target}",purpose:"${purpose}",onDevice:true})`),'chicken broth');
+ }
+ for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX']){
+   for(const [english,spanish] of [['broth','caldo'],['stock','caldo'],['beef broth','caldo de res'],['chicken stock','caldo de pollo']]){
+     assert.equal(await run(`requestGeneralTranslation("${english}","en-ec",{source:"${source}",target:"${target}",onDevice:false})`),spanish);
+   }
+ }
+ assert.equal(requests.length,0,'trusted exact term must not call the inaccurate provider');
+ run('sourceLanguage="es-EC";targetLanguage="en-US";direction="ec-en";translationPurpose="everyday";');
+ element('#translator-input').value='Caldo';
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'broth','visible translation must be broth');
+ assert.match(element('#translation-result .result-label').textContent,/dictionary-checked term/);
+ assert.equal(element('#translator-input').value,'Caldo','source capitalization preserved');
+ assert.ok(run('translationWordingAlternatives()').some(choice=>choice.text==='stock'));
+ element('#natural-result').textContent='Vol.';run('saveActiveTranslationEdit()');
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'Vol.','saved edit cannot disappear silently');
+ assert.match(element('#translation-result .result-label').textContent,/saved personal wording/);
+ run('restoreGeneratedTranslation()');
+ assert.equal(element('#natural-result').textContent,'broth');
+ fresh();handler=async()=>ok('culture medium');
+ assert.equal(await run('requestGeneralTranslation("caldo de cultivo","ec-en",{source:"es-EC",target:"en-US"})'),'culture medium');
+ assert.equal(requests.length,1,'contextual meanings must not be replaced blindly');
+ fresh();
  // A language ability term cannot be reduced to the language name "Español".
  handler=async()=>ok('Español');
  for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX']){
