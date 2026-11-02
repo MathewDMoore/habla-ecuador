@@ -1478,7 +1478,9 @@ body.ve-theater-open {overflow:hidden !important;}
     overflow-y: visible !important;
   }
   #shared-translation-workspace > #translation-result > #natural-result,
-  #native-translation-workspace > #translation-result > #natural-result {
+  #native-translation-workspace > #translation-result > #natural-result,
+  #shared-translation-workspace > #translation-result > #natural-result:not(.translation-expanded),
+  #native-translation-workspace > #translation-result > #natural-result:not(.translation-expanded) {
     height: auto !important;
     max-height: none !important;
     overflow-y: visible !important;
