@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - 'ios/**'
+      - 'tests/shared-audio-project.py'
+      - 'tests/whatsapp-audio.test.cjs'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
@@ -13,6 +15,8 @@ on:
   pull_request:
     paths:
       - 'ios/**'
+      - 'tests/shared-audio-project.py'
+      - 'tests/whatsapp-audio.test.cjs'
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
@@ -32,6 +36,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify shared audio and target configuration
+        run: |
+          node --test tests/whatsapp-audio.test.cjs
+          python3 tests/shared-audio-project.py
       - name: Verify native phrase accumulation
         run: python3 tests/run-native-transcript-state.py
       - name: Verify converted audio and queue diagnostics
