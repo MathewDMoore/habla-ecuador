@@ -47,7 +47,7 @@ PY
 cd "$habla_repo"
 echo "Habla project: $habla_repo"
 git status --short
-habla_patch=$(mktemp -t habla-image-paste)
+habla_patch=$(mktemp "${TMPDIR:-/tmp}/habla-image-paste.XXXXXX")
 trap 'rm -f "$habla_patch"' EXIT
 git fetch --no-tags https://github.com/MathewDMoore/habla-ecuador.git refs/heads/fix/native-image-paste-before-beta
 git diff d5dd4ddce3fa607a53eb9a842440686fabde42ab FETCH_HEAD -- ios/HablaEcuador/HablaEcuadorApp.swift ios/HablaEcuador/NativeSpeech.js > "$habla_patch"
@@ -68,7 +68,7 @@ git diff --check
 if command -v node >/dev/null 2>&1; then
   node --check ios/HablaEcuador/NativeSpeech.js
 fi
-habla_log=$(mktemp -t habla-image-paste-build)
+habla_log=$(mktemp "${TMPDIR:-/tmp}/habla-image-paste-build.XXXXXX")
 echo "Compiling app and widget for Simulator. Build log: $habla_log"
 if xcodebuild -quiet -project ios/HablaEcuador.xcodeproj -scheme HablaEcuador \
   -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
