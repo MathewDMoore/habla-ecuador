@@ -18,6 +18,10 @@ async function run(browser,file,native,width=390,height=844){
  }
  await page.goto(origin+'/habla-ecuador/'+file+'?start=translate');
  await page.waitForFunction(()=>document.querySelector('#translation-text-tools')?.dataset.bound==='true');
+ // Synthetic reading tests must enter the translator, rather than testing
+ // intentionally hidden controls on the Home screen during onboarding.
+ await page.locator('.bottom-nav [data-open="translator-view"]').click();
+ assert.equal(await page.locator('#translator-view').evaluate(el=>el.classList.contains('active')),true);
  assert.equal(await page.locator('#translation-select-all').isDisabled(),true);
  const text=('Neutral translated paragraph with accents: café, mañana, 😊.\n\n').repeat(45);
  await page.evaluate(text=>{
@@ -28,11 +32,6 @@ async function run(browser,file,native,width=390,height=844){
  },text);
  const target=page.locator('#natural-result'),expand=page.locator('#translation-expand');
  const size=()=>target.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
- await page.waitForTimeout(100);
- console.log('Compact reading-state diagnostics',JSON.stringify(await page.evaluate(()=>{
-  const el=document.querySelector('#translation-expand'),result=document.querySelector('#translation-result'),draft=document.querySelector('#natural-result'),tools=document.querySelector('#translation-text-tools');
-  return {expandHTML:el?.outerHTML,parent:el?.parentElement?.outerHTML?.slice(0,600),resultHidden:result?.hidden,editable:draft?.getAttribute('contenteditable'),activeView:document.querySelector('.view.active')?.id,bodyClass:document.body.className,quick:document.querySelector('#translation-quick-actions')?.outerHTML?.slice(0,700),toolsParent:tools?.parentElement?.id,dock:document.querySelector('#translation-action-dock')?.outerHTML?.slice(0,350)};
- })));
  await expand.waitFor({state:'visible'});
  const baseSize=await size(),collapsed=await target.evaluate(el=>el.getBoundingClientRect().height);
  assert.equal(await page.locator('#translation-text-tools').evaluate(el=>!!el.closest('.native-translation-tools')),false,'new tools are not hidden by native disclosure');
