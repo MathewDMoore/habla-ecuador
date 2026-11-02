@@ -1375,3 +1375,22 @@ body.ve-theater-open {overflow:hidden !important;}
 .regional-source-list li { margin-block: 1rem; }
 .regional-source-list small { display: block; margin-block: .35rem; }
 .regional-source-list p { margin-block: .4rem; }
+
+/* The WhatsApp voice-note file picker must not widen a 320px iPhone viewport.
+   Native WebKit file inputs otherwise retain their intrinsic 347px width,
+   shifting the neighboring translation toolbar offscreen after Copy. */
+#whatsapp-audio-import,
+#whatsapp-audio-import label {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+#whatsapp-audio-file {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
