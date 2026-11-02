@@ -3386,8 +3386,10 @@ function clearTranslationCopyFallback() {
   // handles can remain attached to an invisible, horizontally scrolled editor.
   if(field){if(document.activeElement===field){field.setSelectionRange(0,0);field.blur();}field.value='';}
   if(fallback)fallback.hidden=true;
-  // iOS WebKit can pan sideways after selecting text in the fallback field.
-  // Restore the horizontal origin without disturbing the user's vertical place.
+  // WebKit may scroll document.body horizontally while window.scrollX stays 0.
+  // Reset that offset after dismissing selected fallback text; retain scrollY.
+  if(document.body)document.body.scrollLeft=0;
+  if(document.documentElement)document.documentElement.scrollLeft=0;
   if(typeof window==="object" && typeof window.scrollTo==="function" && window.scrollX>0)
     window.scrollTo({left:0,top:window.scrollY,behavior:"instant"});
 }
