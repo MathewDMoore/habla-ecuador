@@ -22,11 +22,17 @@ async function main(){
    assert.equal(await run(`requestGeneralTranslation("caldo de pollo","ec-en",{source:"${source}",target:"${target}",purpose:"${purpose}",onDevice:true})`),'chicken broth');
  }
  for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX']){
-   for(const [english,spanish] of [['broth','caldo'],['stock','caldo'],['beef broth','caldo de res'],['chicken stock','caldo de pollo']]){
+   for(const [english,spanish] of [['broth','caldo'],['beef broth','caldo de res'],['chicken broth','caldo de pollo']]){
      assert.equal(await run(`requestGeneralTranslation("${english}","en-ec",{source:"${source}",target:"${target}",onDevice:false})`),spanish);
    }
  }
  assert.equal(requests.length,0,'trusted exact term must not call the inaccurate provider');
+ // Stock and soup are ambiguous in English: never force a culinary translation.
+ fresh();handler=async text=>ok(text==='stock'?'existencias':text==='soup'?'sopa':'sopa de res');
+ assert.equal(await run('requestGeneralTranslation("stock","en-ec",{source:"en-US",target:"es-EC"})'),'existencias');
+ assert.equal(await run('requestGeneralTranslation("soup","en-ec",{source:"en-US",target:"es-EC"})'),'sopa');
+ assert.equal(await run('requestGeneralTranslation("beef soup","en-ec",{source:"en-US",target:"es-EC"})'),'sopa de res');
+ assert.equal(requests.length,3,'ambiguous English senses still use contextual translation');
  run('sourceLanguage="es-EC";targetLanguage="en-US";direction="ec-en";translationPurpose="everyday";');
  element('#translator-input').value='Caldo';
  await run('renderTranslation()');
