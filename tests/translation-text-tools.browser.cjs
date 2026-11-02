@@ -38,6 +38,7 @@ async function run(browser,file,native,width=390,height=844){
  assert.equal(await expand.getAttribute('aria-expanded'),'true');
  assert.equal(await expand.textContent(),'Collapse');
  assert.ok(await target.evaluate(el=>{el.scrollTop=120;return el.scrollTop>0;}),'long translation scrolls vertically');
+ await page.locator('#translation-more-actions > summary').click();
  await page.locator('.translation-text-options summary').click();
  await page.locator('#translation-text-larger').click();assert.equal(await size(),baseSize+2);
  for(let i=0;i<20;i++)if(await page.locator('#translation-text-larger').isEnabled())await page.locator('#translation-text-larger').click();
