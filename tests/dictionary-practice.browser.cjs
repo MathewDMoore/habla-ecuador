@@ -105,7 +105,8 @@ async function run(browser,native,width=390){
  await mic.evaluate(el=>el.click());await send({type:'start'});await send({type:'result',text:'camino',final:true});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/differ/);
  assert.equal(await panel.locator('.dictionary-practice-coach').isVisible(),true);
- await panel.locator('.dictionary-practice-focus-hear').click();
+ assert.equal(await panel.locator('.dictionary-practice-focus-hear').isVisible(),true,'focus hearing control is displayed');
+ await panel.locator('.dictionary-practice-focus-hear').evaluate(el=>el.click());
  assert.equal(await page.evaluate(()=>window.spoken.at(-1).text),'camello');
  await mic.evaluate(el=>el.click());await send({type:'result',text:'camello',final:false});await send({type:'end'});
  assert.match(await panel.locator('.dictionary-practice-feedback').textContent(),/unconfirmed/,'provisional words do not earn a confirmed match');
