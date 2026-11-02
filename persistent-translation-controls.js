@@ -18,9 +18,15 @@ const HablaTranslationControls=(()=>{
   const summary=document.createElement('summary');summary.textContent='More · Photos & settings / Fotos y ajustes';
   const moreBody=document.createElement('div');moreBody.className='translation-more-content';
   more.append(summary,moreBody);
-  for(const selector of ['#translation-text-tools','#translation-result .result-actions','#translation-result .native-translation-tools','#translation-result .result-notes','#translation-edit-status','#image-quick-actions','#quick-image-status','#shared-translation-workspace .translation-export']){
+  for(const selector of ['#translation-text-tools','#translation-result .result-actions','#translation-result .native-translation-tools','#translation-result .result-notes','#translation-edit-status','#shared-translation-workspace .translation-export']){
    const node=document.querySelector(selector);if(node)moreBody.append(node);
   }
+  // Photo buttons remain immediately reachable (including before any output),
+  // but no longer split the original text from its translation.
+  const photos=document.querySelector('#image-quick-actions');
+  const photoStatus=document.querySelector('#quick-image-status');
+  if(photos)result.after(photos);
+  if(photoStatus && photos)photos.after(photoStatus);
   const nodes=[quick,more,...['#inline-translation-alternatives','#translation-speaking-practice','#translation-copy-status','#translation-copy-fallback','#translation-share-status'].map(s=>document.querySelector(s)).filter(Boolean)];
   const dock=document.createElement('section');dock.id='translation-action-dock';dock.setAttribute('aria-label','Translation actions');
   const translate=document.createElement('button');translate.type='button';translate.id='translate-now';translate.textContent='Retry translation / Reintentar traducción';
