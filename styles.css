@@ -1437,6 +1437,11 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-result #translation-more-actions .translation-text-tools button,
 #translation-result #translation-more-actions .result-actions button { min-height: 44px; }
 #music-session-data[hidden] { display: none !important; }
+/* Native WebKit renders the long right-hand country name wider than its
+   select box at 320px. Clip only the closed selector's label content, never
+   the popup menu or the actual selected value. */
+#translate-panel > .language-picker-row label { min-width: 0; max-width: 100%; overflow: hidden; }
+#translate-panel > .language-picker-row select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
 /* WebKit retains intrinsic width from the WhatsApp file chooser even while its
    import disclosure is closed. Keep that hidden input inside the phone width. */
 #whatsapp-audio-import { min-width: 0; max-width: 100%; }
