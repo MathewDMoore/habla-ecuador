@@ -9,6 +9,9 @@ async function run(browser,file,native,width=390,height=844){
   if(u.origin!==origin||!u.pathname.startsWith('/habla-ecuador/')||!fs.existsSync(p)||/\.mp3$/.test(p))return route.abort();
   return route.fulfill({path:p});});
  await page.addInitScript(()=>{
+  // The reading-toolbar regression is not an onboarding walkthrough; a
+  // first-launch tutorial would legitimately intercept tap events.
+  localStorage.setItem('habla-tutorial-seen-v2','1');
   window.testCopied=[];window.testMessages=[];
   Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>window.testCopied.push(text)}});
  });
