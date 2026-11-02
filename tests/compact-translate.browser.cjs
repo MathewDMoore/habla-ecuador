@@ -26,7 +26,7 @@ const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
    const geometry=await page.evaluate(()=>{
     const s=document.querySelector('#translator-input').closest('.input-card'),r=document.querySelector('#translation-result');
     const a=s.getBoundingClientRect(),b=r.getBoundingClientRect();
-    return {gap:b.top-a.bottom,sourceFirst:a.top<b.top,screenWidth:document.documentElement.scrollWidth,viewport:innerWidth,
+    return {gap:b.top-a.bottom,sourceFirst:a.top<b.top,screenWidth:document.documentElement.scrollWidth,viewport:innerWidth,offenders:[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.right>innerWidth+2}).slice(0,12).map(e=>({tag:e.tagName,id:e.id,className:String(e.className).slice(0,60),right:Math.round(e.getBoundingClientRect().right)})),
       photosAfter:document.querySelector('#image-quick-actions').compareDocumentPosition(r)&Node.DOCUMENT_POSITION_PRECEDING,
       clutterBefore:s.nextElementSibling?.id};
    });
