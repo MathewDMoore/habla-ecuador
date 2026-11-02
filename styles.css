@@ -17,7 +17,10 @@ html { background: #f2ece1; }
 body { margin: 0; min-height: 100vh; background: var(--cream); color: var(--ink); }
 /* Prevent iPhone WebKit from panning the entire translator horizontally.
    Narrow file pickers / dense controls must wrap inside the viewport. */
-html, body { max-width: 100%; overflow-x: hidden; }
+html { max-width: 100%; overflow-x: hidden; }
+/* WebKit can scroll body horizontally even when the root scrollX remains zero.
+   clip prevents body.scrollLeft from shifting all translation controls. */
+body { max-width: 100%; overflow-x: clip; }
 button, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .push-to-talk { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
