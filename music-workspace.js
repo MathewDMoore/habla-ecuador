@@ -1,7 +1,7 @@
 /* Compact listening controls and a graph of observed transcript size, not audio amplitude. */
 const HablaMusicWorkspace=(()=>{
  let panel,phaseLabel,countLabel,timeLabel,line,timer,startTime=0,elapsed=0,words=0,samples=[],phase='Idle';
- function paint(){if(!panel)return;phaseLabel.textContent=phase;countLabel.textContent=words+' words';timeLabel.textContent=elapsed+' s';const max=Math.max(1,...samples);line.setAttribute('points',samples.map((v,i)=>`${i*300/19},${48-v/max*44}`).join(' '));}
+ function paint(){if(!panel)return;panel.hidden=phase==='Idle'||phase==='Paused';phaseLabel.textContent=phase;countLabel.textContent=words+' words';timeLabel.textContent=elapsed+' s';const max=Math.max(1,...samples);line.setAttribute('points',samples.map((v,i)=>`${i*300/19},${48-v/max*44}`).join(' '));}
  function sample(){elapsed=Math.floor((Date.now()-startTime)/1000);samples.push(words);samples=samples.slice(-20);paint();}
  function bind(){
   const capture=document.querySelector('.music-capture'),input=document.querySelector('#translator-input')?.closest('.input-card');
@@ -15,7 +15,14 @@ const HablaMusicWorkspace=(()=>{
   panel=document.createElement('section');panel.id='music-session-data';panel.setAttribute('aria-label','Recognition activity');
   panel.innerHTML='<div class="music-session-metrics"><strong data-phase>Idle</strong><span data-words>0 words</span><span data-time>0 s</span></div><svg viewBox="0 0 300 52" role="img" aria-label="Words in the captured transcript over the last 20 seconds"><path d="M0 49H300" stroke="#b4d1c0"/><polyline fill="none" stroke="#173f35" stroke-width="3" points=""/></svg><small>Transcript words · last 20 seconds. This is not an audio level meter.</small>';
   phaseLabel=panel.querySelector('[data-phase]');countLabel=panel.querySelector('[data-words]');timeLabel=panel.querySelector('[data-time]');line=panel.querySelector('polyline');
-  capture.prepend(actions,panel);capture.append(settings);input.before(capture);paint();
+  capture.prepend(actions,panel);capture.append(settings);
+  // Listening belongs below the paired editor, not between From/To and the
+  // original text. Native Music owns its capture card, so do not steal it.
+  const nativeMusic=capture.closest('#native-music-workspace');
+  const pair=document.querySelector('#native-translation-workspace')||document.querySelector('#shared-translation-workspace');
+  if(!nativeMusic && pair)pair.after(capture);
+  else if(!nativeMusic)input.after(capture);
+  paint();
   window.addEventListener('pagehide',()=>{clearInterval(timer);timer=null;});
  }
  function start(text=''){clearInterval(timer);words=text.trim()?text.trim().split(/\s+/u).length:0;samples=[words];elapsed=0;startTime=Date.now();phase='Starting';paint();timer=setInterval(sample,1000);}
