@@ -140,6 +140,15 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraPreviewWork: DispatchWorkItem?
     private var cameraPreviewInFlight: String?
     private var cameraPreviewInFlightText = ""
+    private struct CameraVisibleLine {
+        let id: UUID
+        let source: String
+        let frame: CGRect
+    }
+    private var cameraVisibleLines: [CameraVisibleLine] = []
+    private var cameraSpatialLabels: [UUID: UILabel] = [:]
+    private var cameraTranslatedLines: [String: String] = [:]
+    private var cameraFailedLines: Set<String> = []
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
     private var lastWidgetRouteID: UUID?
 
@@ -262,6 +271,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraPreviewText = ""
         cameraPreviewWork?.cancel()
         cameraPreviewInFlight = nil
+        cameraVisibleLines = []
+        cameraTranslatedLines = [:]
+        cameraFailedLines = []
+        clearCameraSpatialLabels()
         installCameraOverlay(on: scanner)
         present(navigation, animated: true) { [weak self, weak scanner] in
             guard let self, let scanner else { return }
@@ -319,61 +332,141 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     @objc private func toggleCameraLiveTranslation() {
         cameraLiveEnabled.toggle()
         cameraOverlayButton?.setTitle(cameraLiveEnabled
-            ? "■ Stop live translation / Detener" : "▶ Live translation / Traducir en vivo", for: .normal)
+            ? "■ Show original / Ver original" : "▶ Translate over text / Traducir encima", for: .normal)
         cameraPreviewWork?.cancel()
         cameraPreviewInFlight = nil
         if cameraLiveEnabled {
-            cameraOverlayLabel?.text = "Reading visible words… Hold still and keep all lines in the frame."
+            cameraFailedLines.removeAll()
+            cameraOverlayLabel?.text = "Translated words will cover matching lines on the camera view. Hold steady; verify names and numbers."
+            refreshCameraSpatialLabels()
             queueCameraLivePreview()
         } else {
-            cameraOverlayLabel?.text = "Live preview paused. Tap to resume. Original words remain available with Use all text."
+            clearCameraSpatialLabels()
+            cameraOverlayLabel?.text = "Original camera text visible. Tap Translate over text to resume."
+        }
+    }
+
+    // VisionKit supplies text bounds in scanner-view coordinates. Keep a
+    // reversible on-camera label for each line, keyed to the recognized item.
+    // This is spatial text overlay, not background inpainting.
+    private func clearCameraSpatialLabels() {
+        for label in cameraSpatialLabels.values { label.removeFromSuperview() }
+        cameraSpatialLabels.removeAll()
+    }
+
+    private func cameraTextBounds(_ bounds: RecognizedItem.Bounds) -> CGRect {
+        let points = [bounds.topLeft, bounds.topRight, bounds.bottomRight, bounds.bottomLeft]
+        let xs = points.map(\.x), ys = points.map(\.y)
+        guard let left = xs.min(), let right = xs.max(),
+              let top = ys.min(), let bottom = ys.max() else { return .zero }
+        return CGRect(x: left, y: top, width: right - left, height: bottom - top)
+    }
+
+    private func refreshCameraSpatialLabels() {
+        guard cameraLiveEnabled, let scanner = cameraScanner else {
+            clearCameraSpatialLabels()
+            return
+        }
+        let surface = scanner.overlayContainerView
+        let bounds = surface.bounds
+        guard bounds.width > 40 && bounds.height > 40 else { return }
+        let visibleIDs = Set(cameraVisibleLines.map(\.id))
+        for (id, label) in cameraSpatialLabels where !visibleIDs.contains(id) {
+            label.removeFromSuperview()
+            cameraSpatialLabels.removeValue(forKey: id)
+        }
+        for line in cameraVisibleLines {
+            guard let translation = cameraTranslatedLines[line.source], !translation.isEmpty,
+                  line.frame.width > 12, line.frame.height > 4 else {
+                cameraSpatialLabels.removeValue(forKey: line.id)?.removeFromSuperview()
+                continue
+            }
+            let label: UILabel
+            if let existing = cameraSpatialLabels[line.id] {
+                label = existing
+            } else {
+                label = UILabel()
+                label.numberOfLines = 2
+                label.textAlignment = .center
+                label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+                label.minimumScaleFactor = 0.65
+                label.adjustsFontSizeToFitWidth = true
+                label.lineBreakMode = .byTruncatingTail
+                label.textColor = .label
+                label.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.96)
+                label.layer.cornerRadius = 5
+                label.layer.masksToBounds = true
+                label.layer.borderColor = UIColor.systemTeal.withAlphaComponent(0.7).cgColor
+                label.layer.borderWidth = 0.8
+                label.isUserInteractionEnabled = false
+                label.accessibilityLabel = "Camera translation: " + translation
+                surface.addSubview(label)
+                cameraSpatialLabels[line.id] = label
+            }
+            label.text = " " + translation + " "
+            // Use the recognized quadrilateral's enclosing rectangle. Keep
+            // short labels legible without reaching outside the viewfinder.
+            let width = min(bounds.width - 16, max(80, line.frame.width + 12))
+            let height = min(52, max(23, line.frame.height * 1.75))
+            let left = min(max(8, line.frame.midX - width / 2), bounds.width - width - 8)
+            let top = min(max(8, line.frame.midY - height / 2), bounds.height - height - 8)
+            label.frame = CGRect(x: left, y: top, width: width, height: height)
         }
     }
 
     private func updateCameraItems(_ items: [RecognizedItem]) {
-        cameraLines = items.compactMap { item in
-            guard case .text(let recognized) = item else { return nil }
-            let text = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-            return text.isEmpty ? nil : text
+        cameraLines = []
+        cameraVisibleLines = []
+        for item in items {
+            guard case .text(let recognized) = item else { continue }
+            let source = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !source.isEmpty else { continue }
+            cameraLines.append(source)
+            guard source.count <= 150, cameraVisibleLines.count < 15 else { continue }
+            cameraVisibleLines.append(CameraVisibleLine(
+                id: item.id, source: source, frame: cameraTextBounds(item.bounds)))
         }
-        // Do not try to reconstruct clipped or unreadable text. Only what the
-        // camera currently sees is eligible for a provisional translation.
-        let newText = String(cameraLines.prefix(12).joined(separator: "\n").prefix(850))
+        refreshCameraSpatialLabels()
+        let newText = cameraVisibleLines.map(\.source).joined(separator: "\n")
         guard newText != cameraPreviewText else { return }
         cameraPreviewText = newText
         cameraPreviewWork?.cancel()
         if cameraLiveEnabled {
             cameraOverlayLabel?.text = newText.isEmpty
-                ? "No clear text yet. Center the whole sign and hold steady."
-                : "Reading the sign… Hold still for the live translation."
+                ? "No clear text yet. Center the full label and hold still."
+                : "Recognizing lines… Draft translations will cover the original words."
             queueCameraLivePreview()
         }
     }
 
     private func queueCameraLivePreview() {
         cameraPreviewWork?.cancel()
-        guard cameraLiveEnabled, cameraPreviewInFlight == nil,
-              !cameraPreviewText.isEmpty, cameraRequestID != nil else { return }
+        guard cameraLiveEnabled, cameraPreviewInFlight == nil, cameraRequestID != nil else { return }
+        let missing = Array(cameraVisibleLines.filter {
+            cameraTranslatedLines[$0.source] == nil && !cameraFailedLines.contains($0.source)
+        }.prefix(4))
+        guard !missing.isEmpty else { return }
         let snapshot = cameraPreviewText
         let work = DispatchWorkItem { [weak self] in
-            guard let self, self.cameraLiveEnabled,
-                  self.cameraPreviewInFlight == nil,
-                  self.cameraPreviewText == snapshot,
-                  let id = self.cameraRequestID else { return }
+            guard let self, self.cameraLiveEnabled, self.cameraPreviewInFlight == nil,
+                  self.cameraPreviewText == snapshot, let id = self.cameraRequestID else { return }
             let token = UUID().uuidString
             self.cameraPreviewInFlight = token
             self.cameraPreviewInFlightText = snapshot
-            self.cameraOverlayLabel?.text = "Translating visible text… / Traduciendo…"
-            self.sendCameraLiveRequest(id: id, token: token, text: snapshot)
+            self.cameraOverlayLabel?.text = "Translating visible lines… / Traduciendo las líneas…"
+            self.sendCameraLiveRequest(id: id, token: token, items: missing)
         }
         cameraPreviewWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
     }
 
-    private func sendCameraLiveRequest(id: String, token: String, text: String) {
-        let data: [String: String] = ["id": id, "token": token, "text": text]
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: data),
-              let json = String(data: jsonData, encoding: .utf8) else { return }
+    private func sendCameraLiveRequest(id: String, token: String, items: [CameraVisibleLine]) {
+        let payload: [String: Any] = [
+            "id": id, "token": token,
+            "items": items.map { ["text": $0.source] }
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("void window.__hablaCameraLiveRequest?.(\(json))", completionHandler: nil)
     }
 
@@ -382,17 +475,32 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               id == cameraRequestID, let token = payload["token"] as? String,
               token == cameraPreviewInFlight else { return }
         cameraPreviewInFlight = nil
-        if cameraPreviewText != cameraPreviewInFlightText {
-            queueCameraLivePreview()
+        let active = Set(cameraVisibleLines.map(\.source))
+        var completed = 0
+        if let translated = payload["translations"] as? [[String: String]] {
+            for item in translated {
+                guard let source = item["source"], active.contains(source) else { continue }
+                if let translation = item["translation"], !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    cameraTranslatedLines[source] = translation
+                    completed += 1
+                } else if item["error"] != nil {
+                    cameraFailedLines.insert(source)
+                }
+            }
+        }
+        refreshCameraSpatialLabels()
+        if let error = payload["error"] as? String {
+            cameraOverlayLabel?.text = error
             return
         }
-        if let translation = payload["translation"] as? String,
-           !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let variety = payload["target"] as? String ?? "es"
-            cameraOverlayLabel?.text = "\(variety) · \(translation)\nDraft: check any missing source words."
-        } else {
-            cameraOverlayLabel?.text = (payload["error"] as? String)
-                ?? "Unable to translate this frame. The original text is safe."
+        let count = cameraSpatialLabels.count
+        cameraOverlayLabel?.text = count > 0
+            ? "\(count) translated line(s) above the camera image. Tap to show original. Check OCR spelling."
+            : "Could not translate these lines. Move closer or review the source text."
+        // Continue with new lines in small batches; do not retry provider failures
+        // indefinitely. Late results are bound to the original scan token.
+        if completed > 0 || cameraPreviewText != cameraPreviewInFlightText {
+            queueCameraLivePreview()
         }
     }
 
@@ -444,6 +552,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraPreviewWork?.cancel()
         cameraPreviewInFlight = nil
         cameraLiveEnabled = false
+        clearCameraSpatialLabels()
+        cameraVisibleLines = []
+        cameraTranslatedLines = [:]
+        cameraFailedLines = []
         cameraOverlayLabel = nil
         cameraOverlayButton = nil
         cameraScanner?.stopScanning()
