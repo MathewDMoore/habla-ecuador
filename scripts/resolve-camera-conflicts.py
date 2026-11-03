@@ -75,7 +75,7 @@ def main():
         stop('Open Terminal in the Habla checkout, then retry.')
     if not all((stage / 'local' / name).is_file() and (stage / 'merged' / name).is_file() for name in FILES):
         stop(f'Missing expected backup or merged files inside {stage}.')
-    if not stage.name.startswith('habla-camera-merge.') or stage.parent != Path('/tmp'):
+    if not stage.name.startswith('habla-camera-merge.') or stage.parent != Path('/tmp').resolve():
         stop('Unexpected staged merge location.')
     for name in FILES:
         current = repo / name
