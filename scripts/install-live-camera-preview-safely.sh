@@ -23,9 +23,18 @@ for path in "${paths[@]}"; do
   cp -p "$path" "$stage/original/$path"
 done
 echo "Original files backed up at: $stage/original"
-git fetch --no-tags origin main "$feature" || { echo 'STOPPED: Could not fetch sources.' >&2; exit 3; }
+git fetch --no-tags origin "refs/heads/main:refs/remotes/origin/main" "refs/heads/$feature:refs/remotes/origin/$feature" || { echo 'STOPPED: Could not fetch sources.' >&2; exit 3; }
+# If the earlier live camera *panel* was installed locally, merge from that
+# verified milestone so shared code is not mistaken for a new conflicting edit.
+base="origin/main"
+if grep -Fq 'private func installCameraOverlay(' ios/HablaEcuador/HablaEcuadorApp.swift &&
+   grep -Fq 'window.__hablaCameraLiveRequest = async payload =>' ios/HablaEcuador/NativeSpeech.js; then
+  base="ff6005010c858e61068cd260a4867ae02d08e819"
+  git cat-file -e "$base^{commit}" || { echo 'STOPPED: Prior camera panel base is missing.' >&2; exit 3; }
+fi
+echo "Merging from camera baseline: $base"
 for path in "${paths[@]}"; do
-  git show "origin/main:$path" > "$stage/base/$path" || { echo "STOPPED: Missing main version of $path" >&2; exit 3; }
+  git show "$base:$path" > "$stage/base/$path" || { echo "STOPPED: Missing base version of $path" >&2; exit 3; }
   git show "origin/$feature:$path" > "$stage/proposed/$path" || { echo "STOPPED: Missing feature version of $path" >&2; exit 3; }
   if ! git merge-file -p "$stage/original/$path" "$stage/base/$path" "$stage/proposed/$path" > "$stage/merged/$path"; then
     echo "STOPPED: Unreviewed local changes conflict in $path." >&2
