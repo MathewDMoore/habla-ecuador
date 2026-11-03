@@ -8,6 +8,7 @@ on:
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
+      - 'tests/native-camera-translation.test.cjs'
       - 'tests/run-native-audio-stats.py'
       - '.github/workflows/ios-microphone-prototype.yml'
   pull_request:
@@ -16,6 +17,7 @@ on:
       - 'tests/native-transcript-state.swift'
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
+      - 'tests/native-camera-translation.test.cjs'
       - 'tests/run-native-audio-stats.py'
       - '.github/workflows/ios-microphone-prototype.yml'
 
