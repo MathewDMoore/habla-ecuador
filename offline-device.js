@@ -11,6 +11,9 @@ const HablaOffline = (() => {
   const FILES = ["config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"];
   let onlineConfirmed = false;
   let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null, startup = null;
+  // A downloaded file is not proof the model can translate. Repair is explicit:
+  // only the two model/runtime caches are refreshed, never document storage.
+  let repairNeeded = false;
   // Match the cached app release instead of leaving the worker on an older build.
   const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=201";
   const pending = new Map();
@@ -100,7 +103,8 @@ const HablaOffline = (() => {
       const result=await call("validate");
       if (result?.directions !== 2) throw new Error("Both translation directions could not be validated.");
       ready=true;
-      status("Offline pack validated in both directions. App and dictionary files are cached. New typed text can stay on this device. Confirm offline reopening once in airplane mode.");
+      repairNeeded=false;
+      status("Offline translation verified: English → Spanish and Spanish → English both produced usable text. Test reopening in airplane mode.");
     })().finally(()=> {validating=null;});
     updateModeBadge();
     return validating;
@@ -114,6 +118,17 @@ const HablaOffline = (() => {
       const problem=supportProblem();
       if (problem) throw new Error(problem);
       const controller=await controllingWorker();
+      if (repairNeeded) {
+        if (navigator.onLine === false)
+          throw new Error("Connect to repair this failed pack. Your original words remain on the device.");
+        // Discard only this feature's known model/engine caches, never user
+        // documents, saved drafts, general app assets, or other app caches.
+        status("Repairing the offline engine. Re-downloading model files; keep Habla open.");
+        worker?.terminate();
+        worker=null;
+        await caches.delete(MODEL_CACHE);
+        await caches.delete(RUNTIME_CACHE);
+      }
       if (!await checkPack()) {
         if (navigator.onLine === false) throw new Error("Connect to download the pack first.");
         const cache = await caches.open(RUNTIME_CACHE);
@@ -131,8 +146,15 @@ const HablaOffline = (() => {
       try {await navigator.storage?.persist?.();} catch {}
     } catch (error) {
       ready=false;
-      status(`Offline pack not ready. ${error.message || "Download interrupted; retry to continue."}`);
-    } finally { installing = false; button.disabled = Boolean(supportProblem()); button.textContent = ready ? "Validate offline pack" : "Download / validate offline pack"; }
+      // A failed validation of already-downloaded files should offer repair,
+      // not keep looping through the exact same cache-only smoke test.
+      repairNeeded=true;
+      status(`Offline pack not ready. ${error.message || "Download interrupted."} Tap Repair offline pack while connected to rebuild only the offline translation files. Nothing will be translated online in on-device-only mode.`);
+    } finally {
+      installing = false;
+      button.disabled = Boolean(supportProblem());
+      button.textContent = ready ? "Validate offline pack" : repairNeeded ? "Repair offline pack / Reparar" : "Download / validate offline pack";
+    }
   }
   function shouldUse() { return enabled || (ready && navigator.onLine === false); }
   async function translate(text, way) {
@@ -174,10 +196,16 @@ const HablaOffline = (() => {
       // A denied persistence request never discards the pack.
       try {await navigator.storage?.persist?.();} catch {}
       button.disabled=true;
-      try {await validate();} catch(error){status(`Downloaded pack retained, but the engine could not start. ${error.message}`);}
-      finally {button.disabled=false;}
+      try {await validate();}
+      catch(error){
+        repairNeeded=true;
+        status(`Files downloaded, but offline translation did not pass validation. ${error.message} Tap Repair offline pack while connected; your source and saved drafts will remain untouched.`);
+      } finally {
+        button.disabled=false;
+        button.textContent=ready ? "Validate offline pack" : repairNeeded ? "Repair offline pack / Reparar" : "Download / validate offline pack";
+      }
     } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
-  return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
+  return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, get repairNeeded(){return repairNeeded;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();
 
