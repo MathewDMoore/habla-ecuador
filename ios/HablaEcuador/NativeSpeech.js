@@ -101,6 +101,54 @@
         }
       });
     };
+    // Live preview is opt-in from the native camera panel. This uses the same
+    // dialect-aware translation route as the app rather than a second engine.
+    // Only recognized words are sent across the bridge, never camera frames.
+    window.__hablaCameraLiveRequest = async payload => {
+      const reply = result => {
+        try {
+          window.webkit.messageHandlers.hablaSpeech.postMessage({
+            action: "camera-live-result", id: payload?.id, token: payload?.token, ...result
+          });
+        } catch { /* The camera may already have closed. */ }
+      };
+      if (!payload || typeof payload.id !== "string" || typeof payload.token !== "string" ||
+          typeof payload.text !== "string" || !payload.text.trim() || payload.text.length > 1000) {
+        reply({error: "The recognized text is not ready yet."});
+        return;
+      }
+      const source = document.querySelector("#source-language-select")?.value || "en-US";
+      const target = document.querySelector("#target-language-select")?.value || "es-EC";
+      if (!/^(en|es)-[A-Za-z]{2}$/.test(source) || !/^(en|es)-[A-Za-z]{2}$/.test(target)) {
+        reply({error: "Select English or Spanish languages in Translate first."});
+        return;
+      }
+      if (source.slice(0, 2) === target.slice(0, 2)) {
+        reply({translation: payload.text, target, note: "Both languages use the same script."});
+        return;
+      }
+      if (typeof requestGeneralTranslation !== "function") {
+        reply({error: "Translator is still loading. Try again shortly."});
+        return;
+      }
+      try {
+        const way = source.startsWith("en-") ? "en-ec" : "ec-en";
+        const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+        const translation = await requestGeneralTranslation(payload.text, way, {
+          source, target, purpose: "everyday", onDevice, inputType: "image"
+        });
+        if (typeof translation !== "string" || !translation.trim()) {
+          reply({error: "No translation returned. Hold the camera steady."});
+          return;
+        }
+        reply({translation: translation.slice(0, 2000), target, note: onDevice ? "On-device" : "Online draft"});
+      } catch (error) {
+        const message = typeof translationErrorMessage === "function"
+          ? translationErrorMessage(error).title
+          : "The translation service is unavailable.";
+        reply({error: String(message).slice(0, 200)});
+      }
+    };
     window.__hablaCameraScan = payload => {
       if (!pending || !payload || payload.id !== pending.id) return;
       const current = pending;
