@@ -291,6 +291,12 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         completeCameraScan(status: "ok", text: text)
     }
 
+    func dataScanner(_ scanner: DataScannerViewController,
+                     becameUnavailableWithError error: DataScannerViewController.ScanningUnavailable) {
+        completeCameraScan(status: "error",
+                           message: "Live camera scanning stopped. Check Camera permission or choose a photo.")
+    }
+
     @objc private func useCameraText() {
         let text = cameraLines.joined(separator: "\n")
         guard !text.isEmpty else {
