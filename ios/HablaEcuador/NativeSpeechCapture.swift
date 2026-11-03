@@ -1,6 +1,10 @@
 import AVFoundation
 import Speech
 import UIKit
+import ShazamKit
+#if compiler(>=6.3) && canImport(ScreenCaptureKit)
+import ScreenCaptureKit
+#endif
 
 // A narrow native substitute for Web Speech; the existing web app keeps transcript,
 // review, continuation, translation and microphone button behavior.
@@ -22,6 +26,14 @@ final class NativeSpeechCapture {
     private var requestedLanguage = ""
     private var recognitionLanguage = ""
     private var recognitionMode = ""
+    private var systemAudio = false
+    var isSystemAudioActive: Bool { activeID != nil && systemAudio }
+    static var supportsSystemAudioCapture: Bool {
+#if compiler(>=6.3) && canImport(ScreenCaptureKit)
+        if #available(iOS 27.0, *) { return true }
+#endif
+        return false
+    }
     private var stopDeadline: DispatchWorkItem?
     private var interruptionObserver: NSObjectProtocol?
 
@@ -36,7 +48,7 @@ final class NativeSpeechCapture {
             }
     }
 
-    func start(id: String, language: String, mode: String = "auto") {
+    func start(id: String, language: String, mode: String = "auto", systemAudio: Bool = false) {
         abortActive()
         activeID = id
         generation = UUID()
@@ -45,6 +57,16 @@ final class NativeSpeechCapture {
         requestedLanguage = language
         recognitionLanguage = ""
         recognitionMode = mode
+        self.systemAudio = systemAudio
+        if systemAudio {
+            guard Self.supportsSystemAudioCapture else {
+                finish(id: id, error: "audio-capture", message: "This iPhone audio capture requires iOS 27 and an app built with Xcode 27 or later.")
+                return
+            }
+            recognitionMode = "auto"
+            begin(id: id, language: language, token: token)
+            return
+        }
         guard UIApplication.shared.applicationState != .background else {
             finish(id: id, error: "audio-capture")
             return
@@ -84,7 +106,7 @@ final class NativeSpeechCapture {
     private func begin(id: String, language: String, token: UUID) {
         if #available(iOS 26.0, *), recognitionMode != "apple-service", recognitionMode != "legacy-on-device" {
             let capture = AnalyzerMicrophoneCapture(id: id, language: language,
-                useDictation: recognitionMode == "dictation", emit: { [weak self] event in
+                useDictation: recognitionMode == "dictation", systemAudio: systemAudio, emit: { [weak self] event in
                     guard let self, self.generation == token, self.activeID == id else { return }
                     if event["type"] as? String == "end" {
                         self.finish(id: id)
@@ -187,6 +209,16 @@ final class NativeSpeechCapture {
         }
     }
 
+    func identifySong(id: String, requestID: String) {
+        guard activeID == id, !stopping else { return }
+        guard systemAudio, let modern else {
+            emit(["id": id, "type": "song", "requestId": requestID, "status": "unavailable",
+                  "message": "Choose This iPhone's audio and start listening before identifying a song."])
+            return
+        }
+        modern.identifySong(requestID: requestID)
+    }
+
     func stop(id: String) {
         guard activeID == id, !stopping else { return }
         stopping = true
@@ -250,7 +282,12 @@ final class NativeSpeechCapture {
     }
 }
 
+private protocol NativeSystemAudioInput: AnyObject {
+    func cancel()
+}
+
 private protocol NativeModernCapture: AnyObject {
+    func identifySong(requestID: String)
     func stop()
     func cancel()
 }
@@ -345,6 +382,9 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private let id: String
     private let language: String
     private let useDictation: Bool
+    private let systemAudio: Bool
+    private var systemSource: NativeSystemAudioInput?
+    private var songMatcher: NativeSongMatcher?
     private let emit: ([String: Any]) -> Void
     private let engine = AVAudioEngine()
     private let stats = NativeInputStats()
@@ -369,8 +409,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     private var startedAt: Date?
     private var revealedNoWords = false
 
-    init(id: String, language: String, useDictation: Bool, emit: @escaping ([String: Any]) -> Void) {
-        self.id = id; self.language = language; self.useDictation = useDictation; self.emit = emit
+    init(id: String, language: String, useDictation: Bool, systemAudio: Bool = false, emit: @escaping ([String: Any]) -> Void) {
+        self.id = id; self.language = language; self.useDictation = useDictation; self.systemAudio = systemAudio; self.emit = emit
     }
 
     // Every state mutation and callback is main-thread owned. Only conversion and
@@ -432,7 +472,7 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
                 status("Loading \(backend) for \(localeTag)…")
                 try await analyzer.prepareToAnalyze(in: format)
                 try checkActive()
-                let (sequence, continuation) = AsyncStream<AnalyzerInput>.makeStream()
+                let (sequence, continuation) = AsyncStream<AnalyzerInput>.makeStream(bufferingPolicy: systemAudio ? .bufferingNewest(100) : .unbounded)
                 input = continuation
                 try await analyzer.start(inputSequence: sequence)
                 try checkActive()
@@ -443,11 +483,57 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         }
     }
 
+    func identifySong(requestID: String) {
+        guard systemAudio, startedAt != nil, !cancelled, !stopping else {
+            emit(["id": id, "type": "song", "requestId": requestID, "status": "unavailable",
+                  "message": "Start this iPhone's audio capture first."])
+            return
+        }
+        songMatcher?.cancel()
+        songMatcher = NativeSongMatcher { [weak self] result in
+            guard let self, !self.cancelled, !self.stopping else { return }
+            var event = result
+            event["id"] = self.id
+            event["type"] = "song"
+            event["requestId"] = requestID
+            self.emit(event)
+        }
+    }
+
     private func checkActive() throws {
         if cancelled || stopping || Task.isCancelled { throw CancellationError() }
     }
 
     private func beginAudio(format: AVAudioFormat, continuation: AsyncStream<AnalyzerInput>.Continuation) throws {
+        if systemAudio {
+#if compiler(>=6.3) && canImport(ScreenCaptureKit)
+            if #available(iOS 27.0, *) {
+                let source = IPhoneSystemAudioInput(format: format, onBuffer: { [weak self] buffer in
+                    guard let self, !self.cancelled, !self.stopping else { return }
+                    self.stats.observe(buffer)
+                    self.songMatcher?.consume(buffer)
+                    let delivery = continuation.yield(AnalyzerInput(buffer: buffer))
+                    if case .enqueued = delivery { self.stats.forwarded(buffer, accepted: true) }
+                    else { self.stats.forwarded(buffer, accepted: false) }
+                }, onStarted: { [weak self] in
+                    guard let self, !self.cancelled, !self.stopping else { return }
+                    self.startedAt = Date()
+                    self.routeDetail = "\(self.backend) · source \(self.language) · recognition \(self.localeTag)\nInput: this iPhone's system audio · \(Int(format.sampleRate)) Hz / \(format.channelCount) ch. Microphone off."
+                    self.status(self.routeDetail + "\nCapture is active. Source apps may provide silence. No video is processed or saved.")
+                    self.emit(["id": self.id, "type": "start"])
+                    self.meter = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                        guard let self, !self.cancelled else { return }
+                        self.status(self.routeDetail + "\n" + self.stats.summary + "\n" + self.resultSummary)
+                    }
+                }, onError: { [weak self] error in self?.fail(error, stage: "This iPhone audio capture") })
+                systemSource = source
+                status("Allow capture in Apple's system picker, then play audio. Microphone stays off. Tap Stop listening to end capture.", reveal: true)
+                source.start()
+                return
+            }
+#endif
+            throw NSError(domain: "HablaSpeech", code: 27, userInfo: [NSLocalizedDescriptionKey: "This iPhone audio capture is unavailable in this build."])
+        }
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .allowBluetoothA2DP])
         try session.setActive(true)
@@ -569,6 +655,8 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
     }
 
     private func stopAudio() {
+        songMatcher?.cancel(); songMatcher = nil
+        systemSource?.cancel(); systemSource = nil
         meter?.invalidate(); meter = nil
         engine.stop()
         if tapped { engine.inputNode.removeTap(onBus: 0); tapped = false }
@@ -591,6 +679,242 @@ private final class AnalyzerMicrophoneCapture: NativeModernCapture {
         analyzer = nil
     }
 }
+
+
+// Only feeds a user-requested match from the existing system-audio buffers.
+// This owns no microphone, audio engine, file, or speech-recognition session.
+private final class NativeSongMatcher: NSObject, SHSessionDelegate {
+    private let emit: ([String: Any]) -> Void
+    private let session = SHSession()
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
+    private var sourceFormat: AVAudioFormat?
+    private var converter: AVAudioConverter?
+    private var deadline: DispatchWorkItem?
+    private var finished = false
+    private var seconds: Double = 0
+
+    init(emit: @escaping ([String: Any]) -> Void) {
+        self.emit = emit
+        super.init()
+        session.delegate = self
+        let deadline = DispatchWorkItem { [weak self] in
+            self?.complete(["status": "not-found", "message": "No song identified. Try a clearer recorded passage; speech, silence or an uncatalogued recording may not match."])
+        }
+        self.deadline = deadline
+        DispatchQueue.main.asyncAfter(deadline: .now() + 25, execute: deadline)
+    }
+
+    func consume(_ buffer: AVAudioPCMBuffer) {
+        guard !finished, seconds < 20, buffer.frameLength > 0 else { return }
+        guard buffer.format.sampleRate > 0 else { return }
+        if sourceFormat != buffer.format {
+            sourceFormat = buffer.format
+            converter = AVAudioConverter(from: buffer.format, to: format)
+            converter?.primeMethod = .none
+        }
+        guard let converter else {
+            complete(["status": "unavailable", "message": "This audio format cannot be used for song identification."])
+            return
+        }
+        let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * format.sampleRate / buffer.format.sampleRate)) + 32
+        guard let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return }
+        var supplied = false
+        var error: NSError?
+        let status = converter.convert(to: output, error: &error) { _, inputStatus in
+            if supplied { inputStatus.pointee = .noDataNow; return nil }
+            supplied = true; inputStatus.pointee = .haveData; return buffer
+        }
+        guard status != .error, error == nil else {
+            complete(["status": "unavailable", "message": "Audio conversion for song identification failed. Listening can continue."])
+            return
+        }
+        let remaining = AVAudioFrameCount(max(0, (20 - seconds) * format.sampleRate))
+        output.frameLength = min(output.frameLength, remaining)
+        guard output.frameLength > 0 else { return }
+        seconds += Double(output.frameLength) / format.sampleRate
+        session.matchStreamingBuffer(output, at: nil)
+    }
+
+    func session(_ session: SHSession, didFind match: SHMatch) {
+        // Delegate callbacks may arrive off-main or after cancellation.
+        let item = match.mediaItems.first
+        let title = item?.title
+        let artist = item?.artist
+        let webURL = item?.webURL?.absoluteString
+        DispatchQueue.main.async { [weak self] in
+            guard let title, !title.isEmpty else {
+                self?.complete(["status": "not-found", "message": "The service returned no song title."])
+                return
+            }
+            var result: [String: Any] = ["status": "matched", "title": title, "artist": artist ?? "Artist unavailable"]
+            if let webURL { result["url"] = webURL }
+            self?.complete(result)
+        }
+    }
+
+    func session(_ session: SHSession, didNotFindMatchFor signature: SHSignature, error: Error?) {
+        guard let error else { return } // More audio may still match before the deadline.
+        let codes = nativeErrorCodes(error as NSError)
+        DispatchQueue.main.async { [weak self] in
+            self?.complete(["status": "unavailable", "message": "Song identification is unavailable. Check internet access and Habla's ShazamKit App Service. Listening can continue.", "detail": codes])
+        }
+    }
+
+    private func complete(_ event: [String: Any]) {
+        guard !finished else { return }
+        cancel()
+        emit(event)
+    }
+
+    func cancel() {
+        finished = true
+        deadline?.cancel(); deadline = nil
+        session.delegate = nil
+        converter = nil
+    }
+}
+
+#if compiler(>=6.3) && canImport(ScreenCaptureKit)
+// Opt-in iOS 27 prototype. The system picker owns permission; only audio outputs
+// are analyzed. Screen samples are immediately ignored, never saved or uploaded.
+@available(iOS 27.0, *)
+private final class IPhoneSystemAudioInput: NSObject, NativeSystemAudioInput,
+    SCContentSharingPickerObserver, SCStreamOutput, SCStreamDelegate {
+    private let format: AVAudioFormat
+    private let onBuffer: (AVAudioPCMBuffer) -> Void
+    private let onStarted: () -> Void
+    private let onError: (Error) -> Void
+    private let queue = DispatchQueue(label: "habla.system-audio")
+    private let pendingAudio = DispatchSemaphore(value: 20)
+    private var capture: SCStream?
+    private var cancelled = false
+    private var starting = false
+    private var converter: AVAudioConverter?
+    private var sourceFormat: AVAudioFormat?
+
+    init(format: AVAudioFormat, onBuffer: @escaping (AVAudioPCMBuffer) -> Void,
+         onStarted: @escaping () -> Void, onError: @escaping (Error) -> Void) {
+        self.format = format; self.onBuffer = onBuffer
+        self.onStarted = onStarted; self.onError = onError
+    }
+
+    func start() {
+        let picker = SCContentSharingPicker.shared
+        var configuration = SCContentSharingPickerConfiguration()
+        configuration.showsMicrophoneControl = false
+        configuration.showsCameraControl = false
+        picker.defaultConfiguration = configuration
+        picker.add(self)
+        picker.isActive = true
+        picker.present()
+    }
+
+    func contentSharingPicker(_ picker: SCContentSharingPicker, didUpdateWith filter: SCContentFilter, for stream: SCStream?) {
+        DispatchQueue.main.async { [weak self] in self?.begin(filter: filter) }
+    }
+
+    private func begin(filter: SCContentFilter) {
+        guard !cancelled, !starting, capture == nil else { return }
+        starting = true
+        Task { @MainActor [weak self] in
+            guard let self, !self.cancelled else { return }
+            do {
+                let configuration = SCStreamConfiguration()
+                configuration.capturesAudio = true
+                configuration.excludesCurrentProcessAudio = true
+                configuration.sampleRate = Int(self.format.sampleRate)
+                configuration.channelCount = Int(self.format.channelCount)
+                configuration.width = 2; configuration.height = 2
+                let stream = SCStream(filter: filter, configuration: configuration, delegate: self)
+                self.capture = stream
+                try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: self.queue)
+                // A screen output keeps the stream valid; its frames are discarded.
+                try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: self.queue)
+                try await stream.startCapture()
+                guard !self.cancelled else { try? await stream.stopCapture(); return }
+                self.onStarted()
+            } catch { if !self.cancelled { self.onError(error) } }
+        }
+    }
+
+    func contentSharingPicker(_ picker: SCContentSharingPicker, didCancelFor stream: SCStream?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.cancelled, self.capture == nil else { return }
+            self.onError(NSError(domain: "HablaSystemAudio", code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "System audio capture was cancelled in Apple's picker."]))
+        }
+    }
+
+    func contentSharingPickerStartDidFailWithError(_ error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.cancelled else { return }
+            self.onError(error)
+        }
+    }
+
+    func stream(_ stream: SCStream, didStopWithError error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.cancelled else { return }
+            self.onError(error)
+        }
+    }
+
+    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
+        guard type == .audio, CMSampleBufferDataIsReady(sampleBuffer) else { return }
+        // Keep session state and converter use main-thread owned, as for the analyzer.
+        // Bound retained PCM when the UI/recognizer cannot keep up in the background.
+        guard pendingAudio.wait(timeout: .now()) == .success else { return }
+        let gate = pendingAudio
+        DispatchQueue.main.async { [weak self] in
+            defer { gate.signal() }
+            self?.receive(sampleBuffer)
+        }
+    }
+
+    private func receive(_ sample: CMSampleBuffer) {
+        guard !cancelled, let description = CMSampleBufferGetFormatDescription(sample),
+              let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(description),
+              let source = AVAudioFormat(streamDescription: asbd) else { return }
+        let frames = CMSampleBufferGetNumSamples(sample)
+        guard frames > 0, frames <= 192_000,
+              let pcm = AVAudioPCMBuffer(pcmFormat: source, frameCapacity: AVAudioFrameCount(frames)) else { return }
+        pcm.frameLength = AVAudioFrameCount(frames)
+        let copied = CMSampleBufferCopyPCMDataIntoAudioBufferList(sample, at: 0,
+            frameCount: Int32(frames), into: pcm.mutableAudioBufferList)
+        guard copied == noErr else {
+            onError(NSError(domain: "HablaSystemAudio", code: Int(copied),
+                userInfo: [NSLocalizedDescriptionKey: "System audio samples could not be copied."]))
+            return
+        }
+        if sourceFormat != source {
+            sourceFormat = source
+            converter = AVAudioConverter(from: source, to: format)
+            converter?.primeMethod = .none
+        }
+        guard let converter, source.sampleRate > 0 else { return }
+        let capacity = AVAudioFrameCount(ceil(Double(frames) * format.sampleRate / source.sampleRate)) + 32
+        guard let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return }
+        var supplied = false
+        var error: NSError?
+        let result = converter.convert(to: output, error: &error) { _, status in
+            if supplied { status.pointee = .noDataNow; return nil }
+            supplied = true; status.pointee = .haveData; return pcm
+        }
+        if let error { onError(error) }
+        else if result != .error, output.frameLength > 0 { onBuffer(output) }
+    }
+
+    func cancel() {
+        guard !cancelled else { return }
+        cancelled = true
+        let picker = SCContentSharingPicker.shared
+        picker.remove(self)
+        picker.isActive = false
+        if let capture { Task { try? await capture.stopCapture() } }
+        capture = nil; converter = nil
+    }
+}
+#endif
 
 // BEGIN NATIVE TRANSCRIPT STATE — Foundation-only, exercised on the macOS runner.
 // Timeline identity, rather than matching words, preserves repeated song choruses.
