@@ -133,6 +133,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraScanner: DataScannerViewController?
     private var cameraRequestID: String?
     private var cameraLines: [String] = []
+    private var cameraOverlayLabel: UILabel?
+    private var cameraOverlayButton: UIButton?
+    private var cameraLiveEnabled = false
+    private var cameraPreviewText = ""
+    private var cameraPreviewWork: DispatchWorkItem?
+    private var cameraPreviewInFlight: String?
+    private var cameraPreviewInFlightText = ""
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
     private var lastWidgetRouteID: UUID?
 
@@ -206,6 +213,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
         case "scan-camera": startCameraScan(id: id)
+        case "camera-live-result": receiveCameraLiveResult(body)
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break
@@ -231,7 +239,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let languages = ["es-ES", "en-US"].filter { available.contains($0) }
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.text(languages: languages)],
-            qualityLevel: .balanced,
+            qualityLevel: .accurate,
             recognizesMultipleItems: true,
             isHighFrameRateTrackingEnabled: false,
             isPinchToZoomEnabled: true,
@@ -250,6 +258,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraRequestID = id
         cameraScanner = scanner
         cameraLines = []
+        cameraLiveEnabled = false
+        cameraPreviewText = ""
+        cameraPreviewWork?.cancel()
+        cameraPreviewInFlight = nil
+        installCameraOverlay(on: scanner)
         present(navigation, animated: true) { [weak self, weak scanner] in
             guard let self, let scanner else { return }
             do {
@@ -261,11 +274,125 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
+    // An accessible preview stays inside the camera view. The user explicitly
+    // enables live translation because recognized words may use an online API.
+    // Original camera pixels are never sent across the JS bridge.
+    private func installCameraOverlay(on scanner: DataScannerViewController) {
+        let panel = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.layer.cornerRadius = 14
+        panel.clipsToBounds = true
+
+        let button = UIButton(type: .system)
+        button.setTitle("▶ Live translation / Traducir en vivo", for: .normal)
+        button.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        button.tintColor = .white
+        button.contentHorizontalAlignment = .leading
+        button.addTarget(self, action: #selector(toggleCameraLiveTranslation), for: .touchUpInside)
+
+        let label = UILabel()
+        label.numberOfLines = 5
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .white
+        label.text = "Tap Live translation to preview words here without closing the camera. Recognized text may be sent to an online translation service; camera images stay on this iPhone."
+
+        let stack = UIStackView(arrangedSubviews: [button, label])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        panel.contentView.addSubview(stack)
+        scanner.view.addSubview(panel)
+        NSLayoutConstraint.activate([
+            panel.leadingAnchor.constraint(equalTo: scanner.view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            panel.trailingAnchor.constraint(equalTo: scanner.view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            panel.bottomAnchor.constraint(equalTo: scanner.view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            stack.leadingAnchor.constraint(equalTo: panel.contentView.leadingAnchor, constant: 14),
+            stack.trailingAnchor.constraint(equalTo: panel.contentView.trailingAnchor, constant: -14),
+            stack.topAnchor.constraint(equalTo: panel.contentView.topAnchor, constant: 10),
+            stack.bottomAnchor.constraint(equalTo: panel.contentView.bottomAnchor, constant: -12)
+        ])
+        cameraOverlayLabel = label
+        cameraOverlayButton = button
+    }
+
+    @objc private func toggleCameraLiveTranslation() {
+        cameraLiveEnabled.toggle()
+        cameraOverlayButton?.setTitle(cameraLiveEnabled
+            ? "■ Stop live translation / Detener" : "▶ Live translation / Traducir en vivo", for: .normal)
+        cameraPreviewWork?.cancel()
+        cameraPreviewInFlight = nil
+        if cameraLiveEnabled {
+            cameraOverlayLabel?.text = "Reading visible words… Hold still and keep all lines in the frame."
+            queueCameraLivePreview()
+        } else {
+            cameraOverlayLabel?.text = "Live preview paused. Tap to resume. Original words remain available with Use all text."
+        }
+    }
+
     private func updateCameraItems(_ items: [RecognizedItem]) {
         cameraLines = items.compactMap { item in
             guard case .text(let recognized) = item else { return nil }
             let text = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
             return text.isEmpty ? nil : text
+        }
+        // Do not try to reconstruct clipped or unreadable text. Only what the
+        // camera currently sees is eligible for a provisional translation.
+        let newText = String(cameraLines.prefix(12).joined(separator: "\n").prefix(850))
+        guard newText != cameraPreviewText else { return }
+        cameraPreviewText = newText
+        cameraPreviewWork?.cancel()
+        if cameraLiveEnabled {
+            cameraOverlayLabel?.text = newText.isEmpty
+                ? "No clear text yet. Center the whole sign and hold steady."
+                : "Reading the sign… Hold still for the live translation."
+            queueCameraLivePreview()
+        }
+    }
+
+    private func queueCameraLivePreview() {
+        cameraPreviewWork?.cancel()
+        guard cameraLiveEnabled, cameraPreviewInFlight == nil,
+              !cameraPreviewText.isEmpty, cameraRequestID != nil else { return }
+        let snapshot = cameraPreviewText
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.cameraLiveEnabled,
+                  self.cameraPreviewInFlight == nil,
+                  self.cameraPreviewText == snapshot,
+                  let id = self.cameraRequestID else { return }
+            let token = UUID().uuidString
+            self.cameraPreviewInFlight = token
+            self.cameraPreviewInFlightText = snapshot
+            self.cameraOverlayLabel?.text = "Translating visible text… / Traduciendo…"
+            self.sendCameraLiveRequest(id: id, token: token, text: snapshot)
+        }
+        cameraPreviewWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+    }
+
+    private func sendCameraLiveRequest(id: String, token: String, text: String) {
+        let data: [String: String] = ["id": id, "token": token, "text": text]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: data),
+              let json = String(data: jsonData, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("void window.__hablaCameraLiveRequest?.(\(json))", completionHandler: nil)
+    }
+
+    private func receiveCameraLiveResult(_ payload: [String: Any]) {
+        guard cameraLiveEnabled, let id = payload["id"] as? String,
+              id == cameraRequestID, let token = payload["token"] as? String,
+              token == cameraPreviewInFlight else { return }
+        cameraPreviewInFlight = nil
+        if cameraPreviewText != cameraPreviewInFlightText {
+            queueCameraLivePreview()
+            return
+        }
+        if let translation = payload["translation"] as? String,
+           !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let variety = payload["target"] as? String ?? "es"
+            cameraOverlayLabel?.text = "\(variety) · \(translation)\nDraft: check any missing source words."
+        } else {
+            cameraOverlayLabel?.text = (payload["error"] as? String)
+                ?? "Unable to translate this frame. The original text is safe."
         }
     }
 
@@ -314,6 +441,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         guard let id = cameraRequestID else { return }
         cameraRequestID = nil
         let navigation = cameraScanner?.navigationController
+        cameraPreviewWork?.cancel()
+        cameraPreviewInFlight = nil
+        cameraLiveEnabled = false
+        cameraOverlayLabel = nil
+        cameraOverlayButton = nil
         cameraScanner?.stopScanning()
         cameraScanner?.delegate = nil
         cameraScanner = nil
