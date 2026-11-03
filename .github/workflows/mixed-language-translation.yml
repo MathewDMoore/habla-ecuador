@@ -13,10 +13,21 @@ on:
       - 'index.html'
       - 'tests/native-music-visibility.test.cjs'
       - 'app.js'
+      - 'offline-device.js'
+      - 'offline-worker.js'
+      - 'tests/offline-translation.test.cjs'
+      - 'tests/offline-pack-repair.test.cjs'
       - 'tests/mixed-language-translation.test.cjs'
       - 'tests/dictation-continuation.test.cjs'
       - 'tests/translation-service.test.cjs'
       - 'tests/translation-direction.test.cjs'
+      - '.github/workflows/mixed-language-translation.yml'
+  pull_request:
+    paths:
+      - 'offline-device.js'
+      - 'offline-worker.js'
+      - 'tests/offline-translation.test.cjs'
+      - 'tests/offline-pack-repair.test.cjs'
       - '.github/workflows/mixed-language-translation.yml'
   workflow_dispatch:
 
@@ -34,3 +45,5 @@ jobs:
           node-version: '22'
       - name: Verify mixed-language meanings and existing translation routes
         run: node --test tests/habla-in-video-english.test.cjs tests/habla-video-theater.test.cjs tests/music-caption-readability.test.cjs tests/native-music-visibility.test.cjs tests/dictation-continuation.test.cjs tests/mixed-language-translation.test.cjs tests/translation-service.test.cjs tests/translation-direction.test.cjs
+      - name: Verify offline engine repair and privacy boundaries
+        run: node --test tests/offline-pack-repair.test.cjs && node tests/offline-translation.test.cjs
