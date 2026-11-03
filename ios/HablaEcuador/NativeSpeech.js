@@ -56,6 +56,84 @@
       }
     }, true);
   }
+
+  // Keep camera controls beside the existing image actions rather than adding
+  // a new translation screen. The native scanner returns TEXT only, and the
+  // existing image import handles editable source + automatic translation.
+  (() => {
+    let pending = null, requestID = 0, button;
+    const state = () => ["#translator-input", "#source-language-select", "#target-language-select"]
+      .map(selector => document.querySelector(selector)?.value || "").join("\u0000");
+    const report = message => {
+      for (const selector of ["#quick-image-status", "#screenshot-status", "#full-reader-image-status"]) {
+        const node = document.querySelector(selector);
+        if (node) node.textContent = message;
+      }
+    };
+    const install = () => {
+      const actions = document.querySelector("#image-quick-actions");
+      if (!actions || document.querySelector("#native-scan-camera")) return;
+      button = document.createElement("button");
+      button.type = "button";
+      button.id = "native-scan-camera";
+      button.textContent = "📷 Scan text / Escanear";
+      button.setAttribute("aria-label", "Open camera to translate visible text");
+      actions.prepend(button);
+      button.addEventListener("click", () => {
+        if (pending) return;
+        if (typeof beginScreenshotImport !== "function" ||
+            typeof previewScreenshotText !== "function") {
+          report("Image translation is still loading. Try again in a moment.");
+          return;
+        }
+        if (typeof HablaScreenshot !== "undefined") HablaScreenshot.clear?.();
+        const guard = beginScreenshotImport();
+        const id = "camera-" + (++requestID);
+        pending = {id, guard, sourceState: state()};
+        button.disabled = true;
+        report("Point at text, then tap a highlighted line or Use all text. / Apunta al texto y selecciónalo.");
+        try {
+          window.webkit.messageHandlers.hablaSpeech.postMessage({action: "scan-camera", id});
+        } catch {
+          pending = null;
+          button.disabled = false;
+          report("Camera could not open. Choose a photo instead.");
+        }
+      });
+    };
+    window.__hablaCameraScan = payload => {
+      if (!pending || !payload || payload.id !== pending.id) return;
+      const current = pending;
+      pending = null;
+      if (button) button.disabled = false;
+      if (payload.status === "cancelled") {
+        report("Camera closed. Your existing words were kept. / Texto conservado.");
+        return;
+      }
+      if (payload.status !== "ok") {
+        report(payload.message || "Camera unavailable. Use Choose photo instead.");
+        return;
+      }
+      if (state() !== current.sourceState) {
+        report("Your source or language changed. Existing text was kept; scan again when ready.");
+        return;
+      }
+      if (typeof payload.text !== "string" || !payload.text.trim() || payload.text.length > 20000) {
+        report("No clear text detected. Try a closer view with better lighting.");
+        return;
+      }
+      if (!previewScreenshotText({text: payload.text, name: "Camera scan"}, current.guard)) {
+        report("Your text changed during scanning. Nothing was overwritten.");
+        return;
+      }
+      report("Camera text recognized. Translation is being prepared; check the original words.");
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", install, {once: true});
+    } else {
+      install();
+    }
+  })();
   let nextID = 0;
   const sessions = new Map();
   let latestError = null;
