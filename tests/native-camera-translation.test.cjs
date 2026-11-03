@@ -115,6 +115,10 @@ test('live camera overlay is opt-in, accurate, debounced, and rejects stale resp
   assert.match(swift, /@objc private func toggleCameraLiveTranslation\(\)/);
   assert.match(swift, /Recognized text may be sent to an online translation service/);
   assert.match(swift, /cameraPreviewText != cameraPreviewInFlightText/);
+  assert.match(swift, /scanner\.overlayContainerView/);
+  assert.match(swift, /cameraTextBounds\(item\.bounds\)/);
+  assert.match(swift, /cameraTranslatedLines\[line\.source\]/);
+  assert.match(swift, /clearCameraSpatialLabels\(\)/);
   assert.match(swift, /cameraPreviewWork\?\.cancel\(\)/);
   assert.match(swift, /case "camera-live-result": receiveCameraLiveResult\(body\)/);
 });
@@ -125,7 +129,7 @@ test('live preview uses chosen regional language pair and never sends camera pix
   h.nodes.get('#target-language-select').value = 'es-MX';
   assert.equal(h.translations.length, 0, 'nothing translates without an explicit camera preview request');
   await h.window.__hablaCameraLiveRequest({
-    id: 'camera-7', token: 'fresh-token', text: 'Vote against Proposition 1'
+    id: 'camera-7', token: 'fresh-token', items: [{text: 'Vote against Proposition 1'}]
   });
   assert.equal(h.translations.length, 1);
   assert.equal(h.translations[0].way, 'en-ec');
@@ -136,13 +140,14 @@ test('live preview uses chosen regional language pair and never sends camera pix
   assert.equal(h.calls[0].action, 'camera-live-result');
   assert.equal(h.calls[0].token, 'fresh-token');
   assert.equal(h.calls[0].target, 'es-MX');
-  assert.equal(h.calls[0].translation, 'Traducción de prueba');
+  assert.equal(h.calls[0].translations[0].source, 'Vote against Proposition 1');
+  assert.equal(h.calls[0].translations[0].translation, 'Traducción de prueba');
   assert.equal(h.calls[0].image, undefined, 'no camera frame passes into the hosted translator');
 });
 
 test('invalid live-preview OCR text is never translated', async () => {
   const h = harness();
-  await h.window.__hablaCameraLiveRequest({id:'camera-1',token:'x',text:''});
+  await h.window.__hablaCameraLiveRequest({id:'camera-1',token:'x',items:[{text:''}]});
   assert.equal(h.translations.length, 0);
   assert.match(h.calls[0].error, /not ready/);
 });
@@ -156,4 +161,25 @@ test('camera overlay installer is syntactically valid and protects signed local 
   assert.match(script, /HablaCameraBackups/);
   assert.match(script, /git merge-file -p/);
   assert.doesNotMatch(script, /git reset --hard|git clean -f|git restore/);
+});
+
+test('spatial translation batches text-only items and caches recognized lines', async () => {
+  const h = harness();
+  h.nodes.get('#source-language-select').value = 'en-US';
+  h.nodes.get('#target-language-select').value = 'es-EC';
+  const payload = {
+    id:'camera-3', token:'batch-1', items:[
+      {text:'GOLD BOND'}, {text:'60% MORE'}, {text:'For Dry to Extra Dry Skin'}
+    ]
+  };
+  await h.window.__hablaCameraLiveRequest(payload);
+  assert.equal(h.translations.length, 3);
+  assert.equal(h.calls[0].translations.length, 3);
+  assert.equal(h.calls[0].image, undefined);
+  await h.window.__hablaCameraLiveRequest({...payload, token:'batch-2'});
+  assert.equal(h.translations.length, 3, 'identical text in same language pair is cached');
+  assert.equal(h.calls[1].token, 'batch-2');
+  h.nodes.get('#target-language-select').value = 'es-MX';
+  await h.window.__hablaCameraLiveRequest({...payload, token:'batch-3'});
+  assert.equal(h.translations.length, 6, 'different regional target requires new translations');
 });
