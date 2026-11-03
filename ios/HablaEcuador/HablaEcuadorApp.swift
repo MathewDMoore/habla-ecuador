@@ -250,7 +250,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             recognizedDataTypes: [.text(languages: languages)],
             qualityLevel: .accurate,
             recognizesMultipleItems: true,
-            isHighFrameRateTrackingEnabled: false,
+            isHighFrameRateTrackingEnabled: true,
             isPinchToZoomEnabled: true,
             isGuidanceEnabled: true,
             isHighlightingEnabled: true
@@ -371,9 +371,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let bounds = surface.bounds
         guard bounds.width > 40 && bounds.height > 40 else { return }
         let visibleIDs = Set(cameraVisibleLines.map(\.id))
-        for (id, label) in cameraSpatialLabels where !visibleIDs.contains(id) {
-            label.removeFromSuperview()
-            cameraSpatialLabels.removeValue(forKey: id)
+        for id in cameraSpatialLabels.keys.filter({ !visibleIDs.contains($0) }) {
+            cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
         }
         for line in cameraVisibleLines {
             guard let translation = cameraTranslatedLines[line.source], !translation.isEmpty,
