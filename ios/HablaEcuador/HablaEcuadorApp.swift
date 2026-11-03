@@ -1,6 +1,7 @@
 import SwiftUI
 import WebKit
 import Vision
+import VisionKit
 
 // BEGIN NATIVE IMAGE OCR
 // Shared with the macOS Vision regression harness. No image leaves the device.
@@ -126,9 +127,12 @@ private final class ClipboardImageHandler: NSObject, WKScriptMessageHandlerWithR
     }
 }
 
-final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, DataScannerViewControllerDelegate {
     private var webView: WKWebView!
     private var speech: NativeSpeechCapture!
+    private var cameraScanner: DataScannerViewController?
+    private var cameraRequestID: String?
+    private var cameraLines: [String] = []
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
     private var lastWidgetRouteID: UUID?
 
@@ -201,10 +205,124 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
+        case "scan-camera": startCameraScan(id: id)
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
         default: break
         }
+    }
+
+
+    // Scan directly with Apple's Live Text camera. The scanned pixels never
+    // enter the web page or a server; only selected, editable text is passed
+    // back through the same guarded import flow used for image paste.
+    private func startCameraScan(id: String) {
+        guard cameraScanner == nil else {
+            sendCameraResult(["id": id, "status": "error",
+                              "message": "A camera scan is already open."])
+            return
+        }
+        guard DataScannerViewController.isSupported && DataScannerViewController.isAvailable else {
+            sendCameraResult(["id": id, "status": "error",
+                              "message": "Live Text camera scanning is unavailable. Check Camera permission in Settings, or choose a photo."])
+            return
+        }
+        let available = DataScannerViewController.supportedTextRecognitionLanguages
+        let languages = ["es-ES", "en-US"].filter { available.contains($0) }
+        let scanner = DataScannerViewController(
+            recognizedDataTypes: [.text(languages: languages)],
+            qualityLevel: .balanced,
+            recognizesMultipleItems: true,
+            isHighFrameRateTrackingEnabled: false,
+            isPinchToZoomEnabled: true,
+            isGuidanceEnabled: true,
+            isHighlightingEnabled: true
+        )
+        scanner.delegate = self
+        scanner.title = "Cámara Traductora"
+        scanner.navigationItem.prompt = "Tap one highlighted line or choose all visible text."
+        scanner.navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: "Cancel", style: .plain, target: self, action: #selector(cancelCameraScan))
+        scanner.navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Use all text", style: .done, target: self, action: #selector(useCameraText))
+        let navigation = UINavigationController(rootViewController: scanner)
+        navigation.modalPresentationStyle = .fullScreen
+        cameraRequestID = id
+        cameraScanner = scanner
+        cameraLines = []
+        present(navigation, animated: true) { [weak self, weak scanner] in
+            guard let self, let scanner else { return }
+            do {
+                try scanner.startScanning()
+            } catch {
+                self.completeCameraScan(status: "error",
+                                        message: "Could not start the camera: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func updateCameraItems(_ items: [RecognizedItem]) {
+        cameraLines = items.compactMap { item in
+            guard case .text(let recognized) = item else { return nil }
+            let text = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? nil : text
+        }
+    }
+
+    func dataScanner(_ scanner: DataScannerViewController,
+                     didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
+        updateCameraItems(allItems)
+    }
+
+    func dataScanner(_ scanner: DataScannerViewController,
+                     didUpdate updatedItems: [RecognizedItem], allItems: [RecognizedItem]) {
+        updateCameraItems(allItems)
+    }
+
+    func dataScanner(_ scanner: DataScannerViewController,
+                     didRemove removedItems: [RecognizedItem], allItems: [RecognizedItem]) {
+        updateCameraItems(allItems)
+    }
+
+    func dataScanner(_ scanner: DataScannerViewController, didTapOn item: RecognizedItem) {
+        guard case .text(let recognized) = item else { return }
+        let text = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        completeCameraScan(status: "ok", text: text)
+    }
+
+    @objc private func useCameraText() {
+        let text = cameraLines.joined(separator: "\n")
+        guard !text.isEmpty else {
+            cameraScanner?.navigationItem.prompt = "No text yet. Hold the camera steady over clear lettering."
+            return
+        }
+        completeCameraScan(status: "ok", text: text)
+    }
+
+    @objc private func cancelCameraScan() {
+        completeCameraScan(status: "cancelled")
+    }
+
+    private func completeCameraScan(status: String, text: String? = nil, message: String? = nil) {
+        guard let id = cameraRequestID else { return }
+        cameraRequestID = nil
+        let navigation = cameraScanner?.navigationController
+        cameraScanner?.stopScanning()
+        cameraScanner?.delegate = nil
+        cameraScanner = nil
+        cameraLines = []
+        navigation?.dismiss(animated: true)
+        var payload: [String: Any] = ["id": id, "status": status]
+        if let text { payload["text"] = String(text.prefix(20_000)) }
+        if let message { payload["message"] = message }
+        sendCameraResult(payload)
+    }
+
+    private func sendCameraResult(_ payload: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__hablaCameraScan?.(\(json))", completionHandler: nil)
     }
 
     // The app's document and embedded YouTube video are different frames.
