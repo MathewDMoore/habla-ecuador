@@ -100,6 +100,6 @@ test('native scanner requires permission and taps or explicit confirmation', () 
   assert.match(swift,/case "scan-camera": startCameraScan\(id: id\)/);
   assert.match(swift,/func dataScanner\(_ scanner: DataScannerViewController, didTapOn item: RecognizedItem\)/);
   assert.match(swift,/#selector\(useCameraText\)/);
-  assert.match(swift,/scanner\.stopScanning\(\)/);
+  assert.match(swift,/cameraScanner\\?\\.stopScanning\\(\\)/);
   assert.match(plist,/<key>NSCameraUsageDescription<\/key>/);
 });
