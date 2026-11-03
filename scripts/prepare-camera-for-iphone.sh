@@ -5,17 +5,24 @@ set -euo pipefail
 
 if [[ -n "${HABLA_REPO:-}" ]]; then
   repo="$HABLA_REPO"
-elif git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1 && [[ -d "$PWD/ios/HablaEcuador.xcodeproj" ]]; then
-  repo="$PWD"
-elif [[ -d "$HOME/HablaEcuador-widget.iNAjya/.git" ]]; then
+elif git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  repo="$(git -C "$PWD" rev-parse --show-toplevel)"
+elif git -C "$HOME/HablaEcuador-widget.iNAjya" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   repo="$HOME/HablaEcuador-widget.iNAjya"
 else
   printf 'Could not find signed Habla checkout. Run inside the checkout or set HABLA_REPO.\n' >&2
   exit 2
 fi
 repo="$(cd "$repo" && pwd -P)"
-if [[ ! -d "$repo/.git" || ! -d "$repo/ios/HablaEcuador.xcodeproj" ]]; then
-  printf 'Not a complete Habla Ecuador Xcode checkout: %s\n' "$repo" >&2
+# A git worktree has a .git FILE instead of a directory. Ask Git itself.
+if ! git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf 'This folder is not a Git checkout: %s\n' "$repo" >&2
+  exit 2
+fi
+repo="$(git -C "$repo" rev-parse --show-toplevel)"
+if [[ ! -d "$repo/ios/HablaEcuador.xcodeproj" ]]; then
+  printf 'Git checkout found, but the Xcode project is not at %s/ios/HablaEcuador.xcodeproj\n' "$repo" >&2
+  printf 'Check the actual checkout with: pwd -P; git rev-parse --show-toplevel; find . -name HablaEcuador.xcodeproj\n' >&2
   exit 2
 fi
 remote="$(git -C "$repo" remote get-url origin 2>/dev/null || true)"
