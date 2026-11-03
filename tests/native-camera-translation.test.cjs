@@ -146,3 +146,14 @@ test('invalid live-preview OCR text is never translated', async () => {
   assert.equal(h.translations.length, 0);
   assert.match(h.calls[0].error, /not ready/);
 });
+
+test('camera overlay installer is syntactically valid and protects signed local edits', () => {
+  const {spawnSync} = require('node:child_process');
+  const path = 'scripts/install-live-camera-preview-safely.sh';
+  const script = fs.readFileSync(path, 'utf8');
+  const result = spawnSync('bash', ['-n', path], {encoding:'utf8'});
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(script, /HablaCameraBackups/);
+  assert.match(script, /git merge-file -p/);
+  assert.doesNotMatch(script, /git reset --hard|git clean -f|git restore/);
+});
