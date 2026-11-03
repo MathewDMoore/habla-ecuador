@@ -104,50 +104,66 @@
     // Live preview is opt-in from the native camera panel. This uses the same
     // dialect-aware translation route as the app rather than a second engine.
     // Only recognized words are sent across the bridge, never camera frames.
+    const cameraTranslationCache = new Map();
     window.__hablaCameraLiveRequest = async payload => {
       const reply = result => {
         try {
           window.webkit.messageHandlers.hablaSpeech.postMessage({
             action: "camera-live-result", id: payload?.id, token: payload?.token, ...result
           });
-        } catch { /* The camera may already have closed. */ }
+        } catch { /* Camera may already be closed. */ }
       };
       if (!payload || typeof payload.id !== "string" || typeof payload.token !== "string" ||
-          typeof payload.text !== "string" || !payload.text.trim() || payload.text.length > 1000) {
-        reply({error: "The recognized text is not ready yet."});
+          !Array.isArray(payload.items) || payload.items.length === 0 || payload.items.length > 4 ||
+          payload.items.some(item => typeof item?.text !== "string" ||
+            !item.text.trim() || item.text.length > 150)) {
+        reply({error: "Camera text is not ready. Hold steady and try again."});
         return;
       }
       const source = document.querySelector("#source-language-select")?.value || "en-US";
       const target = document.querySelector("#target-language-select")?.value || "es-EC";
       if (!/^(en|es)-[A-Za-z]{2}$/.test(source) || !/^(en|es)-[A-Za-z]{2}$/.test(target)) {
-        reply({error: "Select English or Spanish languages in Translate first."});
-        return;
-      }
-      if (source.slice(0, 2) === target.slice(0, 2)) {
-        reply({translation: payload.text, target, note: "Both languages use the same script."});
+        reply({error: "Choose English or Spanish in Translate first."});
         return;
       }
       if (typeof requestGeneralTranslation !== "function") {
-        reply({error: "Translator is still loading. Try again shortly."});
+        reply({error: "The translator is still loading. Try again shortly."});
         return;
       }
-      try {
-        const way = source.startsWith("en-") ? "en-ec" : "ec-en";
-        const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
-        const translation = await requestGeneralTranslation(payload.text, way, {
-          source, target, purpose: "everyday", onDevice, inputType: "image"
-        });
-        if (typeof translation !== "string" || !translation.trim()) {
-          reply({error: "No translation returned. Hold the camera steady."});
-          return;
+      const way = source.startsWith("en-") ? "en-ec" : "ec-en";
+      const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+      // The cache key includes the language variety. Never silently pass a
+      // Mexico translation to Ecuador or reverse the user's original words.
+      const translateLine = async item => {
+        const text = item.text.trim(), key = JSON.stringify([source, target, text]);
+        if (source.slice(0, 2) === target.slice(0, 2))
+          return {source: text, translation: text};
+        try {
+          let promise = cameraTranslationCache.get(key);
+          if (!promise) {
+            promise = requestGeneralTranslation(text, way, {
+              source, target, purpose: "everyday", onDevice, inputType: "image"
+            });
+            cameraTranslationCache.set(key, promise);
+            if (cameraTranslationCache.size > 160)
+              cameraTranslationCache.delete(cameraTranslationCache.keys().next().value);
+          }
+          const translation = await promise;
+          if (typeof translation !== "string" || !translation.trim())
+            throw new Error("Empty translation");
+          return {source: text, translation: translation.slice(0, 400)};
+        } catch (error) {
+          cameraTranslationCache.delete(key);
+          const message = typeof translationErrorMessage === "function"
+            ? translationErrorMessage(error).title
+            : "Translation unavailable.";
+          return {source: text, error: String(message).slice(0, 150)};
         }
-        reply({translation: translation.slice(0, 2000), target, note: onDevice ? "On-device" : "Online draft"});
-      } catch (error) {
-        const message = typeof translationErrorMessage === "function"
-          ? translationErrorMessage(error).title
-          : "The translation service is unavailable.";
-        reply({error: String(message).slice(0, 200)});
-      }
+      };
+      // Small batches avoid flooding a limited translation provider on every
+      // camera frame. No photo pixels are ever provided to this handler.
+      const translations = await Promise.all(payload.items.map(translateLine));
+      reply({translations, target, note: onDevice ? "On-device draft" : "Online draft"});
     };
     window.__hablaCameraScan = payload => {
       if (!pending || !payload || payload.id !== pending.id) return;
