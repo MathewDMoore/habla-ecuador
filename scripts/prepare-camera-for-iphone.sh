@@ -3,7 +3,7 @@
 # Local signing, Xcode project settings, build numbers, and TestFlight stay untouched.
 set -euo pipefail
 
-if [[ -n "\${HABLA_REPO:-}" ]]; then
+if [[ -n "${HABLA_REPO:-}" ]]; then
   repo="$HABLA_REPO"
 elif git -C "$PWD" rev-parse --is-inside-work-tree >/dev/null 2>&1 && [[ -d "$PWD/ios/HablaEcuador.xcodeproj" ]]; then
   repo="$PWD"
@@ -31,13 +31,13 @@ paths=(
 )
 cd "$repo"
 printf 'Signed Habla checkout: %s\n' "$repo"
-if [[ -n "$(git status --porcelain -- "\${paths[@]}")" ]]; then
+if [[ -n "$(git status --porcelain -- "${paths[@]}")" ]]; then
   printf 'Local native edits detected. Nothing changed. Preserve these edits first:\n' >&2
-  git status --short -- "\${paths[@]}" >&2
+  git status --short -- "${paths[@]}" >&2
   exit 3
 fi
 git fetch --no-tags origin main
-for path in "\${paths[@]}"; do
+for path in "${paths[@]}"; do
   git cat-file -e "origin/main:$path" || { echo "Missing file: $path" >&2; exit 4; }
 done
 if ! git show origin/main:ios/HablaEcuador/HablaEcuadorApp.swift | grep -q 'startCameraScan'; then
@@ -45,12 +45,12 @@ if ! git show origin/main:ios/HablaEcuador/HablaEcuadorApp.swift | grep -q 'star
   exit 4
 fi
 backup="$(mktemp -d /tmp/habla-camera-backup.XXXXXX)"
-for path in "\${paths[@]}"; do
+for path in "${paths[@]}"; do
   mkdir -p "$backup/$(dirname "$path")"
   cp -p "$path" "$backup/$path"
 done
 printf 'Source backups: %s\n' "$backup"
-git restore --source=origin/main --worktree -- "\${paths[@]}"
+git restore --source=origin/main --worktree -- "${paths[@]}"
 if ! grep -q 'startCameraScan' ios/HablaEcuador/HablaEcuadorApp.swift ||
    ! grep -q 'Scan text / Escanear' ios/HablaEcuador/NativeSpeech.js ||
    ! grep -q 'NSCameraUsageDescription' ios/HablaEcuador/Info.plist; then
