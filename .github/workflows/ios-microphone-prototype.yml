@@ -43,6 +43,8 @@ jobs:
           node-version: '22'
       - name: Verify image paste and weak-recognition handling
         run: node --test tests/native-image-paste.test.cjs
+      - name: Verify live camera bridge and source-preservation rules
+        run: node --test tests/native-camera-translation.test.cjs
       - name: Compile without signing or installing
         run: >-
           xcodebuild -project ios/HablaEcuador.xcodeproj
