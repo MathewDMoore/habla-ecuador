@@ -8,12 +8,37 @@
   const clipboard = window.webkit.messageHandlers.hablaClipboard;
   if (clipboard) {
     let pasteRequest = 0;
+    let nearbyStatus = null;
     const reportPaste = text => {
       for (const id of ["#screenshot-status", "#quick-image-status", "#full-reader-image-status"]) {
         const node = document.querySelector(id);
         if (node) node.textContent = text;
       }
+      // The existing status areas may be off-screen when source text is long.
+      // Show the result beside the actual Paste button as well.
+      if (nearbyStatus) nearbyStatus.textContent = text;
     };
+    const installPasteUi = () => {
+      const button = document.querySelector("#quick-paste-image");
+      if (!button) return;
+      button.textContent = "Paste / Pegar y traducir";
+      button.setAttribute("aria-label", "Paste copied image or text and translate");
+      if (!document.querySelector("#native-paste-feedback")) {
+        nearbyStatus = document.createElement("p");
+        nearbyStatus.id = "native-paste-feedback";
+        nearbyStatus.setAttribute("role", "status");
+        nearbyStatus.setAttribute("aria-live", "polite");
+        nearbyStatus.style.cssText = "font-size:0.81rem;line-height:1.3;margin:0.25rem 0;max-width:100%;overflow-wrap:anywhere;";
+        button.insertAdjacentElement("afterend", nearbyStatus);
+      } else nearbyStatus = document.querySelector("#native-paste-feedback");
+      const other = document.querySelector("#paste-screenshot");
+      if (other) {
+        other.textContent = "Paste text or image / Pegar";
+        other.setAttribute("aria-label", "Paste copied text or image for translation");
+      }
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", installPasteUi, {once:true});
+    else installPasteUi();
     const sourceState = () => ["#translator-input", "#full-reader-source", "#source-language-select", "#target-language-select"]
       .map(id => document.querySelector(id)?.value || "").join("\u0000");
     for (const type of ["input", "change"]) document.addEventListener(type, () => { pasteRequest++; }, true);
@@ -26,33 +51,58 @@
       event.preventDefault();
       event.stopImmediatePropagation();
       const request = ++pasteRequest, original = sourceState();
-      if (typeof beginScreenshotImport !== "function" || typeof previewScreenshotText !== "function") {
-        reportPaste("The image reader is still loading. Wait a moment, then tap Paste image again.");
+      if (typeof beginScreenshotImport !== "function" ||
+          typeof previewScreenshotText !== "function") {
+        reportPaste("Paste is still loading. Please tap Paste again.");
         return;
       }
       if (typeof HablaScreenshot !== "undefined") HablaScreenshot.clear?.();
       const guard = beginScreenshotImport();
-      reportPaste("Reading image text on your iPhone… Allow Paste if asked.");
+      reportPaste("Reading copied text or image… / Leyendo portapapeles…");
       try {
-        const result = await clipboard.postMessage({action:"recognizeImage"});
+        const result = await clipboard.postMessage({action:"pasteToTranslate"});
         if (request !== pasteRequest) return;
         if (original !== sourceState()) {
-          reportPaste("Your text or language changed. Tap Paste image again when ready.");
+          reportPaste("Your original text or language changed. Nothing was overwritten. Paste again when ready.");
           return;
         }
-        if (result?.engine !== "apple-vision" || typeof result.text !== "string" ||
-            !result.text.trim() || result.text.length > 200000 ||
-            !Number.isFinite(result.confidence) || result.confidence < 65)
-          throw new Error("The image text could not be read clearly. Your original text was kept. Try a closer photo with less glare.");
-        if (!previewScreenshotText({text:result.text, name:"Pasted image", confidence:result.confidence}, guard)) {
-          reportPaste("Your input changed. Your text was kept. Paste the image again when ready.");
+        const text = typeof result?.text === "string" ? result.text : "";
+        if (!text.trim() || text.length > 200000) {
+          throw new Error("Clipboard had no usable text. Copy an image or text, then try again.");
+        }
+        if (result.kind === "image") {
+          if (result.engine !== "apple-vision" || !Number.isFinite(result.confidence) ||
+              result.confidence < 65) {
+            throw new Error("The copied picture was not clear enough to read. Choose a clearer image.");
+          }
+        } else if (result.kind === "text") {
+          const currentText = document.querySelector("#translator-input")?.value || "";
+          if (currentText.trim() && currentText !== text &&
+              !window.confirm("Replace the current source with copied text? / ¿Reemplazar el texto original?")) {
+            reportPaste("Paste cancelled. Your original text was kept. / Texto conservado.");
+            return;
+          }
+        } else {
+          throw new Error("Clipboard type was not recognized. Copy an image or text again.");
+        }
+        if (!previewScreenshotText({
+          text, kind: result.kind,
+          name: result.kind === "image" ? "Pasted image" : "Pasted text",
+          confidence: result.confidence
+        }, guard)) {
+          reportPaste("Your source text changed while pasting. Original words were kept.");
           return;
         }
-        reportPaste(result.excludedLines > 0
-          ? "Image text recognized; unclear fragments were omitted. Check the words and translation before sharing."
-          : "Image text recognized on your iPhone. Check the words and translation before sharing.");
+        reportPaste(result.kind === "text"
+          ? "Copied text received. Translating automatically. / Texto pegado, traduciendo…"
+          : (result.excludedLines > 0
+            ? "Image recognized; some unclear fragments were omitted. Translation started. Check original words."
+            : "Image recognized. Translating automatically; check the original words."));
       } catch (error) {
-        if (request === pasteRequest) reportPaste(error?.message || String(error) || "Image paste failed. Try Choose photo.");
+        if (request === pasteRequest) reportPaste(
+          (error?.message || String(error) || "Paste failed.") +
+          " Try Choose photo or paste directly into the source field."
+        );
       }
     }, true);
   }
