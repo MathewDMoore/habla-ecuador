@@ -4,14 +4,15 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {File} = require('node:buffer');
 const bridge = fs.readFileSync('ios/HablaEcuador/NativeSpeech.js', 'utf8');
-const recognized = {text:'CHICKEN\nSOUP BASE',confidence:95,excludedLines:0,engine:'apple-vision'};
+const recognized = {kind:'image',text:'CHICKEN\nSOUP BASE',confidence:95,excludedLines:0,engine:'apple-vision'};
 function harness({native=true, origin='https://mathewdmoore.github.io'}={}) {
   const handlers={}, calls=[], images=[], nodes=new Map();
   for (const id of ['translator-input','full-reader-source','source-language-select','target-language-select','screenshot-status','quick-image-status','full-reader-image-status'])
     nodes.set('#'+id,{value:id==='source-language-select'?'es-EC':id==='target-language-select'?'en-US':'',textContent:''});
   const document={readyState:'complete',querySelector:id=>nodes.get(id)||null,
     addEventListener:(type,fn,capture)=>{assert.equal(capture,true);handlers[type]=fn;}};
-  const window={webkit:{messageHandlers:{hablaSpeech:{postMessage(){}}}}};
+  const confirmations=[];
+  const window={confirm:() => {confirmations.push(true);return true;},webkit:{messageHandlers:{hablaSpeech:{postMessage(){}}}}};
   if(native)window.webkit.messageHandlers.hablaClipboard={postMessage:message=>new Promise((resolve,reject)=>calls.push({message,resolve,reject}))};
   const context={window,document,location:{origin,pathname:'/habla-ecuador/index.html'},EventTarget,Event,DOMException,File,Uint8Array,atob,
     HablaScreenshot:{clear(){}},beginScreenshotImport:()=>({token:1}),previewScreenshotText:(image,guard)=>{assert.equal(guard.token,1);images.push(image);return true;}};
@@ -21,14 +22,14 @@ function harness({native=true, origin='https://mathewdmoore.github.io'}={}) {
     const done=handlers.click?.(event);
     return {event,done};
   }
-  return {handlers,calls,images,nodes,click};
+  return {handlers,calls,images,nodes,click,confirmations,window};
 }
 test('native paste reads only on a tap, delivers native recognized text to the importer, and blocks duplicate browser handling',async()=>{
   const h=harness();assert.equal(h.calls.length,0);
   for(const id of ['quick-paste-image','paste-screenshot']){
     const {event,done}=h.click(id);
     assert.equal(event.prevented,true);assert.equal(event.stopped,true);
-    assert.equal(h.calls.at(-1).message.action,'recognizeImage');
+    assert.equal(h.calls.at(-1).message.action,'pasteToTranslate');
     h.calls.at(-1).resolve(recognized);await done;
   }
   assert.equal(h.images.length,2);assert.equal(h.images[0].text,recognized.text);
@@ -65,4 +66,40 @@ test('weak recognition never reaches the importer or replaces existing text',asy
     assert.equal(h.images.length,0);assert.equal(h.nodes.get('#translator-input').value,'Keep original');
     assert.match(h.nodes.get('#quick-image-status').textContent,/could not be read clearly/);
   }
+});
+
+test('copied article text translates through the same automatic source-import path',async()=>{
+  const h=harness();
+  const copied='An entire sentence from the copied article.';
+  const {done}=h.click();
+  h.calls[0].resolve({kind:'text',text:copied});await done;
+  assert.equal(h.images.length,1);
+  assert.equal(h.images[0].text,copied);
+  assert.equal(h.images[0].kind,'text');
+  assert.match(h.nodes.get('#quick-image-status').textContent,/Translating automatically/);
+});
+test('text paste never silently replaces a different existing source',async()=>{
+  const h=harness();
+  h.nodes.get('#translator-input').value='Keep my original story';
+  h.window.confirm=() => {h.confirmations.push(false);return false;};
+  const {done}=h.click();
+  h.calls[0].resolve({kind:'text',text:'Different clipboard article'});await done;
+  assert.equal(h.images.length,0);
+  assert.deepEqual(h.confirmations,[false]);
+  assert.equal(h.nodes.get('#translator-input').value,'Keep my original story');
+  assert.match(h.nodes.get('#quick-image-status').textContent,/cancelled/);
+});
+test('text paste with nonempty source asks before replacement',async()=>{
+  const h=harness();
+  h.nodes.get('#translator-input').value='Old story';
+  const {done}=h.click();
+  h.calls[0].resolve({kind:'text',text:'New story'});await done;
+  assert.deepEqual(h.confirmations,[true]);
+  assert.equal(h.images.length,1);
+});
+test('unrecognized clipboard type is reported rather than claiming success',async()=>{
+  const h=harness();const {done}=h.click();
+  h.calls[0].resolve({kind:'unknown',text:'Hello'});await done;
+  assert.equal(h.images.length,0);
+  assert.match(h.nodes.get('#quick-image-status').textContent,/not recognized/);
 });
