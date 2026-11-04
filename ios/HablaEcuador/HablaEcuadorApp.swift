@@ -83,47 +83,59 @@ private final class ClipboardImageHandler: NSObject, WKScriptMessageHandlerWithR
               message.frameInfo.request.url?.path.hasPrefix("/habla-ecuador/") == true,
               let body = message.body as? [String: Any],
               let action = body["action"] as? String,
-              ["readImage", "recognizeImage"].contains(action) else {
+              ["readImage", "recognizeImage", "pasteToTranslate"].contains(action) else {
             replyHandler(nil, "Image paste is available only in Habla Ecuador.")
             return
         }
-        guard let image = UIPasteboard.general.image else {
-            replyHandler(nil, "No accessible image on the clipboard. Copy a photo or screenshot, allow Paste if asked, then try again. You can also use Choose photo.")
-            return
-        }
-        let width = image.size.width * image.scale
-        let height = image.size.height * image.scale
-        guard width > 0, height > 0 else {
-            replyHandler(nil, "This copied image has no readable pixels. Try Choose photo.")
-            return
-        }
-        let factor = min(1, 2800 / max(width, height))
-        let size = CGSize(width: max(1, floor(width * factor)), height: max(1, floor(height * factor)))
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = true
-        let prepared = UIGraphicsImageRenderer(size: size, format: format).image { context in
-            UIColor.white.setFill()
-            context.fill(CGRect(origin: .zero, size: size))
-            image.draw(in: CGRect(origin: .zero, size: size))
-        }
-        guard let data = prepared.pngData(), data.count <= 10 * 1024 * 1024 else {
-            replyHandler(nil, "This copied image is too large. Copy a smaller screenshot or use Choose photo.")
-            return
-        }
-        if action == "recognizeImage" {
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let result = try NativeImageOCR.recognize(data)
-                    DispatchQueue.main.async { replyHandler(result, nil) }
-                } catch {
-                    let message = error.localizedDescription
-                    DispatchQueue.main.async { replyHandler(nil, message) }
-                }
+        if let image = UIPasteboard.general.image {
+            let width = image.size.width * image.scale
+            let height = image.size.height * image.scale
+            guard width > 0, height > 0 else {
+                replyHandler(nil, "This copied image has no readable pixels. Try Choose photo.")
+                return
             }
-        } else {
-            replyHandler(["base64": data.base64EncodedString(), "type": "image/png"], nil)
+            let factor = min(1, 2800 / max(width, height))
+            let size = CGSize(width: max(1, floor(width * factor)), height: max(1, floor(height * factor)))
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            format.opaque = true
+            let prepared = UIGraphicsImageRenderer(size: size, format: format).image { context in
+                UIColor.white.setFill()
+                context.fill(CGRect(origin: .zero, size: size))
+                image.draw(in: CGRect(origin: .zero, size: size))
+            }
+            guard let data = prepared.pngData(), data.count <= 10 * 1024 * 1024 else {
+                replyHandler(nil, "This copied image is too large. Copy a smaller screenshot or use Choose photo.")
+                return
+            }
+            if action == "recognizeImage" || action == "pasteToTranslate" {
+                DispatchQueue.global(qos: .userInitiated).async {
+                    do {
+                        var result = try NativeImageOCR.recognize(data)
+                        result["kind"] = "image"
+                        DispatchQueue.main.async { replyHandler(result, nil) }
+                    } catch {
+                        let description = error.localizedDescription
+                        DispatchQueue.main.async { replyHandler(nil, description) }
+                    }
+                }
+            } else {
+                replyHandler(["base64": data.base64EncodedString(), "type": "image/png"], nil)
+            }
+            return
         }
+        if action == "pasteToTranslate", let text = UIPasteboard.general.string,
+           !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            guard text.count <= 200_000 else {
+                replyHandler(nil, "Copied text is too long. Select a smaller passage or import the document.")
+                return
+            }
+            // Explicit Paste tap only. Keep clipboard text exactly as written;
+            // never manufacture an OCR result or access the clipboard passively.
+            replyHandler(["kind": "text", "text": text], nil)
+            return
+        }
+        replyHandler(nil, "Nothing readable to paste. Copy text or a photo first, or choose a photo in Habla.")
     }
 }
 
