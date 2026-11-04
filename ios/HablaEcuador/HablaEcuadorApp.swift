@@ -343,6 +343,33 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         webView.evaluateJavaScript("window.__hablaCameraScan?.(\(json))", completionHandler: nil)
     }
 
+    // WKWebView does not reliably present JavaScript confirm prompts without
+    // a WKUIDelegate. Ask explicitly before copied text replaces an existing
+    // learner source; reject unexpected prompt origins or messages.
+    func webView(_ webView: WKWebView,
+                 runJavaScriptConfirmPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo,
+                 completionHandler: @escaping (Bool) -> Void) {
+        guard frame.isMainFrame,
+              let url = frame.request.url,
+              isTrustedAppPage(url),
+              message.hasPrefix("Replace the current source with copied text?") else {
+            completionHandler(false)
+            return
+        }
+        let alert = UIAlertController(
+            title: "Replace current source? / ¿Reemplazar texto?",
+            message: "Pasted text will replace the existing source. Cancel keeps your original words.",
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel / Cancelar", style: .cancel) { _ in
+            completionHandler(false)
+        })
+        alert.addAction(UIAlertAction(title: "Replace / Reemplazar", style: .default) { _ in
+            completionHandler(true)
+        })
+        present(alert, animated: true)
+    }
+
     // The app's document and embedded YouTube video are different frames.
     // Never redirect a subframe or script-initiated YouTube navigation to Safari.
     private func isTrustedAppPage(_ url: URL) -> Bool {
