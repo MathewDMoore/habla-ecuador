@@ -40,7 +40,7 @@ test('denial, empty clipboard and malformed responses show a retry message witho
   let pending=h.click();h.calls[0].reject(new Error('Allow Paste, then try again.'));await pending.done;
   assert.match(h.nodes.get('#quick-image-status').textContent,/Allow Paste/);
   pending=h.click();h.calls[1].resolve({base64:'',type:'image/png'});await pending.done;
-  assert.match(h.nodes.get('#quick-image-status').textContent,/could not be read clearly/);
+  assert.match(h.nodes.get('#quick-image-status').textContent,/no usable text/);
   assert.equal(h.nodes.get('#translator-input').value,'Keep my original');assert.equal(h.images.length,0);
 });
 test('edits, language changes, cancellation and later taps supersede pending clipboard results',async()=>{
@@ -64,7 +64,7 @@ test('weak recognition never reaches the importer or replaces existing text',asy
     const h=harness();h.nodes.get('#translator-input').value='Keep original';
     const pending=h.click();h.calls[0].resolve(result);await pending.done;
     assert.equal(h.images.length,0);assert.equal(h.nodes.get('#translator-input').value,'Keep original');
-    assert.match(h.nodes.get('#quick-image-status').textContent,/could not be read clearly/);
+    assert.match(h.nodes.get('#quick-image-status').textContent,/not clear enough|no usable text/);
   }
 });
 
