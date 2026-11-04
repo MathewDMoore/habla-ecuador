@@ -103,3 +103,17 @@ test('unrecognized clipboard type is reported rather than claiming success',asyn
   assert.equal(h.images.length,0);
   assert.match(h.nodes.get('#quick-image-status').textContent,/not recognized/);
 });
+
+
+test('signed-checkout installer parses and safeguards camera and other local changes',()=>{
+  const {spawnSync} = require('node:child_process');
+  const path='scripts/install-native-paste-safely.py';
+  const code=fs.readFileSync(path,'utf8');
+  const result=spawnSync('python3',['-c','import ast,sys; ast.parse(open(sys.argv[1]).read())',path],{encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
+  assert.match(code,/HablaPasteBackups/);
+  assert.match(code,/if oldpart in local:/);
+  assert.match(code,/elif newpart not in local:/);
+  assert.match(code,/runJavaScriptConfirmPanelWithMessage/);
+  assert.doesNotMatch(code,/git reset --hard|git clean -f|rm -rf/);
+});
