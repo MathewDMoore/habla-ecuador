@@ -21,7 +21,7 @@
     const installPasteUi = () => {
       const button = document.querySelector("#quick-paste-image");
       if (!button) return;
-      button.textContent = "Paste / Pegar y traducir";
+      button.textContent = "Paste / Pegar";
       button.setAttribute("aria-label", "Paste copied image or text and translate");
       if (!document.querySelector("#native-paste-feedback")) {
         nearbyStatus = document.createElement("p");
@@ -33,7 +33,7 @@
       } else nearbyStatus = document.querySelector("#native-paste-feedback");
       const other = document.querySelector("#paste-screenshot");
       if (other) {
-        other.textContent = "Paste text or image / Pegar";
+        other.textContent = "Paste / Pegar";
         other.setAttribute("aria-label", "Paste copied text or image for translation");
       }
     };
