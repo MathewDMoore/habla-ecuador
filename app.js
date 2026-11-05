@@ -2184,6 +2184,7 @@ function syncMusicReview() {
   $("#music-review-status").textContent = musicListening
     ? "Paired drafts stay available while listening. Stop to correct the captured words or English."
     : passage?.status || "Check the captured words against what you heard. Correct them here, then translate this passage again.";
+  window.HablaMusicMeaning?.refresh("review");
 }
 
 function keepMusicPassage(source, draft, session) {
@@ -2203,6 +2204,7 @@ function editMusicPassage() {
   passage.status = "Passage edits kept for this session. Translate again after correcting captured words.";
   $("#music-review-status").textContent = passage.status;
   $("#music-review-translate").disabled = musicReviewBusy || !passage.source.trim();
+  window.HablaMusicMeaning?.refresh("review");
 }
 
 async function translateReviewedMusicPassage() {
@@ -2462,6 +2464,7 @@ async function translateMusicLivePassage(session) {
     $("#music-live-preview").hidden = false;
     $("#music-live-source").textContent = passage;
     $("#music-live-draft").value = draft;
+    window.HablaMusicMeaning?.refresh("live");
     $("#music-live-draft").readOnly = true;
     if(!provisional)keepMusicPassage(passage,draft,session);
     showMusicLiveDraftKind(session,onDevice);
@@ -4757,7 +4760,21 @@ function renderMusic() {
   </article>`).join("");
   recordings.innerHTML = renderTrackCards(contemporaryMusicTracks);
   heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks);
-  const players = $$("#music-view audio");
+  // Attach optional meaning notes beside every licensed vocal track's
+  // existing bilingual lyrics. No additional copyrighted lyrics are copied.
+  for(const [group,tracks] of [[recordings,contemporaryMusicTracks],[heritageRecordings,heritageMusicTracks]]) {
+    [...group.querySelectorAll(".open-music-card")].forEach((card,index)=>{
+      const lines=tracks[index]?.lyrics,companion=card.querySelector(".lyric-companion");
+      if(companion&&lines&&typeof HablaMusicMeaning!=="undefined") {
+        HablaMusicMeaning.mount(companion,{
+          key:"licensed-"+group.id+"-"+index,
+          source:lines.map(line=>line.es||"").join("\n"),
+          draft:lines.map(line=>line.en||"").join("\n")
+        });
+      }
+    });
+  }
+  const players = $("#music-view audio");
   players.forEach(player => player.addEventListener("play", () => handleMusicPlayerPlay(player,players)));
   $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
     const trackIndex = Number(button.dataset.trackIndex);
@@ -5571,6 +5588,7 @@ function init() {
     initializeOptionalFeature("complete text viewer",()=>HablaFullReader.bind());
     if(typeof HablaTranslationControls!=="undefined")HablaTranslationControls.bind();
     if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.bind();
+    if(typeof HablaMusicMeaning!=="undefined")HablaMusicMeaning.bind();
   });
   bindAppSharing();
   bindRegionalSearchRecovery();
