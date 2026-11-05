@@ -163,7 +163,13 @@ function explanation(entry){
 }
 const instances=new Map();
 function add(container,key,reader){
-  if(!container||instances.has(key))return;
+  if(!container)return;
+  // Some lesson cards are recreated when the interface language changes.
+  // Never retain a detached <details> or multiply controls.
+  if(instances.has(key)){
+    if(instances.get(key).details.parentElement===container){refresh(key);return;}
+    instances.delete(key);
+  }
   const details=el("details","music-meaning-details");
   details.dataset.meaningScope=key;
   const summary=el("summary","","🧐 ¿Por qué significa eso? / Why does it mean that?");
