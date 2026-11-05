@@ -1,0 +1,39 @@
+name: Music cultural explanation regression
+
+on:
+  pull_request:
+    paths:
+      - 'music-meaning-notes.js'
+      - 'tests/music-meaning-notes.test.cjs'
+      - 'app.js'
+      - 'music-song.js'
+      - 'music-venezuela-captions.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'sw.js'
+      - 'styles.css'
+      - '.github/workflows/music-cultural-notes.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'music-meaning-notes.js'
+      - 'tests/music-meaning-notes.test.cjs'
+      - '.github/workflows/music-cultural-notes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  meaning-notes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify JavaScript syntax
+        run: node --check music-meaning-notes.js && node --check app.js && node --check music-song.js && node --check music-venezuela-captions.js
+      - name: Check cultural references, compact UI, and no invented source
+        run: node --test tests/music-meaning-notes.test.cjs
