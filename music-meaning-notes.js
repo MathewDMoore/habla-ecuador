@@ -173,6 +173,7 @@ function explanation(entry){
   return card;
 }
 const instances=new Map();
+let fullMusic={source:"",draft:""};
 function add(container,key,reader){
   if(!container)return;
   // Some lesson cards are recreated when the interface language changes.
@@ -221,6 +222,15 @@ function bind(){
   const review=document.getElementById("music-review");
   add(review,"review",()=>({source:document.getElementById("music-review-source")?.value||"",
     draft:document.getElementById("music-review-draft")?.value||""}));
+  // Completed full-song translation appears in the existing result panel.
+  // Keep its explanation there too, but remove it when returning to ordinary
+  // conversation/document translation or when the original source changes.
+  add(document.getElementById("translation-result"),"full",()=>fullMusic);
+  document.getElementById("translator-input")?.addEventListener("input",()=>{
+    if(fullMusic.source &&
+       document.getElementById("translator-input")?.value.trim()!==fullMusic.source.trim())
+      clearFull();
+  });
   document.getElementById("music-review-source")?.addEventListener("input",()=>refresh("review"));
   document.getElementById("music-review-draft")?.addEventListener("input",()=>refresh("review"));
 }
@@ -230,6 +240,14 @@ function mount(host,config){
   if(typeof key!=="string"||!key)return;
   add(host,key,()=>({source:config.source||"",draft:config.draft||""}));
 }
-root.HablaMusicMeaning={detect,bind,refresh,mount};
+function showFull(source,draft){
+  fullMusic={source:String(source||""),draft:String(draft||"")};
+  refresh("full",true);
+}
+function clearFull(){
+  fullMusic={source:"",draft:""};
+  refresh("full",true);
+}
+root.HablaMusicMeaning={detect,bind,refresh,mount,showFull,clearFull};
 if(typeof module!=="undefined"&&module.exports)module.exports=root.HablaMusicMeaning;
 })(typeof window!=="undefined"?window:globalThis);
