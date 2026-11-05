@@ -170,7 +170,7 @@ function draw(force){
 }
 function renderPassages(){
  passages.replaceChildren();
- for(const v of verses){
+ for(const [index,v] of verses.entries()){
   const section=document.createElement('article');section.className='ve-verse';
   const pair=document.createElement('div');pair.className='ve-verse-pair';
   const es=document.createElement('div'),en=document.createElement('div');
@@ -182,6 +182,12 @@ function renderPassages(){
   es.append(esTitle,esText);en.append(enTitle,enText);pair.append(es,en);
   const note=document.createElement('p');note.className='ve-note';note.textContent=v.note;
   section.append(pair,note);passages.append(section);
+  // The song is Venezuelan; its city and localized dialect are unverified.
+  root.HablaMusicMeaning?.mount(section,{
+    key:'venezuela-verse-'+index,
+    source:v.readable,
+    draft:lang.value==='en-GB'?v.uk:v.us
+  });
  }
 }
 function seek(sec){
