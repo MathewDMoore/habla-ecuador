@@ -23,6 +23,13 @@ function render(config=options){
  ${phrases.map(([es,en,context],i)=>`<article class="song-phrase"><p>${context}</p><p lang="${english?'en':'es'}"><strong>${english?en:es}</strong></p><p>${english?es:en}</p><button type="button" data-song-phrase="${i}">🔊 ${english?'Hear spoken English':'Escuchar español hablado'}</button></article>`).join('')}
  <p>Prueba con tu situación: “Me falta…” / Try your own situation: “I’m missing…”</p>
  <details><summary>Créditos / Credits</summary><p>Elisa: vocals; Sean Buss: guitar; Kenmayer: mix (2008). Recording unchanged. Bilingual lyric companion adapted by Habla Ecuador under <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noreferrer">CC BY-SA 3.0</a>. <a href="${source}" target="_blank" rel="noreferrer">Recording and exact sung lyrics / Grabación y letra</a>.</p></details>`;
+ // Publicly licensed teaching chorus: a compact explanation stays beside
+ // the original paired lines without changing the song or its playback.
+ root.HablaMusicMeaning?.mount(host.querySelector('.song-lyrics'),{
+   key:'traditional-la-cucaracha',
+   source:lines.map(pair=>pair[0]).join(' '),
+   draft:lines.map(pair=>pair[1]).join(' ')
+ });
  const player=host.querySelector('audio'),status=host.querySelector('[data-song-status]');
  const start=()=>{document.querySelectorAll('audio').forEach(p=>{if(p!==player)p.pause()});config.stop?.();};
  player.addEventListener('play',start);

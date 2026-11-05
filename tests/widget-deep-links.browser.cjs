@@ -21,7 +21,16 @@ const routes = [['translate','translator-view'],['practice','lesson-view'],['dic
    });
    await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v2','1'));
    await page.goto(origin+'/habla-ecuador/index.html?start='+route);
-   await page.waitForFunction(view=>document.getElementById(view)?.classList.contains('active'),view);
+   await page.waitForFunction(view=>document.getElementById(view)?.classList.contains('active'),view,{timeout:12000}).catch(async e=>{
+    const state=await page.evaluate(()=>({
+      active:[...document.querySelectorAll('.view.active')].map(x=>x.id),
+      appLoaded:typeof window.HablaMusicMeaning,
+      pageState:document.readyState,
+      source:document.querySelector('#translator-input')?.value||''
+    })).catch(()=>({unavailable:true}));
+    throw new Error('Widget '+route+' did not open. Page state: '+JSON.stringify(state)
+      +'; JavaScript errors: '+JSON.stringify(errors)+'; '+e.message);
+   });
    assert.equal(await page.locator('.view.active').getAttribute('id'),view,route+' route');
    assert.deepEqual(errors,[],route+' has no JavaScript error');
    await context.close();

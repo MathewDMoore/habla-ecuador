@@ -1375,3 +1375,35 @@ body.ve-theater-open {overflow:hidden !important;}
 .regional-source-list li { margin-block: 1rem; }
 .regional-source-list small { display: block; margin-block: .35rem; }
 .regional-source-list p { margin-block: .4rem; }
+
+
+/* Music language learning: one concise disclosure beside the paired words.
+   Keep audio, source and translation controls where they already are. */
+.music-meaning-details {
+  display:block; margin:8px 0 3px; padding:0;
+  background:#f5faf6; border:1px solid #a9c5b3; border-radius:12px;
+  color:#1c382a; max-width:100%; min-width:0;
+}
+.music-meaning-details[hidden] { display:none !important; }
+.music-meaning-details > summary {
+  cursor:pointer; padding:10px 12px; min-height:40px;
+  box-sizing:border-box; font-weight:750; font-size:0.86rem;
+  line-height:1.35; overflow-wrap:anywhere; list-style-position:inside;
+}
+.music-meaning-details > summary:focus-visible { outline:3px solid #147e61; outline-offset:2px; }
+.music-meaning-details[open] > summary { border-bottom:1px solid #c6d9cb; }
+.music-meaning-body { display:grid; gap:9px; padding:8px 12px 12px; }
+.music-meaning-entry { display:grid; gap:5px; padding:0 0 10px; border-bottom:1px solid #d9e5dc; }
+.music-meaning-entry:last-of-type { border-bottom:0; padding-bottom:0; }
+.music-meaning-entry h4 { font-size:0.95rem; margin:3px 0 0; color:#173f35; }
+.music-meaning-entry p,.music-meaning-body > p {
+  font-size:0.8rem; line-height:1.45; margin:0; color:#203a2d;
+  white-space:normal; overflow-wrap:anywhere;
+}
+.music-meaning-entry .music-meaning-type,
+.music-meaning-uncertain,.music-meaning-disclaimer { color:#536a5e; }
+.music-meaning-sources a { font-size:0.8rem; color:#145d47; text-decoration:underline; }
+.music-meaning-entry strong { font-weight:760; }
+.music-meaning-details a:focus-visible { outline:2px solid #147e61; outline-offset:2px; }
+.lyric-companion .music-meaning-details,
+.song-lyrics .music-meaning-details { margin-top:8px; }
