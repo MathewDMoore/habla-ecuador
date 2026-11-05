@@ -4777,7 +4777,7 @@ function renderMusic() {
       }
     });
   }
-  const players = $("#music-view audio");
+  const players = $$("#music-view audio");
   players.forEach(player => player.addEventListener("play", () => handleMusicPlayerPlay(player,players)));
   $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
     const trackIndex = Number(button.dataset.trackIndex);
