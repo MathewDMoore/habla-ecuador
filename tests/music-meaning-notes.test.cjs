@@ -111,6 +111,7 @@ test("songs across all existing surfaces are wired without changing player contr
   const css=fs.readFileSync("styles.css","utf8");
   for(const file of [html,standalone,sw]) assert.match(file,/music-meaning-notes\.js\?v=201/);
   assert.match(app,/HablaMusicMeaning\.bind\(\)/);
+  assert.match(app,/const players = \$\$\("#music-view audio"\)/,"retain all music player events");
   assert.match(app,/HablaMusicMeaning\?\.showFull\(request\.source/);
   assert.match(app,/HablaMusicMeaning\?\.clearFull\(\)/);
   assert.match(app,/HablaMusicMeaning\?\.refresh\("live"\)/);
