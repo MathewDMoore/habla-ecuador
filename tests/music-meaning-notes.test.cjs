@@ -1,7 +1,7 @@
 const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const meanings=require("../music-meaning-notes.js");
+const meanings=require("../music-meaning-meanings.js");
 
 test("traditional choosing rhyme explains natural meaning, not nonsensical syllables",()=>{
   const matches=meanings.detect("De tin marín de dos pingüé, cúcara mácara, títere fue.");
@@ -91,13 +91,13 @@ test("reviews and direct music source show only compact disclosure until expande
     const rerendered=new Node("article");
     meanings.mount(rerendered,{key:"my-song-test",source:"La patita principal"});
     assert.equal(rerendered.children.length,1,"detached lesson card can be recreated");
-    notes.showFull("De tin marín de dos pingüé","Eeny, meeny, miny, moe");
+    meanings.showFull("De tin marín de dos pingüé","Eeny, meeny, miny, moe");
     assert.equal(result.children[0].hidden,false,"completed whole-song drafts have the same explanation");
     const fullDetails=result.children[0];
     fullDetails.open=true;
     fullDetails.handlers.toggle();
     assert.equal(fullDetails.children[1].children[0].tag,"article");
-    notes.clearFull();
+    meanings.clearFull();
     assert.equal(fullDetails.hidden,true,"normal translator mode does not inherit song notes");
   }finally{global.document=before;}
 });
