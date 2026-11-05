@@ -2514,6 +2514,7 @@ function cancelMusicListening(preserveTranscript=true) {
 
 function newMusicSong() {
   musicFullTranslation = null;
+  window.HablaMusicMeaning?.clearFull();
   cancelMusicListening();
   saveActiveTranslationEdit();
   musicCapturedText = "";
@@ -2560,6 +2561,7 @@ async function translateCapturedMusic() {
         : request.uncertain
           ? "Draft ready. Some captured words were unconfirmed; check them before relying on the translation."
         : "Translation ready. Check the draft against the captured words.";
+      window.HablaMusicMeaning?.showFull(request.source,$("#natural-result").textContent);
       if (incomplete) {
         $("#translation-result .result-label").textContent += " · incomplete captured text";
         $("#usage-note").innerHTML += "<p>The captured source ends mid-phrase. This draft cannot supply the missing words; continue listening or correct the source before relying on its meaning.</p>";
@@ -3688,6 +3690,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     && requestContext.source === sourceLanguage && requestContext.target === targetLanguage
     && requestContext.purpose === translationPurpose;
   const musicInput=allowMusic || Boolean(musicCapturedText && musicCapturedText === sourceText && musicCapturedLanguage === sourceLanguage);
+  if(!musicInput)window.HablaMusicMeaning?.clearFull();
   const autoMusic=musicInput && translationPurpose !== "academic" && bilingualMusicEnabled();
   if(!autoMusic)renderSpanishContext(sourceText);
   else if($("#spanish-context"))$("#spanish-context").hidden=true;
