@@ -1,7 +1,7 @@
 const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const meanings=require("../music-meaning-meanings.js");
+const meanings=require("../music-meaning-notes.js");
 
 test("traditional choosing rhyme explains natural meaning, not nonsensical syllables",()=>{
   const matches=meanings.detect("De tin marín de dos pingüé, cúcara mácara, títere fue.");
