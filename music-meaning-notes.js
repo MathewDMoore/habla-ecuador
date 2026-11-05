@@ -80,6 +80,17 @@ const entries=[
     sources:[]
   },
   {
+    id:"patita",aliases:["la patita","patita principal"],term:"Patita",kind:"Diminutive",
+    literal:"A little leg or paw.",
+    natural:"The little leg (of an animal).",
+    why:"The -ita ending makes pata diminutive. A person usually has a pierna; patita fits the playful animal imagery in this traditional song.",
+    scope:"General Spanish grammar; this is not an Ecuador-only expression.",
+    usage:"El perrito tiene una patita lastimada.",
+    english:"The puppy has an injured little leg.",
+    status:"Documented Spanish diminutive formation; teaching note.",
+    sources:[]
+  },
+  {
     id:"de-ley",aliases:["de ley"],term:"De ley",kind:"Ecuadorian informal expression",
     literal:"By law (literal words), but that is not the usual casual meaning.",
     natural:"Definitely / for sure / of course.",
