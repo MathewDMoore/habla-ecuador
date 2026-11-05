@@ -47,7 +47,8 @@ test("reviews and direct music source show only compact disclosure until expande
   const add=id=>{const n=new Node("section",id);ids.set(id,n);return n;};
   const live=add("music-live-preview"),review=add("music-review"),
     liveSource=add("music-live-source"),liveDraft=add("music-live-draft"),
-    reviewSource=add("music-review-source"),reviewDraft=add("music-review-draft");
+    reviewSource=add("music-review-source"),reviewDraft=add("music-review-draft"),
+    result=add("translation-result"),translatorInput=add("translator-input");
   liveSource.textContent="";
   reviewSource.value="";
   global.document={
@@ -59,6 +60,7 @@ test("reviews and direct music source show only compact disclosure until expande
     meanings.bind();
     assert.equal(live.children.length,1);
     assert.equal(review.children.length,1);
+    assert.equal(result.children.length,1);
     const liveDetails=live.children[0];
     assert.equal(liveDetails.tag,"details");
     assert.equal(liveDetails.hidden,true,"no initial music words means no idle visual clutter");
@@ -89,6 +91,14 @@ test("reviews and direct music source show only compact disclosure until expande
     const rerendered=new Node("article");
     meanings.mount(rerendered,{key:"my-song-test",source:"La patita principal"});
     assert.equal(rerendered.children.length,1,"detached lesson card can be recreated");
+    notes.showFull("De tin marín de dos pingüé","Eeny, meeny, miny, moe");
+    assert.equal(result.children[0].hidden,false,"completed whole-song drafts have the same explanation");
+    const fullDetails=result.children[0];
+    fullDetails.open=true;
+    fullDetails.handlers.toggle();
+    assert.equal(fullDetails.children[1].children[0].tag,"article");
+    notes.clearFull();
+    assert.equal(fullDetails.hidden,true,"normal translator mode does not inherit song notes");
   }finally{global.document=before;}
 });
 test("songs across all existing surfaces are wired without changing player controls or transcript",()=>{
@@ -101,6 +111,8 @@ test("songs across all existing surfaces are wired without changing player contr
   const css=fs.readFileSync("styles.css","utf8");
   for(const file of [html,standalone,sw]) assert.match(file,/music-meaning-notes\.js\?v=201/);
   assert.match(app,/HablaMusicMeaning\.bind\(\)/);
+  assert.match(app,/HablaMusicMeaning\?\.showFull\(request\.source/);
+  assert.match(app,/HablaMusicMeaning\?\.clearFull\(\)/);
   assert.match(app,/HablaMusicMeaning\?\.refresh\("live"\)/);
   assert.match(app,/HablaMusicMeaning\?\.refresh\("review"\)/);
   assert.match(app,/HablaMusicMeaning\.mount\(companion/);
