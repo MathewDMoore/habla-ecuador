@@ -1,0 +1,25 @@
+name: Spanish Disney song discovery checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'styles.css'
+      - 'tests/music-disney-spanish-listening.test.cjs'
+      - '.github/workflows/music-disney-spanish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  song-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate song metadata, official destinations and copyright boundaries
+        run: node --test tests/music-disney-spanish-listening.test.cjs

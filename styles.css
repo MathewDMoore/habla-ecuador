@@ -1449,3 +1449,52 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-speaking-practice .dictionary-practice-status { margin:6px 0; }
 #translation-speaking-practice .dictionary-practice-response { margin-top:6px; padding:8px; }
 #natural-result { scroll-margin-top:90px; }
+
+
+/* Licensed listening pick: one compact song card, with optional practice text.
+   Never give the impression that copyrighted Disney audio plays inside Habla. */
+.music-discovery-pick {
+  padding:12px 14px; margin:6px 0 12px; border-radius:14px;
+  border:1px solid #bfd5c8; background:#f6fbf7; color:#173f35;
+  overflow-wrap:anywhere;
+}
+.music-discovery-heading {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+}
+.music-discovery-heading h2 {
+  margin:3px 0; font-size:1.18rem; line-height:1.25; color:#173f35;
+}
+.music-discovery-heading p,
+.music-discovery-credit { margin:3px 0; font-size:0.86rem; line-height:1.35; }
+.music-discovery-kicker {
+  font-size:0.71rem; color:#537163; font-weight:750; letter-spacing:.01em;
+}
+.music-discovery-length {
+  flex:none; font-size:0.74rem; color:#526f60; white-space:nowrap; padding-top:3px;
+}
+.music-discovery-links { display:flex; flex-wrap:wrap; gap:8px; margin:9px 0 5px; }
+.music-discovery-link {
+  display:inline-flex; justify-content:center; align-items:center;
+  padding:9px 12px; min-height:44px; box-sizing:border-box;
+  border-radius:10px; background:#195b44; color:white; font-size:0.82rem;
+  font-weight:740; text-decoration:none; line-height:1.2;
+}
+.music-discovery-link:visited { color:white; }
+.music-discovery-details {
+  margin-top:7px; border-top:1px solid #d7e6dc; padding-top:5px;
+}
+.music-discovery-details summary {
+  padding:9px 0; min-height:40px; box-sizing:border-box;
+  font-size:0.83rem; font-weight:750; cursor:pointer; line-height:1.35;
+}
+.music-discovery-lesson { display:grid; gap:8px; padding:3px 1px 9px; }
+.music-discovery-lesson p { margin:0; font-size:0.82rem; line-height:1.45; }
+.music-discovery-rights { font-size:0.72rem !important; color:#5c7165; }
+.music-discovery-pick a:focus-visible,
+.music-discovery-details summary:focus-visible {
+  outline:3px solid #b66d30; outline-offset:3px;
+}
+@media(max-width:360px){
+  .music-discovery-heading {flex-wrap:wrap; gap:3px;}
+  .music-discovery-length {font-size:0.7rem;}
+}
