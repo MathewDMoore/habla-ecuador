@@ -108,17 +108,19 @@ console.log('Practice microphone: stable target/label, touch-selection suppressi
 
 for(const native of [false,true]){
  const h=harness(native,true);
+ const tap=()=>{h.mic.emit('pointerdown');h.mic.emit('pointerup');h.mic.emit('click',{detail:1});};
  for(let i=0;i<3;i++){
-  h.mic.emit('pointerdown');assert.equal(h.recordings.length,i,'pointer down does not start a tap session prematurely');
-  h.mic.emit('click',{detail:1});h.ready();
+  tap();assert.equal(h.recordings.length,i+1,'a tap starts exactly one fresh recording');h.ready();
+  h.mic.emit('blur');assert.notEqual(h.context.dictionaryPracticeSession,null,'tap sessions survive focus changes');
+  assert.equal(h.response.hidden,true);assert.equal(h.score.textContent,'');assert.equal(h.progress.children?.length||0,0);
   h.current().result('me vale verga',false);
-  h.mic.emit('click',{detail:1});h.current().send('end');
+  tap();h.current().send('end');
   assert.match(h.score.textContent,/100%/);assert.equal(h.context.dictionaryPracticeSession,null);
  }
- h.mic.emit('click',{detail:1});h.ready();
+ tap();h.ready();
  assert.equal(h.response.hidden,true,'retry clears the previous evaluation');
  assert.equal(h.score.textContent,'');assert.equal(h.heard.textContent,'');assert.equal(h.progress.children.length,0);
- h.mic.emit('click',{detail:1});h.current().send('end');
+ tap();h.current().send('end');
  assert.match(h.status.textContent,/no transcript.*not scored/);
  assert.equal(h.score.hidden,true,'an empty retry cannot show an old score');
 }

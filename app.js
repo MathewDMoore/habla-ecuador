@@ -5037,8 +5037,10 @@ function bindPracticeHold(button, {start, stop, cancel}) {
     else stop();
   };
   button.addEventListener("pointerdown",event => {
-    if (tapMode || event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
+    if (event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
     event.preventDefault();
+    // Toggle on the trusted press without WebKit focusing/revealing a sticky button.
+    if(tapMode){start();return;}
     held = {type:"pointer",id:event.pointerId};
     try { button.setPointerCapture(event.pointerId); } catch {}
     begin();
@@ -5052,7 +5054,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   button.addEventListener("contextmenu",event => event.preventDefault());
   // iOS may begin native text selection despite cancelling pointerdown. Keep
   // the touch default and selection disabled for this held practice panel.
-  button.addEventListener("touchstart",event => { if(!tapMode)event.preventDefault(); },{passive:false});
+  button.addEventListener("touchstart",event => event.preventDefault(),{passive:false});
   panel?.addEventListener("selectstart",event => { if (held) event.preventDefault(); });
   button.addEventListener("keydown",event => {
     if (tapMode || event.code !== "Space" || button.disabled) return;
@@ -5070,7 +5072,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   // Enter and assistive activation retain a start/stop toggle. A pointer's
   // trailing click must never start a second recording after finger release.
   button.addEventListener("click",event => {
-    if ((tapMode || event.detail === 0) && !held && !button.disabled) start();
+    if (event.detail === 0 && !held && !button.disabled) start();
   });
   return () => release(true);
 }
