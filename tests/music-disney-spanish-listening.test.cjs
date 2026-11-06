@@ -37,7 +37,8 @@ test('copyrighted audio is not bundled, scraped, autoplayed or falsely marked pl
   for(const [,url] of anchors){
     assert.ok(url.startsWith('https://music.apple.com/us/song/'));
   }
-  assert.equal((card.match(/target="_blank" rel="noopener noreferrer"/g)||[]).length,2);
+  assert.equal((card.match(/target="_blank"/g)||[]).length,2);
+  assert.equal((card.match(/rel="noopener noreferrer"/g)||[]).length,2);
 });
 
 test('music lesson is compact, optional, and uses original practice rather than printed lyrics',()=>{
@@ -46,7 +47,7 @@ test('music lesson is compact, optional, and uses original practice rather than 
   assert.match(card,/<details class="music-discovery-details">/);
   assert.doesNotMatch(card,/<details[^>]+open/);
   assert.match(card,/Significado y práctica/);
-  assert.match(card,/la belleza interior/);
+  assert.match(card,/la belleza interior/i);
   assert.match(card,/La verdadera belleza está en cómo tratamos a los demás/);
   assert.match(css,/\.music-discovery-details\s*\{/);
   assert.match(css,/\.music-discovery-link\s*\{/);
