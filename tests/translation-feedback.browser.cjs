@@ -37,9 +37,9 @@ try{for(const file of ['index.html','translator.html']){
  assert.equal(await panel.locator('.dictionary-practice-coach').isVisible(),true);
  assert.match(await panel.locator('.dictionary-practice-coach p').textContent(),/trabajar en esta/);
  await attempt('No sé si quiero trabajar en esta aplicación esta noche',true);
- assert.match(await panel.locator('.dictionary-practice-score').textContent(),/Recognized-word score: 100%/);
+ assert.match(await panel.locator('.dictionary-practice-score').textContent(),/(?:Recognized-word score|Coincidencia de palabras): 100%/);
  await attempt('',false);
  assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false);
- assert.match(await panel.locator('.dictionary-practice-status').textContent(),/no transcript.*not scored/);
+ assert.match(await panel.locator('.dictionary-practice-status').textContent(),/no transcript.*not scored|no devolvió texto.*no se puntuó/i);
  await context.close();console.log(engine+' '+file+': tentative/confirmed feedback, targeted retry, and empty attempt passed');
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
