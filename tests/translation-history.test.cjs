@@ -1,0 +1,47 @@
+const assert=require("node:assert/strict");
+const history=require("../translation-history.js");
+const store=()=>({values:new Map(),getItem(k){return this.values.get(k)||null;},setItem(k,v){this.values.set(k,v);}});
+const box=store();
+let state=history.read(box);
+assert.equal(state.enabled,true);
+assert.deepEqual(state.items,[]);
+const sample={source:"¿Cómo estás?",target:"How are you?",sourceLanguage:"es-EC",targetLanguage:"en-US"};
+assert.equal(history.add(state,sample),true);
+assert.equal(state.items.length,1);
+assert.equal(history.write(state,box),true);
+state=history.read(box);
+assert.equal(state.items[0].source,sample.source);
+assert.equal(state.items[0].targetLanguage,sample.targetLanguage);
+assert.equal(history.search(state.items,"como").length,1,"accent insensitive source search");
+assert.equal(history.search(state.items,"HOW are").length,1,"translation searchable");
+assert.equal(history.search(state.items,"de dónde").length,0);
+const oldId=state.items[0].id;
+assert.equal(history.add(state,{...sample,target:"How are you doing?"}),true);
+assert.equal(state.items.length,1,"deduplicate by exact source and route");
+assert.equal(state.items[0].id,oldId);
+assert.equal(state.items[0].target,"How are you doing?");
+assert.equal(history.add(state,{...sample,targetLanguage:"en-GB",target:"How are you?"}),true);
+assert.equal(state.items.length,2,"English varieties are different saved routes");
+assert.equal(history.add(state,{...sample,sourceLanguage:"es-BO"}),true);
+assert.equal(state.items.length,3,"Spanish varieties remain distinct");
+assert.equal(history.add(state,{...sample,source:"",target:"Hello"}),false);
+assert.equal(history.add(state,{...sample,target:""}),false);
+assert.equal(history.add(state,{...sample,source:"s".repeat(4001)}),false);
+assert.equal(history.add(state,{...sample,target:"t".repeat(6001)}),false);
+assert.equal(history.add(state,{...sample,sourceLanguage:"zz-QQ"}),false);
+for(let i=0;i<45;i++)history.add(state,{...sample,source:"Example "+i,target:"Ejemplo "+i});
+assert.equal(state.items.length,30,"bounded history never grows beyond thirty");
+assert.equal(state.items[0].source,"Example 44","most recent first");
+state.enabled=false;
+assert.equal(history.write(state,box),true);
+assert.equal(history.read(box).enabled,false,"auto-save choice persists");
+assert.equal(history.read(box).items.length,30,"turning auto-save off does not destroy saved rows");
+box.setItem("habla-ecuador-translation-history-v1","garbled JSON");
+assert.deepEqual(history.read(box),{enabled:true,items:[]},"corrupt storage cannot break app");
+box.setItem("habla-ecuador-translation-history-v1",JSON.stringify({version:1,enabled:true,items:[
+ {...sample,id:"safe",date:"2026-11-05T21:00:00.000Z"},
+ {...sample,id:"invalid",source:"",date:"2026-11-05T21:00:00.000Z"}
+]}));
+assert.equal(history.read(box).items.length,1,"bad records are ignored");
+assert.equal(history.search([{...sample}],"<script>").length,0,"untrusted text is only matched as data");
+console.log("Translation history: bounded storage, locale pairing, deduplication, privacy setting, search and malformed-data safeguards passed.");

@@ -1375,3 +1375,62 @@ body.ve-theater-open {overflow:hidden !important;}
 .regional-source-list li { margin-block: 1rem; }
 .regional-source-list small { display: block; margin-block: .35rem; }
 .regional-source-list p { margin-block: .4rem; }
+
+
+/* Compact, local-only everyday translation history. Collapsed by default. */
+#translation-history {margin:12px 0 18px;padding:0;overflow:visible;}
+#translation-history > summary {min-height:48px;cursor:pointer;font-weight:850;}
+#translation-history .history-count {
+  display:inline-block;margin-left:6px;min-width:26px;padding:3px 7px;
+  border-radius:999px;background:#e4f2e9;color:#173f35;text-align:center;font-size:12px;
+}
+#translation-history .history-body {display:grid;gap:12px;padding:10px 0 6px;}
+#translation-history .history-privacy {margin:0;font-size:12px;line-height:1.5;color:var(--muted);}
+#translation-history .history-controls {display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+#translation-history .history-toggle {
+  display:flex;align-items:center;gap:6px;flex:1 1 100%;
+  font-size:13px;font-weight:700;color:var(--green);
+}
+#translation-history #history-auto-save {width:19px;height:19px;accent-color:#173f35;}
+#translation-history button {
+  min-height:44px;padding:9px 11px;border:1px solid #b4d1c0;border-radius:12px;
+  background:white;color:#173f35;font-size:13px;font-weight:750;
+}
+#translation-history #history-save-current {background:#173f35;color:white;}
+#translation-history #history-confirm-clear {border-color:#ad5656;color:#9a2525;}
+#translation-history button[hidden] {display:none!important;}
+#translation-history .history-search-label {display:block;font-size:13px;font-weight:750;color:var(--green);}
+#translation-history #history-search {
+  display:block;box-sizing:border-box;width:100%;min-height:44px;margin-top:6px;
+  padding:10px 12px;border:1px solid var(--line);border-radius:12px;
+  background:white;color:var(--ink);font:inherit;font-weight:450;
+}
+#translation-history .history-list {display:grid;gap:9px;}
+#translation-history .history-entry {
+  min-width:0;padding:12px;border:1px solid var(--line);border-radius:14px;
+  background:#fff;overflow-wrap:anywhere;
+}
+#translation-history .history-entry-top {
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;
+  margin-bottom:8px;font-size:11px;color:var(--muted);
+}
+#translation-history .history-route {font-weight:800;color:var(--green);}
+#translation-history .history-entry p {margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;}
+#translation-history .history-original,#translation-history .history-translation {
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;
+  overflow:hidden;font-size:14px;
+}
+#translation-history .history-original {font-weight:800;}
+#translation-history .history-translation {color:#426052;}
+#translation-history .history-entry-actions {display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+#translation-history .history-entry-actions button {flex:1 1 auto;}
+#translation-history .history-empty,#translation-history .history-status {
+  font-size:13px;line-height:1.45;margin:0;color:var(--muted);
+}
+#translation-history :is(button,input,summary):focus-visible {
+  outline:3px solid #b66d30;outline-offset:2px;
+}
+@media(max-width:360px){
+  #translation-history .history-entry-actions {gap:6px;}
+  #translation-history .history-entry-actions button {padding:9px 7px;font-size:12px;}
+}
