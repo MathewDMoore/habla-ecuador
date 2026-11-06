@@ -33,12 +33,12 @@ test('copyrighted audio is not bundled, scraped, autoplayed or falsely marked pl
   assert.match(card,/plataformas oficiales/);
   assert.match(card,/no reproducen la letra/);
   const anchors=[...card.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>/g)];
-  assert.equal(anchors.length,2);
+  assert.equal(anchors.length,3);
   for(const [,url] of anchors){
-    assert.ok(url.startsWith('https://music.apple.com/us/song/'));
+    assert.ok(url.startsWith('https://music.apple.com/us/song/') || url==='https://www.youtube.com/watch?v=OcAUg-i0T5I');
   }
-  assert.equal((card.match(/target="_blank"/g)||[]).length,2);
-  assert.equal((card.match(/rel="noopener noreferrer"/g)||[]).length,2);
+  assert.equal((card.match(/target="_blank"/g)||[]).length,3);
+  assert.equal((card.match(/rel="noopener noreferrer"/g)||[]).length,3);
 });
 
 test('music lesson is compact, optional, and uses original practice rather than printed lyrics',()=>{
@@ -52,4 +52,15 @@ test('music lesson is compact, optional, and uses original practice rather than 
   assert.match(css,/\.music-discovery-details\s*\{/);
   assert.match(css,/\.music-discovery-link\s*\{/);
   assert.match(css,/\.music-discovery-details summary:focus-visible/);
+});
+
+test('free-listening option is the verified classic artist-channel YouTube recording, not an app distribution license',()=>{
+  const card=html.match(/<article id="music-beauty-and-the-beast"[\s\S]*?<\/article>/)?.[0];
+  assert.ok(card);
+  assert.match(card,/https:\/\/www\.youtube\.com\/watch\?v=OcAUg-i0T5I/);
+  assert.match(card,/Gratis · Mijares y Rocío Banquells \(1991\)/);
+  assert.match(card,/puede incluir anuncios/);
+  assert.match(card,/No autoriza guardar el audio o la letra dentro de Habla/);
+  assert.ok(card.indexOf('youtube.com/watch')<card.indexOf('music.apple.com/us/song'),
+    'Free listening must be the first offered link');
 });
