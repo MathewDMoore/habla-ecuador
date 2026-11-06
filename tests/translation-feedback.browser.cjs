@@ -33,6 +33,9 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(await panel.locator('.translation-practice-controls .dictionary-practice-status').count(),1,'readiness stays beside the microphone when scrolling');
  const attempt=async(text,final)=>{
   await mic.tap();
+  assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false,'each attempt starts without an old grade');
+  assert.equal(await panel.locator('.dictionary-practice-progress span').count(),0,'old missing-word highlights are cleared');
+  assert.equal(await panel.locator('.dictionary-practice-heard').textContent(),'');
   await page.evaluate(({text,final})=>{
    const r=window.feedbackRecognition;r.onstart?.();r.onaudiostart?.();
    if(text){const result=[{transcript:text}];result.isFinal=final;r.onresult({results:[result]});}
@@ -51,8 +54,8 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/(?:Recognized-word score|Coincidencia de palabras): 100%/);
  for(let repeat=0;repeat<3;repeat++){await attempt('No sé si quiero trabajar en esta aplicación esta noche',true);assert.match(await panel.locator('.dictionary-practice-score').textContent(),/100%/);}
  await attempt('',false);
- assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),true);
- assert.match(await panel.locator('.dictionary-practice-score').textContent(),/Previous attempt.*100%/);
+ assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),false);
+ assert.equal(await panel.locator('.dictionary-practice-score').textContent(),'');
  assert.match(await panel.locator('.dictionary-practice-status').textContent(),/no transcript.*not scored|no devolvió texto.*no se puntuó/i);
  await context.close();console.log(engine+' '+file+': tentative/confirmed feedback, targeted retry, and empty attempt passed');
 }}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

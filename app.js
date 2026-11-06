@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.97 · build 207";
+const APP_VERSION = "0.26.98 · build 208";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5204,11 +5204,11 @@ function bindDictionaryPractice(root) {
         status.textContent = panel.closest?.(".translation-speaking-card") ? "Microphone ready. Speak now; tap Finish attempt when done. / Micrófono listo. Habla y toca Finalizar intento al terminar." : "Microphone ready. Speak now; release to finish.";
       };
       const tapPractice=Boolean(panel.closest?.(".translation-speaking-card"));
-      const keepPrevious=Boolean(tapPractice && !response.hidden && heard.textContent.trim());
       dictionaryPracticeSession = session;
       select.disabled = true;
-      if(keepPrevious){if(!score.textContent.startsWith("Previous attempt"))score.textContent="Previous attempt / Intento anterior · "+score.textContent;}
-      else {response.hidden=true;score.hidden=true;score.textContent="";coach.hidden=true;focusText="";heard.textContent=feedback.textContent="";}
+      response.hidden=true;score.hidden=true;score.textContent="";coach.hidden=true;focusText="";
+      heard.textContent=feedback.textContent="";
+      progress.replaceChildren();progressLabel.textContent="";
       if(tapPractice)mic.textContent="⏹ Finish attempt / Finalizar intento";
       status.textContent = "Starting microphone… allow access if asked.";
       mic.dataset.captureReady = "false";
@@ -5235,7 +5235,6 @@ function bindDictionaryPractice(root) {
         },
         onText:(text,final,metadata={}) => {
           if (!current()) return;
-          if(!text.trim() && keepPrevious)return;
           microphoneReady();
           session.heard = Boolean(text.trim());
           logCapture("transcript",{characters:text.length,final:Boolean(final),provisional:Boolean(metadata.provisional)});
@@ -6032,7 +6031,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=207", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=208", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

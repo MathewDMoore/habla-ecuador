@@ -116,9 +116,9 @@ for(const native of [false,true]){
   assert.match(h.score.textContent,/100%/);assert.equal(h.context.dictionaryPracticeSession,null);
  }
  h.mic.emit('click',{detail:1});h.ready();
- assert.equal(h.response.hidden,false,'retry preserves the previous evaluation');
- assert.match(h.score.textContent,/Previous attempt.*100%/);
+ assert.equal(h.response.hidden,true,'retry clears the previous evaluation');
+ assert.equal(h.score.textContent,'');assert.equal(h.heard.textContent,'');assert.equal(h.progress.children.length,0);
  h.mic.emit('click',{detail:1});h.current().send('end');
  assert.match(h.status.textContent,/no transcript.*not scored/);
- assert.match(h.score.textContent,/Previous attempt.*100%/,'empty retry does not erase the last useful result');
+ assert.equal(h.score.hidden,true,'an empty retry cannot show an old score');
 }
