@@ -94,3 +94,14 @@ for(const native of [false,true]){
  h.mic.disabled=true;const n=h.recordings.length;h.mic.emit('pointerdown');h.mic.emit('click');assert.equal(h.recordings.length,n);
 }
 console.log('Practice microphone: stable target/label, touch-selection suppression, continuous hold, deferred final scoring, hold/release, startup/audio readiness, late final words, cancellation, keyboard/assistive toggle, stale events, timer and retry cleanup passed. Audio capture is synthetic.');
+{
+ const h=harness();
+ vm.runInContext('prompts=[{text:"No sé si quiero trabajar en esta aplicación esta noche.",lang:"es-PA"}]',h.context);
+ h.mic.emit('click');h.ready();h.current().result('No sé si quiero trabajare en esta aplicación esta noche',false);h.current().send('end');
+ assert.equal(h.score.hidden,false,'unconfirmed captured words still receive qualified feedback');
+ assert.match(h.score.textContent,/Tentative.*90%/);
+ assert.equal(h.coach.hidden,false,'a weak part is available for retry even with an unconfirmed transcript');
+ assert.equal(vm.runInContext('focusText',h.context),'trabajar en esta');
+ h.mic.emit('click');h.ready();h.current().result('No sé si quiero trabajar en esta aplicación esta noche',true);h.mic.emit('click');h.current().send('end');
+ assert.match(h.score.textContent,/Recognized-word score: 100%/);
+}

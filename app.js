@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.93 · build 203";
+const APP_VERSION = "0.26.94 · build 204";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5168,6 +5168,7 @@ function bindDictionaryPractice(root) {
         logCapture("finished",{hadTranscript:session.heard,error:session.error});
         dictionaryPracticeSession = null;
         releaseHold();
+        if(session.heard)response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
         select.disabled = false; mic.disabled = false;
         setListeningButton(mic,false); mic.textContent = "🎙 Hold to speak"; delete mic.dataset.captureReady;
         status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");
@@ -5229,8 +5230,8 @@ function bindDictionaryPractice(root) {
           if (session.heard && !session.finishing) status.textContent = "Words received. Release when you finish speaking.";
           heard.textContent = text; response.hidden = !session.heard;
           const comparison = dictionaryPracticeComparison(prompt.text,text);
-          score.hidden = !final || Boolean(metadata.provisional) || comparison.wordScore === null;
-          score.textContent = score.hidden ? "" : `Recognized-word score: ${comparison.wordScore}% · ${comparison.matched.size} matched, ${comparison.expectedCount} expected, ${comparison.heardCount} heard. This is not a pronunciation score.`;
+          score.hidden = !final || comparison.wordScore === null;
+          score.textContent = score.hidden ? "" : `${metadata.provisional ? "Tentative word-match score (unconfirmed transcript)" : "Recognized-word score"}: ${comparison.wordScore}% · ${comparison.matched.size} matched, ${comparison.expectedCount} expected, ${comparison.heardCount} heard. This is not a pronunciation score.`;
           progressLabel.textContent = final && !metadata.provisional ? "Word matches in the recognized text:" : "Tentative word matches — still unconfirmed:";
           progress.replaceChildren(...comparison.words.map((word,index) => {
             const chip = document.createElement("span");chip.textContent = word;
@@ -5239,13 +5240,13 @@ function bindDictionaryPractice(root) {
             chip.setAttribute("aria-label",`${word}: ${matched ? "recognized" : "not matched"}${final && !metadata.provisional ? "" : ", unconfirmed"}`);
             return chip;
           }));
-          coach.hidden = !final || Boolean(metadata.provisional) || comparison.exact;
+          coach.hidden = !final || comparison.exact;
           if (!coach.hidden) {
             focusText = comparison.focus;
             $("p",coach).textContent = `Try this part: ${focusText}. Hear it, say it on its own, then return to the full prompt.`;
           }
           feedback.textContent = !final ? "Words heard so far…"
-            : metadata.provisional ? "These words were unconfirmed. Listen to the model and try again."
+            : metadata.provisional ? "These words were unconfirmed. The tentative word-match score and highlighted differences can guide your next attempt; recognition may be wrong. Listen to the model and retry the suggested part."
             : comparison.exact
               ? "Recognized words match the prompt. Compare your pronunciation with the model."
               : "The recognized words differ. Hear the model and try again; recognition can miss regional words.";
@@ -5996,7 +5997,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=203", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=204", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
