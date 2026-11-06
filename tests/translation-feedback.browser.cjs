@@ -22,6 +22,8 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  await page.locator('#translation-speaking-practice .dictionary-practice').evaluate(el=>el.dataset.retained='yes');
  await page.mouse.up();await opener.tap();
  assert.equal(await page.locator('#translation-speaking-practice .dictionary-practice').getAttribute('data-retained'),'yes','trailing clicks preserve the active practice panel');
+ await page.waitForFunction(()=>{const r=document.querySelector('#natural-result').getBoundingClientRect();return r.top>=0&&r.top<120;},{},{timeout:3000});
+ await page.waitForTimeout(300);
  const panel=page.locator('#translation-speaking-practice .dictionary-practice'),mic=panel.locator('.dictionary-practice-mic');
  const layout=await page.evaluate(()=>{
   const text=document.querySelector('#natural-result'),host=document.querySelector('#translation-speaking-practice'),mic=host.querySelector('.dictionary-practice-mic');

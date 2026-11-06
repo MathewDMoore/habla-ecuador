@@ -5340,7 +5340,7 @@ function bindTranslationPractice() {
   const openPractice = () => {
     sync(); const state = current(); if (!state.ready) return;
     const existing=host.querySelector?.(".dictionary-practice");
-    if(existing){host.hidden=false;existing.open=true;text.scrollIntoView?.({block:"start",behavior:"instant"});return;}
+    if(existing){host.hidden=false;existing.open=true;return;}
     cancelDictionaryPractice(host); host.replaceChildren();
     const card = document.createElement("article");
     card.className = "expression-card translation-speaking-card";
@@ -5359,16 +5359,20 @@ function bindTranslationPractice() {
         if(status)controls.append(status);
       }
       panel.open=true;
-      text.scrollIntoView?.({block:"start",behavior:"instant"});
     }
   };
   // Opening practice must also work when the learner holds this entry button.
   button.addEventListener("pointerdown",event=>{
     if(event.isPrimary===false || (event.button!==undefined&&event.button!==0))return;
     if(event.cancelable)event.preventDefault();
+    try{button.setPointerCapture?.(event.pointerId);}catch{}
     openPractice();
   });
-  button.addEventListener("click",openPractice);
+  button.addEventListener("click",()=>{
+    openPractice();
+    // Let WebKit finish its touch/scroll handling before positioning practice.
+    setTimeout(()=>{if(!host.hidden)text.scrollIntoView?.({block:"start",behavior:"instant"});},0);
+  });
   new MutationObserver(sync).observe(result,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["hidden","contenteditable","lang"]});
   sync();
 }

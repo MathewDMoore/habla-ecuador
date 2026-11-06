@@ -7,7 +7,7 @@ const button={disabled:true,addEventListener(type,fn){if(type==="pointerdown")pr
 const text={innerText:'Voy al trabajo.',getAttribute:()=> 'true'};
 const result={hidden:false};
 const nodes={'#translation-result':result,'#natural-result':text,'#practice-translation':button,'#translation-speaking-practice':host};
-const context=vm.createContext({$:key=>nodes[key],activeTranslationEdit:{targetLanguage:'es-EC'},targetLanguage:'es-EC',
+const context=vm.createContext({setTimeout:fn=>fn(),$:key=>nodes[key],activeTranslationEdit:{targetLanguage:'es-EC'},targetLanguage:'es-EC',
  document:{createElement:()=>({dataset:{},querySelector:()=>panel})},
  cancelDictionaryPractice:()=>cancelled++,bindDictionaryPractice:h=>bound.push(h.children[0].dataset),
  MutationObserver:class{constructor(fn){observer=fn;}observe(){}}});
