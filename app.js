@@ -5174,7 +5174,7 @@ function bindDictionaryPractice(root) {
         logCapture("finished",{hadTranscript:session.heard,error:session.error});
         dictionaryPracticeSession = null;
         releaseHold();
-        if(session.heard)response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
+        if(session.heard && !panel.closest?.(".translation-speaking-card"))response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
         select.disabled = false; mic.disabled = false;
         setListeningButton(mic,false); mic.textContent = panel.closest?.(".translation-speaking-card") ? "🎙 Tap to speak / Toca para hablar" : "🎙 Hold to speak"; delete mic.dataset.captureReady;
         status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");

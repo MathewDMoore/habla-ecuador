@@ -48,7 +48,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(await panel.locator('.dictionary-practice-coach').isVisible(),true);
  await page.waitForTimeout(400);
  const pinned=await panel.locator('.translation-practice-controls').boundingBox();
- assert.ok(pinned.y>=0&&pinned.y+pinned.height<602,'sentence and microphone remain visible while reading feedback');
+ assert.ok(pinned.y>=0&&pinned.y+pinned.height<602,'sentence and microphone remain visible while reading feedback: '+JSON.stringify(pinned));
  assert.match(await panel.locator('.dictionary-practice-coach p').textContent(),/trabajar en esta/);
  await attempt('No sé si quiero trabajar en esta aplicación esta noche',true);
  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/(?:Recognized-word score|Coincidencia de palabras): 100%/);
