@@ -3,7 +3,7 @@ const HablaTranslationControls=(()=>{
  function bind(){
   const result=document.querySelector('#translation-result'),input=document.querySelector('#translator-input');
   if(!result||!input||document.querySelector('#translation-action-dock'))return;
-  const nodes=['#translation-text-tools','#translation-copy-status','#translation-copy-fallback','#translation-result .result-actions','#translation-share-status','#translation-edit-status'].map(s=>document.querySelector(s)).filter(Boolean);
+  const nodes=['#translation-speaking-practice','#translation-text-tools','#translation-copy-status','#translation-copy-fallback','#translation-result .result-actions','#translation-share-status','#translation-edit-status'].map(s=>document.querySelector(s)).filter(Boolean);
   const dock=document.createElement('section');dock.id='translation-action-dock';dock.setAttribute('aria-label','Translation actions');
   const translate=document.createElement('button');translate.type='button';translate.id='translate-now';translate.textContent='Retry translation / Reintentar traducción';
   const hint=document.createElement('p');hint.setAttribute('role','status');hint.textContent='Type, paste or finish speaking to translate automatically. / Escribe, pega o termina de hablar para traducir automáticamente.';

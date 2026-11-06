@@ -2,8 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 (async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium',browser=await pw[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
-try{for(const file of ['index.html','translator.html']){
- const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
+try{for(const file of ['index.html','translator.html'])for(const width of [320,390]){
+ const context=await browser.newContext({viewport:{width,height:667},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
  await page.addInitScript(()=>{localStorage.setItem('habla-tutorial-seen-v2','1');window.SpeechRecognition=class{start(){window.feedbackRecognition=this;}stop(){}abort(){}};});
  await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dirname,'..',u.pathname.replace('/habla-ecuador/',''));return u.origin==='https://mathewdmoore.github.io'&&fs.existsSync(p)&&fs.statSync(p).isFile()?r.fulfill({path:p}):r.abort();});
  await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file+'?ui=es');
@@ -23,6 +23,13 @@ try{for(const file of ['index.html','translator.html']){
  await page.mouse.up();await opener.tap();
  assert.equal(await page.locator('#translation-speaking-practice .dictionary-practice').getAttribute('data-retained'),'yes','trailing clicks preserve the active practice panel');
  const panel=page.locator('#translation-speaking-practice .dictionary-practice'),mic=panel.locator('.dictionary-practice-mic');
+ const layout=await page.evaluate(()=>{
+  const text=document.querySelector('#natural-result'),host=document.querySelector('#translation-speaking-practice'),mic=host.querySelector('.dictionary-practice-mic');
+  return {adjacent:text.nextElementSibling===host,textTop:text.getBoundingClientRect().top,textBottom:text.getBoundingClientRect().bottom,micTop:mic.getBoundingClientRect().top,micBottom:mic.getBoundingClientRect().bottom,height:innerHeight};
+ });
+ assert.equal(layout.adjacent,true,'practice comes before copy, playback and alternatives');
+ assert.ok(layout.textTop>=0&&layout.micBottom<layout.height-65,'translation and microphone fit together above bottom navigation');
+ assert.ok(layout.micTop-layout.textBottom<190,'no intervening secondary controls');
  const attempt=async(text,final)=>{
   await mic.evaluate(el=>el.click());
   await page.evaluate(({text,final})=>{
@@ -35,6 +42,9 @@ try{for(const file of ['index.html','translator.html']){
  assert.equal(await panel.locator('.dictionary-practice-score').isVisible(),true);
  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/Tentative.*90%/);
  assert.equal(await panel.locator('.dictionary-practice-coach').isVisible(),true);
+ await page.waitForTimeout(400);
+ const pinned=await panel.locator('.translation-practice-controls').boundingBox();
+ assert.ok(pinned.y>=0&&pinned.y+pinned.height<602,'sentence and microphone remain visible while reading feedback');
  assert.match(await panel.locator('.dictionary-practice-coach p').textContent(),/trabajar en esta/);
  await attempt('No sé si quiero trabajar en esta aplicación esta noche',true);
  assert.match(await panel.locator('.dictionary-practice-score').textContent(),/(?:Recognized-word score|Coincidencia de palabras): 100%/);
