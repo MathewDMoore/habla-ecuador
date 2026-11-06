@@ -48,6 +48,18 @@ run('say = (text,lang) => spoken.push({text,lang});');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const languageFamilyForTest=locale=>locale.split("-")[0];
 async function main() {
+  for(const role of ["english","spanish"])element('[data-speaker-preset="'+role+'"]').options=[];
+  assert.equal(run('speakerRegionProfile("Annalise").country'),'es-PA');
+  storage.set('habla-ecuador-speaker-regions-v1',JSON.stringify({annalise:{country:'es-PE',city:'Lima',region:'Lima',locales:{spanish:'en-US'}}}));
+  run('speakerRegions=readSpeakerRegions()');
+  assert.equal(run('speakerRegionProfile("Annalise").country'),'es-PA');
+  assert.equal(run('speakerRegionProfile("Annalise").city'),'');
+  assert.equal(run('speakerRegionProfile("Annalise").region'),'');
+  assert.equal(run('speakerRegionProfile("Annalise").locales.spanish'),'en-US');
+  run('saveSpeakerName("spanish","Annalise");saveSpeakerRegion("spanish","es-MX","Custom city","Custom region");speakerRegions=readSpeakerRegions()');
+  assert.equal(run('speakerRegionProfile("Annalise").country'),'es-MX','future explicit location edits remain editable');
+  run('speakerRegions={};speakerNames={english:"Mathew",spanish:"Maria"};conversationLocaleOverrides={}');
+
   // A person's country/city and language choice survive switching names and reload.
   for(const role of ['english','spanish'])element('[data-speaker-preset="'+role+'"]').options=[];
   run('saveSpeakerName("spanish","Grayson");saveSpeakerRegion("spanish","es-VE","Caracas")');
