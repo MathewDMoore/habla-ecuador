@@ -30,6 +30,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.equal(layout.adjacent,true,'practice comes before copy, playback and alternatives');
  assert.ok(layout.textTop>=0&&layout.micBottom<layout.height-65,'translation and microphone fit together above bottom navigation');
  assert.ok(layout.micTop-layout.textBottom<190,'no intervening secondary controls');
+ assert.equal(await panel.locator('.translation-practice-controls .dictionary-practice-status').count(),1,'readiness stays beside the microphone when scrolling');
  const attempt=async(text,final)=>{
   await mic.tap();
   await page.evaluate(({text,final})=>{

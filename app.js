@@ -5357,6 +5357,7 @@ function bindTranslationPractice() {
       if(target&&actions){
         const controls=document.createElement("div");controls.className="translation-practice-controls";
         target.before(controls);controls.append(target,actions);
+        if(status)controls.append(status);
       }
       panel.open=true;
       text.scrollIntoView?.({block:"start",behavior:"instant"});
