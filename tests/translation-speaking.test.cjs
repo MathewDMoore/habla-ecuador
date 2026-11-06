@@ -1,9 +1,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('app.js','utf8');
-let observer,listener,cancelled=0,bound=[];
+let observer,listener,cancelled=0,bound=[],press;
 const panel={open:false,scrollIntoView(){}};
 const host={hidden:true,children:[],replaceChildren(){this.children=[];},append(card){this.children.push(card);}};
-const button={disabled:true,addEventListener(type,fn){listener=fn;}};
+const button={disabled:true,addEventListener(type,fn){if(type==="pointerdown")press=fn;else listener=fn;}};
 const text={innerText:'Voy al trabajo.',getAttribute:()=> 'true'};
 const result={hidden:false};
 const nodes={'#translation-result':result,'#natural-result':text,'#practice-translation':button,'#translation-speaking-practice':host};
@@ -13,7 +13,8 @@ const context=vm.createContext({$:key=>nodes[key],activeTranslationEdit:{targetL
  MutationObserver:class{constructor(fn){observer=fn;}observe(){}}});
 vm.runInContext(source.slice(source.indexOf('function bindTranslationPractice()'),source.indexOf('function bindDictionaryAudio()')),context);
 vm.runInContext('bindTranslationPractice()',context);
-assert.equal(button.disabled,false);listener();assert.equal(panel.open,true);
+assert.equal(button.disabled,false);press({button:0,cancelable:true,preventDefault(){}});assert.equal(panel.open,true);
+host.querySelector=()=>host.children.length?panel:null;const opened=bound.length;listener();assert.equal(bound.length,opened,'click after pointerdown does not rebuild practice');
 assert.equal(bound.at(-1).practiceText,'Voy al trabajo.');assert.equal(bound.at(-1).practiceLang,'es-EC');
 text.innerText='I am going to work.';context.activeTranslationEdit={targetLanguage:'en-US'};observer();
 assert.equal(host.hidden,true,'changing the translation clears stale practice');assert.equal(host.children.length,0);
