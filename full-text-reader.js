@@ -153,8 +153,12 @@ function refreshAlternatives(box=$("#full-reader-alternatives-list")){
 }
 
 
+let mainInputSizeKey="";
 function resizeMainInput(){
  const input=$("#translator-input");if(!input)return;
+ const sizeKey=JSON.stringify([input.value,input.clientWidth]);
+ if(sizeKey===mainInputSizeKey)return;
+ mainInputSizeKey=sizeKey;
  input.style.height="auto";
  input.style.height=Math.max(96,Math.min(input.scrollHeight+4,120000))+"px";
 }
@@ -297,6 +301,7 @@ function bind(){
  make();
  makeInlineAlternatives();
  editor.addEventListener("input",resizeMainInput);
+ root.addEventListener?.("resize",resizeMainInput);
  resizeMainInput();
  syncInlineAlternatives();
  sourceButton=makeButton("Expand source / Ampliar original","source-full-text");
