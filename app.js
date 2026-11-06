@@ -5368,11 +5368,13 @@ function bindTranslationPractice() {
     try{button.setPointerCapture?.(event.pointerId);}catch{}
     openPractice();
   });
-  button.addEventListener("click",()=>{
-    openPractice();
-    // Let WebKit finish its touch/scroll handling before positioning practice.
+  const positionPractice=()=>{
+    // Touch release can occur without a subsequent click in mobile WebKit.
     setTimeout(()=>{if(!host.hidden)text.scrollIntoView?.({block:"start",behavior:"instant"});},0);
-  });
+  };
+  button.addEventListener("pointerup",positionPractice);
+  button.addEventListener("pointercancel",positionPractice);
+  button.addEventListener("click",()=>{openPractice();positionPractice();});
   new MutationObserver(sync).observe(result,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["hidden","contenteditable","lang"]});
   sync();
 }
