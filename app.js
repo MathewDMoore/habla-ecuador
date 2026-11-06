@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.97 · build 207";
+const APP_VERSION = "0.26.98 · build 208";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5037,8 +5037,10 @@ function bindPracticeHold(button, {start, stop, cancel}) {
     else stop();
   };
   button.addEventListener("pointerdown",event => {
-    if (tapMode || event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
+    if (event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
     event.preventDefault();
+    // Toggle on the trusted press without WebKit focusing/revealing a sticky button.
+    if(tapMode){start();return;}
     held = {type:"pointer",id:event.pointerId};
     try { button.setPointerCapture(event.pointerId); } catch {}
     begin();
@@ -5052,7 +5054,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   button.addEventListener("contextmenu",event => event.preventDefault());
   // iOS may begin native text selection despite cancelling pointerdown. Keep
   // the touch default and selection disabled for this held practice panel.
-  button.addEventListener("touchstart",event => { if(!tapMode)event.preventDefault(); },{passive:false});
+  button.addEventListener("touchstart",event => event.preventDefault(),{passive:false});
   panel?.addEventListener("selectstart",event => { if (held) event.preventDefault(); });
   button.addEventListener("keydown",event => {
     if (tapMode || event.code !== "Space" || button.disabled) return;
@@ -5070,7 +5072,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   // Enter and assistive activation retain a start/stop toggle. A pointer's
   // trailing click must never start a second recording after finger release.
   button.addEventListener("click",event => {
-    if ((tapMode || event.detail === 0) && !held && !button.disabled) start();
+    if (event.detail === 0 && !held && !button.disabled) start();
   });
   return () => release(true);
 }
@@ -5174,10 +5176,17 @@ function bindDictionaryPractice(root) {
         logCapture("finished",{hadTranscript:session.heard,error:session.error});
         dictionaryPracticeSession = null;
         releaseHold();
-        if(session.heard)response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
+        if(session.heard && !panel.closest?.(".translation-speaking-card"))response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
         select.disabled = false; mic.disabled = false;
         setListeningButton(mic,false); mic.textContent = panel.closest?.(".translation-speaking-card") ? "🎙 Tap to speak / Toca para hablar" : "🎙 Hold to speak"; delete mic.dataset.captureReady;
         status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");
+        const controls=panel.querySelector?.(".translation-practice-controls");
+        if(session.heard && controls?.getBoundingClientRect)setTimeout(()=>{
+          if(!panel.isConnected || dictionaryPracticeSession || !controls.getClientRects().length)return;
+          const bounds=controls.getBoundingClientRect();
+          if(bounds.top<70 || bounds.bottom>window.innerHeight-70)
+            window.scrollBy({top:bounds.top-90,behavior:"instant"});
+        },0);
       };
       session.stop = () => {
         if (!current() || session.finishing) return;
@@ -5204,11 +5213,11 @@ function bindDictionaryPractice(root) {
         status.textContent = panel.closest?.(".translation-speaking-card") ? "Microphone ready. Speak now; tap Finish attempt when done. / Micrófono listo. Habla y toca Finalizar intento al terminar." : "Microphone ready. Speak now; release to finish.";
       };
       const tapPractice=Boolean(panel.closest?.(".translation-speaking-card"));
-      const keepPrevious=Boolean(tapPractice && !response.hidden && heard.textContent.trim());
       dictionaryPracticeSession = session;
       select.disabled = true;
-      if(keepPrevious){if(!score.textContent.startsWith("Previous attempt"))score.textContent="Previous attempt / Intento anterior · "+score.textContent;}
-      else {response.hidden=true;score.hidden=true;score.textContent="";coach.hidden=true;focusText="";heard.textContent=feedback.textContent="";}
+      response.hidden=true;score.hidden=true;score.textContent="";coach.hidden=true;focusText="";
+      heard.textContent=feedback.textContent="";
+      progress.replaceChildren();progressLabel.textContent="";
       if(tapPractice)mic.textContent="⏹ Finish attempt / Finalizar intento";
       status.textContent = "Starting microphone… allow access if asked.";
       mic.dataset.captureReady = "false";
@@ -5235,7 +5244,6 @@ function bindDictionaryPractice(root) {
         },
         onText:(text,final,metadata={}) => {
           if (!current()) return;
-          if(!text.trim() && keepPrevious)return;
           microphoneReady();
           session.heard = Boolean(text.trim());
           logCapture("transcript",{characters:text.length,final:Boolean(final),provisional:Boolean(metadata.provisional)});
@@ -5341,7 +5349,7 @@ function bindTranslationPractice() {
   const openPractice = () => {
     sync(); const state = current(); if (!state.ready) return;
     const existing=host.querySelector?.(".dictionary-practice");
-    if(existing){host.hidden=false;existing.open=true;text.scrollIntoView?.({block:"start",behavior:"instant"});return;}
+    if(existing){host.hidden=false;existing.open=true;return;}
     cancelDictionaryPractice(host); host.replaceChildren();
     const card = document.createElement("article");
     card.className = "expression-card translation-speaking-card";
@@ -5360,16 +5368,22 @@ function bindTranslationPractice() {
         if(status)controls.append(status);
       }
       panel.open=true;
-      text.scrollIntoView?.({block:"start",behavior:"instant"});
     }
   };
   // Opening practice must also work when the learner holds this entry button.
   button.addEventListener("pointerdown",event=>{
     if(event.isPrimary===false || (event.button!==undefined&&event.button!==0))return;
     if(event.cancelable)event.preventDefault();
+    try{button.setPointerCapture?.(event.pointerId);}catch{}
     openPractice();
   });
-  button.addEventListener("click",openPractice);
+  const positionPractice=()=>{
+    // Touch release can occur without a subsequent click in mobile WebKit.
+    setTimeout(()=>{if(!host.hidden)text.scrollIntoView?.({block:"start",behavior:"instant"});},0);
+  };
+  button.addEventListener("pointerup",positionPractice);
+  button.addEventListener("pointercancel",positionPractice);
+  button.addEventListener("click",()=>{openPractice();positionPractice();});
   new MutationObserver(sync).observe(result,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["hidden","contenteditable","lang"]});
   sync();
 }
@@ -6032,7 +6046,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=207", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=208", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
