@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.95 · build 205";
+const APP_VERSION = "0.26.96 · build 206";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5309,6 +5309,8 @@ function bindTranslationPractice() {
   const result = $("#translation-result"), text = $("#natural-result");
   const button = $("#practice-translation"), host = $("#translation-speaking-practice");
   if (!result || !text || !button || !host) return;
+  // Practice belongs immediately beside the translation, ahead of secondary actions.
+  text.after?.(host);
   let signature = "";
   const current = () => {
     const words = (text.innerText ?? text.textContent ?? "").trim();
@@ -5327,7 +5329,7 @@ function bindTranslationPractice() {
   const openPractice = () => {
     sync(); const state = current(); if (!state.ready) return;
     const existing=host.querySelector?.(".dictionary-practice");
-    if(existing){host.hidden=false;existing.open=true;existing.scrollIntoView?.({block:"nearest",behavior:"smooth"});return;}
+    if(existing){host.hidden=false;existing.open=true;text.scrollIntoView?.({block:"start",behavior:"instant"});return;}
     cancelDictionaryPractice(host); host.replaceChildren();
     const card = document.createElement("article");
     card.className = "expression-card translation-speaking-card";
@@ -5335,7 +5337,15 @@ function bindTranslationPractice() {
     host.append(card); host.hidden = false;
     bindDictionaryPractice(host);
     const panel = card.querySelector(".dictionary-practice");
-    if (panel) { panel.open = true; panel.scrollIntoView?.({block:"nearest",behavior:"smooth"}); }
+    if (panel) {
+      const target=panel.querySelector?.(".dictionary-practice-target"),actions=panel.querySelector?.(".dictionary-practice-actions");
+      if(target&&actions){
+        const controls=document.createElement("div");controls.className="translation-practice-controls";
+        target.before(controls);controls.append(target,actions);
+      }
+      panel.open=true;
+      text.scrollIntoView?.({block:"start",behavior:"instant"});
+    }
   };
   // Opening practice must also work when the learner holds this entry button.
   button.addEventListener("pointerdown",event=>{
@@ -6006,7 +6016,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=205", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=206", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
