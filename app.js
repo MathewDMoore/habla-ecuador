@@ -5180,6 +5180,13 @@ function bindDictionaryPractice(root) {
         select.disabled = false; mic.disabled = false;
         setListeningButton(mic,false); mic.textContent = panel.closest?.(".translation-speaking-card") ? "🎙 Tap to speak / Toca para hablar" : "🎙 Hold to speak"; delete mic.dataset.captureReady;
         status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");
+        const controls=panel.querySelector?.(".translation-practice-controls");
+        if(session.heard && controls?.getBoundingClientRect)setTimeout(()=>{
+          if(!panel.isConnected || dictionaryPracticeSession || !controls.getClientRects().length)return;
+          const bounds=controls.getBoundingClientRect();
+          if(bounds.top<70 || bounds.bottom>window.innerHeight-70)
+            window.scrollBy({top:bounds.top-90,behavior:"instant"});
+        },0);
       };
       session.stop = () => {
         if (!current() || session.finishing) return;
