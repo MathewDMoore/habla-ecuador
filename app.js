@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.96 · build 206";
+const APP_VERSION = "0.26.97 · build 207";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5017,6 +5017,7 @@ function cancelDictionaryPractice(root) {
 
 function bindPracticeHold(button, {start, stop, cancel}) {
   let held = null;
+  const tapMode=Boolean(button.closest?.(".translation-speaking-card"));
   const panel = button.closest?.(".dictionary-practice");
   const begin = () => {
     panel?.classList.add("practice-held");
@@ -5036,7 +5037,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
     else stop();
   };
   button.addEventListener("pointerdown",event => {
-    if (event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
+    if (tapMode || event.button !== 0 || event.isPrimary === false || button.disabled || held) return;
     event.preventDefault();
     held = {type:"pointer",id:event.pointerId};
     try { button.setPointerCapture(event.pointerId); } catch {}
@@ -5051,17 +5052,17 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   button.addEventListener("contextmenu",event => event.preventDefault());
   // iOS may begin native text selection despite cancelling pointerdown. Keep
   // the touch default and selection disabled for this held practice panel.
-  button.addEventListener("touchstart",event => event.preventDefault(),{passive:false});
+  button.addEventListener("touchstart",event => { if(!tapMode)event.preventDefault(); },{passive:false});
   panel?.addEventListener("selectstart",event => { if (held) event.preventDefault(); });
   button.addEventListener("keydown",event => {
-    if (event.code !== "Space" || button.disabled) return;
+    if (tapMode || event.code !== "Space" || button.disabled) return;
     event.preventDefault();
     if (held || event.repeat) return;
     held = {type:"keyboard"};
     begin();
   });
   button.addEventListener("keyup",event => {
-    if (event.code !== "Space") return;
+    if (tapMode || event.code !== "Space") return;
     event.preventDefault();
     if (held?.type === "keyboard") release();
   });
@@ -5069,7 +5070,7 @@ function bindPracticeHold(button, {start, stop, cancel}) {
   // Enter and assistive activation retain a start/stop toggle. A pointer's
   // trailing click must never start a second recording after finger release.
   button.addEventListener("click",event => {
-    if (event.detail === 0 && !held && !button.disabled) start();
+    if ((tapMode || event.detail === 0) && !held && !button.disabled) start();
   });
   return () => release(true);
 }
@@ -5125,6 +5126,11 @@ function bindDictionaryPractice(root) {
       response.hidden = true; score.hidden = true; score.textContent = ""; heard.textContent = feedback.textContent = "";
       mic.disabled = !available();
       status.textContent = available() ? "Hold to speak; release to finish. Wait for Microphone ready before speaking." : "Speech recognition is unavailable here. You can still hear the model.";
+      if(card.dataset.practiceText && available()){
+        mic.textContent="🎙 Tap to speak / Toca para hablar";
+        mic.setAttribute("aria-label","Tap to start or finish speaking / Toca para empezar o terminar");
+        status.textContent="Tap the microphone, wait for Microphone ready, then speak. Tap again to finish. / Toca el micrófono, espera a que esté listo y habla. Toca otra vez para terminar.";
+      }
     };
     refresh();
     select.addEventListener("change",refresh);
@@ -5170,7 +5176,7 @@ function bindDictionaryPractice(root) {
         releaseHold();
         if(session.heard)response.scrollIntoView?.({block:"nearest",behavior:"smooth"});
         select.disabled = false; mic.disabled = false;
-        setListeningButton(mic,false); mic.textContent = "🎙 Hold to speak"; delete mic.dataset.captureReady;
+        setListeningButton(mic,false); mic.textContent = panel.closest?.(".translation-speaking-card") ? "🎙 Tap to speak / Toca para hablar" : "🎙 Hold to speak"; delete mic.dataset.captureReady;
         status.textContent = message || session.error || (session.heard ? "Practice finished. Your words are below; hear the model and try again." : "The speech service returned no transcript. This attempt was not scored.");
       };
       session.stop = () => {
@@ -5195,10 +5201,15 @@ function bindDictionaryPractice(root) {
         clearTimeout(session.startTimer);
         session.timer = setTimeout(session.stop,20000);
         mic.dataset.captureReady = "true";
-        status.textContent = "Microphone ready. Speak now; release to finish.";
+        status.textContent = panel.closest?.(".translation-speaking-card") ? "Microphone ready. Speak now; tap Finish attempt when done. / Micrófono listo. Habla y toca Finalizar intento al terminar." : "Microphone ready. Speak now; release to finish.";
       };
+      const tapPractice=Boolean(panel.closest?.(".translation-speaking-card"));
+      const keepPrevious=Boolean(tapPractice && !response.hidden && heard.textContent.trim());
       dictionaryPracticeSession = session;
-      select.disabled = true; response.hidden = true; score.hidden = true; score.textContent = ""; coach.hidden = true; focusText = ""; heard.textContent = feedback.textContent = "";
+      select.disabled = true;
+      if(keepPrevious){if(!score.textContent.startsWith("Previous attempt"))score.textContent="Previous attempt / Intento anterior · "+score.textContent;}
+      else {response.hidden=true;score.hidden=true;score.textContent="";coach.hidden=true;focusText="";heard.textContent=feedback.textContent="";}
+      if(tapPractice)mic.textContent="⏹ Finish attempt / Finalizar intento";
       status.textContent = "Starting microphone… allow access if asked.";
       mic.dataset.captureReady = "false";
       // A service 'start' event is not proof that the browser is capturing audio.
@@ -5224,10 +5235,11 @@ function bindDictionaryPractice(root) {
         },
         onText:(text,final,metadata={}) => {
           if (!current()) return;
+          if(!text.trim() && keepPrevious)return;
           microphoneReady();
           session.heard = Boolean(text.trim());
           logCapture("transcript",{characters:text.length,final:Boolean(final),provisional:Boolean(metadata.provisional)});
-          if (session.heard && !session.finishing) status.textContent = "Words received. Release when you finish speaking.";
+          if (session.heard && !session.finishing) status.textContent = tapPractice ? "Words received. Tap Finish attempt when done. / Palabras recibidas. Toca Finalizar intento al terminar." : "Words received. Release when you finish speaking.";
           heard.textContent = text; response.hidden = !session.heard;
           const comparison = dictionaryPracticeComparison(prompt.text,text);
           score.hidden = !final || comparison.wordScore === null;
@@ -5338,6 +5350,9 @@ function bindTranslationPractice() {
     bindDictionaryPractice(host);
     const panel = card.querySelector(".dictionary-practice");
     if (panel) {
+      const mic=panel.querySelector?.(".dictionary-practice-mic"),status=panel.querySelector?.(".dictionary-practice-status");
+      if(mic){mic.textContent="🎙 Tap to speak / Toca para hablar";mic.setAttribute("aria-label","Tap to start or finish speaking / Toca para empezar o terminar");}
+      if(status)status.textContent="Tap the microphone, wait for Microphone ready, then speak. Tap again to finish. / Toca el micrófono, espera a que esté listo y habla. Toca otra vez para terminar.";
       const target=panel.querySelector?.(".dictionary-practice-target"),actions=panel.querySelector?.(".dictionary-practice-actions");
       if(target&&actions){
         const controls=document.createElement("div");controls.className="translation-practice-controls";
@@ -6016,7 +6031,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=206", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=207", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
