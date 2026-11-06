@@ -3469,6 +3469,46 @@ function updateTranslationEditUi() {
   restore.hidden = !edited;
 }
 
+// History contains only completed, ordinary text translations. Recorded audio,
+// music, images, and research documents are not silently stored in recent history.
+function currentHistoryTranslation() {
+  const edit=activeTranslationEdit,editor=$("#translator-input");
+  const source=editor?.value.trim()||"",target=$("#natural-result")?.textContent||"";
+  if(!edit || !source || !target.trim() || $("#translation-result")?.hidden ||
+     edit.source!==source || edit.sourceLanguage!==sourceLanguage ||
+     edit.targetLanguage!==targetLanguage || edit.purpose!=="everyday" ||
+     translationPurpose!=="everyday" || documentImportActive || documentLoading ||
+     importedDocument || musicListening || musicTranscriptReview ||
+     (musicCapturedText && musicCapturedText===source))return null;
+  return {source,target,sourceLanguage,targetLanguage,purpose:"everyday",music:false,document:false};
+}
+
+function restoreHistoryTranslation(item) {
+  if(!item || !TRANSLATOR_LANGUAGES[item.sourceLanguage] || !TRANSLATOR_LANGUAGES[item.targetLanguage])return;
+  cancelMusicListening();
+  stopSpeechPlayback();
+  saveActiveTranslationEdit();
+  if(documentImportActive || importedDocument)closeImportedDocument();
+  clearTimeout(translationTimer);
+  translationRequest+=1; // An earlier server response must never overwrite history.
+  translatorDictationNeedsReview=false;
+  setTranslatorMicFeedback("");
+  musicTranscriptReview=false;musicCapturedText="";preservedCulturalContext=null;
+  sourceLanguage=item.sourceLanguage;targetLanguage=item.targetLanguage;
+  syncLanguagePair();
+  setTranslationPurpose("everyday",false);
+  setMode("translate");openView("translator-view");
+  $("#translator-input").value=item.source;
+  setEditableTranslation(item.source,item.target,{historyRestored:true});
+  $("#translation-result").hidden=false;
+  $("#no-result").hidden=true;
+  if($("#english-comparison"))$("#english-comparison").hidden=true;
+  showTranslationLanguageWarning(null);
+  $("#translation-result .result-label").textContent=languageLabel(targetLanguage)+" · saved translation / traducción guardada";
+  $("#literal-result").textContent="Restored from this device without retranslating. / Recuperada de este dispositivo sin volver a traducir.";
+  $("#usage-note").textContent="Saved wording for review; context and regional accuracy are not automatically rechecked. / Texto guardado para revisar; no se vuelve a comprobar el contexto regional.";
+}
+
 function setEditableTranslation(source, generated, metadata={}) {
   if($("#translation-copy-status"))$("#translation-copy-status").hidden=true;
   clearTranslationCopyFallback();
@@ -3476,13 +3516,15 @@ function setEditableTranslation(source, generated, metadata={}) {
   const result = $("#natural-result");
   const key = translationEditKey(source,direction,englishVariant,translationPurpose,metadata.musicSourceMode);
   const savedText = typeof translationEdits[key]?.text === "string" ? translationEdits[key].text.trim() : "";
-  const target = (metadata.documentDraft || metadata.swapPair) ? generated : savedText || generated;
+  const target = (metadata.documentDraft || metadata.swapPair || metadata.historyRestored) ? generated : savedText || generated;
   if ($("#compare-english")) $("#compare-english").disabled = languageFamily(targetLanguage) !== "en";
   result.textContent = target;
   result.setAttribute("contenteditable", "true");
   activeTranslationEdit = {key, source, way:direction, sourceLanguage, targetLanguage, variant:englishVariant, purpose:translationPurpose, generated, metadata};
   lastCompletedTranslation = {source, target, way:direction, sourceLanguage, targetLanguage, purpose:translationPurpose, ...metadata, edited:target !== generated};
   updateTranslationEditUi();
+  if(!metadata.historyRestored && typeof HablaTranslationHistory!=="undefined")
+    HablaTranslationHistory.queue(currentHistoryTranslation);
 }
 
 function saveActiveTranslationEdit({allowEmpty=false}={}) {
@@ -3510,6 +3552,7 @@ function saveActiveTranslationEdit({allowEmpty=false}={}) {
   };
   updateTranslationEditUi();
   recordCurrentDocumentDraft();
+  if(typeof HablaTranslationHistory!=="undefined")HablaTranslationHistory.queue(currentHistoryTranslation);
 }
 
 function restoreGeneratedTranslation() {
@@ -3530,6 +3573,7 @@ function restoreGeneratedTranslation() {
   updateTranslationEditUi();
   showToast("Generated translation restored.");
   recordCurrentDocumentDraft();
+  if(typeof HablaTranslationHistory!=="undefined")HablaTranslationHistory.queue(currentHistoryTranslation);
 }
 
 function recordCurrentDocumentDraft() {
@@ -5887,6 +5931,11 @@ function init() {
   $("#review-next").addEventListener("click", () => { reviewIndex += 1; renderReview(); window.scrollTo({top:0,behavior:"smooth"}); });
   $("#copy-review").addEventListener("click", copyReviewSummary);
   $("#share-review").addEventListener("click", shareReviewSummary);
+  if(typeof HablaTranslationHistory!=="undefined") {
+    initializeOptionalFeature("recent translation history",()=>HablaTranslationHistory.bind({
+      getCurrent:currentHistoryTranslation,restore:restoreHistoryTranslation,languageLabel
+    }));
+  }
   renderTranslation();
   renderLesson();
   const updateLessonLanguage = () => {
