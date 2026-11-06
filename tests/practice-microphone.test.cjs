@@ -11,10 +11,10 @@ function node(){
   replaceChildren(...children){this.children=children;},contains(other){return other===this;}
  };
 }
-function harness(native=false){
+function harness(native=false,tapPractice=false){
  const timers=new Map(),recordings=[],toasts=[];let timerID=0,now=0;
  const elements={};for(const name of ['mic','select','status','response','score','coach','heard','feedback','progress','progressLabel','target','whole'])elements[name]=node();
- const {mic}=elements,panel=node();mic.closest=()=>panel;mic.textContent='🎙 Hold to speak';
+ const {mic}=elements,panel=node();mic.closest=selector=>selector===".dictionary-practice"?panel:tapPractice?panel:null;panel.closest=()=>tapPractice?panel:null;mic.textContent='🎙 Hold to speak';
  class Recognition {
   start(){recordings.push(this);}
   stop(){this.stops=(this.stops||0)+1;}
@@ -104,4 +104,21 @@ console.log('Practice microphone: stable target/label, touch-selection suppressi
  assert.equal(vm.runInContext('focusText',h.context),'trabajar en esta');
  h.mic.emit('click');h.ready();h.current().result('No sé si quiero trabajar en esta aplicación esta noche',true);h.mic.emit('click');h.current().send('end');
  assert.match(h.score.textContent,/Recognized-word score: 100%/);
+}
+
+for(const native of [false,true]){
+ const h=harness(native,true);
+ for(let i=0;i<3;i++){
+  h.mic.emit('pointerdown');assert.equal(h.recordings.length,i,'pointer down does not start a tap session prematurely');
+  h.mic.emit('click',{detail:1});h.ready();
+  h.current().result('me vale verga',false);
+  h.mic.emit('click',{detail:1});h.current().send('end');
+  assert.match(h.score.textContent,/100%/);assert.equal(h.context.dictionaryPracticeSession,null);
+ }
+ h.mic.emit('click',{detail:1});h.ready();
+ assert.equal(h.response.hidden,false,'retry preserves the previous evaluation');
+ assert.match(h.score.textContent,/Previous attempt.*100%/);
+ h.mic.emit('click',{detail:1});h.current().send('end');
+ assert.match(h.status.textContent,/no transcript.*not scored/);
+ assert.match(h.score.textContent,/Previous attempt.*100%/,'empty retry does not erase the last useful result');
 }
