@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.92 · build 202";
+const APP_VERSION = "0.26.93 · build 203";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -318,13 +318,23 @@ function speakerName(role) {
 
 const DEFAULT_SPEAKER_REGIONS = {
   Maria:{country:"es-EC",city:"Guayaquil"}, Eddie:{country:"es-CU",city:"Holguín",region:"Oriente"},
-  Silvia:{country:"es-BO",city:""}, Grayson:{country:"es-VE",city:"Caracas"}, Ayssel:{country:"es-MX",city:""}
+  Silvia:{country:"es-BO",city:""}, Annalise:{country:"es-PA",city:"",originCorrection:"panama-2026-11"}, Grayson:{country:"es-VE",city:"Caracas"}, Ayssel:{country:"es-MX",city:""}
 };
 function speakerRegionKey(name) { return String(name).trim().normalize("NFC").toLowerCase(); }
 function readSpeakerRegions() {
   try {
     const saved=JSON.parse(localStorage.getItem(SPEAKER_REGIONS_STORAGE_KEY)||"{}");
-    return saved && typeof saved==="object" && !Array.isArray(saved) ? saved : {};
+    if(!saved || typeof saved!=="object" || Array.isArray(saved))return {};
+    // Apply the owner's confirmed origin correction once, preserving language choices.
+    for(const [key,profile] of Object.entries(saved)) {
+      if(speakerRegionKey(key)!=="annalise" || !profile || typeof profile!=="object" || profile.originCorrection==="panama-2026-11")continue;
+      if(profile.country==="es-PE") {
+        profile.country="es-PA";profile.city="";profile.region="";
+      } else if(!profile.country)profile.country="es-PA";
+      profile.originCorrection="panama-2026-11";
+    }
+    try{localStorage.setItem(SPEAKER_REGIONS_STORAGE_KEY,JSON.stringify(saved));}catch{}
+    return saved;
   } catch { return {}; }
 }
 function speakerRegionProfile(name) {
@@ -336,6 +346,7 @@ function speakerRegionProfile(name) {
     country:Object.hasOwn(TRANSLATOR_LANGUAGES,profile.country||"") ? profile.country : "",
     city:typeof profile.city==="string" ? profile.city.slice(0,80) : "",
     region:typeof profile.region==="string" ? profile.region.slice(0,80) : "",
+    originCorrection:profile.originCorrection,
     locales:profile.locales && typeof profile.locales==="object" ? profile.locales : {}};
 }
 const PERSON_COUNTRY_LABELS = {
@@ -5985,7 +5996,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=202", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=203", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
