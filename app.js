@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.98 · build 208";
+const APP_VERSION = "0.26.99 · build 209";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4075,6 +4075,22 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
+  const chooseResearchDocument = () => {
+    $("#translation-setup").open = true;
+    $("#choose-document").closest("details").open = true;
+    $("#choose-document").click();
+  };
+  $("#quick-choose-document")?.addEventListener("click", chooseResearchDocument);
+  $("#choose-research-document")?.addEventListener("click", chooseResearchDocument);
+  $("#quick-open-research")?.addEventListener("click", () => {
+    setTranslationPurpose("academic", false);
+    $("#translation-setup").open = true;
+    $("#choose-document").closest("details").open = true;
+    $("#research-reference-tools").open = true;
+    $("#document-progress-restore").open = true;
+    $("#whole-document-history").open = true;
+    $("#research-reference-tools").scrollIntoView({block:"start"});
+  });
   $("#choose-document").addEventListener("click", () => {wholeDocumentTools?.pause('Paused while choosing another document. Progress is saved.');$("#document-file").click();});
   $("#document-file").addEventListener("change", async event => {
     const file = event.target.files[0];
@@ -4108,6 +4124,8 @@ function bindDocumentTools() {
       syncLanguagePair();
       setTranslationPurpose("academic", false);
       populateDocumentSections();
+      $("#research-document-workspace").open = true;
+      $("#whole-document-tools").scrollIntoView({block:"start"});
     } catch (error) {
       if (token !== documentImportRequest) return;
       documentLoading = false;
@@ -6046,7 +6064,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=208", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=209", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

@@ -1,0 +1,173 @@
+// Synthetic papers and a stub translation service exercise the real import UI.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const playwright = require(process.env.HABLA_PLAYWRIGHT_MODULE || 'playwright');
+const root = path.resolve(__dirname, '..');
+const origin = 'https://mathewdmoore.github.io';
+
+async function checkPaper(browser, {file, width, ui, native}) {
+  const context = await browser.newContext({
+    viewport: {width, height: 844}, isMobile: true, hasTouch: true,
+    serviceWorkers: 'block', acceptDownloads: true
+  });
+  const page = await context.newPage();
+  const errors = [], requests = [];
+  let failAt = 3;
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.hostname === 'api.mymemory.translated.net') {
+      requests.push(url.searchParams.get('q'));
+      const payload = requests.length === failAt
+        ? {responseStatus: 403, quotaFinished: true, responseDetails: 'daily quota exceeded'}
+        : {responseStatus: 200, responseData: {translatedText: 'Draft ' + url.searchParams.get('q')}};
+      return route.fulfill({json: payload});
+    }
+    const local = path.resolve(root, url.pathname.replace('/habla-ecuador/', ''));
+    if (url.origin === origin && local.startsWith(root + path.sep)
+      && fs.existsSync(local) && fs.statSync(local).isFile()) return route.fulfill({path: local});
+    return route.abort();
+  });
+  await page.addInitScript(() => localStorage.setItem('habla-tutorial-seen-v2', '1'));
+  if (native) {
+    await page.addInitScript({content:
+      'window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};\n'
+      + fs.readFileSync(path.join(root, 'ios/HablaEcuador/NativeSpeech.js'), 'utf8')
+    });
+  }
+  await page.goto(`${origin}/habla-ecuador/${file}?start=translate&ui=${ui}`);
+  await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
+  const entry = page.locator('#research-document-workspace');
+  assert.equal(await entry.locator(':scope > summary').isVisible(), true, 'research has a visible main-screen entry');
+  assert.equal(await entry.locator(':scope > summary').textContent(), ui === 'es'
+    ? 'Traducción de investigación científica · PDF / Word'
+    : 'Scientific research translation · PDF / Word');
+  assert.equal(await page.locator('#translation-setup').getAttribute('open'), null);
+  await entry.locator(':scope > summary').click();
+  const guide = entry.locator('[data-feature-guide="research"]');
+  const guideHeading = guide.locator(':scope > summary');
+  const questions = guide.locator(':scope > details');
+  assert.equal(await guide.getAttribute('open'), null, 'the in-context guide starts collapsed');
+  assert.equal(await guideHeading.textContent(), ui === 'es' ? 'Guía de investigación' : 'Research guide');
+  await guideHeading.click();
+  await questions.nth(0).locator('summary').click();
+  assert.equal(await questions.nth(0).locator('ol').isVisible(), true);
+  await questions.nth(1).locator('summary').click();
+  assert.equal(await questions.nth(0).locator('ol').isVisible(), false, 'opening one question closes its sibling');
+  assert.match(await questions.nth(1).locator('li').first().textContent(),
+    ui === 'es' ? /Guardar documento para después/ : /Save document for later/);
+  await guideHeading.click();
+  const target = file === 'index.html' ? 'en-US' : 'en-GB';
+  await page.locator('#source-language-select').selectOption('es-EC');
+  await page.locator('#target-language-select').selectOption(target);
+  const text = Array.from({length: 100}, (_, index) =>
+    `Medición ${index}. Se evaluó la fuerza muscular después de cuatro semanas.\n\n`).join('')
+    + 'Conclusión final. DOI 10.1234/example.2026.';
+  await page.locator('#quick-open-research').click();
+  assert.equal(await page.locator('#choose-research-document').textContent(),
+    ui === 'es' ? 'Importar PDF o Word' : 'Import PDF or Word');
+  assert.equal(await page.locator('#choose-saved-paper').textContent(),
+    ui === 'es' ? 'Abrir copia de Habla (.json)' : 'Open Habla paper backup (.json)');
+  const backupChooser = page.waitForEvent('filechooser');
+  await page.locator('#choose-saved-paper').click();
+  const backupInput = await backupChooser;
+  assert.match(await backupInput.element().getAttribute('accept'), /\.json/);
+  await backupInput.setFiles({name: 'Saved-paper.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({
+    schema: 'habla-ecuador.saved-paper.v1', title: 'Previously translated paper', sourceText: 'Original en español',
+    translations: {'en-GB': 'U.K. draft', 'en-US': 'U.S. draft'}
+  }))});
+  await page.waitForFunction(() => !document.querySelector('#saved-paper-reader').hidden);
+
+  const chooser = page.waitForEvent('filechooser');
+  await page.locator(native ? '#choose-research-document' : '#quick-choose-document').click();
+  const documentInput = await chooser;
+  const types = (await documentInput.element().getAttribute('accept')).split(',');
+  assert.ok(types.includes('.pdf') && types.includes('.docx'));
+  await documentInput.setFiles({name: 'Synthetic-paper.txt', mimeType: 'text/plain', buffer: Buffer.from(text)});
+  await page.waitForFunction(() => importedDocument && !documentLoading);
+  assert.equal(requests.length, 0, 'opening a paper never sends it for translation');
+  assert.equal(await page.evaluate(() => importedDocument.sections.join('')), text);
+  assert.ok(await page.evaluate(() => importedDocument.sections.length) > 1);
+  assert.equal(await page.locator('#translate-entire-document').isVisible(), true);
+  assert.equal(await page.locator('#source-language-select').inputValue(), 'es-EC');
+  assert.equal(await page.locator('#target-language-select').inputValue(), target);
+  const order = await page.evaluate(() => Boolean(document.querySelector('#whole-document-tools')
+    .compareDocumentPosition(document.querySelector('.music-capture')) & Node.DOCUMENT_POSITION_FOLLOWING));
+  assert.equal(order, true, 'whole-paper actions precede music controls');
+
+  await page.locator('#save-document-for-later').click();
+  assert.equal(requests.length, 0, 'saving a paper never sends it for translation');
+  assert.match(await page.locator('#whole-document-saved option').first().textContent(), /Synthetic-paper.txt.*0\//);
+  await page.reload();
+  await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
+  await entry.locator(':scope > summary').click();
+  await page.locator('#quick-open-research').click();
+  await page.locator('#open-document-progress').click();
+  assert.equal(requests.length, 0, 'reopening a saved source never sends it for translation');
+  assert.equal(await page.evaluate(() => importedDocument.sections.join('')), text);
+  assert.equal(await page.locator('#saved-paper-title').inputValue(), 'Previously translated paper');
+  assert.equal(await page.locator('#save-document-for-later').isHidden(), true);
+
+  await page.locator('#translate-entire-document').click();
+  await page.waitForFunction(() => !wholeDocumentTools.runner.busy && wholeDocumentTools.runner.error);
+  assert.equal(await page.locator('#download-document-text').isDisabled(), true, 'partial drafts cannot export as complete');
+  const beforeReload = requests.length;
+  failAt = -1;
+  await page.reload();
+  await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
+  await entry.locator(':scope > summary').click();
+  await page.locator('#quick-open-research').click();
+  assert.equal(await page.locator('#choose-saved-paper').isVisible(), true);
+  assert.equal(await page.locator('#import-document-progress').isVisible(), true);
+  assert.equal(await page.locator('#open-document-progress').isVisible(), true);
+  await page.locator('#open-document-progress').click();
+  assert.equal(requests.length, beforeReload, 'saved progress opens without a service call');
+  assert.equal(await page.locator('#source-language-select').inputValue(), 'es-EC');
+  assert.equal(await page.locator('#target-language-select').inputValue(), target);
+  await page.locator('#translate-entire-document').click();
+  await page.waitForFunction(() => !document.querySelector('#download-document-text').disabled);
+  assert.equal(requests.filter(text => text === requests[0]).length, 1, 'saved chunks are reused after reload');
+  const draft = await page.locator('#document-full-draft').inputValue();
+  assert.match(draft, /Medición 0/);
+  assert.match(draft, /Conclusión final/);
+  assert.match(draft, /10\.1234\/example\.2026/);
+  assert.equal(await page.locator('#document-full-draft').getAttribute('readonly'), null);
+  const edited = draft + '\n\nReviewed final paragraph.';
+  await page.locator('#document-full-draft').fill(edited);
+  const downloading = page.waitForEvent('download');
+  await page.locator('#download-document-text').click();
+  const download = await downloading;
+  assert.equal(fs.readFileSync(await download.path(), 'utf8'), 'Synthetic-paper.txt\n\n' + edited);
+  assert.ok(download.suggestedFilename().includes(target));
+  const layout = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth, viewport: innerWidth,
+    overflow: [...document.querySelectorAll('body *')].filter(element => {
+      const box = element.getBoundingClientRect();
+      return box.width > 0 && (box.right > innerWidth + 1 || box.left < -1);
+    }).map(element => ({id: element.id, tag: element.tagName, className: element.className,
+      right: Math.round(element.getBoundingClientRect().right)})).slice(0, 15)
+  }));
+  assert.deepEqual(layout.overflow, [], JSON.stringify(layout));
+  assert.deepEqual(errors, []);
+  await context.close();
+  console.log(`${file} ${width}px ${ui} ${native ? 'native bridge' : 'web'} ${target}: visible research entry, complete import, quota pause, reload/resume, source fidelity, editing and export passed (document scroll area ${layout.width}px)`);
+}
+
+(async () => {
+  const engine = process.env.HABLA_BROWSER_ENGINE || 'chromium';
+  const browser = await playwright[engine].launch(engine === 'chromium' ? {args: ['--no-sandbox']} : {});
+  try {
+    for (const file of ['index.html', 'translator.html']) {
+      for (const width of [320, 390]) {
+        for (const ui of ['en', 'es']) await checkPaper(browser, {file, width, ui, native: false});
+      }
+      await checkPaper(browser, {file, width: 390, ui: 'es', native: true});
+    }
+  } finally {
+    await browser.close();
+  }
+})().catch(error => {console.error(error); process.exitCode = 1;});

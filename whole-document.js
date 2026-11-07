@@ -137,6 +137,7 @@
   function bind({getDocument,getRoute,openDocument,translate,onSection,label,formatError}) {
     const $=selector=>document.querySelector(selector);
     if(!$('#translate-entire-document'))return null;
+    const saveForLater=$('#save-document-for-later');
     let active=null,restoredJob=null,backupImport=0;
     const runner=new Runner({storage:localStorage,translate,onSection,onChange:()=>render()});
     function findCurrent() {
@@ -167,7 +168,12 @@
       const engineMismatch=job&&job.onDevice!==route.onDevice;
       const supported=route.sourceLanguage.slice(0,2)!==route.targetLanguage.slice(0,2);
       $('#translate-entire-document').disabled=runner.busy||!doc||!supported||!!done||!!engineMismatch;
-      $('#translate-entire-document').textContent=done?'Document translated':job?'Resume entire document':'Translate entire document';
+      const started=job?.parts.some(part=>part.translation!==null||part.chunks.length);
+      $('#translate-entire-document').textContent=done?'Document translated':started?'Resume entire document':'Translate entire document';
+      if(saveForLater){
+        saveForLater.hidden=!doc||!!job||runner.busy;
+        saveForLater.disabled=!supported;
+      }
       if(doc)$('#translate-document').disabled=runner.busy;
       $('#pause-entire-document').hidden=!runner.busy;
       $('#pause-entire-document').disabled=runner.busy&&runner.job.status!=='running';
@@ -178,9 +184,10 @@
         const output=done?compose(job):job.parts.filter(part=>part.translation!==null).map(part=>part.translation).join('\n\n');
         if($('#document-full-draft').value!==output)$('#document-full-draft').value=output;
       }
-      const progress=job?`${completed(job)} of ${job.parts.length} sections translated. `:'';
+      const progress=job&&(started||runner.busy)?`${completed(job)} of ${job.parts.length} sections translated. `:'';
       let message=runner.job===job?runner.message:'';
       if(runner.busy&&job?.status==='running') message='Translating in order. Keep this page open; Pause retains completed work.';
+      if(!message&&job&&!started)message='Document saved on this device. Translate it when you are ready.';
       if(!message)message=done?'Complete editable translation draft.':job?'Saved progress is ready. Translation resumes only when you tap Resume entire document.':doc?'Ready to translate the whole document into '+label(route.targetLanguage)+'.':'';
       if(engineMismatch&&!done)message='This progress uses '+(job.onDevice?'on-device translation':'the online service')+'. Select the same mode under Offline translation before resuming. No text has been sent in a different mode.';
       $('#whole-document-status').textContent=progress+message;
@@ -193,6 +200,18 @@
       link.href=url;link.download=(job.name.replace(/\.[^.]+$/,'').replace(/[^\p{L}\p{N} _-]/gu,'').slice(0,70)||'Document')+'-'+job.targetLanguage+extension;
       document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
     }
+    saveForLater?.addEventListener('click',()=>{
+      const doc=getDocument();
+      if(!doc||runner.busy||findCurrent())return;
+      try {
+        const job=create(doc,getRoute());
+        save(localStorage,job);
+        active=job;
+        render();
+      } catch(error) {
+        $('#whole-document-status').textContent=error.message;
+      }
+    });
     $('#translate-entire-document').addEventListener('click',async()=>{
       if(runner.busy)return;
       const doc=getDocument();if(!doc)return;

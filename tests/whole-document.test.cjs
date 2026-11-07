@@ -60,7 +60,7 @@ async function main(){
   const elements=new Map(),store=storage();let fetchCalls=[],failAt=3,printCalls=0;
   function element(selector=''){
     if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,disabled:false,dataset:{},children:[],handlers:{},readOnly:false,
-      addEventListener(name,handler){this.handlers[name]=handler;},setAttribute(){},removeAttribute(){},
+      scrollIntoView(){},addEventListener(name,handler){this.handlers[name]=handler;},setAttribute(){},removeAttribute(){},
       classList:{toggle(){},add(){},remove(){}},replaceChildren(){this.children=[];},append(...children){this.children.push(...children);},
       click(){return this.handlers.click?.();},remove(){},
       get innerHTML(){return this.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
@@ -86,12 +86,31 @@ async function main(){
   vm.runInContext(fs.readFileSync('app.js','utf8'),context);
   const run=code=>vm.runInContext(code,context);
   run('bindDocumentTools(); bindWholeDocumentTools(); sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair({persist:false});');
+  let documentPickerOpened=0;
+  element('#choose-document').closest=()=>element('#native-import-tools');
+  element('#document-file').click=()=>{documentPickerOpened++;};
+  element('#choose-research-document').handlers.click();
+  assert.equal(documentPickerOpened,1,'Saved Papers opens the normal document picker for PDF or Word');
   const synthetic=Array.from({length:130},(_,i)=>`Measurement ${i}: the muscle adaptation results were assessed after four weeks. `).join('')+'\n\nThe final source paragraph.';
   await element('#document-file').handlers.change({target:{files:[{name:'Paper.txt',size:synthetic.length,text:async()=>synthetic}],value:'Paper.txt'}});
   assert.equal(run('sourceLanguage'),'en-US','import preserves English source');
   assert.equal(run('targetLanguage'),'es-EC','import preserves Ecuadorian Spanish target');
   assert.equal(fetchCalls.length,0,'import and preview never translate automatically');
   assert.ok(run('importedDocument.sections.length')>1);
+  assert.equal(element('#save-document-for-later').hidden,false);
+  element('#save-document-for-later').handlers.click();
+  assert.equal(fetchCalls.length,0,'saving a paper does not contact the translation service');
+  assert.equal(element('#save-document-for-later').hidden,true);
+  const savedSource=whole.list(store)[0];
+  assert.equal(whole.completed(savedSource),0);
+  assert.equal(savedSource.parts.map(part=>part.source).join(''),synthetic);
+  element('#save-document-for-later').handlers.click();
+  assert.equal(whole.list(store).length,1,'saving the same paper again keeps one record');
+  run('closeImportedDocument()');
+  element('#whole-document-saved').value=savedSource.id;
+  element('#open-document-progress').handlers.click();
+  assert.equal(fetchCalls.length,0,'reopening saved source is entirely local');
+  assert.equal(element('#translate-entire-document').textContent,'Translate entire document');
   await element('#translate-entire-document').handlers.click();
   assert.match(element('#whole-document-status').textContent,/allowance|quota/);
   assert.equal(element('#print-document').disabled,true,'partial output cannot be printed as a complete paper');
@@ -149,8 +168,12 @@ async function main(){
     const appScript=source.match(/app\.js\?v=\d+/)?.[0];
     assert.ok(wholeScript && appScript && source.indexOf(wholeScript)<source.indexOf(appScript));
     assert.equal((source.match(/id="translate-entire-document"/g)||[]).length,1);
+    assert.equal((source.match(/id="research-document-workspace"/g)||[]).length,1);
+    assert.ok(source.indexOf('id="research-document-workspace"')<source.indexOf('id="shared-translation-workspace"'),'paper entry remains above the text editors');
+    assert.ok(source.indexOf('id="whole-document-tools"')<source.indexOf('class="music-capture document-tools"'),'whole-document controls stay ahead of music settings');
     assert.equal((source.match(/id="whole-document-print"/g)||[]).length,1);
-    assert.ok(source.indexOf('id="import-document-progress"')<source.indexOf('id="whole-document-tools"'),'backup recovery remains outside the hidden active-document panel');
+    const wholePanel=source.match(/<section id="whole-document-tools"[\s\S]*?<\/section>/)[0];
+    assert.ok(!wholePanel.includes('id="import-document-progress"'),'backup recovery remains outside the hidden active-document panel');
     assert.ok(!source.includes('the whole document is not translated at once'));
   }
   const cacheVersion=fs.readFileSync('sw.js','utf8').match(/habla-ecuador-v(\d+)/)[1];
