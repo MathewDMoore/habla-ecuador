@@ -102,14 +102,14 @@ async function checkPaper(browser, {file, width, ui, native}) {
     width: document.documentElement.scrollWidth, viewport: innerWidth,
     overflow: [...document.querySelectorAll('body *')].filter(element => {
       const box = element.getBoundingClientRect();
-      return box.width > 0 && box.right > innerWidth + 1;
+      return box.width > 0 && (box.right > innerWidth + 1 || box.left < -1);
     }).map(element => ({id: element.id, tag: element.tagName, className: element.className,
       right: Math.round(element.getBoundingClientRect().right)})).slice(0, 15)
   }));
-  assert.ok(layout.width <= layout.viewport, JSON.stringify(layout));
+  assert.deepEqual(layout.overflow, [], JSON.stringify(layout));
   assert.deepEqual(errors, []);
   await context.close();
-  console.log(`${file} ${width}px ${ui} ${native ? 'native bridge' : 'web'} ${target}: visible research entry, complete import, quota pause, reload/resume, source fidelity, editing and export passed`);
+  console.log(`${file} ${width}px ${ui} ${native ? 'native bridge' : 'web'} ${target}: visible research entry, complete import, quota pause, reload/resume, source fidelity, editing and export passed (document scroll area ${layout.width}px)`);
 }
 
 (async () => {
