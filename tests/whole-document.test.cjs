@@ -60,7 +60,7 @@ async function main(){
   const elements=new Map(),store=storage();let fetchCalls=[],failAt=3,printCalls=0;
   function element(selector=''){
     if(!elements.has(selector))elements.set(selector,{value:'',textContent:'',hidden:false,disabled:false,dataset:{},children:[],handlers:{},readOnly:false,
-      addEventListener(name,handler){this.handlers[name]=handler;},setAttribute(){},removeAttribute(){},
+      scrollIntoView(){},addEventListener(name,handler){this.handlers[name]=handler;},setAttribute(){},removeAttribute(){},
       classList:{toggle(){},add(){},remove(){}},replaceChildren(){this.children=[];},append(...children){this.children.push(...children);},
       click(){return this.handlers.click?.();},remove(){},
       get innerHTML(){return this.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
@@ -149,6 +149,9 @@ async function main(){
     const appScript=source.match(/app\.js\?v=\d+/)?.[0];
     assert.ok(wholeScript && appScript && source.indexOf(wholeScript)<source.indexOf(appScript));
     assert.equal((source.match(/id="translate-entire-document"/g)||[]).length,1);
+    assert.equal((source.match(/id="research-document-workspace"/g)||[]).length,1);
+    assert.ok(source.indexOf('id="research-document-workspace"')<source.indexOf('id="shared-translation-workspace"'),'paper entry remains above the text editors');
+    assert.ok(source.indexOf('id="whole-document-tools"')<source.indexOf('class="music-capture document-tools"'),'whole-document controls stay ahead of music settings');
     assert.equal((source.match(/id="whole-document-print"/g)||[]).length,1);
     assert.ok(source.indexOf('id="import-document-progress"')<source.indexOf('id="whole-document-tools"'),'backup recovery remains outside the hidden active-document panel');
     assert.ok(!source.includes('the whole document is not translated at once'));

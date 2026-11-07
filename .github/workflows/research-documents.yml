@@ -1,0 +1,43 @@
+name: Research document regressions
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'styles.css'
+      - 'interface-*.js'
+      - 'document-import.js'
+      - 'whole-document.js'
+      - 'saved-paper.js'
+      - 'ios/HablaEcuador/NativeSpeech.js'
+      - 'tests/research-documents.browser.cjs'
+      - 'tests/*document*.test.cjs'
+      - 'tests/saved-paper.test.cjs'
+      - '.github/workflows/research-documents.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  documents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node --test tests/document-import.test.cjs tests/whole-document.test.cjs tests/saved-paper.test.cjs tests/research-reference.test.cjs tests/ecuador-research.test.cjs
+      - run: npm install --prefix "$RUNNER_TEMP/habla-research-browser" --no-package-lock --no-save playwright@1.62.1
+      - run: node "$RUNNER_TEMP/habla-research-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - run: node tests/research-documents.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-research-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
