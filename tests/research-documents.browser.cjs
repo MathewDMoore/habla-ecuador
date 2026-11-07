@@ -100,10 +100,10 @@ async function checkPaper(browser, {file, width, ui, native}) {
   assert.ok(download.suggestedFilename().includes(target));
   const layout = await page.evaluate(() => ({
     width: document.documentElement.scrollWidth, viewport: innerWidth,
-    overflow: [...document.querySelectorAll('#translate-panel *')].filter(element => {
+    overflow: [...document.querySelectorAll('body *')].filter(element => {
       const box = element.getBoundingClientRect();
       return box.width > 0 && box.right > innerWidth + 1;
-    }).map(element => ({id: element.id, tag: element.tagName,
+    }).map(element => ({id: element.id, tag: element.tagName, className: element.className,
       right: Math.round(element.getBoundingClientRect().right)})).slice(0, 15)
   }));
   assert.ok(layout.width <= layout.viewport, JSON.stringify(layout));

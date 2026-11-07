@@ -450,8 +450,8 @@ textarea::placeholder { color: #9ca39f; }
 .music-method ol { margin: 13px 0 0; padding-left: 21px; color: #456056; font-size: 12px; line-height: 1.55; }
 .music-method li + li { margin-top: 7px; }
 
-.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(5,1fr); margin: auto; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
-.bottom-nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px; border: 0; background: transparent; color: #7a817d; font-size: 11px; font-weight: 800; }
+.bottom-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; width: min(100%, 520px); grid-template-columns: repeat(5,minmax(0,1fr)); margin: auto; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(23,63,53,.09); background: rgba(255,249,239,.93); backdrop-filter: blur(18px); }
+.bottom-nav button { display: flex; min-width: 0; overflow-wrap: anywhere; flex-direction: column; align-items: center; gap: 3px; padding: 7px; border: 0; background: transparent; color: #7a817d; font-size: 11px; font-weight: 800; }
 .bottom-nav button span { font-size: 20px; line-height: 1; }
 .bottom-nav button.active { color: var(--green); }
 .toast { position: fixed; z-index: 20; right: 18px; bottom: 92px; left: 18px; max-width: 440px; margin: auto; padding: 12px 15px; transform: translateY(20px); border-radius: 14px; background: #111d19; color: white; opacity: 0; pointer-events: none; text-align: center; transition: .2s ease; }
