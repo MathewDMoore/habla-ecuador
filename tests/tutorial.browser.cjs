@@ -9,7 +9,8 @@ async function controlsFit(page){
  await page.waitForFunction(()=>{
   const panel=document.querySelector('.tutorial-panel').getBoundingClientRect(),v=window.visualViewport;
   const left=v?.offsetLeft||0,top=v?.offsetTop||0,right=left+(v?.width||innerWidth),bottom=top+(v?.height||innerHeight);
-  return ['#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-progress'].every(s=>{
+  return ['#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-open-music','#tutorial-progress'].every(s=>{
+   if(document.querySelector(s).hidden)return true;
    const r=document.querySelector(s).getBoundingClientRect();
    return r.top>=Math.max(top,panel.top)&&r.bottom<=Math.min(bottom,panel.bottom)&&r.left>=Math.max(left,panel.left)&&r.right<=Math.min(right,panel.right);
   });
@@ -30,7 +31,7 @@ async function highlightFits(page,selector){
   return spot.width>0&&spot.top<=r.top&&spot.bottom>=r.bottom&&spot.left<=r.left&&spot.right>=r.right&&spot.bottom<=panel.top;
  },selector,{timeout:3000}).catch(async e=>{console.log(await page.evaluate(selector=>Object.fromEntries([selector,"#tutorial-spotlight",".tutorial-panel"].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()])),selector));throw e;});
 }
-async function run(browser,file,width,height=844){
+async function run(browser,file,width,height=844,native=false){
  const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  const page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
@@ -43,8 +44,28 @@ async function run(browser,file,width,height=844){
  // Previous versions stored v1 when the invitation was dismissed.
  // This rollout should still display the actual tour once for those visitors.
  await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v1','1'));
+ if(native){
+  const script=fs.readFileSync(path.join(root,'ios/HablaEcuador/NativeSpeech.js'),'utf8');
+  await page.addInitScript({content:'window.hablaNativeRequests=[]; window.webkit={messageHandlers:{hablaSpeech:{postMessage: message=>window.hablaNativeRequests.push(message)}}};\n'+script});
+ }
  await page.goto(origin+'/habla-ecuador/'+file);
  await page.waitForSelector('#tutorial-overlay:not([hidden])');
+ if(native){
+  await page.waitForSelector('#native-music-workspace',{state:'attached'});
+  for(let i=0;i<8;i++)await tap(page,'#tutorial-next');
+  await highlightFits(page,'#native-music-workspace #music-listen');
+  assert.match(await page.locator('#tutorial-english').textContent(),/Listen to music/);
+  assert.equal(await page.locator('#native-music-explore').getAttribute('open'),null);
+  await tap(page,'#tutorial-open-music');
+  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
+  assert.equal(await page.locator('#music-view').evaluate(el=>el.classList.contains('active')),true);
+  assert.equal(await page.locator('#music-listen').isVisible(),true);
+  assert.equal(await page.evaluate(()=>window.hablaNativeRequests.length),0,'the tutorial never starts recording');
+  assert.deepEqual(errors,[]);
+  await context.close();
+  console.log('Native Music tutorial: visible listening button highlighted and Open Music keeps the listening workspace open');
+  return;
+ }
  assert.equal(await page.locator('button[data-tutorial-open]').count(),1,'reopenable Help icon');
  assert.equal(await page.locator('#tutorial-invitation').count(),0,'old invitation card is replaced by automatic tutorial');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
@@ -138,6 +159,7 @@ async function run(browser,file,width,height=844){
  if(file==='index.html'){
   await tap(page,'#tutorial-next');
   assert.equal(await page.locator('#tutorial-title').textContent(),'Learn through music');
+  await highlightFits(page,'#music-title');
   assert.equal(await page.locator('#music-view').evaluate(el=>el.classList.contains('active')),true);
  }
  await tap(page,'#tutorial-next');
@@ -182,6 +204,6 @@ async function run(browser,file,width,height=844){
 (async()=>{
  const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
  const browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
- try{for(const [width,height] of [[320,844],[390,844],[390,650],[512,720]])for(const file of ['index.html','translator.html'])await run(browser,file,width,height);}
+ try{for(const [width,height] of [[320,844],[390,844],[390,650],[512,720]])for(const file of ['index.html','translator.html'])await run(browser,file,width,height);await run(browser,'index.html',390,650,true);}
  finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
