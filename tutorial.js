@@ -29,9 +29,11 @@ const STEPS=[
  {view:"lesson-view",target:"#lesson-title",symbol:"🎯",en:"Listen, respond, and review",es:"Escucha, responde y revisa",
   body:"Follow each activity's instructions. Listen, select or speak your response, and review the feedback. Retry when you need more practice.",
   esp:"Sigue las instrucciones de cada actividad. Escucha, selecciona o di tu respuesta y revisa los comentarios. Vuelve a intentarlo cuando necesites más práctica."},
- {view:"music-view",target:"#music-song-lesson h2",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
-  body:"Explore Music for listening, pronunciation, rhythm and culture. Available recordings and translation options may vary.",
-  esp:"Explora Música para practicar la escucha, la pronunciación, el ritmo y la cultura. Las grabaciones y opciones de traducción pueden variar."},
+ {view:"music-view",target:"#music-title",nativeTarget:"#native-music-workspace #music-listen",symbol:"🎶",fullOnly:true,en:"Learn through music",es:"Aprende con música",
+  body:"Open Music and choose a song lesson. Play a recording and follow the lyrics and their meaning.",
+  esp:"Abre Música y elige una lección. Reproduce una grabación y sigue la letra y su significado.",
+  nativeBody:"Tap Open Music, then Listen to music to capture words. For song lessons, open Explore recordings & culture.",
+  nativeEsp:"Toca Abrir Música y luego Escuchar música (Listen to music) para captar palabras. Para ver las lecciones, abre Explore recordings & culture."},
  {view:null,target:".feedback-open",symbol:"💬",en:"Help improve Habla Ecuador",es:"Ayúdanos a mejorar Habla Ecuador",
   body:"Find an incorrect translation or regional expression? Tap the speech bubble to suggest a correction. Nothing is sent automatically.",
   esp:"¿Encontraste una traducción o expresión regional incorrecta? Toca el globo de diálogo para sugerir una corrección. Nada se envía automáticamente."}
@@ -45,7 +47,12 @@ const HOME_SCREEN_STEPS=[
  esp:"Con la aplicación nativa Habla Ecuador instalada en tu iPhone, ábrela una vez. Mantén pulsada una zona vacía de la pantalla de inicio, toca Editar → Agregar widget y busca Habla Ecuador. Elige pequeño o mediano y toca Agregar widget → Listo. El widget mediano abre Traducir, Practicar, Diccionario y Tutorial. Este enlace incluye la guía y el diseño; agregar el icono del sitio web no instala el widget nativo. Si Habla no aparece en la lista de widgets, primero debes instalar la aplicación nativa. Todavía no hay un enlace público para instalarla."}
 ];
 const $=s=>document.querySelector(s);
-function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
+function targetFor(step){
+ const nativeTarget=step.nativeTarget&&$(step.nativeTarget);
+ if(nativeTarget?.getClientRects().length)return nativeTarget;
+ const target=$(step.target);
+ return step.groupTarget?target?.closest(step.groupTarget)||target:target;
+}
 let currentMode="full";
 let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,spotFrame=0,observer=null;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
@@ -63,7 +70,7 @@ function make(){
  panel.tabIndex=-1;
  const top=document.createElement("div");top.className="tutorial-panel-top";
  const progress=document.createElement("span");progress.id="tutorial-progress";
- const close=button("Close / Cerrar","tutorial-close");close.setAttribute("aria-label","Close tutorial / Cerrar tutorial");close.addEventListener("click",finish);
+ const close=button("Close / Cerrar","tutorial-close");close.setAttribute("aria-label","Close tutorial / Cerrar tutorial");close.addEventListener("click",()=>finish());
  top.append(progress,close);
  const symbol=document.createElement("div");symbol.id="tutorial-symbol";symbol.setAttribute("aria-hidden","true");
  const title=document.createElement("h2");title.id="tutorial-title";
@@ -75,9 +82,11 @@ function make(){
  note.textContent="Follow the highlighted part of the app. / Sigue la parte resaltada de la app.";
  const controls=document.createElement("div");controls.className="tutorial-controls";
  const skip=button("Skip / Omitir","tutorial-skip"),back=button("Back / Atrás","tutorial-back"),next=button("Next / Siguiente","tutorial-next");
- skip.addEventListener("click",finish);back.addEventListener("click",()=>move(-1));
+ skip.addEventListener("click",()=>finish());back.addEventListener("click",()=>move(-1));
  next.addEventListener("click",()=>index===steps.length-1?finish():move(1));
- controls.append(skip,back,next);
+ const openMusic=button("Open Music / Abrir Música","tutorial-open-music");
+ openMusic.addEventListener("click",()=>finish("music-view"));
+ controls.append(skip,openMusic,back,next);
  const content=document.createElement("div");content.className="tutorial-content";content.tabIndex=0;
  const preview=document.createElement("figure");preview.id="home-screen-preview";preview.hidden=true;
  preview.innerHTML='<div class="home-brand-preview"><img src="app-icon-192.png?brand=20261031" width="72" height="72" alt="Habla Ecuador: mountain, sun and pink flower"><div><strong>Habla Ecuador 🇪🇨</strong><p>¿Cómo estás?<br>How are you?</p></div><div class="home-widget-shortcuts" aria-hidden="true">Translate · Traducir<br>Practice · Practicar<br>Dictionary · Diccionario<br>Tutorial</div></div><figcaption></figcaption>';
@@ -153,8 +162,12 @@ function render(){
  preview.querySelector("figcaption").textContent=step.art==="widget" ? "Widget preview · Vista previa del widget" : "Our Home Screen icon · Nuestro icono de inicio";
  $("#tutorial-progress").textContent=(index+1)+" / "+steps.length;
  $("#tutorial-symbol").textContent=step.symbol;
- $("#tutorial-title").textContent=step.en;$("#tutorial-english").textContent=step.body;
- $("#tutorial-title-es").textContent=step.es;$("#tutorial-spanish").textContent=step.esp;
+ const isMusic=step.view==="music-view";
+ const nativeMusic=isMusic&&targetFor(step)?.matches(step.nativeTarget);
+ $("#tutorial-title").textContent=step.en;$("#tutorial-english").textContent=nativeMusic?step.nativeBody:step.body;
+ $("#tutorial-title-es").textContent=step.es;$("#tutorial-spanish").textContent=nativeMusic?step.nativeEsp:step.esp;
+ $("#tutorial-skip").hidden=isMusic;
+ $("#tutorial-open-music").hidden=!isMusic;
  $("#tutorial-back").disabled=index===0;
  $("#tutorial-next").textContent=index===steps.length-1?"Finish / Terminar":"Next / Siguiente";
  panel.querySelector(".tutorial-content").scrollTop=0;
@@ -177,17 +190,22 @@ function open(opener,mode="full"){
  placeViewport();overlay.hidden=false;document.documentElement.dataset.tutorialOpen="true";
  render();trackSpotlight();
 }
-function finish(){
+function finish(destination=previousView){
  if(!active)return;
  active=false;cancelAnimationFrame(spotFrame);cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
- if(currentMode!=="home-screen")remember();$("#tutorial-invitation")?.remove();go(previousView);
+ if(currentMode!=="home-screen")remember();$("#tutorial-invitation")?.remove();go(destination);
+ if(destination==="music-view"&&steps[index].view===destination){
+  const target=targetFor(steps[index]);
+  if(target){if(target.tabIndex<0)target.tabIndex=-1;target.focus({preventScroll:true});}
+  return;
+ }
  if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }
 function keyboard(event){
  if(!active)return;
  if(event.key==="Escape"){event.preventDefault();finish();}
  else if(event.key==="Tab"){
-  const controls=[...panel.querySelectorAll("button:not([disabled]),[tabindex=\"0\"]")];if(!controls.length)return;
+  const controls=[...panel.querySelectorAll("button:not([disabled]):not([hidden]),[tabindex=\"0\"]")];if(!controls.length)return;
   const first=controls[0],last=controls[controls.length-1];
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
