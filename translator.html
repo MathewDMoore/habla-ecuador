@@ -134,6 +134,7 @@
             <p>Translate every section in order and combine the results into one editable draft. Keep this page open while translating.</p>
             <div class="paper-actions">
               <button id="translate-entire-document" type="button" class="primary-button" disabled>Translate entire document</button>
+              <button id="save-document-for-later" type="button" hidden>Save document for later</button>
               <button id="pause-entire-document" type="button" hidden>Pause translation</button>
             </div>
             <p id="whole-document-status" class="import-status" role="status" aria-live="polite"></p>
@@ -270,9 +271,12 @@
           <details id="research-reference-tools" class="research-mode-note compact-info" hidden><summary>Saved papers &amp; research references</summary>
             <section class="saved-paper-tools" aria-labelledby="saved-paper-heading">
               <h3 id="saved-paper-heading">Your complete research paper</h3>
-              <button id="choose-saved-paper" type="button">Choose saved paper</button>
+              <div class="import-actions">
+                <button id="choose-research-document" type="button">Import PDF or Word</button>
+                <button id="choose-saved-paper" type="button">Open Habla paper backup (.json)</button>
+              </div>
               <input id="saved-paper-file" type="file" accept=".json,application/json" hidden>
-              <p>Choose the Habla saved-paper download from Files once. The full source and both English drafts stay on this device; opening, editing and printing them use no translation service.</p>
+              <p>Import a PDF or Word paper to save its text for later or translate it. Open a Habla paper backup to read the original and both English drafts on this device.</p>
               <p id="saved-paper-status" role="status" aria-live="polite"></p>
               <div id="saved-paper-reader" hidden>
                 <label for="saved-paper-title">Paper title</label>

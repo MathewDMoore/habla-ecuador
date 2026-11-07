@@ -52,9 +52,27 @@ async function checkPaper(browser, {file, width, ui, native}) {
   const text = Array.from({length: 100}, (_, index) =>
     `Medición ${index}. Se evaluó la fuerza muscular después de cuatro semanas.\n\n`).join('')
     + 'Conclusión final. DOI 10.1234/example.2026.';
+  await page.locator('#quick-open-research').click();
+  assert.equal(await page.locator('#choose-research-document').textContent(),
+    ui === 'es' ? 'Importar PDF o Word' : 'Import PDF or Word');
+  assert.equal(await page.locator('#choose-saved-paper').textContent(),
+    ui === 'es' ? 'Abrir copia de Habla (.json)' : 'Open Habla paper backup (.json)');
+  const backupChooser = page.waitForEvent('filechooser');
+  await page.locator('#choose-saved-paper').click();
+  const backupInput = await backupChooser;
+  assert.match(await backupInput.element().getAttribute('accept'), /\.json/);
+  await backupInput.setFiles({name: 'Saved-paper.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({
+    schema: 'habla-ecuador.saved-paper.v1', title: 'Previously translated paper', sourceText: 'Original en español',
+    translations: {'en-GB': 'U.K. draft', 'en-US': 'U.S. draft'}
+  }))});
+  await page.waitForFunction(() => !document.querySelector('#saved-paper-reader').hidden);
+
   const chooser = page.waitForEvent('filechooser');
-  await page.locator('#quick-choose-document').click();
-  await (await chooser).setFiles({name: 'Synthetic-paper.txt', mimeType: 'text/plain', buffer: Buffer.from(text)});
+  await page.locator(native ? '#choose-research-document' : '#quick-choose-document').click();
+  const documentInput = await chooser;
+  const types = (await documentInput.element().getAttribute('accept')).split(',');
+  assert.ok(types.includes('.pdf') && types.includes('.docx'));
+  await documentInput.setFiles({name: 'Synthetic-paper.txt', mimeType: 'text/plain', buffer: Buffer.from(text)});
   await page.waitForFunction(() => importedDocument && !documentLoading);
   assert.equal(requests.length, 0, 'opening a paper never sends it for translation');
   assert.equal(await page.evaluate(() => importedDocument.sections.join('')), text);
@@ -65,6 +83,20 @@ async function checkPaper(browser, {file, width, ui, native}) {
   const order = await page.evaluate(() => Boolean(document.querySelector('#whole-document-tools')
     .compareDocumentPosition(document.querySelector('.music-capture')) & Node.DOCUMENT_POSITION_FOLLOWING));
   assert.equal(order, true, 'whole-paper actions precede music controls');
+
+  await page.locator('#save-document-for-later').click();
+  assert.equal(requests.length, 0, 'saving a paper never sends it for translation');
+  assert.match(await page.locator('#whole-document-saved option').first().textContent(), /Synthetic-paper.txt.*0\//);
+  await page.reload();
+  await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
+  await entry.locator('summary').click();
+  await page.locator('#quick-open-research').click();
+  await page.locator('#open-document-progress').click();
+  assert.equal(requests.length, 0, 'reopening a saved source never sends it for translation');
+  assert.equal(await page.evaluate(() => importedDocument.sections.join('')), text);
+  assert.equal(await page.locator('#saved-paper-title').inputValue(), 'Previously translated paper');
+  assert.equal(await page.locator('#save-document-for-later').isHidden(), true);
 
   await page.locator('#translate-entire-document').click();
   await page.waitForFunction(() => !wholeDocumentTools.runner.busy && wholeDocumentTools.runner.error);

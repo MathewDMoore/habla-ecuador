@@ -4075,11 +4075,13 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
-  $("#quick-choose-document")?.addEventListener("click", () => {
+  const chooseResearchDocument = () => {
     $("#translation-setup").open = true;
     $("#choose-document").closest("details").open = true;
     $("#choose-document").click();
-  });
+  };
+  $("#quick-choose-document")?.addEventListener("click", chooseResearchDocument);
+  $("#choose-research-document")?.addEventListener("click", chooseResearchDocument);
   $("#quick-open-research")?.addEventListener("click", () => {
     setTranslationPurpose("academic", false);
     $("#translation-setup").open = true;
@@ -4087,7 +4089,7 @@ function bindDocumentTools() {
     $("#research-reference-tools").open = true;
     $("#document-progress-restore").open = true;
     $("#whole-document-history").open = true;
-    $("#document-progress-restore").scrollIntoView({block:"start"});
+    $("#research-reference-tools").scrollIntoView({block:"start"});
   });
   $("#choose-document").addEventListener("click", () => {wholeDocumentTools?.pause('Paused while choosing another document. Progress is saved.');$("#document-file").click();});
   $("#document-file").addEventListener("change", async event => {
