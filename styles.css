@@ -110,7 +110,7 @@ textarea::placeholder { color: #9ca39f; }
 .segmented { display: flex; padding: 3px; border-radius: 12px; background: #eae1d4; }
 .segmented button { padding: 7px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; }
 .segmented button.active { background: white; color: var(--green); }
-.translation-purpose { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 2px 10px; }
+.translation-purpose { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 2px 10px; }
 .translation-purpose > div:first-child { display: grid; gap: 2px; color: var(--ink); font-size: 13px; font-weight: 900; }
 .translation-purpose small { color: var(--muted); font-size: 10px; font-weight: 650; }
 .purpose-switch { flex: 0 0 auto; }
@@ -560,6 +560,7 @@ button:disabled { cursor: default; }
 .compact-info[open] { padding-bottom: .65rem; }
 .compact-info > p { margin: .4rem 0; line-height: 1.5; }
 .offline-tools.compact-info { padding: 0 .75rem; margin: .45rem 0; }
+#whatsapp-audio-file { display: block; width: 100%; min-width: 0; }
 .import-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
 .import-actions button { min-height: 44px; padding: .5rem .75rem; flex: 1 1 auto; }
 .document-tools { padding: .65rem; margin: .5rem 0; }

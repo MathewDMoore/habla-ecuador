@@ -7,7 +7,7 @@ const helper = require('../document-import.js');
 let network = 0;
 function element() {
   return {value:'', textContent:'', hidden:false, disabled:false, children:[], handlers:{}, dataset:{},
-    addEventListener(name, cb) { this.handlers[name] = cb; },
+    scrollIntoView(){},addEventListener(name, cb) { this.handlers[name] = cb; },
     setAttribute() {}, removeAttribute() {}, classList:{toggle(){}},
     append(value) { this.children.push(value); }, replaceChildren() { this.children=[]; }};
 }
