@@ -94,7 +94,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   const downloading = page.waitForEvent('download');
   await page.locator('#download-document-text').click();
   const download = await downloading;
-  assert.equal(fs.readFileSync(await download.path(), 'utf8'), edited);
+  assert.equal(fs.readFileSync(await download.path(), 'utf8'), 'Synthetic-paper.txt\n\n' + edited);
   assert.ok(download.suggestedFilename().includes(target));
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, []);
