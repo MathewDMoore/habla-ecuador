@@ -153,7 +153,8 @@ async function main(){
     assert.ok(source.indexOf('id="research-document-workspace"')<source.indexOf('id="shared-translation-workspace"'),'paper entry remains above the text editors');
     assert.ok(source.indexOf('id="whole-document-tools"')<source.indexOf('class="music-capture document-tools"'),'whole-document controls stay ahead of music settings');
     assert.equal((source.match(/id="whole-document-print"/g)||[]).length,1);
-    assert.ok(source.indexOf('id="import-document-progress"')<source.indexOf('id="whole-document-tools"'),'backup recovery remains outside the hidden active-document panel');
+    const wholePanel=source.match(/<section id="whole-document-tools"[\s\S]*?<\/section>/)[0];
+    assert.ok(!wholePanel.includes('id="import-document-progress"'),'backup recovery remains outside the hidden active-document panel');
     assert.ok(!source.includes('the whole document is not translated at once'));
   }
   const cacheVersion=fs.readFileSync('sw.js','utf8').match(/habla-ecuador-v(\d+)/)[1];
