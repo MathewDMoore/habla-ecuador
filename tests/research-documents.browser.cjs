@@ -96,7 +96,15 @@ async function checkPaper(browser, {file, width, ui, native}) {
   const download = await downloading;
   assert.equal(fs.readFileSync(await download.path(), 'utf8'), 'Synthetic-paper.txt\n\n' + edited);
   assert.ok(download.suggestedFilename().includes(target));
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  const layout = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth, viewport: innerWidth,
+    overflow: [...document.querySelectorAll('#translate-panel *')].filter(element => {
+      const box = element.getBoundingClientRect();
+      return box.width > 0 && box.right > innerWidth + 1;
+    }).map(element => ({id: element.id, tag: element.tagName,
+      right: Math.round(element.getBoundingClientRect().right)})).slice(0, 15)
+  }));
+  assert.ok(layout.width <= layout.viewport, JSON.stringify(layout));
   assert.deepEqual(errors, []);
   await context.close();
   console.log(`${file} ${width}px ${ui} ${native ? 'native bridge' : 'web'} ${target}: visible research entry, complete import, quota pause, reload/resume, source fidelity, editing and export passed`);
