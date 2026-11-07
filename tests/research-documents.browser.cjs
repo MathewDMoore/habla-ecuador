@@ -40,12 +40,25 @@ async function checkPaper(browser, {file, width, ui, native}) {
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
   if (native) await page.waitForSelector('#native-translation-workspace');
   const entry = page.locator('#research-document-workspace');
-  assert.equal(await entry.locator('summary').isVisible(), true, 'research has a visible main-screen entry');
-  assert.equal(await entry.locator('summary').textContent(), ui === 'es'
+  assert.equal(await entry.locator(':scope > summary').isVisible(), true, 'research has a visible main-screen entry');
+  assert.equal(await entry.locator(':scope > summary').textContent(), ui === 'es'
     ? 'Traducción de investigación científica · PDF / Word'
     : 'Scientific research translation · PDF / Word');
   assert.equal(await page.locator('#translation-setup').getAttribute('open'), null);
-  await entry.locator('summary').click();
+  await entry.locator(':scope > summary').click();
+  const guide = entry.locator('[data-feature-guide="research"]');
+  const guideHeading = guide.locator(':scope > summary');
+  const questions = guide.locator(':scope > details');
+  assert.equal(await guide.getAttribute('open'), null, 'the in-context guide starts collapsed');
+  assert.equal(await guideHeading.textContent(), ui === 'es' ? 'Guía de investigación' : 'Research guide');
+  await guideHeading.click();
+  await questions.nth(0).locator('summary').click();
+  assert.equal(await questions.nth(0).locator('ol').isVisible(), true);
+  await questions.nth(1).locator('summary').click();
+  assert.equal(await questions.nth(0).locator('ol').isVisible(), false, 'opening one question closes its sibling');
+  assert.match(await questions.nth(1).locator('li').first().textContent(),
+    ui === 'es' ? /Guardar documento para después/ : /Save document for later/);
+  await guideHeading.click();
   const target = file === 'index.html' ? 'en-US' : 'en-GB';
   await page.locator('#source-language-select').selectOption('es-EC');
   await page.locator('#target-language-select').selectOption(target);
@@ -90,7 +103,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   await page.reload();
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
   if (native) await page.waitForSelector('#native-translation-workspace');
-  await entry.locator('summary').click();
+  await entry.locator(':scope > summary').click();
   await page.locator('#quick-open-research').click();
   await page.locator('#open-document-progress').click();
   assert.equal(requests.length, 0, 'reopening a saved source never sends it for translation');
@@ -106,7 +119,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   await page.reload();
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
   if (native) await page.waitForSelector('#native-translation-workspace');
-  await entry.locator('summary').click();
+  await entry.locator(':scope > summary').click();
   await page.locator('#quick-open-research').click();
   assert.equal(await page.locator('#choose-saved-paper').isVisible(), true);
   assert.equal(await page.locator('#import-document-progress').isVisible(), true);
