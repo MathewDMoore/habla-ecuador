@@ -31,10 +31,10 @@ async function checkPaper(browser, {file, width, ui, native}) {
   });
   await page.addInitScript(() => localStorage.setItem('habla-tutorial-seen-v2', '1'));
   if (native) {
-    await page.addInitScript(() => {
-      window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};
+    await page.addInitScript({content:
+      'window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};\n'
+      + fs.readFileSync(path.join(root, 'ios/HablaEcuador/NativeSpeech.js'), 'utf8')
     });
-    await page.addInitScript({path: path.join(root, 'ios/HablaEcuador/NativeSpeech.js')});
   }
   await page.goto(`${origin}/habla-ecuador/${file}?start=translate&ui=${ui}`);
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
