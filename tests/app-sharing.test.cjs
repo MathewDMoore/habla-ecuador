@@ -23,8 +23,14 @@ assert.equal(new URL(context.publicAppShareUrl('monterrey','en')).searchParams.g
 assert.equal(new URL(context.publicAppShareUrl('','javascript:bad')).searchParams.get('ui'),'es');
 
 const cuban=require('../spanish-context.js').dictionary({region:'es-CU'});
-assert.equal(cuban.length,3,'Cuba shows verified entries, not unrelated shared slang');
-for(const term of ['asere / acere','guagua (Cuba)','jaba (Cuba)'])assert.ok(cuban.some(e=>e.term===term));
+for(const term of ['asere / acere','guagua (Cuba)','jaba (Cuba)','dar bola (a ride)','dar muela (persuading)','dar muela (talking a lot)','la bola pica y extiende','malparido / malparida','panocha (anatomy)']){
+ const entry=cuban.find(e=>e.term===term);
+ assert.ok(entry&&!entry.shared&&entry.url.startsWith('https://www.asale.org/damer/'),term+' has Cuban sense evidence');
+}
+for(const term of ['culo (anatomy)','puta (noun / insult)','afeminado / afeminada']){
+ assert.equal(cuban.find(e=>e.term===term)?.shared,true,term+' remains searchable as general Spanish');
+}
+assert.deepEqual(cuban.filter(e=>e.speech==='dar bola').map(e=>e.id),['p201-dar-bola-ride'],'Cuba excludes other regional senses of dar bola');
 for(const file of ['index.html','translator.html']){
  const html=fs.readFileSync(file,'utf8');
  assert.match(html,/<option value="es-CU">Cuba · dictionary<\/option>/);

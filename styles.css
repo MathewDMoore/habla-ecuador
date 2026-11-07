@@ -234,6 +234,10 @@ textarea::placeholder { color: #9ca39f; }
 .turn small { color: var(--muted); font-weight: 800; }
 .turn p { margin: 5px 0 0; line-height: 1.45; }
 .turn .translated { color: var(--green-2); }
+.regional-wording { overflow-wrap: anywhere; }
+.regional-wording ul { margin: .45rem 0 0; padding-inline-start: 1.25rem; }
+.regional-wording li + li { margin-top: .4rem; }
+.regional-wording li small { display: block; }
 .text-button { display: block; margin: 18px auto; border: 0; background: transparent; color: var(--muted); text-decoration: underline; }
 
 .dictionary-intro { margin: 8px 0 18px; color: var(--muted); line-height: 1.55; }
