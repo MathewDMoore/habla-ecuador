@@ -2623,6 +2623,7 @@ function startMusicListening() {
     return;
   }
   cancelListening(true);
+  showTranslatorRegionalWording(null);
   musicFullTranslation = null;
   musicReviewRequest += 1;
   saveActiveTranslationEdit();
@@ -2881,6 +2882,7 @@ function startInputMicrophone({append=false}={}) {
       receivedWords=true;
       $("#translator-input").value = composeDictationText(priorText,text,append);
       if (!final) {
+        showTranslatorRegionalWording(null);
         // Never show an old translation alongside an unfinished new source.
         translationRequest += 1;
         translatorDictationNeedsReview=true;
@@ -2895,7 +2897,7 @@ function startInputMicrophone({append=false}={}) {
         translationRequest += 1;
         translatorDictationNeedsReview = false;
         setTranslatorMicFeedback("Translating this draft automatically. Recognition may be incomplete; check the words or use Add missing words. / Traduciendo este borrador automáticamente. El dictado puede estar incompleto; revisa el texto o añade palabras.",false,true);
-        renderTranslation();
+        renderTranslation({checkRegionalWording:false});
       } else {
         translatorDictationNeedsReview = false;
         setTranslatorMicFeedback("Recognized words received. Check for missing or changed words. Use Add missing words to continue.");
@@ -3510,6 +3512,7 @@ function restoreHistoryTranslation(item) {
   setTranslationPurpose("everyday",false);
   setMode("translate");openView("translator-view");
   $("#translator-input").value=item.source;
+  showTranslatorRegionalWording(languageFamily(sourceLanguage) === "es" ? regionalWording(item.source) : null);
   setEditableTranslation(item.source,item.target,{historyRestored:true});
   $("#translation-result").hidden=false;
   $("#no-result").hidden=true;
@@ -3648,6 +3651,36 @@ function renderRegionalTranslation(sourceText,result,missing) {
   $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
 }
 
+function regionalWording(text) {
+  return typeof HablaSpanishContext === "undefined" ? null : HablaSpanishContext.regionalWording?.(text);
+}
+
+function regionalWordingMarkup(report, open=false) {
+  if (!report?.clues.length) return "";
+  const spanish = window.HablaUI?.language === "es";
+  const countries = new Intl.DisplayNames([spanish ? "es" : "en"], {type:"region"});
+  const label = spanish ? "Expresiones regionales" : "Regional wording";
+  const result = report.region
+    ? (spanish ? "Posible uso de " : "Possible usage from ") + countries.of(report.region)
+    : report.mixed ? (spanish ? "Indicios de varias regiones" : "Clues from several regions")
+    : report.clues.length === 1 ? (spanish ? "Un solo indicio" : "One clue")
+    : (spanish ? "Usos compartidos" : "Shared usage");
+  const note = spanish ? "Habla analiza las palabras del texto. El acento y la procedencia siguen sin determinarse."
+    : "Habla checks the words in the text. Accent and speaker origin remain undetermined.";
+  const source = spanish ? "Fuente" : "Source";
+  const clues = report.clues.map(clue => `<li><strong lang="es">${escapeHtml(clue.term)}</strong> · ${escapeHtml(spanish ? clue.es : clue.en)} <small>${escapeHtml(clue.regions.map(region => countries.of(region)).join(", "))} · <a href="${escapeHtml(clue.url)}" target="_blank" rel="noopener noreferrer">${source}</a></small></li>`).join("");
+  return `<details class="regional-wording compact-info" data-ui-content${open ? " open" : ""}><summary>${escapeHtml(label + " · " + result)}</summary><div>${note}</div><ul>${clues}</ul></details>`;
+}
+
+let translatorRegionalWording = null;
+
+function showTranslatorRegionalWording(report) {
+  const box = $("#translator-regional-wording");
+  if (!box) return;
+  translatorRegionalWording = report;
+  box.innerHTML = regionalWordingMarkup(report, Boolean(box.querySelector?.("details[open]")));
+}
+
 function renderSpanishContext(sourceText,draft='') {
   const panel=$('#spanish-context'),body=$('#spanish-context-notes');
   if(!panel||!body)return;
@@ -3718,12 +3751,13 @@ function correctTranslationSourceLanguage({automatic=false}={}) {
   return renderTranslation();
 }
 
-async function renderTranslation({allowImported=false, allowMusic=false}={}) {
+async function renderTranslation({allowImported=false, allowMusic=false, checkRegionalWording=true}={}) {
   if (translatorDictationNeedsReview && !allowImported && !allowMusic) return;
   if (musicListening || (musicTranscriptReview && !allowMusic)) return;
   if (allowMusic) musicTranscriptReview = false;
   if ($("#compare-english")) $("#compare-english").disabled = true;
   if (documentImportActive && !allowImported) {
+    showTranslatorRegionalWording(null);
     translationRequest += 1;
     $("#translation-result").hidden = true;
     $("#no-result").hidden = true;
@@ -3741,6 +3775,10 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     && requestContext.purpose === translationPurpose;
   const musicInput=allowMusic || Boolean(musicCapturedText && musicCapturedText === sourceText && musicCapturedLanguage === sourceLanguage);
   const autoMusic=musicInput && translationPurpose !== "academic" && bilingualMusicEnabled();
+  const wrongSourceFamily = !allowImported && !musicInput ? translationInputLanguageMismatch(sourceText) : null;
+  showTranslatorRegionalWording(checkRegionalWording && sourceText && !wrongSourceFamily &&
+    translationPurpose === "everyday" && !documentImportActive && !musicInput && languageFamily(sourceLanguage) === "es"
+    ? regionalWording(sourceText) : null);
   if(!autoMusic)renderSpanishContext(sourceText);
   else if($("#spanish-context"))$("#spanish-context").hidden=true;
   const preservedEntry = direction === "en-ec"
@@ -3761,7 +3799,6 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     missing.hidden = true;
     return;
   }
-  const wrongSourceFamily = !allowImported && !musicInput ? translationInputLanguageMismatch(sourceText) : null;
   showTranslationLanguageWarning(wrongSourceFamily);
   if (wrongSourceFamily) return correctTranslationSourceLanguage({automatic:true});
   if (languageFamily(sourceLanguage) === languageFamily(targetLanguage) && !autoMusic) {
@@ -3944,6 +3981,7 @@ function safeDocumentSections(text) {
 
 function selectDocumentSection(index) {
   if (!importedDocument) return;
+  showTranslatorRegionalWording(null);
   wholeDocumentTools?.pause('Paused while reviewing a section. Resume entire document when ready.');
   cancelMusicListening();
   musicTranscriptReview = false;
@@ -4261,6 +4299,7 @@ function swapDirection() {
   showTranslationLanguageWarning(null);
   if(paired && translated.trim()) {
     input.value=translated;
+    showTranslatorRegionalWording(translationPurpose === "everyday" && !documentImportActive && languageFamily(sourceLanguage) === "es" ? regionalWording(translated) : null);
     setEditableTranslation(translated.trim(),original,{swapPair:true});
     $("#translation-result").hidden=false;
     $("#no-result").hidden=true;
@@ -4269,6 +4308,7 @@ function swapDirection() {
     $("#usage-note").textContent="The completed text pair was switched without retranslating. / Se intercambió el par de textos sin volver a traducir.";
     if($("#english-comparison"))$("#english-comparison").hidden=true;
   } else {
+    showTranslatorRegionalWording(null);
     // Before a translation completes, only the language selectors can switch.
     // Do not submit unchanged text under the opposite source language.
     lastCompletedTranslation=null;activeTranslationEdit=null;
@@ -4359,11 +4399,12 @@ async function submitConversationText() {
   }
 }
 
-function renderTurns() {
+function renderTurns({scroll=true}={}) {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
-  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${(turn.slot||turn.role) === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
-  box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
+  const open = Array.from(box.children || [], card => Boolean(card.querySelector(".regional-wording[open]")));
+  box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${(turn.slot||turn.role) === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${regionalWordingMarkup(turn.regionalWording, open[index])}${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
+  if (scroll) box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
 function startConversation(role, button) {
@@ -4473,6 +4514,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
   const route=conversationTranslationRoute(expectedRole,detectedFamily,locales);
   const target=route.target, sourceLocale=route.source;
   const turn = {role:actualRole,slot:expectedRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,languageUncertain:!evidence.confident};
+  if (detectedFamily === "es" && !provisional) turn.regionalWording = regionalWording(text);
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
@@ -5734,6 +5776,7 @@ function init() {
     translationRequest += 1;
     // Editing the words is an explicit review of an uncertain dictated draft.
     translatorDictationNeedsReview = false;
+    showTranslatorRegionalWording(null);
     setTranslatorMicFeedback("");
     wholeDocumentTools?.pause('Paused because the source text changed. Saved progress keeps the previous source.');
     // An edit owns the input now; late recognition cannot overwrite it.
@@ -6011,7 +6054,12 @@ function init() {
     updateLessonLanguage();
     renderMusic();
   });
-  document.addEventListener("habla-ui-language-change",()=>{updateLessonLanguage();renderMusic();});
+  document.addEventListener("habla-ui-language-change",()=>{
+    updateLessonLanguage();
+    renderMusic();
+    showTranslatorRegionalWording(translatorRegionalWording);
+    if (turns.length) renderTurns({scroll:false});
+  });
   renderMusic();
   if (standaloneTranslator) {
     document.body.classList.add("standalone-translator");

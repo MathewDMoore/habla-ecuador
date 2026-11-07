@@ -1,7 +1,7 @@
 name: Translation practice feedback
 on:
   pull_request:
-    paths: ['app.js', 'full-text-reader.js', 'tests/translation-feedback.browser.cjs', 'tests/practice-microphone.test.cjs', '.github/workflows/translation-feedback.yml']
+    paths: ['app.js', 'full-text-reader.js', 'spanish-context.js', 'tests/translation-feedback.browser.cjs', 'tests/practice-microphone.test.cjs', 'tests/regional-wording.browser.cjs', 'tests/regional-wording.test.cjs', '.github/workflows/translation-feedback.yml']
 permissions:
   contents: read
 jobs:
@@ -20,6 +20,11 @@ jobs:
       - run: node --test tests/practice-microphone.test.cjs tests/dictionary-practice.test.cjs tests/translation-speaking.test.cjs tests/app-updates.test.cjs tests/about-screen.test.cjs
       - run: npm install --prefix "$RUNNER_TEMP/habla-feedback" --no-package-lock --no-save playwright@1.62.1
       - run: node "$RUNNER_TEMP/habla-feedback/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - run: node --test tests/regional-wording.test.cjs
+      - run: node tests/regional-wording.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-feedback/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/translation-feedback.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-feedback/node_modules/playwright

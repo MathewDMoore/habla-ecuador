@@ -10,6 +10,36 @@ const HablaSpanishContext = (() => {
   const sizeDescription = text => /\b(?:carritos?|carros?|mesas?|cajas?|libros?|casas?|vasos?|muebles?|objetos?|juguetes?)(?:\s+de\s+(?:madera|plastico|carton|metal|vidrio|papel))?\s+(?:(?:son|es)\s+)?(?:(?:muy|tan)\s+)?chiquit[oa]s?\b/.test(plain(text));
   // Brief editorial glosses, checked 2026-10-09. References are not training data.
   const asale = term => `https://www.asale.org/damer/${encodeURIComponent(term)}`;
+  // Documented senses, with overlaps retained even outside the main app regions.
+  // These are clues in the words, not a model of pronunciation or speaker origin.
+  const regionalClues = [
+    [/chuta/u, 'chuta', ['EC', 'CL'], 'surprise or annoyance', 'sorpresa o contrariedad', asale('¡chuta!')],
+    [/acolit(?:ar|a|as|an|ame|e|es|en|o)/u, 'acolitar', ['EC', 'CO'], 'to help or back someone up', 'apoyar o ayudar a alguien', asale('acolitar')],
+    [/llajua/u, 'llajua', ['BO', 'AR'], 'a hot sauce made with peppers and tomato', 'salsa picante de ají y tomate', asale('llajua')],
+    [/(?:comer|comimos|comprar|compramos|unas|dos|tres) salte[nñ]as/u, 'salteñas', ['BO', 'PE'], 'meat-filled pastries', 'empanadas de carne', asale('salteña')],
+    [/no manche[sn]/u, 'no manches', ['MX'], 'an informal expression of surprise', 'expresión informal de sorpresa', 'https://dem.colmex.mx/ver/mancharse'],
+    [/orale/u, 'órale', ['MX', 'GT', 'HN', 'SV'], 'agreement, encouragement or surprise', 'acuerdo, ánimo o sorpresa', asale('¡órale!')],
+    [/sumerce/u, 'sumercé', ['CO'], 'a respectful or affectionate form of address in central Colombia', 'trato respetuoso o afectuoso del centro de Colombia', asale('sumercé')],
+    [/(?:dar|da|das|dan|des|den|damos|demos|dio|dieron|no de) papaya/u, 'dar papaya', ['EC', 'CO', 'VE'], 'to give someone an opening to take advantage', 'darle a alguien la oportunidad de aprovecharse', asale('dar')],
+    [/bondis?/u, 'bondi', ['AR'], 'bus', 'autobús', asale('bondi')],
+    [/laburos?/u, 'laburo', ['EC', 'BO', 'CL', 'PY', 'AR', 'UY'], 'work or a job', 'trabajo o empleo', asale('laburo')],
+    [/fomes?/u, 'fome', ['CL'], 'boring or dull', 'aburrido o sin gracia', asale('fome')],
+    [/al ?tiro/u, 'al tiro', ['BO', 'CL', 'MX', 'NI'], 'can mean right away', 'puede significar de inmediato', asale('altiro')],
+    [/vosotr[oa]s/u, 'vosotros / vosotras', ['ES'], 'informal plural you in much of Spain', 'tratamiento informal en plural en gran parte de España', 'https://www.rae.es/dpd/usted'],
+    [/(?:me|te|nos|os) molan?/u, 'me mola', ['ES'], 'I like it or think it’s cool', 'me gusta o me parece genial', 'https://dle.rae.es/molar']
+  ].map(([pattern, ...clue]) => [new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern.source})(?![\\p{L}\\p{N}])`, 'u'), ...clue]);
+
+  function regionalWording(text) {
+    // Preserve ñ as a distinct letter even when dropping accent marks.
+    const words = unquoted(text.replace(/«[^»]*»/gu, ' ')).toLowerCase()
+      .normalize('NFD').replace(/n\u0303/gu, 'ñ').replace(/\p{M}/gu, '')
+      .replace(/[^\S\n]+/gu, ' ');
+    const clues = regionalClues.filter(([pattern]) => pattern.test(words))
+      .map(([, term, regions, en, es, url]) => ({term, regions, en, es, url}));
+    if (clues.length < 2) return {clues, region:null, mixed:false};
+    const common = clues[0].regions.filter(region => clues.every(clue => clue.regions.includes(region)));
+    return {clues, region:common.length === 1 ? common[0] : null, mixed:common.length === 0};
+  }
   const mexicoCity = {name:'Mexico City study · 2006',url:'https://tesiunamdocumentos.dgb.unam.mx/pd2006/0604892/0604892.pdf'};
   const bogota = {name:'Bogotá study · 2018',url:'https://revistas.udistrital.edu.co/index.php/enunc/article/view/12457/0'};
   const slangEntries = [
@@ -528,7 +558,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,regionalWording};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 
