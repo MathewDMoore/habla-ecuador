@@ -38,6 +38,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   }
   await page.goto(`${origin}/habla-ecuador/${file}?start=translate&ui=${ui}`);
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
   const entry = page.locator('#research-document-workspace');
   assert.equal(await entry.locator('summary').isVisible(), true, 'research has a visible main-screen entry');
   assert.equal(await entry.locator('summary').textContent(), ui === 'es'
@@ -72,6 +73,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   failAt = -1;
   await page.reload();
   await page.waitForFunction(() => typeof wholeDocumentTools !== 'undefined' && wholeDocumentTools);
+  if (native) await page.waitForSelector('#native-translation-workspace');
   await entry.locator('summary').click();
   await page.locator('#quick-open-research').click();
   assert.equal(await page.locator('#choose-saved-paper').isVisible(), true);

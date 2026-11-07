@@ -4077,11 +4077,13 @@ function bindDocumentTools() {
   $("#compare-english").disabled = true;
   $("#quick-choose-document")?.addEventListener("click", () => {
     $("#translation-setup").open = true;
+    $("#choose-document").closest("details").open = true;
     $("#choose-document").click();
   });
   $("#quick-open-research")?.addEventListener("click", () => {
     setTranslationPurpose("academic", false);
     $("#translation-setup").open = true;
+    $("#choose-document").closest("details").open = true;
     $("#research-reference-tools").open = true;
     $("#document-progress-restore").open = true;
     $("#whole-document-history").open = true;
