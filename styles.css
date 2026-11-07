@@ -559,6 +559,10 @@ button:disabled { cursor: default; }
 .compact-info > summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 600; padding: .55rem 0; }
 .compact-info[open] { padding-bottom: .65rem; }
 .compact-info > p { margin: .4rem 0; line-height: 1.5; }
+.feature-guide-topic { border-top: 1px solid var(--line); }
+.feature-guide-topic > summary { min-height: 44px; align-content: center; padding: .5rem 0; cursor: pointer; }
+.feature-guide-topic > ol { margin: 0 0 .75rem; padding-inline-start: 1.4rem; line-height: 1.5; }
+.feature-guide-topic li + li { margin-top: .4rem; }
 .offline-tools.compact-info { padding: 0 .75rem; margin: .45rem 0; }
 #whatsapp-audio-file { display: block; width: 100%; min-width: 0; }
 .import-actions { display: flex; flex-wrap: wrap; gap: .4rem; }

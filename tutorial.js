@@ -44,6 +44,108 @@ const HOME_SCREEN_STEPS=[
  body:"With the native Habla Ecuador iPhone app installed, open it once. Hold an empty area of your Home Screen, tap Edit → Add Widget, and search Habla Ecuador. Choose small or medium, then Add Widget → Done. The medium widget opens Translate, Practice, Dictionary and Tutorial. This link includes the guide and artwork; adding the website icon does not install the native widget. If Habla is missing from the widget list, the native app must be installed first. A public native-app install link is not available yet.",
  esp:"Con la aplicación nativa Habla Ecuador instalada en tu iPhone, ábrela una vez. Mantén pulsada una zona vacía de la pantalla de inicio, toca Editar → Agregar widget y busca Habla Ecuador. Elige pequeño o mediano y toca Agregar widget → Listo. El widget mediano abre Traducir, Practicar, Diccionario y Tutorial. Este enlace incluye la guía y el diseño; agregar el icono del sitio web no instala el widget nativo. Si Habla no aparece en la lista de widgets, primero debes instalar la aplicación nativa. Todavía no hay un enlace público para instalarla."}
 ];
+// Each guide stays beside its feature and opens only the question the learner chooses.
+const FEATURE_GUIDES={
+ translate:[
+  ["Translate guide","Guía de traducción"],
+  [["How do I translate or reverse a phrase?","¿Cómo traduzco una frase o invierto los idiomas?"],
+   ["Choose From and To. Select Ecuadorian Spanish or the English variety you want.","Elige De y A. Selecciona español ecuatoriano o la variedad de inglés que quieras."],
+   ["Type or paste your phrase. Check the original and the translation together.","Escribe o pega tu frase. Revisa el original junto con la traducción."],
+   ["Tap the arrows to swap the languages. Tap again to return to the original direction.","Toca las flechas para intercambiar los idiomas. Tócalas otra vez para volver a la dirección original."]],
+  [["How do I dictate or share a translation?","¿Cómo dicto o comparto una traducción?"],
+   ["Tap the microphone, speak, then tap again to finish. Check what Habla heard and correct any missing words.","Toca el micrófono, habla y tócalo otra vez para terminar. Revisa lo que entendió Habla y corrige las palabras que falten."],
+   ["Use Copy for the translation, or open Copy / share text to choose the original, the translation or both.","Usa Copiar para la traducción, o abre Copiar / compartir texto para elegir el original, la traducción o ambos."]]
+ ],
+ research:[
+  ["Research guide","Guía de investigación"],
+  [["How do I import a PDF or Word paper?","¿Cómo importo un artículo en PDF o Word?"],
+   ["Set From to the paper’s language and To to the variety you want, such as U.S. or U.K. English.","En De, selecciona el idioma del artículo. En A, elige la variedad que quieras, como inglés estadounidense o británico."],
+   ["Tap Choose paper · PDF / Word / text. Select the file in Files and check the extracted text.","Toca Elegir artículo · PDF / Word / texto. Selecciona el archivo en Archivos y revisa el texto extraído."]],
+  [["How do I save the paper or reopen it?","¿Cómo guardo o vuelvo a abrir el artículo?"],
+   ["After importing, tap Save document for later. This saves the extracted text on your device without starting translation.","Después de importarlo, toca Guardar documento para después. El texto extraído se guarda en tu dispositivo sin iniciar la traducción."],
+   ["To reopen it, go to Saved papers & progress, choose it under Saved document progress, then tap Open saved document.","Para volver a abrirlo, ve a Artículos guardados y progreso, elígelo en Progreso de documentos guardados y toca Abrir documento guardado."],
+   ["Use Open Habla paper backup (.json) for a Habla backup that already contains the original and both English drafts.","Usa Abrir copia de Habla (.json) para una copia que ya contiene el original y ambos borradores en inglés."]],
+  [["How do I translate and export the whole paper?","¿Cómo traduzco y exporto el artículo completo?"],
+   ["Tap Translate entire document. You can pause and reopen your saved progress to continue later.","Toca Traducir documento completo. Puedes pausar y volver a abrir el progreso guardado para continuar después."],
+   ["When it finishes, review and edit the combined draft. Use the export controls to download it or save it as a PDF.","Al terminar, revisa y edita el borrador completo. Usa las opciones de exportación para descargarlo o guardarlo en PDF."]]
+ ],
+ music:[
+  ["Music listening guide","Guía para escuchar música"],
+  [["How do I capture words from a song?","¿Cómo capto las palabras de una canción?"],
+   ["In Music playback, choose where the song is playing. On iPhone, look under Listening options & help if the controls are collapsed.","En Reproducción de música, elige dónde suena la canción. En iPhone, busca en Opciones y ayuda de escucha si los controles están cerrados."],
+   ["Set From to the song’s language. Try Short passage first, then tap Listen to music. Tap Stop listening when you have a sample.","En De, elige el idioma de la canción. Prueba primero con Fragmento corto, toca Escuchar música y luego toca Detener escucha cuando tengas una muestra."]],
+  [["How do I review or translate the words?","¿Cómo reviso o traduzco las palabras?"],
+   ["Open Review captured passages. Compare the heard words with the song and correct the passage before translating it.","Abre Revisar fragmentos captados. Compara las palabras reconocidas con la canción y corrige el fragmento antes de traducirlo."],
+   ["Use Translate captured words for the collected text. If little comes through, try a clearer section or use a screenshot with visible lyrics.","Usa Traducir palabras captadas para el texto recopilado. Si se reconocen pocas palabras, prueba un fragmento más claro o usa una captura con la letra visible."]]
+ ],
+ musicLessons:[
+  ["Music lessons guide","Guía de lecciones con música"],
+  [["How do I follow the English captions?","¿Cómo sigo los subtítulos en inglés?"],
+   ["Open a captioned lesson, then choose Watch with English captions to keep Habla’s captions with the video.","Abre una lección con subtítulos y elige Ver con subtítulos en inglés para ver los subtítulos de Habla junto al video."],
+   ["Pause on one line, compare it with the Spanish where available, and replay it before saying it aloud.","Pausa en una línea, compárala con el español si está disponible y vuelve a escucharla antes de repetirla en voz alta."]],
+  [["Where do I listen to my own song?","¿Dónde puedo escuchar mi propia canción?"],
+   ["Find Listen to music in Music on the iPhone app or under Translate on the web.","Busca Escuchar música en Música dentro de la app para iPhone o en Traducir en la web."],
+   ["Open Music listening guide beside that button for audio setup, capture and review steps.","Abre la Guía para escuchar música junto a ese botón para ver cómo configurar el audio, captar palabras y revisarlas."]]
+ ],
+ conversation:[
+  ["Conversation guide","Guía de conversación"],
+  [["How do I set up two speakers?","¿Cómo configuro a dos personas?"],
+   ["Under Who is speaking?, pick or enter each person’s name, then select each person’s spoken language and region.","En ¿Quién habla?, elige o escribe el nombre de cada persona y selecciona su idioma y región."],
+   ["Choose whether Habla should read each translation aloud or display it in Text only mode.","Elige si Habla debe leer cada traducción en voz alta o mostrarla en modo Solo texto."]],
+  [["How do we take turns or type a message?","¿Cómo tomamos turnos o escribimos un mensaje?"],
+   ["Tap the current speaker’s microphone, say one short turn, and tap again to finish. Check what Habla heard before switching speakers.","Toca el micrófono de la persona que habla, di una frase breve y tócalo otra vez para terminar. Revisa lo que entendió Habla antes de cambiar de persona."],
+   ["For a typed turn, open Write a turn. Choose the speaker and language, write the message and tap Translate turn.","Para escribir, abre Escribir un turno. Elige la persona y el idioma, escribe el mensaje y toca Traducir turno."]]
+ ],
+ dictionary:[
+  ["Dictionary guide","Guía del diccionario"],
+  [["How do I find a regional expression?","¿Cómo encuentro una expresión regional?"],
+   ["Search for a Spanish term, English meaning or city. Start with Ecuador or choose another region for comparison.","Busca un término en español, un significado en inglés o una ciudad. Empieza con Ecuador o elige otra región para comparar."],
+   ["Use Category, Usage type and Tone to narrow the results. If a word seems missing, clear a filter and search again.","Usa Categoría, Tipo de uso y Tono para acotar los resultados. Si no encuentras una palabra, quita un filtro y vuelve a buscar."]],
+  [["How do I know where or when to use a word?","¿Cómo sé dónde o cuándo usar una palabra?"],
+   ["Read the example and the tone label. Open Context & sources to see where that meaning is documented.","Lee el ejemplo y la indicación de tono. Abre Contexto y fuentes para ver dónde está documentado ese significado."],
+   ["Use the audio controls to hear the term or example. Compare the U.S. and U.K. English meanings when both are shown.","Usa los controles de audio para escuchar el término o el ejemplo. Compara los significados en inglés estadounidense y británico cuando aparezcan los dos."]]
+ ],
+ practice:[
+  ["Practice questions","Preguntas sobre la práctica"],
+  [["How do I start a short lesson?","¿Cómo empiezo una lección corta?"],
+   ["Use I want to learn to select Ecuadorian Spanish, U.S. English or U.K. English.","En Quiero aprender, elige español ecuatoriano, inglés estadounidense o inglés británico."],
+   ["Open Short lessons, pick a topic, and listen to the example before answering.","Abre Lecciones cortas, elige un tema y escucha el ejemplo antes de responder."]],
+  [["How do I use speaking feedback?","¿Cómo aprovecho los comentarios de práctica oral?"],
+   ["Play the example first. Record a short attempt, finish it, then check which words Habla heard.","Primero escucha el ejemplo. Graba un intento breve, termínalo y comprueba qué palabras reconoció Habla."],
+   ["Repeat the part you missed, then try the full phrase again. A recognized-word score tells you about the words detected.","Repite la parte que faltó y luego intenta la frase completa. La puntuación de coincidencia indica qué palabras se detectaron."]]
+ ]
+};
+function mountFeatureGuides(){
+ const localized=[];
+ const write=(element,text)=>localized.push([element,text]);
+ document.querySelectorAll("[data-feature-guide]").forEach((guide,index)=>{
+  const feature=FEATURE_GUIDES[guide.dataset.featureGuide];
+  if(!feature)return;
+  const [title,...topics]=feature;
+  write(guide.querySelector("summary"),title);
+  for(const [question,...steps] of topics){
+   const topic=document.createElement("details");
+   topic.className="feature-guide-topic";
+   topic.setAttribute("name","habla-feature-guide-"+index);
+   const heading=document.createElement("summary");
+   write(heading,question);
+   const list=document.createElement("ol");
+   for(const step of steps){
+    const item=document.createElement("li");
+    write(item,step);
+    list.append(item);
+   }
+   topic.append(heading,list);
+   guide.append(topic);
+  }
+ });
+ const renderLanguage=language=>{
+  const index=language==="es"?1:0;
+  for(const [element,text] of localized)element.textContent=text[index];
+ };
+ renderLanguage(root.HablaUI?.language);
+ document.addEventListener("habla-ui-language-change",event=>renderLanguage(event.detail.language));
+}
 const $=s=>document.querySelector(s);
 function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
 let currentMode="full";
@@ -195,6 +297,7 @@ function keyboard(event){
 }
 function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
+ mountFeatureGuides();
  document.querySelectorAll("button[data-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b)));
  document.querySelectorAll("button[data-lesson-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b,"lessons")));
  document.querySelectorAll("button[data-home-screen-help]").forEach(b=>b.addEventListener("click",()=>open(b,"home-screen")));
@@ -212,6 +315,6 @@ function bind({navigate:route,launchQuery}={}){
  else if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
 }
 const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
-if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,HOME_SCREEN_STEPS,api};
+if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,HOME_SCREEN_STEPS,FEATURE_GUIDES,api};
 root.HablaTutorial=api;
 })(typeof window==="object"?window:globalThis);

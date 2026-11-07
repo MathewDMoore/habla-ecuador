@@ -111,6 +111,7 @@
             <button id="swap-button" aria-label="Swap languages">⇄</button>
             <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">Ecuadorian Spanish</option><option value="es-BO">Bolivian Spanish</option><option value="es-MX">Mexican Spanish</option><option value="es-VE">Venezuelan Spanish</option><option value="es-PE">Peruvian Spanish</option><option value="es-CO">Colombian Spanish</option><option value="es-CU">Cuban Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option><option value="es-AR">Argentina</option><option value="es-CL">Chile</option><option value="es-CR">Costa Rica</option><option value="es-DO">Dominican Republic / República Dominicana</option><option value="es-SV">El Salvador</option><option value="es-GT">Guatemala</option><option value="es-HN">Honduras</option><option value="es-NI">Nicaragua</option><option value="es-PA">Panama / Panamá</option><option value="es-PY">Paraguay</option><option value="es-PR">Puerto Rico</option><option value="es-ES">Spain / España</option><option value="es-UY">Uruguay</option><option value="es-GQ">Equatorial Guinea / Guinea Ecuatorial</option></select></label>
           </div>
+          <details class="compact-info feature-guide" data-feature-guide="translate" translate="no"><summary>Translate guide</summary></details>
           <details id="research-document-workspace" class="compact-info research-document-workspace">
             <summary>Scientific research translation · PDF / Word</summary>
             <p>Choose a complete paper, then translate every section into one editable draft. Select the source and target languages above.</p>
@@ -118,6 +119,7 @@
               <button id="quick-choose-document" type="button">Choose paper · PDF / Word / text</button>
               <button id="quick-open-research" type="button">Saved papers &amp; progress</button>
             </div>
+            <details class="compact-info feature-guide" data-feature-guide="research" translate="no"><summary>Research guide</summary></details>
             <p>Pause, resume, export and progress backups appear with your imported document. Opening a paper waits for your translation command.</p>
           </details>
             <div id="document-preview" class="document-tools" hidden>
@@ -397,6 +399,7 @@
               <button id="music-choose-recording" type="button">Recording</button>
               <button id="music-paste-recording" type="button">Paste recording</button>
             </div>
+            <div><details class="compact-info feature-guide" data-feature-guide="music" translate="no"><summary>Music listening guide</summary></details></div>
             <p id="music-listening-status" class="import-status" role="status" aria-live="polite"></p>
             <section id="music-capture-recovery" class="result-card" aria-label="Music capture retry" hidden>
               <p>Capture could not start or continue with the selected recognizer. Try another mode:</p>
@@ -451,6 +454,7 @@
         </div>
 
         <div id="conversation-panel" hidden>
+          <details class="compact-info feature-guide" data-feature-guide="conversation" translate="no"><summary>Conversation guide</summary></details>
           <section class="conversation-names" aria-labelledby="conversation-names-title">
             <div class="conversation-names-heading">
               <div><p class="voice-settings-kicker">Conversation setup</p><h2 id="conversation-names-title">Who is speaking?</h2></div>
@@ -662,6 +666,7 @@
         <section class="regional-slang" aria-labelledby="regional-slang-title">
           <p class="eyebrow">Ecuador first · compare regions</p>
           <h2 id="regional-slang-title">Regional dictionary</h2>
+          <details class="compact-info feature-guide" data-feature-guide="dictionary" translate="no"><summary>Dictionary guide</summary></details>
           <label class="dictionary-search"><span class="sr-only">Search regional dictionary</span><input id="regional-slang-search" type="search" placeholder="Spanish term, English meaning, or city…"></label>
           <div class="regional-slang-filters">
             <label>Region<select id="regional-slang-region">
@@ -777,6 +782,7 @@
         <label class="lesson-language-control">I want to learn<select id="lesson-language"><option value="">Follow app language</option><option value="es-EC">Ecuadorian Spanish</option><option value="en-US">U.S. English</option><option value="en-GB">U.K. English</option></select></label>
         <p id="lesson-learning-goal" class="lesson-learning-goal" role="status"></p>
         <button type="button" class="lesson-tutorial-button" data-lesson-tutorial-open aria-label="Lesson guide / Guía de lecciones">Lesson guide / Guía de lecciones</button>
+        <details class="compact-info feature-guide" data-feature-guide="practice" translate="no"><summary>Practice questions</summary></details>
         <details id="quick-lessons" class="compact-info source-practice"><summary>Short lessons · one useful idea</summary><div id="quick-lessons-content"></div></details>
         <div id="lesson-content"></div>
       </section>

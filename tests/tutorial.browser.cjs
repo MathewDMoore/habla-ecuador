@@ -66,6 +66,22 @@ async function run(browser,file,width,height=844){
  await page.locator('#source-language-select').selectOption('en-US');
  await page.locator('#target-language-select').selectOption('es-EC');
  const sourceBefore=await page.locator('#translator-input').inputValue();
+ const translateGuide=page.locator('[data-feature-guide="translate"]');
+ const questions=translateGuide.locator('details');
+ assert.equal(await translateGuide.getAttribute('open'),null,'feature guides start collapsed');
+ await translateGuide.locator(':scope > summary').click();
+ await questions.nth(0).locator('summary').click();
+ assert.equal(await questions.nth(0).locator('ol').isVisible(),true);
+ await questions.nth(1).locator('summary').click();
+ assert.equal(await questions.nth(0).locator('ol').isVisible(),false,'opening a question closes its sibling');
+ assert.equal(await questions.nth(1).locator('ol').isVisible(),true);
+ await page.locator('#interface-language').selectOption('es');
+ assert.equal(await translateGuide.locator(':scope > summary').textContent(),'Guía de traducción');
+ assert.equal(await questions.nth(1).locator('ol').isVisible(),true,'language changes preserve the open question');
+ await page.locator('#interface-language').selectOption('en');
+ await translateGuide.locator(':scope > summary').click();
+ assert.equal(await page.locator('#translator-input').inputValue(),sourceBefore,'guide never alters the source');
+
  await page.locator('button[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
