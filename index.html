@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
-  <link rel="stylesheet" href="styles.css?v=211&amp;fix=paper-wrap">
+  <link rel="stylesheet" href="styles.css?v=211&amp;update=face-to-face">
   <script src="interface-es.js?v=211" defer></script>
   <script src="interface-language.js?v=211" defer></script>
   <script src="research-reference.js?v=211" defer></script>
@@ -44,7 +44,7 @@
   <script src="persistent-translation-controls.js?v=211" defer></script>
   <script src="music-workspace.js?v=211" defer></script>
   <script src="translation-history.js?v=211" defer></script>
-  <script src="app.js?v=211" defer></script>
+  <script src="app.js?v=211&amp;update=face-to-face" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -664,6 +664,22 @@
         </div>
 
         <div id="conversation-panel" hidden>
+          <button id="open-face-to-face" class="primary-button" type="button">Face to face / Cara a cara</button>
+          <dialog id="face-to-face" aria-label="Face-to-face conversation / Conversación cara a cara">
+            <div class="face-to-face-panels" translate="no">
+              <section class="face-to-face-side" data-face-side="spanish">
+                <h2>Persona 2 / Person 2</h2>
+                <div class="face-to-face-turn" aria-live="polite"></div>
+                <button class="primary-button" type="button" data-face-mic="spanish" aria-pressed="false">Mantén para hablar / Hold to talk</button>
+              </section>
+              <button id="close-face-to-face" class="text-button" type="button">Close / Cerrar</button>
+              <section class="face-to-face-side" data-face-side="english">
+                <h2>Person 1 / Persona 1</h2>
+                <div class="face-to-face-turn" aria-live="polite"></div>
+                <button class="primary-button" type="button" data-face-mic="english" aria-pressed="false">Hold to talk / Mantén para hablar</button>
+              </section>
+            </div>
+          </dialog>
           <details class="compact-info feature-guide" data-feature-guide="conversation" translate="no"><summary>Conversation guide</summary></details>
           <section class="conversation-names" aria-labelledby="conversation-names-title">
             <div class="conversation-names-heading">

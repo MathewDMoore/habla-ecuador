@@ -2028,7 +2028,7 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true}={}) {
+function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true, minConfidence=0}={}) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -2050,6 +2050,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.maxAlternatives = 1;
   let latestText = "";
   let latestFinal = false;
+  let lowConfidence = false;
   let latestMetadata = {};
   let committed = false;
   let finalized = false;
@@ -2095,6 +2096,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
       && latestMetadata.tentativeText.trim().length > 0;
     provisional = Boolean(provisional || tentative);
     if (commitOnEnd && latestFinal && !tentative) provisional = false;
+    provisional ||= lowConfidence;
     onText?.(latestText, true, {...latestMetadata, provisional});
     if (provisional && !continuous) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
   };
@@ -2108,6 +2110,10 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     const rawText = results.map(result => result[0].transcript).join(" ").trim();
     const isFinal = results.every(result => result.isFinal);
     latestFinal = isFinal;
+    lowConfidence = minConfidence > 0 && results.some(result => {
+      const confidence = result[0].confidence;
+      return confidence > 0 && confidence < minConfidence;
+    });
     const correction = correctTranscript ? correctSpeechRecognitionTranscript(rawText, instance.lang) : {text:rawText};
     latestText = correction.text;
     latestMetadata = typeof event.confirmedText === "string"
@@ -4374,6 +4380,7 @@ function setConversationPlayback(value) {
 }
 
 function leaveConversation() {
+  closeFaceToFace();
   if(!conversationActive)return;
   conversationActive = false;
   if(activeRecognitionButton?.dataset.speakerRole)cancelListening(true);
@@ -4410,7 +4417,8 @@ function renderTurns() {
   const box = $("#conversation-turns");
   const visibleTurns = liveConversationTurn ? [...turns, liveConversationTurn] : turns;
   box.innerHTML = visibleTurns.map((turn,index) => `<article class="turn ${(turn.slot||turn.role) === "spanish" ? "spanish-speaker" : "english-speaker"} ${turn.pending ? "pending" : ""}"><small><span data-ui-content>${escapeHtml(turn.speaker)}</span> · ${escapeHtml(turn.languageLabel || (turn.role === "spanish" ? "Spanish" : "English"))}</small>${turn.sourceLocale ? `<small class="turn-route">${escapeHtml(languageLabel(turn.sourceLocale))} → ${escapeHtml(languageLabel(turn.target))}</small>` : ""}<p>${escapeHtml(turn.source)}</p><p class="translated">${escapeHtml(turn.translation || (turn.pending ? "Listening…" : ""))}</p>${!turn.pending&&!turn.failed ? `<button type="button" class="turn-hear" data-conversation-hear="${index}" ${recognition||liveConversationTurn ? "disabled" : ""}>🔊 Hear translation</button>` : ""}</article>`).join("");
-  box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
+  if ($("#face-to-face")?.open) renderFaceToFace();
+  else box.lastElementChild?.scrollIntoView({block:"nearest",behavior:"auto"});
 }
 
 function startConversation(role, button) {
@@ -4497,13 +4505,13 @@ function conversationOptions(role, button) {
 function finishConversationTurn(turn) {
   if (!turn || turn.pending || recognition || liveConversationTurn || turns[turns.length-1] !== turn || turn.finished) return;
   turn.finished = true;
-  if (conversationActive && conversationPlayback === "spoken" && !turn.provisional && !turn.failed && !turn.languageUncertain) say(turn.translation, turn.target);
+  if (conversationActive && conversationPlayback === "spoken" && !turn.faceToFace && !turn.provisional && !turn.failed && !turn.languageUncertain) say(turn.translation, turn.target);
   $("#conversation-status").textContent = turn.failed
     ? "Translation is temporarily unavailable, but your dictated text is still shown above."
     : `${turn.languageLabel}${turn.switched ? " · translation direction switched" : ""} · translation complete${turn.languageUncertain ? "; check the language before using it" : ""}.`;
 }
 
-async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole}={}) {
+async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false}={}) {
   const generation = conversationGeneration;
   const manual=forcedRole === "spanish" || forcedRole === "english";
   const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole,locales[expectedRole]);
@@ -4519,13 +4527,18 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
 
   const route=conversationTranslationRoute(expectedRole,detectedFamily,locales);
   const target=route.target, sourceLocale=route.source;
-  const turn = {role:actualRole,slot:expectedRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,languageUncertain:!evidence.confident};
+  const turn = {role:actualRole,slot:expectedRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,faceToFace,languageUncertain:!evidence.confident};
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
   const spanishLocale=detectedFamily==="es" ? sourceLocale : target;
   const englishLocale=detectedFamily==="en" ? sourceLocale : target;
   const phrase = spanishLocale === "es-EC" ? matchPhrase(text, way) : null;
+  if (faceToFace) {
+    const findings = typeof HablaSpanishContext === "undefined" ? [] :
+      HablaSpanishContext.analyse(text,{source:sourceLocale,target,purpose:"everyday"});
+    turn.expressionNote = phrase?.note || findings[0]?.detail || "";
+  }
   try {
     turn.translation = phrase
       ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
@@ -4543,6 +4556,153 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     turn.failed = true;
     renderTurns();
     finishConversationTurn(turn);
+  }
+}
+
+let faceCapture = null;
+let faceStatus = "";
+let faceTurnOffset = 0;
+
+function renderFaceToFace() {
+  const index = turns.length - 1;
+  const turn = index >= faceTurnOffset && turns[index]?.faceToFace ? turns[index] : null;
+  for (const side of $$("[data-face-side]")) {
+    const role = side.dataset.faceSide;
+    const box = side.querySelector(".face-to-face-turn");
+    side.querySelector("h2").textContent = speakerName(role);
+    const otherMicBusy = faceCapture && faceCapture.button.dataset.faceMic !== role;
+    side.querySelector("[data-face-mic]").disabled = Boolean(otherMicBusy);
+    const detailsOpen = Boolean(box.querySelector("details[open]"));
+    if (faceStatus) {
+      const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
+      box.innerHTML = `<p>${escapeHtml(faceStatus)}</p>${draft ? `<p class="face-to-face-text">${escapeHtml(draft)}</p>` : ""}`;
+    } else if (!turn) {
+      box.textContent = "One speaker at a time. / Una persona a la vez.";
+    } else if (turn.slot === role) {
+      box.innerHTML = `<small>${escapeHtml(turn.languageLabel)}</small><p class="face-to-face-text" lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`;
+    } else if (turn.pending || turn.failed) {
+      box.textContent = turn.pending ? "Translating… / Traduciendo…" : "Translation unavailable. / Traducción no disponible.";
+    } else {
+      const note = turn.expressionNote ? `<p>${escapeHtml(turn.expressionNote)}</p>` : "";
+      const languageHint = turn.languageUncertain ? "<p>Check the language. / Revisa el idioma.</p>" : "";
+      box.innerHTML = `<p class="face-to-face-text" lang="${escapeHtml(turn.target)}">${escapeHtml(turn.translation)}</p>
+        ${languageHint}<details ${detailsOpen ? "open" : ""}><summary>Original / Original</summary>
+        <p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>${note}</details>
+        <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
+    }
+  }
+}
+
+function stopFaceCapture() {
+  if (faceCapture && activeRecognitionButton === faceCapture.button) stopListening();
+}
+
+function cancelFaceCapture() {
+  if (faceCapture && activeRecognitionButton === faceCapture.button) cancelListening();
+}
+
+function closeFaceToFace() {
+  const dialog = $("#face-to-face");
+  if (!dialog?.open) return;
+  cancelFaceCapture();
+  stopSpeechPlayback();
+  dialog.close();
+}
+
+function startFaceCapture(button) {
+  if (recognition || faceCapture) return;
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+    faceStatus = "Microphone unavailable. / Micrófono no disponible.";
+    renderFaceToFace();
+    return;
+  }
+
+  const role = button.dataset.faceMic;
+  const locales = conversationLocales();
+  const capture = {button, draft:"", accepted:false, error:""};
+  faceCapture = capture;
+  faceStatus = "Listening… / Escuchando…";
+  renderFaceToFace();
+  startListening({
+    button, lang:locales[role], continuous:true, commitOnEnd:true, correctTranscript:false, minConfidence:0.45,
+    onText(text, final, {provisional}={}) {
+      if (!final) {
+        capture.draft = text;
+        renderFaceToFace();
+      } else if (!provisional && !capture.error) {
+        capture.accepted = true;
+        faceStatus = "";
+        handleConversationText(role,speakerName(role),text,true,{locales,faceToFace:true});
+      }
+    },
+    onError(error) {
+      if (error === "aborted") return;
+      if (error === "not-allowed") capture.error = "Allow microphone access. / Permite el acceso al micrófono.";
+      else if (error === "audio-capture" || error === "service-not-allowed" || error === "network") {
+        capture.error = "Microphone unavailable. / Micrófono no disponible.";
+      } else capture.error = "Please repeat, one at a time. / Repitan, de uno en uno.";
+    },
+    onCancel() {
+      faceCapture = null;
+      faceStatus = "Turn canceled. / Turno cancelado.";
+      renderFaceToFace();
+    },
+    onEnd() {
+      faceCapture = null;
+      if (!capture.accepted) faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
+      renderFaceToFace();
+    }
+  });
+}
+
+function bindFaceToFace() {
+  const dialog = $("#face-to-face");
+  $("#open-face-to-face").addEventListener("click", () => {
+    if (activeRecognitionButton?.dataset.speakerRole) cancelListening(true);
+    stopSpeechPlayback();
+    faceTurnOffset = turns.length;
+    faceStatus = "";
+    dialog.showModal();
+    renderFaceToFace();
+  });
+  $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  dialog.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeFaceToFace();
+  });
+  dialog.addEventListener("click", event => {
+    const button = event.target.closest("[data-face-hear]");
+    if (button) hearConversationTurn(Number(button.dataset.faceHear));
+  });
+
+  for (const button of dialog.querySelectorAll("[data-face-mic]")) {
+    let pointerId = null;
+    button.addEventListener("contextmenu", event => event.preventDefault());
+    button.addEventListener("pointerdown", event => {
+      if (!event.isPrimary || event.button !== 0 || faceCapture || recognition) return;
+      event.preventDefault();
+      button.setPointerCapture(event.pointerId);
+      pointerId = event.pointerId;
+      startFaceCapture(button);
+    });
+    button.addEventListener("pointerup", event => {
+      if (event.pointerId !== pointerId) return;
+      pointerId = null;
+      stopFaceCapture();
+    });
+    for (const type of ["pointercancel","lostpointercapture"]) {
+      button.addEventListener(type, event => {
+        if (event.pointerId !== pointerId) return;
+        pointerId = null;
+        cancelFaceCapture();
+      });
+    }
+    // Keyboard and assistive technology can activate once to start and again to finish.
+    button.addEventListener("click", event => {
+      if (event.detail !== 0) return;
+      if (faceCapture?.button === button) stopFaceCapture();
+      else startFaceCapture(button);
+    });
   }
 }
 
@@ -5872,6 +6032,7 @@ function init() {
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", translateCapturedMusic);
   document.addEventListener("visibilitychange", () => { if (document.hidden) cancelDictionaryPractice(); if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelFaceCapture(); });
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);
@@ -6002,6 +6163,7 @@ function init() {
     }
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
+  bindFaceToFace();
   $("#clear-conversation").addEventListener("click", clearConversation);
   setConversationPlayback(conversationPlayback);
   syncConversationLocaleUi();
@@ -6101,7 +6263,7 @@ function init() {
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
-    || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
+    || $("#face-to-face")?.open || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
     || documentImportActive || documentLoading || importedDocument || wholeDocumentTools?.runner?.busy
     || musicReviewBusy || translationSharePending || translationCopyPending || appSharePending || activeSpeechPlayback
     || window.HablaWholeDocument?.isSharing()

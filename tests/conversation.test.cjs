@@ -23,8 +23,8 @@ class Recognition {
   start() { this.onstart?.(); }
   stop() { this.stopped = true; }
   abort() { this.aborted = true; }
-  emit(text, final=false) {
-    const result = [{transcript:text}];
+  emit(text, final=false, confidence) {
+    const result = [{transcript:text,confidence}];
     result.isFinal = final;
     this.onresult({results:[result]});
   }
@@ -356,6 +356,44 @@ async function main() {
   assert.equal(run('turns[0].speaker'),'Mathew');assert.equal(run('turns[0].role'),'spanish');
   assert.equal(run('turns[0].languageUncertain'),false);assert.equal(routes.at(-1).source,'es-EC');
   assert.equal(element('#conversation-text').value,'');assert.equal(element('#conversation-text-send').disabled,false);
+  // Face to face holds one microphone, waits for its final result, and stays silent
+  // even when the regular conversation setting speaks every confirmed turn.
+  context.faceMic1 = button();
+  context.faceMic1.dataset.faceMic = "english";
+  context.faceMic2 = button();
+  context.faceMic2.dataset.faceMic = "spanish";
+  run('clearConversation();setConversationPlayback("spoken");conversationActive=true;startFaceCapture(faceMic1)');
+  const faceMic = recordings.at(-1);
+  const recordingCount = recordings.length;
+  run('startFaceCapture(faceMic2)');
+  assert.equal(recordings.length,recordingCount);
+  faceMic.emit("Hola, ¿dónde puedo encontrar camello?",true,0.9);
+  assert.equal(run('turns.length'),0);
+  run('stopFaceCapture()');
+  assert.equal(faceMic.stopped,true);
+  faceMic.onend();await flush();
+  assert.equal(run('turns[0].target'),'en-US');
+  assert.match(run('turns[0].expressionNote'),/work or job sense/);
+  assert.equal(spoken.length,delayedBefore);
+  run('hearConversationTurn(0)');
+  assert.equal(spoken.length,delayedBefore+1);
+
+  for(const [final,confidence] of [[false,0.9],[true,0.2]]) {
+    run('startFaceCapture(faceMic2)');
+    const unclear = recordings.at(-1);
+    unclear.emit("Can you show me where we should go?",final,confidence);
+    run('stopFaceCapture()');
+    unclear.onend();await flush();
+    assert.equal(run('turns.length'),1);
+    assert.match(run('faceStatus'),/Please repeat/);
+  }
+  run('startFaceCapture(faceMic2);cancelFaceCapture()');
+  const canceled = recordings.at(-1);
+  assert.equal(canceled.aborted,true);
+  canceled.emit("Can you show me where we should go?",true,0.9);
+  canceled.onend();await flush();
+  assert.equal(run('turns.length'),1,'late callbacks cannot publish canceled audio');
+
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
     assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');
