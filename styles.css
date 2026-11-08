@@ -1462,9 +1462,17 @@ body.ve-theater-open {overflow:hidden !important;}
   max-width: 100%;
 }
 
-#open-face-to-face {
-  margin-bottom: 12px;
+.translator-mode-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  margin: 16px 0;
 }
+
+.translator-mode-bar .mode-switch { margin: 0; }
+.translator-mode-bar .mode { min-width: 0; min-height: 44px; padding: 7px 2px; font-size: .83rem; }
+#open-face-to-face { min-width: 0; min-height: 44px; margin: 0; padding: 7px 3px; font-size: .83rem; }
 
 #face-to-face {
   box-sizing: border-box;

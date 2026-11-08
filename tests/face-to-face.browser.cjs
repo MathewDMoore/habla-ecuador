@@ -39,7 +39,10 @@ async function main() {
       });
       await page.goto("https://mathewdmoore.github.io/habla-ecuador/" + file + "?ui=en");
       if (file === "index.html") await page.locator('.bottom-nav [data-open="translator-view"]').tap();
-      await page.locator('[data-mode="conversation"]').tap();
+      assert.equal(await page.locator('[data-mode="translate"]').getAttribute("aria-selected"),"true");
+      const entry = page.getByRole("button",{name:"Face to Face",exact:true});
+      await entry.waitFor({state:"visible"});
+      assert.ok(await entry.evaluate(el => el.getBoundingClientRect().bottom <= innerHeight));
       await page.evaluate(() => {
         window.faceSpoken = [];
         say = (text,lang) => window.faceSpoken.push({text,lang});
@@ -99,6 +102,12 @@ async function main() {
       await page.locator("#close-face-to-face").tap();
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
       assert.equal(await dialog.isVisible(),false);
+      await page.evaluate(() => localStorage.removeItem("habla-tutorial-seen-v2"));
+      await page.goto("https://mathewdmoore.github.io/habla-ecuador/" + file + "?start=face-to-face&ui=es");
+      await dialog.waitFor({state:"visible"});
+      assert.equal(await page.evaluate(() => HablaTutorial.isOpen()),false);
+      await page.locator("#close-face-to-face").tap();
+      await page.getByRole("button",{name:"Cara a cara",exact:true}).waitFor({state:"visible"});
       assert.deepEqual(errors,[]);
       await context.close();
     }
