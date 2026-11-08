@@ -80,24 +80,35 @@ const HablaScreenshot = (() => {
       signal.addEventListener('abort',abort,{once:true});
     });
   }
-  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal,crop}={}) {
-    validate(file);
-    const image=await prepareImage(file,crop);
+  async function openOcr({language='spa',logger=()=>{},reader,signal}={}) {
     const api=reader || await interruptible(load(),signal);
-    if (!isCurrent()) return null;
     const creation=api.createWorker(language,1,{workerPath:BASE+'worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0',logger,errorHandler:()=>{}});
     creation.then(worker=>{if(signal?.aborted)worker.terminate().catch(()=>{});},()=>{});
     const worker=await interruptible(creation,signal);
-    activeWorker=worker;
+    return {
+      worker,
+      async recognize(image) {
+        const result=await interruptible(worker.recognize(image),signal);
+        const text=String(result.data?.text||'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim();
+        return {text,confidence:result.data?.confidence};
+      },
+      async close() { try { await worker.terminate(); } catch {} }
+    };
+  }
+  async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal,crop}={}) {
+    validate(file);
+    const image=await prepareImage(file,crop);
+    if (!isCurrent()) return null;
+    const session=await openOcr({language,logger,reader,signal});
+    activeWorker=session.worker;
     try {
       if (!isCurrent()) return null;
-      const result=await interruptible(worker.recognize(image),signal);
+      const result=await session.recognize(image);
       if (!isCurrent()) return null;
-      const text=String(result.data?.text||'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim();
-      if (!text) throw new Error("No readable text found. Try a clearer screenshot or crop to the text.");
-      if (text.length>200000) throw new Error("This screenshot contains too much text. Crop a smaller area.");
-      return {text,name:file.name||'Screenshot',confidence:result.data?.confidence};
-    } finally { if(activeWorker===worker)activeWorker=null;try { await worker.terminate(); } catch {} }
+      if (!result.text) throw new Error("No readable text found. Try a clearer screenshot or crop to the text.");
+      if (result.text.length>200000) throw new Error("This screenshot contains too much text. Crop a smaller area.");
+      return {...result,name:file.name||'Screenshot'};
+    } finally { if(activeWorker===session.worker)activeWorker=null;await session.close(); }
   }
   function bind({begin,commit}) {
     const input=document.querySelector('#translator-input'),fileInput=document.querySelector('#screenshot-file');
@@ -180,6 +191,6 @@ const HablaScreenshot = (() => {
     }
     clearUi=()=>{sequence++;controller?.abort();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
-  return {bind,extract,validate,imageFromClipboard,cropBounds,improveContrast,read:file=>readImage(file),clear:()=>clearUi()};
+  return {bind,extract,openOcr,validate,imageFromClipboard,cropBounds,improveContrast,read:file=>readImage(file),clear:()=>clearUi()};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=HablaScreenshot;

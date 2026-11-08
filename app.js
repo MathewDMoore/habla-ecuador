@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.26.99 · build 209";
+const APP_VERSION = "0.27.0 · build 210";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -285,6 +285,7 @@ let documentImportActive = false;
 let documentLoading = false;
 let importedDocument = null;
 let documentImportRequest = 0;
+let documentImportController;
 let wholeDocumentTools = null;
 let comparisonContext = null;
 let comparisonChanges = [];
@@ -3924,6 +3925,8 @@ function updateEcuadorResearchPaperLink() {
 function closeImportedDocument() {
   wholeDocumentTools?.pause('Document closed. Completed progress is saved; reopen it under Saved document progress.');
   if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
+  documentImportController?.abort();
+  documentImportController = undefined;
   documentImportRequest += 1;
   documentImportActive = false;
   documentLoading = false;
@@ -3932,6 +3935,7 @@ function closeImportedDocument() {
   if (preview) preview.hidden = true;
   if ($("#document-file")) $("#document-file").value = "";
   if ($("#document-status")) $("#document-status").textContent = "";
+  if ($("#document-reading-status")) $("#document-reading-status").hidden = true;
   wholeDocumentTools?.refresh();
 }
 
@@ -3999,7 +4003,7 @@ function bindWholeDocumentTools() {
     getDocument:()=>{
       if(!documentImportActive||!importedDocument||documentLoading||importedDocument.kind==='image')return null;
       importedDocument.sections[importedDocument.index]=$('#translator-input').value;
-      return {name:importedDocument.name,sections:importedDocument.sections};
+      return {name:importedDocument.name,sections:importedDocument.sections,pdfCoverage:importedDocument.pdfCoverage};
     },
     getRoute:()=>({sourceLanguage,targetLanguage,purpose:translationPurpose,onDevice:typeof HablaOffline!=='undefined'&&HablaOffline.shouldUse()}),
     label:languageLabel,
@@ -4012,7 +4016,7 @@ function bindWholeDocumentTools() {
       closeImportedDocument();cancelMusicListening();clearTimeout(translationTimer);translationRequest++;
       sourceLanguage=job.sourceLanguage;targetLanguage=job.targetLanguage;syncLanguagePair();
       setTranslationPurpose(job.purpose,false);
-      importedDocument={name:job.name,sections:job.parts.map(part=>part.source),index:0,total:job.parts.reduce((n,part)=>n+part.source.length,0)};
+      importedDocument={name:job.name,pdfCoverage:job.pdfCoverage,sections:job.parts.map(part=>part.source),index:0,total:job.parts.reduce((n,part)=>n+part.source.length,0)};
       documentImportActive=true;populateDocumentSections();
     }
   });
@@ -4025,6 +4029,8 @@ function beginScreenshotImport() {
   musicCapturedText = "";
   updateMusicListenLabel();
   $("#translate-music").disabled = true;
+  documentImportController?.abort();
+  if ($("#document-reading-status")) $("#document-reading-status").hidden = true;
   return {token:++documentImportRequest,text:$("#translator-input").value};
 }
 
@@ -4102,6 +4108,9 @@ function bindDocumentTools() {
     updateMusicListenLabel();
     $("#translate-music").disabled = true;
     if(typeof HablaScreenshot!=='undefined')HablaScreenshot.clear();
+    documentImportController?.abort();
+    const controller = new AbortController();
+    documentImportController = controller;
     const token = ++documentImportRequest;
     clearTimeout(translationTimer);
     translationRequest += 1;
@@ -4115,11 +4124,25 @@ function bindDocumentTools() {
     $("#translator-input").value = "";
     $("#translation-result").hidden = true;
     $("#english-comparison").hidden = true;
-    $("#document-status").textContent = `Reading ${file.name} on your device…`;
+    const reading=$("#document-reading-status");
+    const reportReading=message=>{
+      $("#document-status").textContent=message;
+      if(reading){reading.textContent=message;reading.hidden=false;}
+    };
+    reportReading(`Reading ${file.name} on your device…`);
+    $("#document-preview").scrollIntoView({block:"start"});
     try {
-      const extracted = await HablaDocument.extract(file);
+      const extracted = await HablaDocument.extract(file,{
+        signal:controller.signal,
+        language:languageFamily(sourceLanguage)==='en'?'eng':'spa',
+        openOcr:typeof HablaScreenshot!=='undefined' ? HablaScreenshot.openOcr : undefined,
+        onPage:({page,total,ocr})=>{
+          if(token===documentImportRequest)reportReading(ocr ? `Recognizing scanned PDF page ${page} of ${total}…` : `Reading PDF page ${page} of ${total}…`);
+        }
+      });
       if (token !== documentImportRequest) return;
-      importedDocument = {name:file.name, sections:safeDocumentSections(extracted.text), index:0, total:extracted.text.length};
+      if(reading)reading.hidden=true;
+      importedDocument = {name:file.name, sections:safeDocumentSections(extracted.text), index:0, total:extracted.text.length,pdfCoverage:extracted.pdfCoverage};
       preservedCulturalContext = null;
       syncLanguagePair();
       setTranslationPurpose("academic", false);
@@ -4129,9 +4152,12 @@ function bindDocumentTools() {
     } catch (error) {
       if (token !== documentImportRequest) return;
       documentLoading = false;
-      $("#document-status").textContent = error.message || "This document could not be read. Try saving a .docx copy in Word.";
+      reportReading(error.message || "This document could not be read. Try saving a .docx copy in Word.");
     } finally {
-      if (token === documentImportRequest) event.target.value = "";
+      if (token === documentImportRequest) {
+        documentImportController=undefined;
+        event.target.value="";
+      }
     }
   });
   $("#document-section").addEventListener("change", event => {
@@ -5778,7 +5804,11 @@ function init() {
     }
     if (documentLoading) {
       documentLoading = false;
+      documentImportController?.abort();
+      documentImportController=undefined;
       documentImportRequest += 1;
+      $("#document-file").value="";
+      if ($("#document-reading-status")) $("#document-reading-status").hidden=true;
       $("#document-status").textContent = "Document reading cancelled because you changed the text. Choose the document again to import it.";
     }
     if (preservedCulturalContext && normalize($("#translator-input").value) !== normalize(preservedCulturalContext.input)) preservedCulturalContext = null;
@@ -6064,13 +6094,14 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=209", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=210", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
     || conversationActive || conversationComposerBusy || turns.length || liveConversationTurn
     || documentImportActive || documentLoading || importedDocument || wholeDocumentTools?.runner?.busy
     || musicReviewBusy || translationSharePending || translationCopyPending || appSharePending || activeSpeechPlayback
+    || window.HablaWholeDocument?.isSharing()
     || (typeof HablaRecordedPractice!=="undefined" && (HablaRecordedPractice.isPlaying() || HablaRecordedPractice.isProtected()))
     || (typeof HablaQuickLessons!=="undefined" && HablaQuickLessons.isProtected())
     || (typeof HablaOffline!=="undefined" && HablaOffline.busy)

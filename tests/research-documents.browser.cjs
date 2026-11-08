@@ -29,7 +29,17 @@ async function checkPaper(browser, {file, width, ui, native}) {
       && fs.existsSync(local) && fs.statSync(local).isFile()) return route.fulfill({path: local});
     return route.abort();
   });
-  await page.addInitScript(() => localStorage.setItem('habla-tutorial-seen-v2', '1'));
+  await page.addInitScript(() => {
+    localStorage.setItem('habla-tutorial-seen-v2', '1');
+    window.hablaSharedPapers = [];
+    Object.defineProperties(navigator, {
+      canShare: {configurable:true,value:({files}) => files.length === 1 && files[0].type === 'text/plain'},
+      share: {configurable:true,value:async ({files}) => {
+        const [attachment] = files;
+        window.hablaSharedPapers.push({name:attachment.name,text:await attachment.text()});
+      }}
+    });
+  });
   if (native) {
     await page.addInitScript({content:
       'window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};\n'
@@ -114,6 +124,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
   await page.locator('#translate-entire-document').click();
   await page.waitForFunction(() => !wholeDocumentTools.runner.busy && wholeDocumentTools.runner.error);
   assert.equal(await page.locator('#download-document-text').isDisabled(), true, 'partial drafts cannot export as complete');
+  assert.equal(await page.locator('#share-document').isDisabled(), true, 'partial drafts cannot be shared as complete');
   const beforeReload = requests.length;
   failAt = -1;
   await page.reload();
@@ -138,6 +149,12 @@ async function checkPaper(browser, {file, width, ui, native}) {
   assert.equal(await page.locator('#document-full-draft').getAttribute('readonly'), null);
   const edited = draft + '\n\nReviewed final paragraph.';
   await page.locator('#document-full-draft').fill(edited);
+  await page.locator('#share-document').click();
+  await page.waitForFunction(() => window.hablaSharedPapers.length === 1);
+  assert.deepEqual(await page.evaluate(() => window.hablaSharedPapers[0]), {
+    name: 'Synthetic-paper-' + target + '.txt',
+    text: 'Synthetic-paper.txt\n\n' + edited + '\n'
+  });
   const downloading = page.waitForEvent('download');
   await page.locator('#download-document-text').click();
   const download = await downloading;

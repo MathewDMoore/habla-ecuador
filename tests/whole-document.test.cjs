@@ -9,6 +9,11 @@ const doc={name:'Synthetic research paper.txt',sections:['First paragraph.','\n\
 async function main(){
   const saved=storage();let calls=[];
   const job=whole.create(doc,route);
+  const coverage={pageCount:33,ocrPages:[30,31,32,33],unreadablePages:[32]};
+  const covered=whole.create({...doc,name:'PDF sample.pdf',pdfCoverage:coverage},route);
+  whole.save(saved,covered);
+  assert.deepEqual(whole.read(saved,covered.id).pdfCoverage,coverage,'PDF coverage survives a saved draft and backup');
+  saved.removeItem(whole.PREFIX+covered.id);
   const runner=new whole.Runner({storage:saved,translate:async(text,options)=>{
     calls.push(text);assert.equal(options.sourceLanguage,'en-US');assert.equal(options.targetLanguage,'es-EC');
     return 'ES: '+text;
@@ -67,7 +72,7 @@ async function main(){
       set innerHTML(value){this.value=value;}
     });return elements.get(selector);
   }
-  const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,Date,Math,Blob,URL,
+  const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,Date,Math,Blob,File,URL,
     localStorage:store,navigator:{onLine:true},
     document:{querySelector:element,querySelectorAll:()=>[],addEventListener(){},createElement:()=>element('created-'+Math.random()),
       body:{append(){},classList:{toggle(){},add(){},remove(){}}}},
@@ -114,6 +119,7 @@ async function main(){
   await element('#translate-entire-document').handlers.click();
   assert.match(element('#whole-document-status').textContent,/allowance|quota/);
   assert.equal(element('#print-document').disabled,true,'partial output cannot be printed as a complete paper');
+  assert.equal(element('#share-document').disabled,true,'partial output cannot be shared as a finished paper');
   const savedJobs=whole.list(store);assert.equal(savedJobs.length,1);
   assert.ok(savedJobs[0].parts[0].chunks.length===2,'each completed provider chunk was saved before the quota error');
   const already=fetchCalls.slice(0,2);failAt=-1;
@@ -129,6 +135,33 @@ async function main(){
   element('#document-full-draft').value='Texto revisado íntegro: músculo, mañana y fuerza.';
   element('#document-full-draft').handlers.input({target:element('#document-full-draft')});
   assert.equal(whole.compose(whole.list(store)[0]),element('#document-full-draft').value);
+  const sent=[];
+  let finishShare;
+  context.navigator.canShare=({files})=>files.length===1&&files[0].type==='text/plain';
+  context.navigator.share=payload=>{sent.push(payload);return new Promise(resolve=>{finishShare=resolve;});};
+  const sharing=element('#share-document').handlers.click();
+  assert.equal(context.window.HablaWholeDocument.isSharing(),true);
+  await element('#share-document').handlers.click();
+  assert.equal(sent.length,1,'rapid taps open the system share sheet once');
+  assert.equal(sent[0].files[0].name,'Paper-es-EC.txt');
+  assert.equal(await sent[0].files[0].text(),'Paper.txt\n\n'+element('#document-full-draft').value+'\n');
+  assert.ok(!Object.hasOwn(sent[0],'text'),'share only the edited translation as an attachment');
+  finishShare();
+  await sharing;
+  assert.equal(context.window.HablaWholeDocument.isSharing(),false);
+  assert.match(element('#whole-document-status').textContent,/handed to your sharing app/);
+  context.navigator.share=async()=>{throw {name:'AbortError'};};
+  await element('#share-document').handlers.click();
+  assert.equal(element('#whole-document-status').textContent,'Sharing cancelled.');
+  const downloads=[];
+  context.navigator.canShare=()=>false;
+  context.URL=class extends URL{static createObjectURL(blob){downloads.push(blob);return 'blob:test';}static revokeObjectURL(){}};
+  const wait=context.setTimeout;
+  context.setTimeout=()=>0;
+  await element('#share-document').handlers.click();
+  context.setTimeout=wait;
+  assert.equal(await downloads[0].text(),'Paper.txt\n\n'+element('#document-full-draft').value+'\n');
+  assert.match(element('#whole-document-status').textContent,/downloaded as a text file/);
   element('#print-document').handlers.click();assert.equal(printCalls,1);
   assert.ok(element('#whole-document-print').children.some(item=>item.textContent==='Texto revisado íntegro: músculo, mañana y fuerza.'));
   const count=fetchCalls.length;run('closeImportedDocument()');

@@ -23,6 +23,8 @@ const document={querySelector(selector){if(!elements.has(selector))elements.set(
 const windowEvents={};let sent=0,printed=0,spoken='',stopped=0,paused=0;
 const context={window:{addEventListener:(name,fn)=>windowEvents[name]=fn,print:()=>printed++},document,localStorage:storage,Blob,URL:{createObjectURL(){return 'blob:local'},revokeObjectURL(){}},setTimeout:()=>0,module:{exports:{}},fetch:()=>{sent++;throw Error('must stay local')}};
 vm.createContext(context);vm.runInContext(fs.readFileSync(require.resolve('../saved-paper.js'),'utf8'),context);
+let sharedPaper;
+context.window.HablaWholeDocument={sharePaper:async paper=>{sharedPaper=paper;}};
 const bind=()=>context.module.exports.bind({speak:(text,locale)=>spoken=locale+'|'+text,stop:()=>stopped++,pause:()=>paused++});
 document.querySelector('#saved-paper-variety').value='en-GB';bind();
 assert.equal(document.querySelector('#saved-paper-uk').value,fixture.translations['en-GB']);
@@ -35,6 +37,10 @@ document.querySelector('#hear-saved-paper').click();assert.equal(spoken,'en-US|'
 document.querySelector('#pause-paper').click();assert.equal(paused,1);
 document.querySelector('#print-saved-paper').click();assert.equal(printed,1);
 assert.equal(document.querySelector('#saved-paper-print').children.at(-1).textContent,fixture.translations['en-US']);
+document.querySelector('#share-saved-paper').click();
+assert.equal(sharedPaper.title,fixture.title);
+assert.equal(sharedPaper.locale,'en-US');
+assert.equal(sharedPaper.text,fixture.translations['en-US'],'share the selected English draft, without the Spanish source');
 windowEvents.afterprint();
 document.querySelector('#backup-saved-paper').click();assert.equal(sent,0,'reading, comparing, editing, backup and print make no service requests');
 document.querySelector('#remove-saved-paper').click();assert.equal(api.load(storage).paper,null);

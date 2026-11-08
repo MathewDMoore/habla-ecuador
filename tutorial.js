@@ -67,7 +67,7 @@ const FEATURE_GUIDES={
    ["Use Open Habla paper backup (.json) for a Habla backup that already contains the original and both English drafts.","Usa Abrir copia de Habla (.json) para una copia que ya contiene el original y ambos borradores en inglés."]],
   [["How do I translate and export the whole paper?","¿Cómo traduzco y exporto el artículo completo?"],
    ["Tap Translate entire document. You can pause and reopen your saved progress to continue later.","Toca Traducir documento completo. Puedes pausar y volver a abrir el progreso guardado para continuar después."],
-   ["When it finishes, review and edit the combined draft. Use the export controls to download it or save it as a PDF.","Al terminar, revisa y edita el borrador completo. Usa las opciones de exportación para descargarlo o guardarlo en PDF."]]
+   ["When it finishes, review the combined draft and any flagged PDF pages. Tap Share translated paper for a text attachment, or Print / Save as PDF to make a PDF.","Al terminar, revisa el borrador completo y las páginas señaladas del PDF. Toca Compartir documento traducido para adjuntar un archivo de texto, o Imprimir / Guardar como PDF para crear un PDF."]]
  ],
  music:[
   ["Music listening guide","Guía para escuchar música"],

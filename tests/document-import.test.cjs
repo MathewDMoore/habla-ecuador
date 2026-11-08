@@ -44,6 +44,35 @@ async function main() {
   pdfReader.getDocument=()=>({promise:Promise.reject(new Error('bad PDF')),destroy:async()=>{destroyed++;}});
   await assert.rejects(helper.extract({name:'bad.pdf',size:20,arrayBuffer:async()=>new ArrayBuffer(0)}, {pdfReader}),/could not be read/);
   assert.equal(destroyed,2,'failed PDF releases its loading task');
+  const OPS={save:1,transform:2,paintImageXObject:3,restore:4,paintInlineImageXObject:5};
+  const header={str:'Selectable page header',hasEOL:true,transform:[1,0,0,1,40,760]};
+  const selectableBody=[header,...[600,560,520].map(y=>({str:'Four readable words here.',hasEOL:true,transform:[1,0,0,1,80,y]}))];
+  const makePage=(items,image)=>({
+    getViewport:({scale})=>({width:600*scale,height:800*scale,convertToViewportPoint:(x,y)=>[x*scale,(800-y)*scale]}),
+    getTextContent:async()=>({items}),cleanup(){},
+    getOperatorList:async()=>image?{fnArray:[OPS.save,OPS.transform,OPS.paintImageXObject,OPS.paintImageXObject,OPS.restore],
+      argsArray:[null,[400,0,0,500,60,140],['background'],['scan'],null]}:{fnArray:[],argsArray:[]},
+    render:({canvas})=>({promise:Promise.resolve(canvas),cancel(){}})
+  });
+  const testPages=[makePage([{str:'Native body in page one.',hasEOL:true}],false),
+    makePage([header],true),makePage(selectableBody,true),makePage([header],true)];
+  const scanReader={OPS,Util:{transform:(_,matrix)=>matrix},GlobalWorkerOptions:{},
+    getDocument:()=>({promise:Promise.resolve({numPages:testPages.length,getPage:async i=>testPages[i-1]}),destroy:async()=>{}})};
+  const scanFile={name:'mixed.pdf',size:30,arrayBuffer:async()=>new ArrayBuffer(0)};
+  let sessions=0,recognized=0,closed=0;
+  const progress=[];
+  const mixed=await helper.extract(scanFile,{
+    pdfReader:scanReader,onPage:detail=>progress.push(detail),createCanvas:()=>({getContext:()=>({})}),
+    openOcr:async()=>{sessions++;return {recognize:async()=>++recognized===1
+      ? {text:'Appendix poem from the scanned image.',confidence:93} : {text:'',confidence:0},close:async()=>{closed++;}};}
+  });
+  assert.equal(sessions,1,'reuse one OCR worker across the paper');
+  assert.equal(recognized,2,'detect text-free scans under selectable headers, avoid duplicated images and existing text layers');
+  assert.equal(closed,1);
+  assert.deepEqual(mixed.pdfCoverage,{pageCount:4,ocrPages:[2],unreadablePages:[4]});
+  assert.deepEqual(progress.filter(item=>item.ocr).map(item=>item.page),[2,4]);
+  assert.match(mixed.text,/Native body in page one.[\s\S]+Appendix poem from the scanned image.[\s\S]+Four readable words here/);
+  await assert.rejects(helper.extract(scanFile,{pdfReader:scanReader,openOcr:async()=>{throw Error('offline');}}),/Scanned PDF page 2 could not be read/);
   const loaded=await helper.extract({name:'prueba.txt',size:20,text:async()=> 'Hola\r\n\r\nEcuador.'});
   assert.equal(loaded.text,'Hola\n\nEcuador.');
   await assert.rejects(helper.extract({name:'old.doc',size:2}),/older .doc/);

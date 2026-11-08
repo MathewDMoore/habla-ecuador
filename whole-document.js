@@ -8,6 +8,20 @@
   const MAX_DRAFT = 600000;
   const isText = value => typeof value === 'string';
   const fail = message => { throw new Error(message); };
+  function pdfCoverage(value) {
+    const count=value?.pageCount;
+    if(!Number.isInteger(count)||count<1||count>100)return undefined;
+    const pages=entries=>Array.isArray(entries)?[...new Set(entries.filter(page=>Number.isInteger(page)&&page>=1&&page<=count))]:[];
+    return {pageCount:count,ocrPages:pages(value.ocrPages),unreadablePages:pages(value.unreadablePages)};
+  }
+  function coverageMessage(coverage,name) {
+    if(!coverage)return /\.pdf$/i.test(name||'')?'For PDFs saved before scan checking, reopen the original PDF to include scanned pages.':'';
+    const {pageCount,ocrPages,unreadablePages}=coverage;
+    const message=[`PDF pages checked: ${pageCount}.`];
+    if(ocrPages.length)message.push(`Text recognized from scans on pages: ${ocrPages.join(', ')}.`);
+    if(unreadablePages.length)message.push(`Review these PDF pages for missing or unclear text: ${unreadablePages.join(', ')}.`);
+    return message.map(text=>root.HablaUI?.t(text)||text).join(' ');
+  }
   function validate(data) {
     if (!data || data.schema !== SCHEMA || !/^[a-z0-9-]{1,100}$/.test(data.id || '')) fail('Choose a Habla document-progress backup.');
     if (!isText(data.name) || !data.name.trim() || data.name.length > 240) fail('The document needs a name of up to 240 characters.');
@@ -35,11 +49,12 @@
     if (data.editedText !== null && (!isText(data.editedText) || !data.editedText.trim() || data.editedText.length > MAX_DRAFT)) fail('The complete edited draft is invalid.');
     return {schema:SCHEMA,id:data.id,name:data.name,sourceLanguage:data.sourceLanguage,targetLanguage:data.targetLanguage,
       purpose:data.purpose,onDevice:data.onDevice,parts,editedText:data.editedText,
-      updatedAt:isText(data.updatedAt) ? data.updatedAt : '',status:'paused'};
+      updatedAt:isText(data.updatedAt) ? data.updatedAt : '',status:'paused',
+      ...(data.pdfCoverage ? {pdfCoverage:pdfCoverage(data.pdfCoverage)} : {})};
   }
   function create(document, route) {
     const job = {schema:SCHEMA,id:`doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`,
-      name:document.name,sourceLanguage:route.sourceLanguage,targetLanguage:route.targetLanguage,
+      name:document.name,pdfCoverage:document.pdfCoverage,sourceLanguage:route.sourceLanguage,targetLanguage:route.targetLanguage,
       purpose:route.purpose,onDevice:route.onDevice,
       parts:document.sections.map(source => ({source,translation:null,chunks:[]})),editedText:null,updatedAt:'',status:'paused'};
     return validate(job);
@@ -134,10 +149,50 @@
     const title=escape(job.name), text=escape(compose(job));
     return `<!doctype html><html lang="${job.targetLanguage}"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{max-width:48rem;margin:2rem auto;padding:0 1rem;color:#161616;font:12pt/1.55 Georgia,serif}h1{font-size:20pt;line-height:1.25}main{white-space:pre-wrap;overflow-wrap:anywhere;orphans:3;widows:3}@media print{body{margin:0;max-width:none}h1{break-after:avoid}}</style><h1>${title}</h1><p>${escape(label)} · editable translation draft</p><main>${text}</main></html>`;
   }
+  function downloadFile(blob,filename) {
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;link.download=filename;
+    document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+  }
+  function paperFilename(title,locale) {
+    const name=title.replace(/\.[^.]+$/,'').replace(/[^\p{L}\p{N} _-]/gu,'').slice(0,70)||'Document';
+    return name+'-'+locale;
+  }
+  const sharingButtons=new Set();
+  async function sharePaper({title,text,locale,button,status}) {
+    if(!text?.trim()||sharingButtons.has(button))return;
+    const contents=title+'\n\n'+text+'\n';
+    const filename=paperFilename(title,locale)+'.txt';
+    const type='text/plain';
+    sharingButtons.add(button);
+    button.disabled=true;
+    try {
+      if(typeof navigator.share==='function'&&typeof File==='function'){
+        const files=[new File([contents],filename,{type})];
+        try{
+          if(!navigator.canShare||navigator.canShare({files})){
+            await navigator.share({title,files});
+            status('Translated paper handed to your sharing app.');
+            return;
+          }
+        }catch(error){
+          if(error?.name==='AbortError'){status('Sharing cancelled.');return;}
+        }
+      }
+      downloadFile(new Blob([contents],{type}),filename);
+      status('The translation was downloaded as a text file. Open it in Files to share it.');
+    } finally {
+      sharingButtons.delete(button);
+      button.disabled=false;
+    }
+  }
   function bind({getDocument,getRoute,openDocument,translate,onSection,label,formatError}) {
     const $=selector=>document.querySelector(selector);
     if(!$('#translate-entire-document'))return null;
     const saveForLater=$('#save-document-for-later');
+    const share=$('#share-document'),coverage=$('#whole-document-coverage');
     let active=null,restoredJob=null,backupImport=0;
     const runner=new Runner({storage:localStorage,translate,onSection,onChange:()=>render()});
     function findCurrent() {
@@ -191,14 +246,17 @@
       if(!message)message=done?'Complete editable translation draft.':job?'Saved progress is ready. Translation resumes only when you tap Resume entire document.':doc?'Ready to translate the whole document into '+label(route.targetLanguage)+'.':'';
       if(engineMismatch&&!done)message='This progress uses '+(job.onDevice?'on-device translation':'the online service')+'. Select the same mode under Offline translation before resuming. No text has been sent in a different mode.';
       $('#whole-document-status').textContent=progress+message;
+      if(coverage){
+        coverage.textContent=coverageMessage(doc?.pdfCoverage||job?.pdfCoverage,doc?.name||job?.name);
+        coverage.hidden=!coverage.textContent;
+      }
+      if(share)share.disabled=!done||runner.busy||sharingButtons.has(share);
       for(const id of ['print-document','download-document-text','download-document-html'])$('#'+id).disabled=!done||runner.busy;
       $('#backup-document-progress').disabled=!job;
     }
     function download(text,type,extension) {
       const job=runner.busy?runner.job:active;if(!job)return;
-      const url=URL.createObjectURL(new Blob([text],{type}));const link=document.createElement('a');
-      link.href=url;link.download=(job.name.replace(/\.[^.]+$/,'').replace(/[^\p{L}\p{N} _-]/gu,'').slice(0,70)||'Document')+'-'+job.targetLanguage+extension;
-      document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+      downloadFile(new Blob([text],{type}),paperFilename(job.name,job.targetLanguage)+extension);
     }
     saveForLater?.addEventListener('click',()=>{
       const doc=getDocument();
@@ -259,6 +317,14 @@
     $('#backup-document-progress').addEventListener('click',()=>{const job=runner.busy?runner.job:active;if(job)download(JSON.stringify(validate(job),null,2),'application/json','.habla.json');});
     $('#download-document-text').addEventListener('click',()=>{if(active&&complete(active))download(active.name+'\n\n'+compose(active),'text/plain;charset=utf-8','.txt');});
     $('#download-document-html').addEventListener('click',()=>{if(active&&complete(active))download(printable(active,label(active.targetLanguage)),'text/html;charset=utf-8','.html');});
+    share?.addEventListener('click',async()=>{
+      if(!active||!complete(active)||runner.busy)return;
+      const job=active;
+      const status=message=>{if(active===job)$('#whole-document-status').textContent=message;};
+      try {await sharePaper({title:job.name,text:compose(job),locale:job.targetLanguage,button:share,status});}
+      catch {status('Sharing could not open. Use Download translation text to keep a copy.');}
+      finally {share.disabled=!active||!complete(active)||runner.busy;}
+    });
     $('#print-document').addEventListener('click',()=>{
       if(!active||!complete(active))return;
       const area=$('#whole-document-print');area.replaceChildren();
@@ -268,6 +334,7 @@
       area.append(title,note,text);document.body.classList.add('printing-whole-document');
       try{window.print();}catch{$('#whole-document-status').textContent='Printing could not open. Download the printable document and open it in Safari to print or save as PDF.';document.body.classList.remove('printing-whole-document');}
     });
+    document.addEventListener?.('habla-ui-language-change',render);
     window.addEventListener('afterprint',()=>document.body.classList.remove('printing-whole-document'));
     const modeChanged=()=>{runner.pause('Paused because the translation mode changed. Saved progress keeps its original mode.');render();};
     $('#offline-use')?.addEventListener('change',modeChanged);
@@ -287,7 +354,7 @@
         }catch(error){$('#whole-document-status').textContent=error.message;}
       }};
   }
-  const api={SCHEMA,PREFIX,validate,create,matches,read,list,save,completed,complete,compose,Runner,printable,bind};
+  const api={SCHEMA,PREFIX,validate,create,matches,read,list,save,completed,complete,compose,Runner,printable,sharePaper,isSharing:()=>sharingButtons.size>0,bind};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else root.HablaWholeDocument=api;
 })(typeof window!=='undefined'?window:globalThis);

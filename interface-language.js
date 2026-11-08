@@ -10,6 +10,12 @@
   const s=normalize(text);
   if(Object.hasOwn(strings,s))return strings[s];
   const patterns=[
+   [/^PDF pages checked: (\d+)\.$/,(_,count)=>`Páginas del PDF revisadas: ${count}.`],
+   [/^Text recognized from scans on pages: ([\d, ]+)\.$/,(_,pages)=>`Texto reconocido en páginas escaneadas: ${pages}.`],
+   [/^Review these PDF pages for missing or unclear text: ([\d, ]+)\.$/,(_,pages)=>`Revisa estas páginas del PDF por si falta texto o hay palabras poco claras: ${pages}.`],
+   [/^Reading PDF page (\d+) of (\d+)…$/,(_,page,total)=>`Leyendo página ${page} de ${total} del PDF…`],
+   [/^Recognizing scanned PDF page (\d+) of (\d+)…$/,(_,page,total)=>`Reconociendo el texto de la página escaneada ${page} de ${total}…`],
+   [/^Scanned PDF page (\d+) could not be read\. Connect to load the text reader and choose the PDF again, or try a searchable copy\.$/,(_,page)=>`No se pudo leer la página escaneada ${page} del PDF. Conéctate para cargar el lector y vuelve a elegir el PDF, o prueba con una copia con texto seleccionable.`],
    [/^(\d+) of (\d+) reviewed · entry (\d+)$/,(_,a,b,c)=>`${a} de ${b} revisadas · entrada ${c}`],
    [/^Entry (\d+) of (\d+)$/,(_,a,b)=>`Entrada ${a} de ${b}`],
    [/^Phrase (\d+) of (\d+)$/,(_,a,b)=>`Frase ${a} de ${b}`],

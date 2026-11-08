@@ -98,6 +98,13 @@
     $('#download-saved-paper').addEventListener('click', () => {
       collect(); if (paper) download(`${paper.title}\n\n${paper.translations[selected()]}\n`, 'text/plain;charset=utf-8', selected() === 'en-GB' ? '-UK.txt' : '-US.txt');
     });
+    const share=$('#share-saved-paper');
+    share?.addEventListener('click', async () => {
+      collect();
+      if(!paper)return;
+      try {await root.HablaWholeDocument.sharePaper({title:paper.title,text:paper.translations[selected()],locale:selected(),button:share,status});}
+      catch {status('Sharing could not open. Use Download English text to keep a copy.');}
+    });
     $('#print-saved-paper').addEventListener('click', () => {
       collect(); if (!paper) return;
       stop();
