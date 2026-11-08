@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.3 · build 213";
+const APP_VERSION = "0.27.4 · build 214";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2028,7 +2028,7 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true, minConfidence=0}={}) {
+function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true, minConfidence=0, warnOnProvisional=true}={}) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -2098,7 +2098,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     if (commitOnEnd && latestFinal && !tentative) provisional = false;
     provisional ||= lowConfidence;
     onText?.(latestText, true, {...latestMetadata, provisional});
-    if (provisional && !continuous) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
+    if (provisional && !continuous && warnOnProvisional) showToast("Dictated text kept. Check the wording: the microphone ended before confirming it.");
   };
 
   instance.onstart = () => { if (recognition === instance) { setListeningButton(button, true); onStart?.(); } };
@@ -4560,24 +4560,27 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
 }
 
 let faceCapture = null;
+let faceHandsFree = null;
 let faceStatus = "";
 let faceTurnOffset = 0;
 
 function renderFaceToFace() {
   const index = turns.length - 1;
   const turn = index >= faceTurnOffset && turns[index]?.faceToFace ? turns[index] : null;
+  const start = $("#start-face-conversation");
+  start.textContent = faceHandsFree ? "Stop listening / Dejar de escuchar" : "Start conversation / Iniciar conversación";
   for (const side of $$("[data-face-side]")) {
     const role = side.dataset.faceSide;
     const box = side.querySelector(".face-to-face-turn");
     side.querySelector("h2").textContent = speakerName(role);
     const otherMicBusy = faceCapture && faceCapture.button.dataset.faceMic !== role;
-    side.querySelector("[data-face-mic]").disabled = Boolean(otherMicBusy);
+    side.querySelector("[data-face-mic]").disabled = Boolean(faceHandsFree || otherMicBusy);
     const detailsOpen = Boolean(box.querySelector("details[open]"));
-    if (faceStatus) {
+    if (faceStatus && !faceHandsFree) {
       const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
       box.innerHTML = `<p>${escapeHtml(faceStatus)}</p>${draft ? `<p class="face-to-face-text">${escapeHtml(draft)}</p>` : ""}`;
     } else if (!turn) {
-      box.textContent = "One speaker at a time. / Una persona a la vez.";
+      box.textContent = faceHandsFree ? "" : "Start hands-free or hold your mic. / Inicia manos libres o mantén pulsado el micrófono.";
     } else if (turn.slot === role) {
       box.innerHTML = `<small>${escapeHtml(turn.languageLabel)}</small><p class="face-to-face-text" lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`;
     } else if (turn.pending || turn.failed) {
@@ -4590,7 +4593,31 @@ function renderFaceToFace() {
         <p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>${note}</details>
         <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
     }
+    if (faceHandsFree && faceStatus) {
+      const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
+      box.insertAdjacentHTML("afterbegin", `<p class="face-to-face-listening">${escapeHtml(faceStatus)}</p>${draft ? `<p>${escapeHtml(draft)}</p>` : ""}`);
+    }
   }
+}
+
+function stopFaceHandsFree() {
+  faceHandsFree = null;
+  cancelFaceCapture();
+  faceStatus = "";
+  renderFaceToFace();
+}
+
+function startFaceHandsFreeTurn(session) {
+  if (faceHandsFree !== session || !$("#face-to-face").open || document.hidden) return;
+  startFaceCapture($(`[data-face-mic="${session.role}"]`), session);
+}
+
+function toggleFaceHandsFree() {
+  if (faceHandsFree) return stopFaceHandsFree();
+  if (recognition || faceCapture) return;
+  const session = {role:"english"};
+  faceHandsFree = session;
+  startFaceHandsFreeTurn(session);
 }
 
 function stopFaceCapture() {
@@ -4604,14 +4631,15 @@ function cancelFaceCapture() {
 function closeFaceToFace() {
   const dialog = $("#face-to-face");
   if (!dialog?.open) return;
-  cancelFaceCapture();
+  stopFaceHandsFree();
   stopSpeechPlayback();
   dialog.close();
 }
 
-function startFaceCapture(button) {
+function startFaceCapture(button, handsFree=null) {
   if (recognition || faceCapture) return;
   if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+    faceHandsFree = null;
     faceStatus = "Microphone unavailable. / Micrófono no disponible.";
     renderFaceToFace();
     return;
@@ -4619,20 +4647,41 @@ function startFaceCapture(button) {
 
   const role = button.dataset.faceMic;
   const locales = conversationLocales();
-  const capture = {button, draft:"", accepted:false, error:""};
+  const capture = {button, draft:"", translation:null, error:""};
+  let silenceTimer, turnTimer;
+  const clearTimers = () => {
+    clearTimeout(silenceTimer);
+    clearTimeout(turnTimer);
+  };
   faceCapture = capture;
-  faceStatus = "Listening… / Escuchando…";
+  const speaker = speakerName(role);
+  faceStatus = handsFree ? `Listening to ${speaker}… / Escuchando a ${speaker}…` : "Listening… / Escuchando…";
   renderFaceToFace();
+  if (handsFree) turnTimer = setTimeout(() => {
+    if (faceCapture !== capture) return;
+    if (capture.draft) stopFaceCapture();
+    else {
+      cancelFaceCapture();
+      faceStatus = "Paused. No speech heard. / En pausa. No se detectó voz.";
+      renderFaceToFace();
+    }
+  }, 25000);
   startListening({
-    button, lang:locales[role], continuous:true, commitOnEnd:true, correctTranscript:false, minConfidence:0.45,
+    button, lang:locales[role], continuous:!handsFree, commitOnEnd:true, correctTranscript:false, minConfidence:0.45, warnOnProvisional:false,
     onText(text, final, {provisional}={}) {
       if (!final) {
+        if (capture.draft === text) return;
         capture.draft = text;
+        if (handsFree) {
+          clearTimeout(silenceTimer);
+          if (text) silenceTimer = setTimeout(() => {
+            if (faceCapture === capture) stopFaceCapture();
+          }, 1600);
+        }
         renderFaceToFace();
       } else if (!provisional && !capture.error) {
-        capture.accepted = true;
         faceStatus = "";
-        handleConversationText(role,speakerName(role),text,true,{locales,faceToFace:true});
+        capture.translation = handleConversationText(role,speaker,text,true,{locales,faceToFace:true});
       }
     },
     onError(error) {
@@ -4643,13 +4692,27 @@ function startFaceCapture(button) {
       } else capture.error = "Please repeat, one at a time. / Repitan, de uno en uno.";
     },
     onCancel() {
+      clearTimers();
+      if (handsFree && faceHandsFree === handsFree) faceHandsFree = null;
       faceCapture = null;
       faceStatus = "Turn canceled. / Turno cancelado.";
       renderFaceToFace();
     },
     onEnd() {
+      clearTimers();
       faceCapture = null;
-      if (!capture.accepted) faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
+      if (!capture.translation) {
+        if (handsFree && faceHandsFree === handsFree) faceHandsFree = null;
+        faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
+      } else if (handsFree && faceHandsFree === handsFree) {
+        const turn = turns.at(-1);
+        capture.translation.then(() => {
+          if (faceHandsFree !== handsFree) return;
+          if (turn.failed) return stopFaceHandsFree();
+          handsFree.role = role === "english" ? "spanish" : "english";
+          startFaceHandsFreeTurn(handsFree);
+        });
+      }
       renderFaceToFace();
     }
   });
@@ -4670,20 +4733,24 @@ function bindFaceToFace() {
   const dialog = $("#face-to-face");
   $("#open-face-to-face").addEventListener("click", openFaceToFace);
   $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  $("#start-face-conversation").addEventListener("click", toggleFaceHandsFree);
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
     closeFaceToFace();
   });
   dialog.addEventListener("click", event => {
     const button = event.target.closest("[data-face-hear]");
-    if (button) hearConversationTurn(Number(button.dataset.faceHear));
+    if (button) {
+      if (faceHandsFree) stopFaceHandsFree();
+      hearConversationTurn(Number(button.dataset.faceHear));
+    }
   });
 
   for (const button of dialog.querySelectorAll("[data-face-mic]")) {
     let pointerId = null;
     button.addEventListener("contextmenu", event => event.preventDefault());
     button.addEventListener("pointerdown", event => {
-      if (!event.isPrimary || event.button !== 0 || faceCapture || recognition) return;
+      if (!event.isPrimary || event.button !== 0 || faceHandsFree || faceCapture || recognition) return;
       event.preventDefault();
       button.setPointerCapture(event.pointerId);
       pointerId = event.pointerId;
@@ -4703,7 +4770,7 @@ function bindFaceToFace() {
     }
     // Keyboard and assistive technology can activate once to start and again to finish.
     button.addEventListener("click", event => {
-      if (event.detail !== 0) return;
+      if (event.detail !== 0 || faceHandsFree) return;
       if (faceCapture?.button === button) stopFaceCapture();
       else startFaceCapture(button);
     });
@@ -6037,7 +6104,7 @@ function init() {
   $("#music-playback-source")?.addEventListener("change", updateMusicSourceHelp);
   $("#translate-music")?.addEventListener("click", translateCapturedMusic);
   document.addEventListener("visibilitychange", () => { if (document.hidden) cancelDictionaryPractice(); if (document.hidden && !window.__hablaSystemAudioCaptureActive) cancelMusicListening(); });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelFaceCapture(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && $("#face-to-face")?.open) stopFaceHandsFree(); });
   const rateSlider = $("#voice-rate-slider");
   if (rateSlider) {
     rateSlider.value = String(voiceRate);
@@ -6265,7 +6332,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=213", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=214", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

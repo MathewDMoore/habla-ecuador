@@ -23,7 +23,10 @@ async function main() {
             window.faceRecordings.push(this);
             this.onstart?.();
           }
-          stop() { this.onend?.(); }
+          stop() {
+            if (this.finalOnStop) this.emit(this.finalOnStop,true,0.9);
+            this.onend?.();
+          }
           abort() { this.aborted = true; this.onend?.(); }
           emit(text, isFinal, confidence) {
             const result = Object.assign([{transcript:text,confidence}],{isFinal});
@@ -102,6 +105,34 @@ async function main() {
       await page.locator("#close-face-to-face").tap();
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
       assert.equal(await dialog.isVisible(),false);
+      await entry.tap();
+      const start = dialog.locator("#start-face-conversation");
+      await start.tap();
+      await dialog.getByRole("button",{name:/Stop listening/}).waitFor();
+      assert.equal(await nearMic.isDisabled(),true);
+      assert.equal(await farMic.isDisabled(),true);
+      assert.equal(await page.evaluate(() => faceRecordings.at(-1).lang),"en-US");
+      await page.evaluate(() => {
+        const microphone = faceRecordings.at(-1);
+        microphone.finalOnStop = "Can you tell me where the bus is?";
+        microphone.emit(microphone.finalOnStop,false,0.9);
+      });
+      await far.getByText(/en-US → es-EC/).waitFor();
+      await page.waitForFunction(() => faceRecordings.at(-1).lang === "es-EC");
+      await page.evaluate(() => {
+        const microphone = faceRecordings.at(-1);
+        microphone.emit("Sí, la parada está en esta calle.",true,0.9);
+        microphone.onend();
+      });
+      await near.getByText(/es-EC → en-US/).waitFor();
+      await page.waitForFunction(() => faceRecordings.at(-1).lang === "en-US");
+      assert.equal(await page.evaluate(() => faceSpoken.length),1,"hands-free turns stay silent");
+      await start.tap();
+      assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
+      assert.equal(await nearMic.isEnabled(),true);
+      await near.getByText(/es-EC → en-US/).waitFor();
+      await page.locator("#close-face-to-face").tap();
+
       await page.evaluate(() => localStorage.removeItem("habla-tutorial-seen-v2"));
       await page.goto("https://mathewdmoore.github.io/habla-ecuador/" + file + "?start=face-to-face&ui=es");
       await dialog.waitFor({state:"visible"});
