@@ -312,7 +312,7 @@ function bind({navigate:route,launchQuery}={}){
  const params=launchQuery||new URLSearchParams(location.search);
  if(params.get("tour")==="home-screen")open($("button[data-home-screen-help]"),"home-screen");
  else if(params.get("tour")==="lessons")open($("button[data-lesson-tutorial-open]"),"lessons");
- else if(params.get("tour")==="1"||!seen())open($("button[data-tutorial-open]"));
+ else if(params.get("tour")==="1"||(params.get("start")!=="face-to-face"&&!seen()))open($("button[data-tutorial-open]"));
 }
 const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,HOME_SCREEN_STEPS,FEATURE_GUIDES,api};
