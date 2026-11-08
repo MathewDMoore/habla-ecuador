@@ -66,7 +66,7 @@ const FEATURE_GUIDES={
    ["To reopen it, go to Saved papers & progress, choose it under Saved document progress, then tap Open saved document.","Para volver a abrirlo, ve a Artículos guardados y progreso, elígelo en Progreso de documentos guardados y toca Abrir documento guardado."],
    ["Use Open Habla paper backup (.json) for a Habla backup that already contains the original and both English drafts.","Usa Abrir copia de Habla (.json) para una copia que ya contiene el original y ambos borradores en inglés."]],
   [["How do I translate and export the whole paper?","¿Cómo traduzco y exporto el artículo completo?"],
-   ["Tap Translate entire document. You can pause and reopen your saved progress to continue later.","Toca Traducir documento completo. Puedes pausar y volver a abrir el progreso guardado para continuar después."],
+   ["Tap Translate entire document, or use Finish on this device for a long or paused paper. Habla saves each completed section.","Toca Traducir documento completo o usa Terminar en este dispositivo para un documento largo o en pausa. Habla guarda cada sección completada."],
    ["When it finishes, review the combined draft and any flagged PDF pages. Tap Share translated paper for a text attachment, or Print / Save as PDF to make a PDF.","Al terminar, revisa el borrador completo y las páginas señaladas del PDF. Toca Compartir documento traducido para adjuntar un archivo de texto, o Imprimir / Guardar como PDF para crear un PDF."]]
  ],
  music:[

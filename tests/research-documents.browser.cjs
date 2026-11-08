@@ -25,6 +25,11 @@ async function checkPaper(browser, {file, width, ui, native}) {
       return route.fulfill({json: payload});
     }
     const local = path.resolve(root, url.pathname.replace('/habla-ecuador/', ''));
+    if (native && url.origin === origin && local === path.join(root,'offline-device.js')) {
+      const script=fs.readFileSync(local,'utf8') + ';HablaOffline.canPrepare=()=>true;'
+        + 'HablaOffline.prepare=async()=>true;HablaOffline.translate=async text=>"Local draft "+text;';
+      return route.fulfill({contentType:'application/javascript',body:script});
+    }
     if (url.origin === origin && local.startsWith(root + path.sep)
       && fs.existsSync(local) && fs.statSync(local).isFile()) return route.fulfill({path: local});
     return route.abort();
@@ -139,8 +144,18 @@ async function checkPaper(browser, {file, width, ui, native}) {
   assert.equal(requests.length, beforeReload, 'saved progress opens without a service call');
   assert.equal(await page.locator('#source-language-select').inputValue(), 'es-EC');
   assert.equal(await page.locator('#target-language-select').inputValue(), target);
-  await page.locator('#translate-entire-document').click();
+  assert.match(await page.locator('#whole-document-status').textContent(), /daily allowance|límite diario/);
+  if (native) {
+    assert.equal(await page.locator('#document-full-draft-label').textContent(), 'Vista previa de la traducción parcial');
+    await page.locator('#finish-document-on-device').click();
+  } else {
+    await page.locator('#translate-entire-document').click();
+  }
   await page.waitForFunction(() => !document.querySelector('#download-document-text').disabled);
+  if (native) {
+    assert.equal(requests.length,beforeReload,'the device continuation makes no online translation calls');
+    assert.equal(await page.evaluate(()=>wholeDocumentTools.runner.job.deviceContinuation),true);
+  }
   assert.equal(requests.filter(text => text === requests[0]).length, 1, 'saved chunks are reused after reload');
   const draft = await page.locator('#document-full-draft').inputValue();
   assert.match(draft, /Medición 0/);
