@@ -22,6 +22,7 @@ on:
       - 'translator.html'
       - 'tests/translation-copy.browser.cjs'
       - 'interface-*.js'
+      - 'tests/face-to-face.browser.cjs'
       - 'tests/*practice*'
       - 'tests/*lesson*'
       - 'tests/dictionary-startup.browser.cjs'
@@ -43,9 +44,13 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: node --test tests/*.test.cjs
       - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
       - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - run: node tests/face-to-face.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node --test tests/*.test.cjs
       - run: node tests/translation-history.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright

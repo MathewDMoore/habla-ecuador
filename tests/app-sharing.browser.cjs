@@ -58,6 +58,14 @@ async function run(browser,native,width=390){
   assert.ok(await page.locator('#regional-slang-results .regional-slang-card').count()>0);
   assert.equal(await page.locator('#target-language-select').inputValue(),'es-EC','shared dictionary choice does not rewrite translator defaults');
  }
+ await page.goto(home+'?start=dictionary&region=es-CU&ui=es');
+ const cubaCards=page.locator('#regional-slang-results .regional-slang-card');
+ const general=cubaCards.filter({has:page.getByRole('heading',{name:'afeminado / afeminada',exact:true})});
+ await general.getByText('Adjetivo descriptivo que puede resultar ofensivo o despectivo',{exact:true}).waitFor();
+ assert.match(await general.locator('.regional-usage-meta').textContent(),/Español compartido/);
+ const ride=cubaCards.filter({has:page.getByRole('heading',{name:'dar bola (a ride)',exact:true})});
+ await ride.getByText(/el diccionario documenta esta acepción a escala nacional/).first().waitFor();
+ assert.match(await ride.locator('.regional-usage-meta').textContent(),/Esta entrada abarca: Cuba/);
  await page.goto(home+'?start=dictionary&region=es-VE&city=caracas&ui=es&tour=home-screen');
  await page.locator('#tutorial-close').click();
  assert.equal(await page.locator('#regional-slang-region').inputValue(),'es-VE');

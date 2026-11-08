@@ -202,6 +202,7 @@ const HablaSpanishContext = (() => {
     "term": "culo (anatomy)",
     "speech": "culo",
     "category": "slang",
+    "shared": true,
     "regions": [
       "es-EC",
       "es-BO",
@@ -316,6 +317,7 @@ const HablaSpanishContext = (() => {
     "term": "puta (noun / insult)",
     "speech": "puta",
     "category": "slang",
+    "shared": true,
     "regions": [
       "es-EC",
       "es-BO",
@@ -359,6 +361,7 @@ const HablaSpanishContext = (() => {
     "term": "afeminado / afeminada",
     "speech": "afeminado",
     "category": "literal",
+    "shared": true,
     "regions": [
       "es-EC",
       "es-BO",

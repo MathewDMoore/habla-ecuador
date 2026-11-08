@@ -22,6 +22,7 @@
    [/^(\d+) saved contributions · all pending verification$/,(_,a)=>`${a} aportes guardados · todos pendientes de verificación`],
    [/^(\d+) entr(?:y|ies) · (.+)$/,(_,a,b)=>`${a} entradas · ${t(b,'es')}`],
    [/^Entry covers: (.+)$/,(_,a)=>`Esta entrada abarca: ${t(a,'es')}`],
+   [/^(.+): this sense is dictionary-attested; not an exclusivity or city claim\.$/,(_,a)=>`${t(a,'es')}: el diccionario documenta esta acepción a escala nacional. El uso puede extenderse a otros países.`],
    [/^Active filters: (.+)$/,(_,a)=>`Filtros activos: ${a}`],
    [/^No entries match these filters\. (\d+) indexed matches are hidden by the usage, category or tone filters\.$/,(_,a)=>`No hay entradas con estos filtros. Hay ${a} coincidencias ocultas por los filtros de uso, categoría o tono.`],
    [/^No entries match this regional view\. (\d+) indexed matches are available in other regional views\.$/,(_,a)=>`No hay entradas en esta región. Hay ${a} coincidencias en otras regiones.`],
