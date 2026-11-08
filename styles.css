@@ -1454,3 +1454,10 @@ body.ve-theater-open {overflow:hidden !important;}
 #translation-speaking-practice .dictionary-practice-status { margin:6px 0; }
 #translation-speaking-practice .dictionary-practice-response { margin-top:6px; padding:8px; }
 #natural-result { scroll-margin-top:90px; }
+
+/* Habla document status wrapping */
+#whole-document-status {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+}
