@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.0 · build 210";
+const APP_VERSION = "0.27.1 · build 211";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3773,7 +3773,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   const phrase = translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
   if (!phrase) {
     const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
-    const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+    const onDevice = Boolean((allowImported&&wholeDocumentTools?.usesDevice())
+      || (typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()));
     result.hidden = false;
     missing.hidden = true;
     $("#translation-result .result-label").textContent = translationPurpose === "academic"
@@ -4007,6 +4008,8 @@ function bindWholeDocumentTools() {
     },
     getRoute:()=>({sourceLanguage,targetLanguage,purpose:translationPurpose,onDevice:typeof HablaOffline!=='undefined'&&HablaOffline.shouldUse()}),
     label:languageLabel,
+    prepareDevice:typeof HablaOffline!=='undefined'&&HablaOffline.canPrepare?.() ? ()=>HablaOffline.prepare() : undefined,
+    deviceReady:()=>typeof HablaOffline!=='undefined'&&HablaOffline.ready,
     formatError:error=>{const message=translationErrorMessage(error);return message.title+' '+message.help;},
     translate:(text,options)=>requestGeneralTranslation(text,languageFamily(options.sourceLanguage)==='en'?'en-ec':'ec-en',{
       source:options.sourceLanguage,target:options.targetLanguage,purpose:options.purpose,onDevice:options.onDevice,
@@ -6094,7 +6097,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=210", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=211", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

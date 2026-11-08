@@ -10,9 +10,9 @@ const HablaOffline = (() => {
   };
   const FILES = ["config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"];
   let onlineConfirmed = false;
-  let ready = false, enabled = false, worker, serial = 0, installing = false, validating = null, startup = null;
+  let ready = false, enabled = false, worker, serial = 0, installing = null, validating = null, startup = null;
   // Match the cached app release instead of leaving the worker on an older build.
-  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=210";
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=211";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
@@ -105,9 +105,11 @@ const HablaOffline = (() => {
     updateModeBadge();
     return validating;
   }
-  async function install() {
-    if (installing) return;
-    installing = true;
+  function install() {
+    if (!installing) installing = installPack().finally(() => { installing = null; });
+    return installing;
+  }
+  async function installPack() {
     const button = document.querySelector("#offline-download");
     button.disabled = true;
     try {
@@ -129,10 +131,16 @@ const HablaOffline = (() => {
       await validate(controller);
       document.querySelector("#offline-use").checked = enabled;
       try {await navigator.storage?.persist?.();} catch {}
+      return true;
     } catch (error) {
       ready=false;
-      status(`Offline pack not ready. ${error.message || "Download interrupted; retry to continue."}`);
-    } finally { installing = false; button.disabled = Boolean(supportProblem()); button.textContent = ready ? "Validate offline pack" : "Download / validate offline pack"; }
+      status('Offline pack not ready. ' + (error.message || "Download interrupted; retry to continue."));
+      return false;
+    } finally { button.disabled = Boolean(supportProblem()); button.textContent = ready ? "Validate offline pack" : "Download / validate offline pack"; }
+  }
+  async function prepare() {
+    if (startup) await startup;
+    return ready || await install();
   }
   function shouldUse() { return enabled || (ready && navigator.onLine === false); }
   async function translate(text, way) {
@@ -178,6 +186,6 @@ const HablaOffline = (() => {
       finally {button.disabled=false;}
     } else if (enabled) status("On-device mode requested, but the pack is incomplete. Download and validate it first. Your text will not be sent online in this mode.");
   }
-  return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
+  return {reportOnlineSuccess(){onlineConfirmed=true;updateModeBadge();}, reportOnlineFailure(){onlineConfirmed=false;updateModeBadge();}, get busy(){return installing || Boolean(validating) || pending.size > 0;}, get ready(){return ready;}, canPrepare:()=>!supportProblem(), prepare, bind, shouldUse, translate, checkPack, RUNTIME, RUNTIME_CACHE, MODEL_CACHE, MODELS, FILES};
 })();
 

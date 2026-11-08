@@ -121,6 +121,7 @@ async function main(){
   assert.equal(element('#print-document').disabled,true,'partial output cannot be printed as a complete paper');
   assert.equal(element('#share-document').disabled,true,'partial output cannot be shared as a finished paper');
   const savedJobs=whole.list(store);assert.equal(savedJobs.length,1);
+  assert.equal(savedJobs[0].stopReason,'quota','the real provider pause survives reload');
   assert.ok(savedJobs[0].parts[0].chunks.length===2,'each completed provider chunk was saved before the quota error');
   const already=fetchCalls.slice(0,2);failAt=-1;
   run('translationChunkCache.clear()'); // Simulate losing all in-memory service cache.
@@ -194,6 +195,53 @@ async function main(){
   assert.equal(whole.list(store).length,3,'a progress backup restores as a separate copy after closing the source');
   assert.equal(run('importedDocument.name'),offlineJob.name);
   assert.equal(fetchCalls.length,count,'reopening and importing backups never sends text to a translation service');
+
+  // Reproduce a document reopened with four of fifteen sections translated.
+  const localRequests=[];
+  let ready=false, finishPreparation;
+  context.HablaOffline={shouldUse:()=>false,canPrepare:()=>true,get ready(){return ready;},
+    prepare:()=>new Promise(resolve=>{finishPreparation=resolve;}),
+    translate:async(text,way)=>{localRequests.push({text,way});return 'On-device draft: '+text;}};
+  run('bindWholeDocumentTools()');
+  const longDoc={name:'Fifteen sections.pdf',sections:Array.from({length:15},(_,index)=>'Section '+(index+1)+'. This section has enough source text to resume.')};
+  const existing=whole.create(longDoc,route);
+  for(let i=0;i<4;i++)existing.parts[i].translation='Preserved online section '+(i+1);
+  existing.stopReason='quota';
+  whole.save(store,existing);
+  element('#whole-document-saved').value=existing.id;
+  element('#open-document-progress').handlers.click();
+  assert.match(element('#whole-document-status').textContent,/4 of 15 sections translated.*daily allowance/);
+  assert.equal(element('#document-full-draft-label').textContent,'Partial translation preview');
+  assert.equal(element('#share-document').disabled,true);
+  assert.equal(element('#finish-document-on-device').textContent,'Download pack & finish on device');
+  const attempt=element('#finish-document-on-device').handlers.click();
+  assert.equal(element('#translate-entire-document').disabled,true);
+  finishPreparation(false);
+  await attempt;
+  assert.equal(whole.read(store,existing.id).onDevice,false,'a failed pack preparation keeps the original job');
+  assert.match(element('#document-device-status').textContent,/progress is saved/);
+  const unfinished=element('#finish-document-on-device').handlers.click();
+  run('closeImportedDocument()');
+  finishPreparation(true);
+  await unfinished;
+  assert.equal(localRequests.length,0,'closing while the pack prepares does not start translation');
+  element('#whole-document-saved').value=existing.id;
+  element('#open-document-progress').handlers.click();
+  const finishing=element('#finish-document-on-device').handlers.click();
+  ready=true;
+  finishPreparation(true);
+  await finishing;
+  const finished=whole.read(store,existing.id);
+  assert.equal(finished.deviceContinuation,true);
+  assert.equal(finished.stopReason,undefined);
+  assert.equal(whole.completed(finished),15);
+  assert.deepEqual(finished.parts.slice(0,4).map(part=>part.translation),existing.parts.slice(0,4).map(part=>part.translation));
+  assert.equal(localRequests.length,11,'only the remaining eleven sections go to the local engine');
+  assert.ok(localRequests.every(request=>request.way==='en-ec'));
+  assert.equal(fetchCalls.length,count,'finishing on the device never calls the online provider');
+  assert.equal(context.HablaOffline.shouldUse(),false,'the rest of the app keeps its existing mode');
+  assert.equal(element('#document-full-draft-label').textContent,'Complete translation draft');
+  assert.equal(element('#share-document').disabled,false);
   // Both app entry points load the new module before app.js and keep unique controls.
   for(const name of ['index.html','translator.html']){
     const source=fs.readFileSync(name,'utf8');

@@ -6,6 +6,9 @@
   const LANGUAGES = ['en-US','en-GB','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO'];
   const MAX_TEXT = 200000;
   const MAX_DRAFT = 600000;
+  const FREE_ONLINE_CHARACTERS = 5000;
+  const STOP_REASONS = new Set(['paused','interrupted','quota','rate_limit','offline','offline_pack','offline_engine',
+    'network','timeout','request_limit','research_limit','invalid_response','service']);
   const isText = value => typeof value === 'string';
   const fail = message => { throw new Error(message); };
   function pdfCoverage(value) {
@@ -50,7 +53,9 @@
     return {schema:SCHEMA,id:data.id,name:data.name,sourceLanguage:data.sourceLanguage,targetLanguage:data.targetLanguage,
       purpose:data.purpose,onDevice:data.onDevice,parts,editedText:data.editedText,
       updatedAt:isText(data.updatedAt) ? data.updatedAt : '',status:'paused',
-      ...(data.pdfCoverage ? {pdfCoverage:pdfCoverage(data.pdfCoverage)} : {})};
+      ...(data.pdfCoverage ? {pdfCoverage:pdfCoverage(data.pdfCoverage)} : {}),
+      ...(data.onDevice&&data.deviceContinuation===true ? {deviceContinuation:true} : {}),
+      ...(STOP_REASONS.has(data.stopReason) ? {stopReason:data.stopReason} : {})};
   }
   function create(document, route) {
     const job = {schema:SCHEMA,id:`doc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,12)}`,
@@ -105,14 +110,17 @@
     pause(message='Paused. Completed sections and segments are saved; tap Resume entire document to continue.') {
       if (!this.busy) return;
       this.generation++;this.message=message;
-      if(this.job)this.job.status='paused';
+      if(this.job){
+        this.job.status='paused';this.job.stopReason='paused';
+        try {this.persist();} catch {}
+      }
       this.notify();
     }
     async run(job, isCurrent=()=>true) {
       if(this.busy)return;
       this.job=job;this.busy=true;this.error=null;const generation=++this.generation;
       const current=()=>generation===this.generation && isCurrent();
-      this.message='';job.status='running';this.notify();
+      this.message='';job.status='running';job.stopReason='interrupted';this.notify();
       try {
         this.persist(); // Do not spend service quota if durable progress cannot be saved.
         for (let i=0;i<job.parts.length;i++) {
@@ -135,11 +143,16 @@
           if(!isText(text)||!text.trim())fail('A section returned no translation. Progress is saved; retry this document.');
           part.translation=text;this.persist();this.onSection(i,part,job);this.notify();
         }
-        if(complete(job)){job.status='complete';this.message='Complete editable translation draft. Review the wording before sharing.';}
+        if(complete(job)){
+          job.status='complete';delete job.stopReason;this.persist();
+          this.message='Complete editable translation draft. Review the wording before sharing.';
+        }
         else {job.status='paused';if(!this.message)this.message='Paused because the text, languages or translation service changed. Progress is saved.';}
       } catch(error) {
         job.status='paused';
         this.message=error.code==='superseded' ? 'Paused. Progress is saved.' : error.message || 'Translation paused. Progress is saved.';
+        if(error.code!=='superseded')job.stopReason=STOP_REASONS.has(error.code)?error.code:'interrupted';
+        try {this.persist();} catch {}
         this.error=error;
       } finally {this.busy=false;this.notify();}
     }
@@ -188,25 +201,28 @@
       button.disabled=false;
     }
   }
-  function bind({getDocument,getRoute,openDocument,translate,onSection,label,formatError}) {
+  function bind({getDocument,getRoute,openDocument,translate,onSection,label,formatError,prepareDevice,deviceReady}) {
     const $=selector=>document.querySelector(selector);
     if(!$('#translate-entire-document'))return null;
     const saveForLater=$('#save-document-for-later');
     const share=$('#share-document'),coverage=$('#whole-document-coverage');
-    let active=null,restoredJob=null,backupImport=0;
+    const finishDevice=$('#finish-document-on-device'),deviceStatus=$('#document-device-status');
+    let active=null,restoredJob=null,backupImport=0,preparing=null,deviceMessage='';
+    const routeFor=job=>job?.deviceContinuation?{...getRoute(),onDevice:true}:getRoute();
     const runner=new Runner({storage:localStorage,translate,onSection,onChange:()=>render()});
     function findCurrent() {
       const doc=getDocument();
       if(!doc)return null;
       const route=getRoute();
       if(restoredJob&&matches(restoredJob,doc,{...route,onDevice:restoredJob.onDevice}))return restoredJob;
-      if(active && matches(active,doc,route))return active;
-      return list(localStorage).find(job=>matches(job,doc,route)) || null;
+      if(active && matches(active,doc,routeFor(active)))return active;
+      return list(localStorage).find(job=>matches(job,doc,routeFor(job))) || null;
     }
     function render() {
-      const doc=getDocument(), route=getRoute(), jobs=list(localStorage);
+      const doc=getDocument(), jobs=list(localStorage);
       if(!runner.busy) active=findCurrent();
       const job=runner.busy?runner.job:active;
+      const route=routeFor(job);
       $('#whole-document-tools').hidden=!doc&&!jobs.length&&!job;
       const select=$('#whole-document-saved'), selected=select.value;
       select.replaceChildren();
@@ -222,17 +238,32 @@
       const done=job&&complete(job);
       const engineMismatch=job&&job.onDevice!==route.onDevice;
       const supported=route.sourceLanguage.slice(0,2)!==route.targetLanguage.slice(0,2);
-      $('#translate-entire-document').disabled=runner.busy||!doc||!supported||!!done||!!engineMismatch;
+      $('#translate-entire-document').disabled=runner.busy||!!preparing||!doc||!supported||!!done||!!engineMismatch;
       const started=job?.parts.some(part=>part.translation!==null||part.chunks.length);
       $('#translate-entire-document').textContent=done?'Document translated':started?'Resume entire document':'Translate entire document';
       if(saveForLater){
         saveForLater.hidden=!doc||!!job||runner.busy;
-        saveForLater.disabled=!supported;
+        saveForLater.disabled=!supported||!!preparing;
       }
-      if(doc)$('#translate-document').disabled=runner.busy;
+      if(finishDevice){
+        const ready=deviceReady?.();
+        const large=doc?.sections.reduce((sum,text)=>sum+text.length,0)>FREE_ONLINE_CHARACTERS;
+        finishDevice.hidden=!prepareDevice||!doc||!supported||!!done||runner.busy||
+          !(large||started||route.onDevice||job?.stopReason)||(job?.onDevice??route.onDevice)&&ready;
+        finishDevice.disabled=!!preparing;
+        finishDevice.textContent=ready?'Finish on this device':'Download pack & finish on device';
+        if(deviceStatus){
+          deviceStatus.textContent=deviceMessage||(!finishDevice.hidden&&!ready
+            ?'The offline pack is a one-time download of over 225 MB.' : '');
+          deviceStatus.hidden=!doc||!deviceStatus.textContent;
+        }
+      }
+      if(doc)$('#translate-document').disabled=runner.busy||!!preparing;
       $('#pause-entire-document').hidden=!runner.busy;
       $('#pause-entire-document').disabled=runner.busy&&runner.job.status!=='running';
       $('#document-full-draft-panel').hidden=!job;
+      const draftLabel=$('#document-full-draft-label');
+      if(draftLabel)draftLabel.textContent=done?'Complete translation draft':'Partial translation preview';
       $('#document-full-draft').readOnly=!done||runner.busy;
       if(job)$('#document-full-draft').lang=job.targetLanguage;
       if(job) {
@@ -241,9 +272,13 @@
       }
       const progress=job&&(started||runner.busy)?`${completed(job)} of ${job.parts.length} sections translated. `:'';
       let message=runner.job===job?runner.message:'';
-      if(runner.busy&&job?.status==='running') message='Translating in order. Keep this page open; Pause retains completed work.';
+      if(runner.busy&&job?.status==='running') message=job.onDevice
+        ?'Translating remaining sections on this device. Keep this page open.'
+        :'Translating in order. Keep this page open; Pause retains completed work.';
       if(!message&&job&&!started)message='Document saved on this device. Translate it when you are ready.';
-      if(!message)message=done?'Complete editable translation draft.':job?'Saved progress is ready. Translation resumes only when you tap Resume entire document.':doc?'Ready to translate the whole document into '+label(route.targetLanguage)+'.':'';
+      if(!message&&job&&!done&&job.stopReason==='quota')message='The online service reached its daily allowance. Finish on this device, or resume after the service resets.';
+      if(!message&&job&&!done&&job.stopReason&&job.stopReason!=='paused'&&job.stopReason!=='interrupted')message=formatError?.({code:job.stopReason})||'Translation paused. Your progress is saved.';
+      if(!message)message=done?'Complete editable translation draft.':job?'Translation is paused. The preview shows only completed sections.':doc?'Ready to translate the whole document into '+label(route.targetLanguage)+'.':'';
       if(engineMismatch&&!done)message='This progress uses '+(job.onDevice?'on-device translation':'the online service')+'. Select the same mode under Offline translation before resuming. No text has been sent in a different mode.';
       $('#whole-document-status').textContent=progress+message;
       if(coverage){
@@ -270,22 +305,53 @@
         $('#whole-document-status').textContent=error.message;
       }
     });
+    async function runJob(job) {
+      restoredJob=job;
+      await runner.run(job,()=>{
+        const now=getDocument();
+        return !!now&&matches(job,now,routeFor(job));
+      });
+      if(runner.error?.code&&runner.error.code!=='superseded') {
+        runner.message=(formatError?.(runner.error)||runner.message)+' Completed work is saved; resume after resolving this.';render();
+      }
+    }
     $('#translate-entire-document').addEventListener('click',async()=>{
-      if(runner.busy)return;
+      if(runner.busy||preparing)return;
       const doc=getDocument();if(!doc)return;
-      const route=getRoute();
       try {
-        active=findCurrent()||create(doc,route);
-        if(active.onDevice!==route.onDevice){render();return;}
-        restoredJob=active;
-        runner.error=null;
-        await runner.run(active,()=>{
-          const now=getDocument();return !!now&&matches(active,now,getRoute());
-        });
-        if(runner.error?.code&&runner.error.code!=='superseded') {
-          runner.message=formatError(runner.error)+' Completed work is saved; resume after resolving this.';render();
-        }
+        const job=findCurrent()||create(doc,getRoute());
+        if(job.onDevice!==routeFor(job).onDevice){render();return;}
+        await runJob(job);
       }catch(error){$('#whole-document-status').textContent=error.message;}
+    });
+    finishDevice?.addEventListener('click',async()=>{
+      const doc=getDocument();
+      if(!doc||runner.busy||preparing||!prepareDevice)return;
+      const saved=findCurrent();
+      if(saved&&complete(saved))return;
+      const route={...getRoute(),onDevice:true};
+      const source={...doc,sections:[...doc.sections]};
+      const request={};
+      preparing=request;
+      deviceMessage='Preparing on-device translation. Your completed sections are saved.';
+      render();
+      try {
+        const ready=await prepareDevice();
+        if(preparing!==request)return;
+        if(!ready){
+          deviceMessage='The offline pack is unavailable. Your progress is saved. Retry the pack or resume online.';
+          return;
+        }
+        const now=getDocument();
+        const job=saved ? {...saved,onDevice:true,deviceContinuation:true} : {...create(source,route),deviceContinuation:true};
+        if(!now||!matches(job,now,{...getRoute(),onDevice:true})||(findCurrent()?.id||null)!==(saved?.id||null))return;
+        save(localStorage,job);
+        active=job;restoredJob=job;preparing=null;deviceMessage='';
+        await runJob(job);
+      }catch(error){if(preparing===request)deviceMessage=error.message;}
+      finally{
+        if(preparing===request){preparing=null;render();}
+      }
     });
     $('#pause-entire-document').addEventListener('click',()=>runner.pause());
     $('#open-document-progress').addEventListener('click',()=>{
@@ -340,7 +406,8 @@
     $('#offline-use')?.addEventListener('change',modeChanged);
     window.addEventListener('online',modeChanged);window.addEventListener('offline',modeChanged);
     render();
-    return {refresh:render,pause:message=>runner.pause(message),runner,
+    return {refresh:render,pause(message){preparing=null;deviceMessage='';runner.pause(message);},runner,
+      usesDevice:()=>findCurrent()?.deviceContinuation===true,
       section:index=>findCurrent()?.parts[index],
       recordSection(index,source,text){
         const doc=getDocument();if(!doc||runner.busy||doc.sections[index]?.trim()!==source.trim()||!text.trim())return;
