@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.6 · build 216";
+const APP_VERSION = "0.27.7 · build 217";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4593,7 +4593,7 @@ function renderFaceToFace() {
     side.querySelector("[data-face-mic]").disabled = Boolean(faceHandsFree || otherMicBusy);
     const detailsOpen = Boolean(box.querySelector("details[open]"));
     if (!turn) {
-      box.textContent = faceStatus ? "" : "Start hands-free or hold your mic. / Inicia manos libres o mantén pulsado el micrófono.";
+      box.textContent = faceStatus ? "" : "Start hands-free or tap your mic to talk. / Inicia manos libres o toca tu micrófono para hablar.";
     } else if (turn.slot === role) {
       box.innerHTML = `<small>${escapeHtml(turn.languageLabel)}</small><p class="face-to-face-text" lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`;
     } else if (turn.pending || turn.failed) {
@@ -4760,30 +4760,8 @@ function bindFaceToFace() {
   });
 
   for (const button of dialog.querySelectorAll("[data-face-mic]")) {
-    let pointerId = null;
-    button.addEventListener("contextmenu", event => event.preventDefault());
-    button.addEventListener("pointerdown", event => {
-      if (!event.isPrimary || event.button !== 0 || faceHandsFree || faceCapture || recognition) return;
-      event.preventDefault();
-      button.setPointerCapture(event.pointerId);
-      pointerId = event.pointerId;
-      startFaceCapture(button);
-    });
-    button.addEventListener("pointerup", event => {
-      if (event.pointerId !== pointerId) return;
-      pointerId = null;
-      stopFaceCapture();
-    });
-    for (const type of ["pointercancel","lostpointercapture"]) {
-      button.addEventListener(type, event => {
-        if (event.pointerId !== pointerId) return;
-        pointerId = null;
-        cancelFaceCapture();
-      });
-    }
-    // Keyboard and assistive technology can activate once to start and again to finish.
-    button.addEventListener("click", event => {
-      if (event.detail !== 0 || faceHandsFree) return;
+    button.addEventListener("click", () => {
+      if (faceHandsFree) return;
       if (faceCapture?.button === button) stopFaceCapture();
       else startFaceCapture(button);
     });
@@ -6345,7 +6323,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=216", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=217", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

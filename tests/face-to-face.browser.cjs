@@ -60,22 +60,21 @@ async function main() {
       assert.equal(await far.evaluate(el => getComputedStyle(el).transform),"matrix(-1, 0, 0, -1, 0, 0)");
       assert.ok(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth));
 
-      async function hold(mic) {
-        const {x,y,width,height} = await mic.boundingBox();
-        await page.mouse.move(x + width / 2,y + height / 2);
-        await page.mouse.down();
-        await mic.waitFor();
+      async function tapToTalk(mic) {
+        await mic.tap();
         assert.equal(await mic.getAttribute("aria-pressed"),"true");
+        assert.match(await mic.innerText(),/Tap to finish/);
+        assert.equal(await page.evaluate(() => Boolean(faceRecordings.at(-1).stopped)),false);
       }
 
-      await hold(nearMic);
+      await tapToTalk(nearMic);
       assert.equal(await farMic.isDisabled(),true);
       await page.evaluate(() => faceRecordings.at(-1).emit("Hola, ¿dónde puedo encontrar camello?",false,0.8));
       assert.match(await near.innerText(),/dónde puedo/);
       assert.doesNotMatch(await far.innerText(),/dónde puedo/);
       await page.evaluate(() => faceRecordings.at(-1).emit("Hola, ¿dónde puedo encontrar camello?",true,0.8));
       assert.doesNotMatch(await far.innerText(),/es-EC → en-US/);
-      await page.mouse.up();
+      await nearMic.tap();
       await far.getByText(/es-EC → en-US/).waitFor();
       await far.locator("summary").tap();
       assert.match(await far.innerText(),/work or job sense/);
@@ -90,14 +89,14 @@ async function main() {
       await near.getByText(/en-US → es-EC/).waitFor();
       assert.equal(await page.evaluate(() => faceSpoken.length),1,"only the explicitly requested line is spoken");
 
-      await hold(nearMic);
+      await tapToTalk(nearMic);
       await page.evaluate(() => faceRecordings.at(-1).emit("We should go to the museum now",true,0.2));
-      await page.mouse.up();
+      await nearMic.tap();
       await far.getByText(/Please repeat/).waitFor();
       assert.equal(await page.evaluate(() => turns.length),2,"unclear capture is discarded");
-      await hold(nearMic);
+      await tapToTalk(nearMic);
       await page.evaluate(() => faceRecordings.at(-1).emit("We should go now",false,0.8));
-      await page.mouse.up();
+      await nearMic.tap();
       await far.getByText(/Please repeat/).waitFor();
       assert.equal(await page.evaluate(() => turns.length),2,"tentative capture is discarded");
 
@@ -138,17 +137,17 @@ async function main() {
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
       assert.equal(await nearMic.isEnabled(),true);
       await near.getByText(/es-EC → en-US/).waitFor();
-      await hold(farMic);
+      await tapToTalk(farMic);
       await page.evaluate(() => faceRecordings.at(-1).emit("Fuck",true,0.9));
-      await page.mouse.up();
+      await farMic.tap();
       await near.getByText("¡Mierda!",{exact:true}).waitFor();
       await near.getByText("Fuck",{exact:true}).waitFor();
-      await hold(nearMic);
+      await tapToTalk(nearMic);
       await page.evaluate(() => {
         requestGeneralTranslation = async () => "This is terrible.";
         faceRecordings.at(-1).emit("Esto es una mierda",true,0.9);
       });
-      await page.mouse.up();
+      await nearMic.tap();
       await far.getByText("This is terrible.",{exact:true}).waitFor();
       await far.getByText("Esto es una mierda",{exact:true}).waitFor();
       assert.equal(await page.evaluate(() => faceSpoken.length),1);

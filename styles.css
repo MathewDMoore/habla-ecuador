@@ -1522,12 +1522,7 @@ body.ve-theater-open {overflow:hidden !important;}
 #start-face-conversation { flex: 1; width: auto; padding: 6px 8px; font-size: .85rem; }
 .face-to-face-listening { font-size: .85rem; font-weight: 750; }
 
-[data-face-mic] {
-  min-height: 44px;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
+[data-face-mic] { min-height: 44px; }
+[data-face-mic] small { font: inherit; }
 
 [data-face-mic].listening { outline: 3px solid #b65b28; outline-offset: 2px; }
