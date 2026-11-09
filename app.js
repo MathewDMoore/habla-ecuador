@@ -6091,6 +6091,84 @@ function initializeOptionalFeature(name, setup) {
   } catch (error) { failed(error); }
 }
 
+
+// The user explicitly saves text snapshots. Unlike everyday Translation History,
+// music and other people's conversations must never enter an automatic archive.
+function currentSavedSong(){
+ if(musicListening||musicFullTranslation||documentImportActive||documentLoading||!musicTranscriptReview)return null;
+ const source=$("#translator-input")?.value.trim()||"";
+ const target=$("#natural-result")?.textContent.trim()||"";
+ if(!source||!target||$("#translation-result")?.hidden ||
+    lastCompletedTranslation?.source!==source ||
+    lastCompletedTranslation?.sourceLanguage!==sourceLanguage ||
+    lastCompletedTranslation?.targetLanguage!==targetLanguage)return null;
+ return {source,target,sourceLanguage,targetLanguage,
+  passages:musicPassages.map(({source,draft,language,target})=>({source,draft,language,target}))};
+}
+function currentSavedConversation(faceOnly=false){
+ if(recognition||faceCapture||faceHandsFree||liveConversationTurn||conversationComposerBusy||
+   turns.some(turn=>turn.pending))return null;
+ const completed=turns.filter((turn,index)=>index >= (faceOnly?faceTurnOffset:0)
+   && (!faceOnly || turn.faceToFace)&&!turn.failed&&!turn.pending
+   && turn.source?.trim()&&turn.translation?.trim());
+ if(!completed.length)return null;
+ return {turns:completed.map(turn=>({
+  speaker:turn.speaker||"",source:turn.source,translation:turn.translation,
+  sourceLocale:turn.sourceLocale||"",target:turn.target||"",
+  role:turn.role||"",slot:turn.slot||"",languageLabel:turn.languageLabel||"",
+  faceToFace:Boolean(turn.faceToFace),languageUncertain:Boolean(turn.languageUncertain)
+ }))};
+}
+function restoreSavedSong(item){
+ if(!item||musicListening||recognition||musicFullTranslation||documentImportActive||documentLoading||
+   !TRANSLATOR_LANGUAGES[item.sourceLanguage]||!TRANSLATOR_LANGUAGES[item.targetLanguage])return false;
+ cancelMusicListening();stopSpeechPlayback();saveActiveTranslationEdit();
+ clearTimeout(translationTimer);translationRequest+=1;musicReviewRequest+=1;
+ if(importedDocument)closeImportedDocument();
+ sourceLanguage=item.sourceLanguage;targetLanguage=item.targetLanguage;syncLanguagePair();
+ setTranslationPurpose("everyday",false);
+ setMode("translate");openView("translator-view");
+ $("#translator-input").value=item.source;
+ musicCapturedText=item.source;musicCapturedLanguage=item.sourceLanguage;
+ musicCapturedConfirmedText=item.source;musicCapturedTentativeText="";
+ musicTranscriptReview=true;
+ musicPassageID=0;
+ musicPassages=(item.passages||[]).map(passage=>({
+  ...passage,id:++musicPassageID,way:direction,purpose:"everyday",
+  status:"Restored text from this device. / Texto restaurado de este dispositivo."
+ }));
+ selectedMusicPassage=musicPassages[0]?.id??null;syncMusicReview();
+ setEditableTranslation(item.source,item.target,{musicSourceMode:"saved",historyRestored:true});
+ $("#translation-result").hidden=false;$("#no-result").hidden=true;
+ $("#translation-result .result-label").textContent=
+  languageLabel(targetLanguage)+" · saved song translation / canción guardada";
+ $("#literal-result").textContent=
+  "Saved text reopened; no new music/audio downloaded or retranslated. / Texto recuperado sin volver a traducir.";
+ $("#usage-note").textContent=
+  "Saved wording is a reviewed draft. Timing, missed words, and regional accuracy still need verification.";
+ $("#translate-music").disabled=false;
+ $("#music-listening-status").textContent="Saved song opened. Continue editing or start a new song.";
+ if($("#saved-music-title"))$("#saved-music-title").value=item.title||"";
+ if($("#saved-music-artist"))$("#saved-music-artist").value=item.artist||"";
+ return true;
+}
+function restoreSavedConversation(item){
+ if(!item?.turns?.length||recognition||faceCapture||faceHandsFree||liveConversationTurn||
+   conversationComposerBusy||musicListening)return false;
+ stopSpeechPlayback();conversationGeneration+=1;conversationActive=false;
+ setMode("conversation");openView("translator-view");
+ turns=item.turns.map(turn=>({
+  ...turn,pending:false,finished:true,failed:Boolean(turn.failed),
+  languageUncertain:Boolean(turn.languageUncertain)
+ }));
+ faceTurnOffset=0;
+ renderTurns();
+ $("#conversation-status").textContent=
+  "Saved conversation restored locally. No audio or network translation was used. / Conversación restaurada sin conexión.";
+ if($("#saved-conversations-title"))$("#saved-conversations-title").value=item.title||"";
+ return true;
+}
+
 function init() {
   const launchQuery = new URLSearchParams(location.search);
   const faceToFaceLaunch = launchQuery.get("start") === "face-to-face";
