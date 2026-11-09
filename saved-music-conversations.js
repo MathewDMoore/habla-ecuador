@@ -214,9 +214,71 @@ function saveConversation(faceOnly=false){
  const faceStatus=document.getElementById("face-save-status");
  if(faceStatus&&faceOnly)faceStatus.textContent=result.ok?"💾 Saved / Guardada":result.reason;
 }
+function makeButton(idValue,label){
+ const button=element("button","saved-session-action",label);
+ button.id=idValue;button.type="button";return button;
+}
+function makeField(idValue,labelText,placeholder,max=140){
+ const label=element("label","saved-session-field",labelText);
+ const input=element("input","saved-session-input");
+ input.id=idValue;input.type=idValue.endsWith("-search")?"search":"text";
+ input.autocomplete="off";input.placeholder=placeholder;input.maxLength=max;
+ label.append(input);return label;
+}
+function buildUi(kind){
+ const host=document.getElementById(kind==="song"?"music-save-host":"conversation-save-host");
+ if(!host||document.getElementById(ids(kind)))return;
+ const rootId=ids(kind);
+ const row=element("div","saved-session-quick-actions");
+ if(kind==="song"){
+  row.append(makeButton("save-music-translation","💾 Guardar canción / Save song"));
+ }else{
+  row.append(makeField("saved-conversations-title","Title / Título (optional)","My conversation"),
+   makeButton("save-conversation-now","💾 Guardar conversación / Save chat"));
+ }
+ const panel=element("details","compact-info saved-session-library");
+ panel.id=rootId;
+ const summary=element("summary","saved-session-summary",
+  kind==="song"?"🎶 Canciones guardadas / Saved song translations ":"💬 Conversaciones guardadas / Saved conversations ");
+ const count=element("span","saved-session-count","0");count.id=rootId+"-count";
+ summary.append(count);
+ const inside=element("div","saved-session-body");
+ inside.append(element("p","saved-session-note",
+  kind==="song"?"Save completed captured text + translation, not the song's audio. Explicit, device-only. / Texto y traducción, nunca audio; guardado manual."
+   :"Conversations are private and may contain other people's words. Nothing is auto-saved or synced. / Conversaciones privadas, guardado manual."));
+ if(kind==="song"){
+  const metadata=element("div","saved-session-metadata");
+  metadata.append(makeField("saved-music-title","Song title / Título","Optional / Opcional"),
+    makeField("saved-music-artist","Artist / Artista","Optional / Opcional"));
+  inside.append(metadata);
+ }
+ inside.append(makeField(rootId+"-search","Buscar / Search",
+    kind==="song"?"Title, artist or lyrics":"Speaker or conversation text",300));
+ const statusEl=element("p","saved-session-status");statusEl.id=rootId+"-status";
+ statusEl.setAttribute("role","status");statusEl.setAttribute("aria-live","polite");
+ const results=element("div","saved-session-results");results.id=rootId+"-results";
+ inside.append(statusEl,results);
+ const trash=element("details","saved-session-trash");
+ const trashSummary=element("summary","saved-session-trash-summary","🗑️ Papelera / Recoverable Trash ");
+ const trashCount=element("span","saved-session-count","0");trashCount.id=rootId+"-trash-count";
+ trashSummary.append(trashCount);
+ const desc=element("p","saved-session-note",
+  "Restaurar / Restore keeps your text. Permanently deleting requires confirmation and cannot be undone. / Restaurar conserva el texto; borrar definitivamente no se puede deshacer.");
+ const trashResults=element("div","saved-session-results");trashResults.id=rootId+"-trash-results";
+ trash.append(trashSummary,desc,trashResults);
+ inside.append(trash);panel.append(summary,inside);
+ host.append(row,panel);
+}
 function bind(options){
  if(callbacks)return;
  callbacks=options;
+ buildUi("song");buildUi("conversation");
+ const faceActions=document.querySelector("#face-to-face .face-to-face-actions");
+ if(faceActions&&!document.getElementById("face-save-status")){
+  const faceStatus=element("span","face-save-status");
+  faceStatus.id="face-save-status";faceStatus.setAttribute("role","status");
+  faceStatus.setAttribute("aria-live","polite");faceActions.append(faceStatus);
+ }
  document.getElementById("save-music-translation")?.addEventListener("click",saveSong);
  document.getElementById("save-conversation-now")?.addEventListener("click",()=>saveConversation(false));
  document.getElementById("save-face-conversation")?.addEventListener("click",()=>saveConversation(true));
