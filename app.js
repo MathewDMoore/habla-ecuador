@@ -4813,6 +4813,87 @@ function bindFaceToFace() {
   }
 }
 
+// Explicit, local-only song/conversation saving. These snapshots never include
+// audio, recordings, or personal metadata beyond names present in the transcript.
+function currentSavedMusic() {
+  if(musicListening||musicFullTranslation)return null;
+  const source=$("#translator-input")?.value?.trim()||musicCapturedText||"";
+  if(!source&&!musicPassages.length)return null;
+  const matches=lastCompletedTranslation?.source===source
+    &&lastCompletedTranslation?.sourceLanguage===sourceLanguage
+    &&lastCompletedTranslation?.targetLanguage===targetLanguage;
+  return {source,
+    translation:matches?($("#natural-result")?.textContent||lastCompletedTranslation.target||""):"",
+    sourceLanguage,targetLanguage,
+    passages:musicPassages.map(p=>({
+      source:p.source,draft:p.draft,language:p.language,target:p.target
+    }))};
+}
+function currentSavedConversation() {
+  if(recognition||activeRecognitionButton||faceCapture||faceHandsFree
+      ||conversationComposerBusy||liveConversationTurn||turns.some(t=>t.pending))return null;
+  const completed=turns.filter(t=>t.source?.trim()&&!t.pending);
+  return completed.length?{turns:completed.map(t=>({
+    speaker:t.speaker,source:t.source,translation:t.translation,
+    sourceLocale:t.sourceLocale,target:t.target,slot:t.slot,role:t.role,
+    languageLabel:t.languageLabel,faceToFace:t.faceToFace,
+    failed:t.failed,languageUncertain:t.languageUncertain
+  }))}:null;
+}
+function restoreSavedMusic(item) {
+  if(musicListening||recognition||documentImportActive||documentLoading)return false;
+  if(($("#translator-input")?.value?.trim()||musicPassages.length)
+    &&!window.confirm("Replace the current song text? Save it first if needed. / ¿Reemplazar el texto actual? Guárdalo antes si quieres conservarlo."))return false;
+  newMusicSong();
+  if(TRANSLATOR_LANGUAGES[item.sourceLanguage])sourceLanguage=item.sourceLanguage;
+  if(TRANSLATOR_LANGUAGES[item.targetLanguage])targetLanguage=item.targetLanguage;
+  syncLanguagePair();
+  openView("translator-view");setMode("translate");
+  const restoredSource=item.source||item.passages.map(p=>p.source).join("\n");
+  $("#translator-input").value=restoredSource;
+  musicCapturedText=restoredSource;
+  musicCapturedLanguage=sourceLanguage;
+  musicPassages=item.passages.map((p,i)=>({
+    id:i+1,source:p.source,draft:p.draft,language:p.language||sourceLanguage,
+    target:p.target||targetLanguage,way:direction,purpose:"everyday",
+    status:"Recovered local wording / Texto local recuperado."
+  }));
+  musicPassageID=musicPassages.length;
+  selectedMusicPassage=musicPassages[0]?.id??null;
+  musicTranscriptReview=Boolean(restoredSource&&!item.translation);
+  syncMusicReview();
+  $("#translate-music").disabled=!musicTranscriptReview;
+  if(item.translation){
+    setEditableTranslation(restoredSource,item.translation,{historyRestored:true,musicSaved:true});
+    $("#translation-result").hidden=false;
+    $("#no-result").hidden=true;
+    $("#translation-result .result-label").textContent=
+      "Saved song translation / Traducción de canción guardada";
+    $("#literal-result").textContent="Restored from this device, no retranslation.";
+    $("#usage-note").textContent="Saved wording is not automatically rechecked. Review incomplete phrases and cultural context.";
+  }
+  $("#music-listening-status").textContent="Saved song wording restored / Canción guardada recuperada.";
+  return true;
+}
+function restoreSavedConversation(item) {
+  if(recognition||activeRecognitionButton||faceCapture||faceHandsFree
+      ||conversationComposerBusy||liveConversationTurn||turns.some(t=>t.pending))return false;
+  if(turns.length&&!window.confirm(
+    "Replace the open conversation? Save it first if needed. / ¿Reemplazar la conversación abierta? Guárdala primero si quieres conservarla."))return false;
+  conversationGeneration+=1;
+  stopSpeechPlayback();
+  liveConversationTurn=null;
+  turns=item.turns.map(t=>({
+    ...t,role:t.role||t.slot||"english",slot:t.slot||t.role||"english",
+    pending:false,finished:true,failed:Boolean(t.failed)
+  }));
+  openView("translator-view");setMode("conversation");
+  renderTurns();
+  $("#conversation-status").textContent=
+    "Conversation recovered without retranslating / Conversación recuperada sin traducir de nuevo.";
+  return true;
+}
+
 function clearConversation() {
   conversationGeneration += 1;
   cancelListening();
