@@ -101,7 +101,7 @@ const config={
   action:'💾 Guardar conversación / Save conversation',label:'Nombre / Title (optional)',
   fallback:'Conversación / Conversation'}
 };
-let state=readState(),binds={},ui={};
+let state=readState(),binds={},ui={},lastSaved={};
 function status(kind,message){
  if(ui[kind]?.status)ui[kind].status.textContent=message;
 }
@@ -268,13 +268,71 @@ function mount(kind,options){
 }
 function saveSession(kind,data,title='',artist=''){
  if(!data)return {ok:false,error:'Nothing ready to save / Nada para guardar.'};
- return save(kind,data,title,artist);
+ const result=save(kind,data,title,artist);
+ if(result.ok)lastSaved[kind]=JSON.stringify(data);
+ return result;
+}
+function trashDraft(kind,data,title='',artist=''){
+ const candidate=sanitize({...data,kind,title,artist,
+   date:new Date().toISOString(),deletedAt:new Date().toISOString()});
+ if(!candidate)return false;
+ if(state.trash.length>=TRASH_LIMIT)return false;
+ candidate.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+ return commit({items:state.items,trash:[candidate,...state.trash]});
+}
+// Called only when someone explicitly chooses New song or Clear conversation.
+// The user gets three reversible choices. It never runs on page unload
+// or on simply changing tabs.
+function askBeforeClear(kind,proceed){
+ const options=binds[kind],part=ui[kind];
+ if(!options||!part||typeof proceed!=='function')return true;
+ const snapshot=options.getCurrent?.();
+ if(!snapshot||JSON.stringify(snapshot)===lastSaved[kind])return true;
+ if(part.prompt){part.prompt.remove();part.prompt=null;}
+ const panel=make('section','saved-session-decision');
+ panel.setAttribute('role','group');
+ panel.setAttribute('aria-label','Guardar o descartar / Save or discard');
+ panel.append(make('p','saved-session-decision-title',kind==='music'
+  ?'¿Guardar la canción antes de empezar otra? / Save this song before starting another?'
+  :'¿Guardar la conversación antes de borrarla? / Save this conversation before clearing?'));
+ const actions=make('div','saved-session-actions');
+ for(const [label,action] of [
+   ['💾 Guardar / Save','save'],
+   ['🗑️ A Papelera / Trash (recuperable)','trash'],
+   ['Cancelar / Cancel','cancel']
+ ]){
+  const control=make('button','saved-session-decision-button',label);
+  control.type='button';control.dataset.decision=action;actions.append(control);
+ }
+ panel.append(actions);
+ part.save.after(panel);part.prompt=panel;
+ panel.addEventListener('click',event=>{
+  const button=event.target.closest('[data-decision]');if(!button)return;
+  const action=button.dataset.decision;
+  if(action==='cancel'){panel.remove();part.prompt=null;return;}
+  const current=options.getCurrent?.();
+  if(!current){status(kind,'Capture is still in progress; finish first. / Termina la captura primero.');return;}
+  let ok=false;
+  if(action==='save'){
+   const result=saveSession(kind,current,part.title.value,part.artist?.value||'');
+   ok=result.ok;
+   if(!ok)status(kind,result.error);
+  }else if(action==='trash'){
+   ok=trashDraft(kind,current,part.title.value,part.artist?.value||'');
+   if(!ok)status(kind,'Trash is full or storage unavailable. Nothing was discarded. / Papelera llena o error; no se descartó nada.');
+  }
+  if(!ok)return;
+  panel.remove();part.prompt=null;
+  proceed();
+ });
+ panel.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+ return false;
 }
 function bind({getMusic,getConversation,openMusic,openConversation}={}){
  mount('music',{getCurrent:getMusic,open:openMusic});
  mount('conversation',{getCurrent:getConversation,open:openConversation});
  refresh();
 }
-root.HablaSavedSessions={read,readState,write,writeState,search,sanitize,saveSession,exportText,bind,remove,restoreDeleted,permanentlyDelete,refresh};
+root.HablaSavedSessions={read,readState,write,writeState,search,sanitize,saveSession,exportText,bind,remove,restoreDeleted,permanentlyDelete,refresh,askBeforeClear,trashDraft};
 if(typeof module!=='undefined'&&module.exports)module.exports=root.HablaSavedSessions;
 })(typeof window!=='undefined'?window:globalThis);
