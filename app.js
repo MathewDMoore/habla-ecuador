@@ -4783,6 +4783,16 @@ function bindFaceToFace() {
   const dialog = $("#face-to-face");
   $("#open-face-to-face").addEventListener("click", openFaceToFace);
   $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  $("#save-face-conversation")?.addEventListener("click",()=>{
+    const library=window.HablaSavedSessions;
+    const result=library?.saveSession("conversation",currentSavedConversation())
+      ||{ok:false,error:"Saved sessions unavailable. / Historial no disponible."};
+    faceStatus=result.ok
+      ?"Saved on this device. / Conversación guardada en este dispositivo."
+      :result.error;
+    renderFaceToFace();
+    library?.refresh();
+  });
   for(const button of dialog.querySelectorAll("[data-face-open]")){
     button.addEventListener("click",()=>{
       const destination=button.dataset.faceOpen;
@@ -6440,6 +6450,12 @@ function init() {
   if(typeof HablaTranslationHistory!=="undefined") {
     initializeOptionalFeature("recent translation history",()=>HablaTranslationHistory.bind({
       getCurrent:currentHistoryTranslation,restore:restoreHistoryTranslation,languageLabel
+    }));
+  }
+  if(typeof HablaSavedSessions!=="undefined"){
+    initializeOptionalFeature("saved songs and conversations",()=>HablaSavedSessions.bind({
+      getMusic:currentSavedMusic,getConversation:currentSavedConversation,
+      openMusic:restoreSavedMusic,openConversation:restoreSavedConversation
     }));
   }
   renderTranslation();
