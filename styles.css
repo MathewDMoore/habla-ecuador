@@ -1311,7 +1311,7 @@ body.ve-theater-open {overflow:hidden !important;}
   border-color:#a6b9ae;
 }
 #translation-result button:focus-visible,#translation-result summary:focus-visible {outline:3px solid #d66927;outline-offset:3px;}
-#translation-result .translation-edit-status {color:var(--translation-support-ink);}
+#translation-result .translation-edit-status, #regional-idiom-preview {color:var(--translation-support-ink);}
 #translation-result .speech-action-status {flex-basis:100%;margin:2px 0 0;padding:8px 10px;border-radius:8px;background:#edf5f0;color:#173f35;-webkit-text-fill-color:#173f35;font-size:13px;}
 #translation-result .result-notes,#translation-result .native-translation-tools {color:var(--translation-body-ink);}
 .inline-translation-alternatives {margin:12px 0;border:1px solid #89ae9e;border-radius:14px;padding:0 12px;color:var(--ink);background:white;}
