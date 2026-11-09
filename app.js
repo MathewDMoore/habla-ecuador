@@ -5080,7 +5080,7 @@ function renderMusic() {
   const traditions = $("#music-traditions");
   const drills = $("#rhythm-drills");
   if (!recordings || !heritageRecordings || !traditions || !drills) return;
-  const renderTrackCards = tracks => tracks.map((track,index) => `<article class="open-music-card">
+  const renderTrackCards = (tracks,group) => tracks.map((track,index) => `<article class="open-music-card" data-lyric-track-group="${group}" data-lyric-track-index="${index}">
     <p class="music-region">${escapeHtml(track.region)}</p>
     <h2>${escapeHtml(track.title)}</h2>
     <p class="music-credit">${escapeHtml(track.artist)} · ${escapeHtml(track.year)}</p>
@@ -5098,25 +5098,36 @@ function renderMusic() {
           <button type="button" data-lyric-mode="both" data-track-index="${index}">Both</button>
         </div>
       </header>
-      <p class="lyric-note">${escapeHtml(track.lyricsNote)}</p>
-      <div class="lyric-lines" data-lyric-lines="${index}">${renderLyricLines(track.lyrics,"en")}</div>
+      <p class="lyric-note">${escapeHtml(track.lyricsNote)} · Toca una línea para corregirla / Tap a line to edit.</p>
+      <div class="lyric-lines" data-lyric-lines="${index}">${renderLyricLines(track.lyrics,"en",group,index,track)}</div>
     </section>` : `<p class="instrumental-label">Instrumental track · no lyric subtitles</p>`}
     <p>${escapeHtml(track.note)}</p>
     <div class="music-license"><a href="${escapeHtml(track.sourceUrl)}" target="_blank" rel="noreferrer">Recording source</a><span>·</span><a href="${escapeHtml(track.licenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(track.license)}</a></div>
   </article>`).join("");
-  recordings.innerHTML = renderTrackCards(contemporaryMusicTracks);
-  heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks);
+  recordings.innerHTML = renderTrackCards(contemporaryMusicTracks,"contemporary");
+  heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks,"heritage");
+  for(const [container,tracks,group] of [
+    [recordings,contemporaryMusicTracks,"contemporary"],
+    [heritageRecordings,heritageMusicTracks,"heritage"]
+  ]){
+    [...container.querySelectorAll(".open-music-card")].forEach((card,index)=>
+      bindMusicLyricEdits(card,tracks[index],group,index));
+  }
   const players = $$("#music-view audio");
   players.forEach(player => player.addEventListener("play", () => handleMusicPlayerPlay(player,players)));
   $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
     const trackIndex = Number(button.dataset.trackIndex);
     const mode = button.dataset.lyricMode;
-    const companion = $(`[data-lyric-companion="${trackIndex}"]`);
-    const lines = $(`[data-lyric-lines="${trackIndex}"]`);
-    const track = contemporaryMusicTracks[trackIndex];
+    const companion = button.closest(".lyric-companion");
+    const card = companion?.closest(".open-music-card");
+    const group = card?.dataset.lyricTrackGroup || "contemporary";
+    const lines = companion?.querySelector(".lyric-lines");
+    const track = (group==="heritage"?heritageMusicTracks:contemporaryMusicTracks)[trackIndex];
     if (!companion || !lines || !track?.lyrics) return;
+    window.HablaMusicLyricEditing?.close();
     companion.querySelectorAll('[data-lyric-mode]').forEach(item => item.classList.toggle("active",item === button));
-    lines.innerHTML = renderLyricLines(track.lyrics,mode);
+    lines.innerHTML = renderLyricLines(track.lyrics,mode,group,trackIndex,track);
+    bindMusicLyricEdits(card,track,group,trackIndex);
   }));
   traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
     <p class="music-region">${escapeHtml(item.region)}</p>
@@ -5140,11 +5151,35 @@ function renderMusic() {
   $$('[data-rhythm-drill]').forEach(button => button.addEventListener("click", () => playRhythmDrill(Number(button.dataset.rhythmDrill),button)));
 }
 
-function renderLyricLines(lyrics, mode) {
-  return lyrics.map(line => `<p class="lyric-line">
-    ${mode !== "en" ? `<span lang="es-EC" class="lyric-es">${escapeHtml(line.es)}</span>` : ""}
-    ${mode !== "es" ? `<span lang="en-US" class="lyric-en">${escapeHtml(line.en)}</span>` : ""}
+function musicLineKey(group,index,track,lineIndex,language) {
+  return `licensed:${group}:${index}:${track?.year||""}:${lineIndex}:${language}`;
+}
+function renderLyricLines(lyrics,mode,group="contemporary",trackIndex=0,track=null) {
+  const saved=(original,lineIndex,language)=>window.HablaMusicLyricEditing?.get(
+    musicLineKey(group,trackIndex,track,lineIndex,language),original)||original;
+  return lyrics.map((line,lineIndex) => `<p class="lyric-line" data-line-index="${lineIndex}">
+    ${mode !== "en" ? `<span lang="es-EC" class="lyric-es">${escapeHtml(saved(line.es,lineIndex,"es"))}</span>` : ""}
+    ${mode !== "es" ? `<span lang="en-US" class="lyric-en">${escapeHtml(saved(line.en,lineIndex,"en"))}</span>` : ""}
   </p>`).join("");
+}
+function bindMusicLyricEdits(card,track,group,index) {
+  const editor=window.HablaMusicLyricEditing;
+  if(!card||!track?.lyrics||!editor)return;
+  card.querySelectorAll(".lyric-line").forEach((row,lineIndex)=>{
+    for(const language of ["es","en"]){
+      const element=row.querySelector(language==="es"?".lyric-es":".lyric-en");
+      const original=track.lyrics[lineIndex]?.[language];
+      if(!element||!original)continue;
+      const key=musicLineKey(group,index,track,lineIndex,language);
+      editor.makeTappable(element,()=>editor.show({
+        key,original,anchor:element,after:row,
+        label:language==="es"?"✏️ Español · Corregir letra":"✏️ English · Correct translation",
+        maxLength:600,
+        pause:()=>card.querySelector("audio")?.pause(),
+        onChange:value=>{element.textContent=value;}
+      }));
+    }
+  });
 }
 
 function playRhythmDrill(index, button) {
