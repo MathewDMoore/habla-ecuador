@@ -1,0 +1,28 @@
+name: Recoverable song and conversation Trash
+
+on:
+  pull_request:
+    paths:
+      - 'saved-sessions.js'
+      - 'tests/saved-sessions.test.cjs'
+      - 'app.js'
+      - 'index.html'
+      - '.github/workflows/saved-sessions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recoverable-delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check archive and app JavaScript syntax
+        run: node --check saved-sessions.js && node --check app.js
+      - name: Verify reversible deletion, restore and protection from accidental clears
+        run: node --test tests/saved-sessions.test.cjs
