@@ -1733,3 +1733,23 @@ body.ve-theater-open {overflow:hidden !important;}
 .face-to-face-actions #close-face-to-face,
 .face-to-face-actions #save-face-conversation {flex:1 1 90px;min-width:0;min-height:40px;padding:6px 7px;font-size:.75rem;line-height:1.1;}
 .face-to-face-actions .face-save-status {flex:1 1 100%;font-size:.73rem;text-align:center;line-height:1.3;color:#174630;}
+
+
+/* Before replacing song lyrics or clearing private conversation text,
+   keep the Save / recoverable Trash / Cancel decision next to Save. */
+.saved-session-decision {
+  display:grid;gap:9px;margin:10px 0;padding:10px;
+  border:2px solid #a97739;border-radius:12px;
+  background:#fff8e9;color:#3b2b19;scroll-margin-bottom:110px;
+}
+.saved-session-decision-title {margin:0!important;font-size:.88rem;line-height:1.4;font-weight:800;}
+.saved-session-decision .saved-session-actions {
+  display:flex;flex-wrap:wrap;gap:7px;align-items:stretch;
+}
+.saved-session-decision-button {
+  flex:1 1 115px;min-width:0;min-height:46px;
+  padding:8px 7px;border-radius:10px;border:1px solid #b78d62;
+  background:#fff;color:#3b2b19;font-size:.78rem;font-weight:800;
+}
+.saved-session-decision-button:first-child {background:#195940;color:white;}
+.saved-session-decision-button:focus-visible {outline:3px solid #174d38;outline-offset:2px;}
