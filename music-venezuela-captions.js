@@ -3,6 +3,7 @@
 (function(root){
 'use strict';
 const host=document.getElementById('ve-music-lesson');if(!host)return;
+const lyricEditor=root.HablaMusicLyricEditing;
 const cues=[
 [3,5.4,'♪ Vocal refrain ♪'],[5.4,10.8,"I'm never going to say goodbye to you."],
 [11,16.7,'As the days go by, I think of you more, girl.'],
@@ -142,6 +143,44 @@ function position(){
  return manual;
 }
 function selectedCue(seconds){return cues.findIndex(c=>seconds>=c[0]&&seconds<c[1]);}
+function originalCue(index,locale=lang.value){
+ const cue=cues[index];if(!cue)return '';
+ return locale==='en-GB'&&cue[3]?cue[3]:cue[2];
+}
+function shownCue(index,locale=lang.value){
+ return lyricEditor?.get('bye-bye:cue:'+index+':'+locale,originalCue(index,locale))
+   || originalCue(index,locale);
+}
+const cueButtons=[];
+function refreshCueButtons(){
+ for(const [index,button] of cueButtons.entries()){
+  if(button)button.textContent=fmt(cues[index][0])+' '+shownCue(index,lang.value==='off'?'en-US':lang.value);
+ }
+}
+function beginCueCorrection(anchor){
+ const index=selectedCue(position()+offset);
+ if(index<0||lang.value==='off'||!lyricEditor){
+  status.textContent='Choose an active English caption first, then tap its words to edit. / Elige un subtítulo y tócalo para corregirlo.';
+  return;
+ }
+ const locale=lang.value,base=originalCue(index,locale);
+ const pause=()=>{
+  if(sourceMode==='local')try{localVideo.pause();}catch{}
+  if(sourceMode==='youtube'&&ready)try{player.pauseVideo();}catch{}
+ };
+ lyricEditor.show({
+  anchor,after:anchor,key:'bye-bye:cue:'+index+':'+locale,
+  original:base,label:'✏️ '+fmt(cues[index][0])+' · '+(locale==='en-GB'?'UK English':'US English'),
+  maxLength:500,pause,
+  onChange:()=>{
+   refreshCueButtons();draw(true);
+   status.textContent='Caption correction saved locally. The lyric timing still needs review. / Corrección guardada en este dispositivo; tiempos sin verificar.';
+  }
+ });
+}
+for(const surface of [caption,reading,theaterEnglish]){
+ lyricEditor?.makeTappable(surface,()=>beginCueCorrection(surface));
+}
 function draw(force){
  const now=position();timeLabel.textContent=fmt(now);
  if((sourceMode==='local'||ready)&&document.activeElement!==timing){timing.value=String(Math.round(now));manual=now;}
@@ -151,7 +190,7 @@ function draw(force){
  // The YouTube IFrame API must confirm the current playback time before
  // applying any time-coded words. Never pretend a guessed cue is synchronized.
  const synced=sourceMode!=='youtube'||ready;
- const text=enabled&&synced&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
+ const text=enabled&&synced&&cue?shownCue(index):'';
  const onVideo=sourceMode==='youtube'||sourceMode==='local';
  const waitingForSync=onVideo&&sourceMode==='youtube'&&!ready;
  const overlayText=text||(enabled&&waitingForSync?'🇺🇸 English on · connecting to video time…':'');
@@ -170,7 +209,8 @@ function draw(force){
 }
 function renderPassages(){
  passages.replaceChildren();
- for(const v of verses){
+ lyricEditor?.close();
+ for(const [index,v] of verses.entries()){
   const section=document.createElement('article');section.className='ve-verse';
   const pair=document.createElement('div');pair.className='ve-verse-pair';
   const es=document.createElement('div'),en=document.createElement('div');
@@ -178,7 +218,21 @@ function renderPassages(){
   esTitle.textContent=source.value==='original'?'🇻🇪 Exact supplied Spanish':'🇻🇪 Spanish spelling/punctuation draft';
   enTitle.textContent=lang.value==='en-GB'?'🇬🇧 British English':'🇺🇸 American English';
   const esText=document.createElement('p'),enText=document.createElement('p');
-  esText.textContent=v[source.value];enText.textContent=lang.value==='en-GB'?v.uk:v.us;
+  const esField=source.value,englishField=lang.value==='en-GB'?'uk':'us';
+  const editable=(field,original)=>lyricEditor?.get('bye-bye:verse:'+index+':'+field,original)||original;
+  esText.textContent=editable(esField,v[esField]);
+  enText.textContent=editable(englishField,v[englishField]);
+  for(const [element,field] of [[esText,esField],[enText,englishField]]){
+   const original=v[field],key='bye-bye:verse:'+index+':'+field;
+   lyricEditor?.makeTappable(element,()=>{
+    lyricEditor.show({anchor:element,after:element,key,original,
+      label:field==='original'||field==='readable'?'✏️ Español · Corregir letra':'✏️ English · Correct translation',
+      maxLength:2000,
+      pause:()=>{if(sourceMode==='local')localVideo.pause();if(sourceMode==='youtube'&&ready)player.pauseVideo();},
+      onChange:value=>{element.textContent=value;status.textContent='Corrected text saved on this device; original still available. / Texto corregido, original conservado.';}
+    });
+   });
+  }
   es.append(esTitle,esText);en.append(enTitle,enText);pair.append(es,en);
   const note=document.createElement('p');note.className='ve-note';note.textContent=v.note;
   section.append(pair,note);passages.append(section);
@@ -197,11 +251,12 @@ function seek(sec){
 }
 for(let i=0;i<cues.length;i++){
  const cue=cues[i],button=document.createElement('button');button.type='button';
- button.textContent=fmt(cue[0])+' '+cue[2];button.addEventListener('click',()=>seek(cue[0]));list.append(button);
+ button.textContent=fmt(cue[0])+' '+shownCue(i,'en-US');button.addEventListener('click',()=>seek(cue[0]));list.append(button);cueButtons.push(button);
 }
 function syncInVideoLanguage(){
  inVideoLanguage.value=lang.value;
  inVideoLanguage.parentElement.hidden=!(sourceMode==='youtube'||sourceMode==='local');
+ refreshCueButtons();
  draw(true);renderPassages();
 }
 lang.addEventListener('change',syncInVideoLanguage);
