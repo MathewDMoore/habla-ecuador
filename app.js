@@ -1667,6 +1667,17 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
   return {text:rewritten, entries:[...new Set(matchedEntries)]};
 }
 
+// Both the fixed main bar and the top-layer Face to Face bar expose the
+// same five destinations. Keep their selection/assistive labels synchronized.
+function syncMainNavSelection(id) {
+  for(const button of $$(".bottom-nav button, .face-to-face-bottom-nav button")) {
+    const selected=(button.dataset.open||button.dataset.faceOpen)===id;
+    button.classList.toggle("active",selected);
+    if(selected)button.setAttribute("aria-current","page");
+    else button.removeAttribute("aria-current");
+  }
+}
+
 function openView(id) {
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
@@ -1675,7 +1686,7 @@ function openView(id) {
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
-  $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
+  syncMainNavSelection(id);
   window.scrollTo({top:0, behavior:typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen()?"instant":"smooth"});
   if (id === "lesson-view") { renderLesson(); renderSourcePractice(); }
   if (id === "review-view") renderReview();
@@ -4764,6 +4775,7 @@ function openFaceToFace() {
   faceTurnOffset = turns.length;
   faceStatus = "";
   dialog.showModal();
+  syncMainNavSelection("translator-view");
   renderFaceToFace();
 }
 
