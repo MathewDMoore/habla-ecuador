@@ -1629,3 +1629,41 @@ body.ve-theater-open {overflow:hidden !important;}
 @supports(padding:env(safe-area-inset-bottom)){
   #face-to-face {padding-bottom:max(9px,env(safe-area-inset-bottom));}
 }
+
+
+/* One visible five-tab navigation system. Swipe changes the selected tab;
+   the nav stays on screen and the selected destination is a strong pill. */
+.bottom-nav button,
+.face-to-face-bottom-nav button {
+  box-sizing:border-box;
+  min-width:0;
+  min-height:48px;
+  border-radius:12px;
+  transition:background-color .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.bottom-nav button.active,
+.bottom-nav button[aria-current="page"],
+.face-to-face-bottom-nav button.active,
+.face-to-face-bottom-nav button[aria-current="page"] {
+  background:#174d38;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  font-weight:900;
+  box-shadow:0 2px 5px rgba(13,54,36,.22);
+}
+.bottom-nav button.active span,
+.face-to-face-bottom-nav button.active span {font-size:22px;}
+.bottom-nav button:not(.active),
+.face-to-face-bottom-nav button:not(.active) {opacity:.83;}
+.bottom-nav button:focus-visible,
+.face-to-face-bottom-nav button:focus-visible {
+  outline:3px solid #be7139;
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+  .bottom-nav button,.face-to-face-bottom-nav button {transition:none;}
+}
+@media (max-width:360px){
+  .bottom-nav,.face-to-face-bottom-nav {column-gap:2px;}
+  .bottom-nav button,.face-to-face-bottom-nav button {font-size:clamp(9px,2.45vw,11px);}
+}
