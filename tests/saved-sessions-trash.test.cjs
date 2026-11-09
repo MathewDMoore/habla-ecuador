@@ -111,3 +111,31 @@ test('permanent deletion is not the ordinary delete and requires an explicit sec
  for(const path of ['index.html','translator.html','sw.js'])
   assert.match(fs.readFileSync(path,'utf8'),/saved-sessions\.js\?v=218/);
 });
+
+test('discarding an unsaved song goes to recoverable Trash rather than disappearing',()=>{
+ const {api,restore}=load(storage());
+ try{
+  const ok=api.trashDraft('music',{source:'captured song draft',translation:'provisional English',
+    passages:[{source:'fragmento',draft:'draft'}]},'Mi canción','Artista');
+  assert.equal(ok,true);
+  const after=api.readState();
+  assert.equal(after.items.length,0,'discard must not count as saved');
+  assert.equal(after.trash.length,1,'discard stays recoverable');
+  assert.equal(after.trash[0].title,'Mi canción');
+  assert.equal(after.trash[0].translation,'provisional English');
+  assert.equal(api.restoreDeleted(after.trash[0].id),true);
+  assert.equal(api.readState().items[0].source,'captured song draft');
+ }finally{restore();}
+});
+test('New song and Clear conversation ask Save, reversible Trash or Cancel',()=>{
+ const app=fs.readFileSync('app.js','utf8'),archive=fs.readFileSync('saved-sessions.js','utf8');
+ const css=fs.readFileSync('styles.css','utf8');
+ assert.match(app,/askBeforeClear\("music",newMusicSong\)/);
+ assert.match(app,/askBeforeClear\("conversation",clearConversation\)/);
+ assert.match(archive,/function askBeforeClear\(kind,proceed\)/);
+ assert.match(archive,/A Papelera \/ Trash \(recuperable\)/);
+ assert.match(archive,/Guardar \/ Save/);
+ assert.match(archive,/Cancelar \/ Cancel/);
+ assert.match(archive,/function trashDraft\(kind,data/);
+ assert.match(css,/\.saved-session-decision\s*\{/);
+});
