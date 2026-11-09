@@ -71,6 +71,32 @@ const origin='https://mathewdmoore.github.io',root=path.resolve(__dirname,'..');
    assert.deepEqual(errors,[]);
    if(process.env.HABLA_SCREENSHOT_DIR){await page.waitForFunction(()=>!document.querySelector('button.is-pressed'));await page.locator('#translation-result').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(process.env.HABLA_SCREENSHOT_DIR,`actions-${width}-${native?'native':entry}.png`)});}
    console.log(`${engine} ${width}px ${entry} ${native?'native dark card':'hosted light card'}: visible labels, contrast, touch hits, Copy, Expand, Full text, Hear/Pause and Share passed`);
+   if(width===390&&native){
+    await page.route('https://api.mymemory.translated.net/**',route=>route.fulfill({
+     json:{responseStatus:200,responseData:{translatedText:'I have a lioness'}}
+    }));
+    await page.evaluate(async()=>{
+     sourceLanguage='es-MX';targetLanguage='en-US';syncLanguagePair();
+     setTranslationPurpose('academic',false);
+     document.querySelector('#translator-input').value='Tengo una leona';
+     await renderTranslation();
+    });
+    const preview=page.locator('#regional-idiom-preview');
+    assert.equal(await page.locator('#natural-result').textContent(),'I have a lioness');
+    assert.equal(await preview.isVisible(),true,'regional alternative is visible with the native notes closed');
+    assert.equal(await preview.evaluate(el=>el.previousElementSibling?.id),'natural-result');
+    assert.match(await preview.textContent(),/I could eat a horse.*Guayaquil.*Primary region unconfirmed/);
+    assert.equal(await page.locator('#source-language-select').inputValue(),'es-MX');
+    assert.match(await page.locator('#translation-result .result-label').textContent(),/academic draft/);
+    await page.evaluate(async()=>{
+     sourceLanguage='es-EC';syncLanguagePair();setTranslationPurpose('everyday',false);
+     await renderTranslation();
+    });
+    assert.equal(await page.locator('#natural-result').textContent(),'I could eat a horse');
+    assert.match(await preview.textContent(),/Literal: I have a lioness/);
+    assert.equal(await page.locator('#translator-input').inputValue(),'Tengo una leona');
+    assert.deepEqual(errors,[]);
+   }
    await context.close();
   }
  }finally{await browser.close();}

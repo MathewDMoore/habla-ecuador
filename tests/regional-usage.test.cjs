@@ -3,7 +3,7 @@ const current=require('../spanish-context.js'),snapshots=[];
 for(const region of ['all','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','en-US','en-GB','quito','monterrey','mexico-city','bogota'])for(const category of ['all','slang','literal','clinical'])for(const tone of ['all','mild','caution']){
  const options={region,category,tone};
  const entries=current.dictionary(options);
- snapshots.push(entries.filter(entry=>entry.id!=='mamon-insult-counterpart'&&entry.batch!=='regional-vocabulary-116'&&entry.batch!=='cuba-154'&&entry.batch!=='regional-phraseology-201'&&!entry.contributionId).map(({usage,...entry})=>entry));
+ snapshots.push(entries.filter(entry=>entry.id!=='mamon-insult-counterpart'&&entry.id!=='guayaquil-hunger-leona'&&entry.batch!=='regional-vocabulary-116'&&entry.batch!=='cuba-154'&&entry.batch!=='regional-phraseology-201'&&!entry.contributionId).map(({usage,...entry})=>entry));
  const allTypes=['idiom','exclamation','familiar','culture','vocabulary','usage','literal','clinical'];
  assert.equal(allTypes.reduce((n,usage)=>n+current.dictionary({...options,usage}).length,0),entries.length,'usage groups partition existing collection');
 }

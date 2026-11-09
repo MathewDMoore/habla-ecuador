@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.7 · build 217";
+const APP_VERSION = "0.27.8 · build 218";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3156,6 +3156,11 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     return languageCommunityTerm;
   }
   if (text.length > 8000) throw translationFailure("research_limit");
+  const regionalIdiom = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.figurativeExpression(text,{source,target,purpose}) : null;
+  if(regionalIdiom?.preferIdiomatic) {
+    if(!isCurrent())throw translationFailure("superseded");
+    return regionalIdiom.text;
+  }
   const localIndifference = typeof HablaSpanishContext !== "undefined" ? HablaSpanishContext.translateIndifferenceExpression(text,{source,target}) : null;
   if(localIndifference) {
     if(!isCurrent())throw translationFailure("superseded");
@@ -3471,6 +3476,20 @@ function updateTranslationEditUi() {
   if (share) share.disabled = translationSharePending || !activeTranslationEdit;
   const status = $("#translation-edit-status");
   const restore = $("#restore-translation");
+  const idiom=activeTranslationEdit?.metadata.regionalIdiom;
+  let idiomPreview=$("#regional-idiom-preview");
+  if(idiom&&!idiomPreview){
+    idiomPreview=document.createElement("p");
+    idiomPreview.id="regional-idiom-preview";
+    idiomPreview.className="literal-text";
+    $("#natural-result").after(idiomPreview);
+  }
+  if(idiomPreview){
+    idiomPreview.hidden=!idiom;
+    idiomPreview.textContent=idiom
+      ? `${idiom.preferIdiomatic ? "Literal: "+idiom.literal : "Guayaquil idiom: “"+idiom.text+"” (I’m starving)"} · ${idiom.scope}`
+      : "";
+  }
   if (!status || !restore) return;
   if (!activeTranslationEdit) {
     status.textContent = "Translation is being generated…";
@@ -3661,7 +3680,7 @@ function renderSpanishContext(sourceText,draft='') {
   const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
   if(languageFamily(sourceLanguage)==='es'&&draft&&typeof HablaSpanishContext!=='undefined')findings.push(...HablaSpanishContext.residue(sourceText,draft,{purpose:translationPurpose,target:targetLanguage,region:sourceLanguage}));
   panel.hidden=!findings.length;
-  if(findings.some(item=>item.kind==='word-senses'&&item.choices.length))panel.open=true;
+  if(findings.some(item=>item.kind==='regional-idiom'||(item.kind==='word-senses'&&item.choices.length)))panel.open=true;
   const selectedMeaning=typeof HablaSpanishContext==='undefined'?null:HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}).find(item=>item.text===draft)?.id;
   body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}" aria-pressed="${selectedMeaning===choice}">${item.choiceLabels?.[choice] ? `Use ${escapeHtml(item.choiceLabels[choice])}` : `Use ${escapeHtml(choice)} meaning`}</button>`).join('')}</div>`:''}`).join(''):'';
   return findings;
@@ -3798,7 +3817,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       const inputType=importedDocument?.kind==='image'?'image':musicInput?'music':undefined;
       const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
       if (!current()) return;
-      setEditableTranslation(sourceText, translated, {culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
+      const regionalIdiom = !autoMusic && HablaSpanishContext.figurativeExpression(sourceText,requestContext);
+      setEditableTranslation(sourceText, translated, {regionalIdiom,culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
@@ -3861,7 +3881,12 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#literal-result").textContent = "Local editorial expression · source register retained";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localIndifference.register)}</strong><span>${escapeHtml(localIndifference.note)} ${escapeHtml(localIndifference.scope)} <a href="${escapeHtml(localIndifference.url)}" target="_blank" rel="noreferrer">Usage: ASALE</a></span>`;
       }
-      if (onDevice && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
+      if(regionalIdiom?.preferIdiomatic) {
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · Guayaquil idiom`;
+        $("#literal-result").textContent = "Local editorial expression";
+        $("#usage-note").textContent = regionalIdiom.note;
+      }
+      if (onDevice && !regionalIdiom?.preferIdiomatic && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
@@ -6323,7 +6348,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=217", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=218", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
