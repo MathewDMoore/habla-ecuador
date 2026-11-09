@@ -4771,6 +4771,14 @@ function bindFaceToFace() {
   const dialog = $("#face-to-face");
   $("#open-face-to-face").addEventListener("click", openFaceToFace);
   $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  for(const button of dialog.querySelectorAll("[data-face-open]")){
+    button.addEventListener("click",()=>{
+      const destination=button.dataset.faceOpen;
+      if(!["home-view","translator-view","dictionary-view","music-view","lesson-view"].includes(destination))return;
+      closeFaceToFace(); // modal must close before the destination's navigation appears
+      openView(destination);
+    });
+  }
   $("#start-face-conversation").addEventListener("click", toggleFaceHandsFree);
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
@@ -5995,7 +6003,15 @@ function init() {
     return;
   }
   // Navigation must work even if an optional import/media module fails setup.
-  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  $('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  if(!standaloneTranslator && typeof HablaSwipeNavigation!=="undefined"){
+    HablaSwipeNavigation.bind({
+      navigate:openView,
+      enabled:()=>!recognition&&!activeRecognitionButton&&!musicListening
+        &&!faceHandsFree&&!faceCapture&&!documentImportActive&&!documentLoading
+        &&!(typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen())
+    });
+  }
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   initializeOptionalFeature("offline tools",() => HablaOffline.bind());
