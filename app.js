@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.4 · build 214";
+const APP_VERSION = "0.27.5 · build 215";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4565,22 +4565,22 @@ let faceStatus = "";
 let faceTurnOffset = 0;
 
 function renderFaceToFace() {
-  const index = turns.length - 1;
-  const turn = index >= faceTurnOffset && turns[index]?.faceToFace ? turns[index] : null;
+  const isFaceTurn = (turn,index) => index >= faceTurnOffset && turn.faceToFace;
+  const latest = turns.findLastIndex(isFaceTurn);
   const start = $("#start-face-conversation");
   start.textContent = faceHandsFree ? "Stop listening / Dejar de escuchar" : "Start conversation / Iniciar conversación";
   for (const side of $$("[data-face-side]")) {
     const role = side.dataset.faceSide;
+    const incoming = turns.findLastIndex((turn,index) => isFaceTurn(turn,index) && turn.slot !== role);
+    const index = incoming >= 0 ? incoming : latest;
+    const turn = turns[index];
     const box = side.querySelector(".face-to-face-turn");
     side.querySelector("h2").textContent = speakerName(role);
     const otherMicBusy = faceCapture && faceCapture.button.dataset.faceMic !== role;
     side.querySelector("[data-face-mic]").disabled = Boolean(faceHandsFree || otherMicBusy);
     const detailsOpen = Boolean(box.querySelector("details[open]"));
-    if (faceStatus && !faceHandsFree) {
-      const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
-      box.innerHTML = `<p>${escapeHtml(faceStatus)}</p>${draft ? `<p class="face-to-face-text">${escapeHtml(draft)}</p>` : ""}`;
-    } else if (!turn) {
-      box.textContent = faceHandsFree ? "" : "Start hands-free or hold your mic. / Inicia manos libres o mantén pulsado el micrófono.";
+    if (!turn) {
+      box.textContent = faceStatus ? "" : "Start hands-free or hold your mic. / Inicia manos libres o mantén pulsado el micrófono.";
     } else if (turn.slot === role) {
       box.innerHTML = `<small>${escapeHtml(turn.languageLabel)}</small><p class="face-to-face-text" lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`;
     } else if (turn.pending || turn.failed) {
@@ -4593,7 +4593,7 @@ function renderFaceToFace() {
         <p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>${note}</details>
         <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
     }
-    if (faceHandsFree && faceStatus) {
+    if (faceStatus) {
       const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
       box.insertAdjacentHTML("afterbegin", `<p class="face-to-face-listening">${escapeHtml(faceStatus)}</p>${draft ? `<p>${escapeHtml(draft)}</p>` : ""}`);
     }
@@ -4647,7 +4647,7 @@ function startFaceCapture(button, handsFree=null) {
 
   const role = button.dataset.faceMic;
   const locales = conversationLocales();
-  const capture = {button, draft:"", translation:null, error:""};
+  const capture = {button, draft:"", accepted:false, error:""};
   let silenceTimer, turnTimer;
   const clearTimers = () => {
     clearTimeout(silenceTimer);
@@ -4681,7 +4681,8 @@ function startFaceCapture(button, handsFree=null) {
         renderFaceToFace();
       } else if (!provisional && !capture.error) {
         faceStatus = "";
-        capture.translation = handleConversationText(role,speaker,text,true,{locales,faceToFace:true});
+        capture.accepted = true;
+        handleConversationText(role,speaker,text,true,{locales,faceToFace:true});
       }
     },
     onError(error) {
@@ -4701,17 +4702,13 @@ function startFaceCapture(button, handsFree=null) {
     onEnd() {
       clearTimers();
       faceCapture = null;
-      if (!capture.translation) {
+      if (!capture.accepted) {
         if (handsFree && faceHandsFree === handsFree) faceHandsFree = null;
         faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
       } else if (handsFree && faceHandsFree === handsFree) {
-        const turn = turns.at(-1);
-        capture.translation.then(() => {
-          if (faceHandsFree !== handsFree) return;
-          if (turn.failed) return stopFaceHandsFree();
-          handsFree.role = role === "english" ? "spanish" : "english";
-          startFaceHandsFreeTurn(handsFree);
-        });
+        // The previous translation can finish while the other person speaks.
+        handsFree.role = role === "english" ? "spanish" : "english";
+        startFaceHandsFreeTurn(handsFree);
       }
       renderFaceToFace();
     }
@@ -6332,7 +6329,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=214", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=215", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
