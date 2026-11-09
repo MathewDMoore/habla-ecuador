@@ -137,6 +137,7 @@ function draw(kind){
  const trashCount=document.getElementById(ids(kind)+"-trash-count");
  if(trashCount)trashCount.textContent=String(list(kind,"",true).length);
  rootEl.replaceChildren();
+ drawTrash(kind);
  if(!entries.length){
   rootEl.append(element("p","saved-session-empty",
     list(kind).length?"No matching saved entries / Sin coincidencias":
@@ -161,7 +162,6 @@ function draw(kind){
   }
   card.append(title,detail,date,preview,actions);rootEl.append(card);
  }
- drawTrash(kind);
 }
 function drawTrash(kind){
  const node=document.getElementById(ids(kind)+"-trash-results");
