@@ -84,6 +84,7 @@ const origin='https://mathewdmoore.github.io',root=path.resolve(__dirname,'..');
     const preview=page.locator('#regional-idiom-preview');
     assert.equal(await page.locator('#natural-result').textContent(),'I have a lioness');
     assert.equal(await preview.isVisible(),true,'regional alternative is visible with the native notes closed');
+    assert.equal(await preview.evaluate(el=>el.previousElementSibling?.id),'natural-result');
     assert.match(await preview.textContent(),/I could eat a horse.*Guayaquil.*Primary region unconfirmed/);
     assert.equal(await page.locator('#source-language-select').inputValue(),'es-MX');
     assert.match(await page.locator('#translation-result .result-label').textContent(),/academic draft/);

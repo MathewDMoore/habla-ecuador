@@ -20,7 +20,8 @@ const HablaTranslationControls=(()=>{
    wasEmpty=empty;
    if(empty){for(const node of nodes)dock.append(node);for(const id of targetButtons){const b=document.getElementById(id);if(b){b.dataset.emptyWasDisabled=String(b.disabled);b.disabled=true;}}}
    else{
-    const draft=document.querySelector('#natural-result');let anchor=draft;
+    const draft=document.querySelector('#natural-result');
+    let anchor=draft.nextElementSibling?.id==='regional-idiom-preview' ? draft.nextElementSibling : draft;
     for(const node of nodes){anchor.after(node);anchor=node;}
     for(const id of targetButtons){const b=document.getElementById(id);if(b&&b.dataset.emptyWasDisabled!==undefined){b.disabled=b.dataset.emptyWasDisabled==='true';delete b.dataset.emptyWasDisabled;}}
     for(const id of ['copy-result','share-result','hear-result','translation-full-text','translation-expand','translation-select-all']){const b=document.getElementById(id);if(b)b.disabled=false;}
