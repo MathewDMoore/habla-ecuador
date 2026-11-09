@@ -1,7 +1,19 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression}=require('../spanish-context.js');
+const leona='¡Tengo una leona!';
+assert.equal(figurativeExpression(leona,{source:'es-EC',target:'en-GB'}).text,'I could eat a horse!');
+assert.equal(figurativeExpression(leona).preferIdiomatic,true);
+for(const settings of [{source:'es-MX',purpose:'academic'},{source:'es-MX'},{source:'es-EC',purpose:'academic'}]){
+ assert.equal(figurativeExpression(leona,settings).preferIdiomatic,false);
+ assert.match(analyse(leona,settings).find(item=>item.kind==='regional-idiom').detail,/I could eat a horse.*I have a lioness.*Guayaquil/);
+}
+for(const text of ['Tengo una leona en el zoológico.','No tengo una leona.','“Tengo una leona”','¿Tengo una leona?']){
+ assert.equal(figurativeExpression(text),null);
+}
+assert.ok(dictionary({query:'could eat a horse',region:'en-US',target:'es-EC',usage:'metaphor'}).some(entry=>entry.term==='tengo una leona'));
+assert.equal(dictionary({query:'tengo una leona',region:'es-MX'}).length,0);
 assert.equal(translateIndifferenceExpression('Me vale verga').text,"I don't give a fuck");
 assert.equal(translateIndifferenceExpression('A mí me vale verga.').text,"I don't give a fuck.");
 assert.equal(translateIndifferenceExpression('Te vale verga.').text,"You don't give a fuck.");

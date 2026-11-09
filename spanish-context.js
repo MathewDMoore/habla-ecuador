@@ -113,9 +113,31 @@ const HablaSpanishContext = (() => {
     if(source==='es-MX'&&word==='en chinga')return [option('chinga-speed','really fast / in a hurry','Speed / hurry')];
     return [];
   }
+  const hungerIdiom = {
+    id:'guayaquil-hunger-leona', term:'tengo una leona', regions:['es-EC'], register:'Informal', usageType:'idiom', figurative:true,
+    scope:'Documented in Guayaquil, Ecuador. Primary region unconfirmed.',
+    us:'I could eat a horse', uk:'I could eat a horse', literal:'I have a lioness',
+    searchAliases:["I'm starving", 'I am starving'],
+    note:'Playful exaggeration for being very hungry.',
+    sourceName:'El Universo · Guayaquil usage',
+    url:'https://www.eluniverso.com/noticias/informes/como-es-la-movida-estas-25-frases-y-palabras-forman-parte-del-dia-a-dia-del-guayaquileno-nota/'
+  };
+  function figurativeExpression(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
+    const match=text.trim().match(/^¡?tengo[ \t]+una[ \t]+leona([.!?])?$/i);
+    if(!source.startsWith('es')||!['en-US','en-GB'].includes(target)||!match||match[1]==='?')return null;
+    return {
+      ...hungerIdiom,
+      text:hungerIdiom[target==='en-GB'?'uk':'us']+(match[1]||''),
+      preferIdiomatic:source==='es-EC'&&purpose==='everyday'
+    };
+  }
   function analyse(text,{source='es-EC',purpose='everyday',image=false,target='en-GB'}={}) {
-    if(!source.startsWith('es') || purpose==='academic')return [];
-    const value=unquoted(text),findings=[];
+    const idiom=figurativeExpression(text,{source,purpose,target});
+    const findings=idiom?[{term:idiom.term,kind:'regional-idiom',
+      detail:`Figurative: “${idiom.text}” (I’m starving). Literal: “${idiom.literal}”. ${idiom.register}. ${idiom.scope}`,
+      url:idiom.url}]:[];
+    if(!source.startsWith('es') || purpose==='academic')return findings;
+    const value=unquoted(text);
     const add=(term,detail,url)=>findings.push({term,detail,url});
     if(/\bching(?:ar(?:se)?|a|as|an|amos|ando|ue|ues|uen|o)\b/i.test(plain(value))) {
       const meanings=wordMeanings(text,{source,target,purpose});
@@ -519,7 +541,7 @@ const HablaSpanishContext = (() => {
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
+    return [hungerIdiom,...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       // Contrast notes and literal learning aids must not become English equivalents.
@@ -531,7 +553,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 

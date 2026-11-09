@@ -1,5 +1,7 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Documented in Guayaquil, Ecuador. Primary region unconfirmed.": "Documentada en Guayaquil, Ecuador. Región principal sin confirmar.",
+  "Playful exaggeration for being very hungry.": "Exageración humorística para decir que se tiene mucha hambre.",
   "Face to Face": "Cara a cara",
   "Ecuadorian expressions lead the dictionary and speaking lessons. Translate and Conversation also look for documented regional expressions in Spanish text, including words shared with Ecuador. The results describe wording. Accent and speaker origin remain undetermined.": "Las expresiones ecuatorianas tienen prioridad en el diccionario y las lecciones de conversación. Traducir y Conversación también buscan expresiones regionales documentadas en el texto en español, incluidas las que se comparten con Ecuador. El resultado describe las palabras. El acento y la procedencia quedan sin determinar.",
   "Descriptive adjective; potentially offensive / derogatory": "Adjetivo descriptivo que puede resultar ofensivo o despectivo",

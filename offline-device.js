@@ -12,7 +12,7 @@ const HablaOffline = (() => {
   let onlineConfirmed = false;
   let ready = false, enabled = false, worker, serial = 0, installing = null, validating = null, startup = null;
   // Match the cached app release instead of leaving the worker on an older build.
-  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=217";
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=218";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
