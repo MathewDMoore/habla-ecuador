@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.5 · build 215";
+const APP_VERSION = "0.27.6 · build 216";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4352,6 +4352,9 @@ function showToast(message) {
 const SPANISH_CONVERSATION_HINTS = new Set(["a","al","algo","aqui","bien","como","con","cuando","de","del","despues","donde","el","ella","en","es","esta","estoy","gracias","hola","la","las","lo","los","me","mi","muy","no","para","pero","por","porque","que","quiero","se","si","soy","su","te","tengo","tu","un","una","vale","vamos","verga","voy","y","ya"]);
 const ENGLISH_CONVERSATION_HINTS = new Set(["a","after","am","and","are","around","because","but","can","do","going","good","hello","here","how","i","in","is","it","me","my","no","not","of","on","please","so","thank","that","the","there","this","to","want","we","what","when","where","with","yes","you","your"]);
 
+const SPOKEN_ENGLISH_SWEARS = /\b(?:fuck(?:s|ed|er|ers|ing)?|shit(?:ty)?|bullshit|damn(?:ed)?|bitch(?:es)?|asshole(?:s)?)\b/i;
+const SPOKEN_SPANISH_SWEARS = /\b(?:mierda|carajo|verga|puta[sd]?|puto[s]?|joder|jodas|jodete|chingad[oa]|chingar|cabron(?:es)?)\b/i;
+
 function conversationLanguageEvidence(text, expectedRole, expectedLocale=conversationLocales()[expectedRole]) {
   const clean = normalize(text);
   const words = clean.split(" ").filter(Boolean);
@@ -4360,6 +4363,8 @@ function conversationLanguageEvidence(text, expectedRole, expectedLocale=convers
   if (/[¿¡ñáéíóúü]/i.test(text)) spanishScore += 3;
   if (words.some(word => /(?:ando|iendo|ción|ciones|mente)$/.test(word))) spanishScore += 2;
   if (/\b(?:i'm|i've|don't|can't|won't|it's|you're|we're|they're)\b/i.test(text)) englishScore += 3;
+  if (words.length === 1 && SPOKEN_ENGLISH_SWEARS.test(clean)) return {family:"en",confident:true};
+  if (words.length === 1 && SPOKEN_SPANISH_SWEARS.test(clean)) return {family:"es",confident:true};
   if (spanishScore >= englishScore + 2 || (spanishScore > englishScore && /\b(?:hola|gracias|adios)\b/.test(clean))) return {family:"es",confident:true};
   if (englishScore >= spanishScore + 2 || (englishScore > spanishScore && /\b(?:hello|thanks|yes|goodbye)\b/.test(clean))) return {family:"en",confident:true};
   return {family:languageFamily(expectedLocale),confident:false};
@@ -4491,7 +4496,7 @@ function conversationOptions(role, button) {
   $("#conversation-status").textContent = unavailable ? "Speech recognition is unavailable here. Write a turn below." : `Listening to ${name} · microphone set to ${languageLabel(locales[role])}…`;
   return {
     way, lang:locales[role], button, correctTranscript:false,
-    onText:(text, final, metadata) => handleConversationText(role, name, text, final, {...metadata,locales}),
+    onText:(text, final, metadata) => handleConversationText(role, name, text, final, {...metadata,locales,spoken:true}),
     onEnd:() => {
       if(generation !== conversationGeneration)return;
       renderTurns();
@@ -4511,7 +4516,7 @@ function finishConversationTurn(turn) {
     : `${turn.languageLabel}${turn.switched ? " · translation direction switched" : ""} · translation complete${turn.languageUncertain ? "; check the language before using it" : ""}.`;
 }
 
-async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false}={}) {
+async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false,spoken=false}={}) {
   const generation = conversationGeneration;
   const manual=forcedRole === "spanish" || forcedRole === "english";
   const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole,locales[expectedRole]);
@@ -4528,6 +4533,10 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
   const route=conversationTranslationRoute(expectedRole,detectedFamily,locales);
   const target=route.target, sourceLocale=route.source;
   const turn = {role:actualRole,slot:expectedRole,speaker,source:text,sourceLocale,translation:"Translating…",languageLabel,pending:true,target,provisional,switched,faceToFace,languageUncertain:!evidence.confident};
+  if (faceToFace) {
+    const swears = detectedFamily === "es" ? SPOKEN_SPANISH_SWEARS : SPOKEN_ENGLISH_SWEARS;
+    turn.showVerbatim = swears.test(normalize(text));
+  }
   liveConversationTurn = null;
   turns.push(turn);
   renderTurns();
@@ -4539,10 +4548,14 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
       HablaSpanishContext.analyse(text,{source:sourceLocale,target,purpose:"everyday"});
     turn.expressionNote = phrase?.note || findings[0]?.detail || "";
   }
+  // Speech engines often omit the exclamation point on a one-word reaction.
+  const spokenExclamation = spoken && /^(?:fuck|shit|mierda)[.!?]*$/i.test(text.replace(/^¡/,"").trim())
+    ? detectedFamily === "en" ? "¡Mierda!" : "Shit!"
+    : null;
   try {
-    turn.translation = phrase
+    turn.translation = spokenExclamation ?? (phrase
       ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
-      : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)});
+      : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)}));
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
     renderTurns();
@@ -4589,9 +4602,12 @@ function renderFaceToFace() {
       const note = turn.expressionNote ? `<p>${escapeHtml(turn.expressionNote)}</p>` : "";
       const languageHint = turn.languageUncertain ? "<p>Check the language. / Revisa el idioma.</p>" : "";
       box.innerHTML = `<p class="face-to-face-text" lang="${escapeHtml(turn.target)}">${escapeHtml(turn.translation)}</p>
-        ${languageHint}<details ${detailsOpen ? "open" : ""}><summary>Original / Original</summary>
-        <p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>${note}</details>
+        ${languageHint}${!turn.showVerbatim || note ? `<details ${detailsOpen ? "open" : ""}><summary>${turn.showVerbatim ? "Usage notes / Notas de uso" : "Original / Original"}</summary>
+        ${turn.showVerbatim ? "" : `<p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`}${note}</details>` : ""}
         <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
+    }
+    if (turn?.showVerbatim && turn.slot !== role) {
+      box.insertAdjacentHTML("beforeend", `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>`);
     }
     if (faceStatus) {
       const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
@@ -4682,7 +4698,7 @@ function startFaceCapture(button, handsFree=null) {
       } else if (!provisional && !capture.error) {
         faceStatus = "";
         capture.accepted = true;
-        handleConversationText(role,speaker,text,true,{locales,faceToFace:true});
+        handleConversationText(role,speaker,text,true,{locales,faceToFace:true,spoken:true});
       }
     },
     onError(error) {
@@ -6329,7 +6345,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=215", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=216", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
