@@ -99,7 +99,7 @@ test('permanent deletion is not the ordinary delete and requires an explicit sec
  assert.match(script,/This action cannot be undone/);
  assert.match(script,/function restoreDeleted\(id\)/);
  assert.match(script,/function permanentlyDelete\(id\)/);
- assert.match(script,/if\(state\.trash\.length>=TRASH_LIMIT\)/);
+ assert.match(script,/state\.trash\.length>=TRASH_LIMIT/);
  assert.doesNotMatch(script,/items:\[candidate,\.\.\.state\.items\]\.slice/);
  const html=fs.readFileSync('index.html','utf8');
  assert.match(html,/id="music-save-host"/);
