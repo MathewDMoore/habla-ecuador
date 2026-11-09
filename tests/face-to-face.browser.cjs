@@ -138,6 +138,20 @@ async function main() {
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
       assert.equal(await nearMic.isEnabled(),true);
       await near.getByText(/es-EC → en-US/).waitFor();
+      await hold(farMic);
+      await page.evaluate(() => faceRecordings.at(-1).emit("Fuck",true,0.9));
+      await page.mouse.up();
+      await near.getByText("¡Mierda!",{exact:true}).waitFor();
+      await near.getByText("Fuck",{exact:true}).waitFor();
+      await hold(nearMic);
+      await page.evaluate(() => {
+        requestGeneralTranslation = async () => "This is terrible.";
+        faceRecordings.at(-1).emit("Esto es una mierda",true,0.9);
+      });
+      await page.mouse.up();
+      await far.getByText("This is terrible.",{exact:true}).waitFor();
+      await far.getByText("Esto es una mierda",{exact:true}).waitFor();
+      assert.equal(await page.evaluate(() => faceSpoken.length),1);
       await page.locator("#close-face-to-face").tap();
 
       await page.evaluate(() => localStorage.removeItem("habla-tutorial-seen-v2"));
