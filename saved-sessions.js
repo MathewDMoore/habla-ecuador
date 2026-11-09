@@ -145,8 +145,8 @@ function refresh(){
   const found=search(state.items,kind,parts.query.value);
   parts.count.textContent=String(state.items.filter(r=>r.kind===kind).length);
   parts.list.replaceChildren();
-  if(!found.length){parts.list.append(make('p','saved-sessions-empty',
-   parts.query.value?'No results / Sin resultados':'Nothing saved here yet / Todavía no hay sesiones guardadas'));continue;}
+  if(!found.length)parts.list.append(make('p','saved-sessions-empty',
+   parts.query.value?'No results / Sin resultados':'Nothing saved here yet / Todavía no hay sesiones guardadas'));
   for(const item of found){
    const card=make('article','saved-session-entry');
    const heading=make('strong','saved-session-title',label(item));
