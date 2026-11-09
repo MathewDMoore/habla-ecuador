@@ -113,12 +113,16 @@ async function main() {
       assert.equal(await farMic.isDisabled(),true);
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).lang),"en-US");
       await page.evaluate(() => {
+        const translate = requestGeneralTranslation;
+        requestGeneralTranslation = (text,...options) => text.includes("blue bus")
+          ? new Promise(resolve => { window.finishFirstTranslation = () => resolve("¿Dónde está el autobús azul?"); })
+          : translate(text,...options);
         const microphone = faceRecordings.at(-1);
-        microphone.finalOnStop = "Can you tell me where the bus is?";
+        microphone.finalOnStop = "Can you tell me where the blue bus is?";
         microphone.emit(microphone.finalOnStop,false,0.9);
       });
-      await far.getByText(/en-US → es-EC/).waitFor();
-      await page.waitForFunction(() => faceRecordings.at(-1).lang === "es-EC");
+      await page.waitForFunction(() => faceRecordings.at(-1).lang === "es-EC" && Boolean(window.finishFirstTranslation));
+      await far.getByText(/Translating/).waitFor();
       await page.evaluate(() => {
         const microphone = faceRecordings.at(-1);
         microphone.emit("Sí, la parada está en esta calle.",true,0.9);
@@ -126,6 +130,9 @@ async function main() {
       });
       await near.getByText(/es-EC → en-US/).waitFor();
       await page.waitForFunction(() => faceRecordings.at(-1).lang === "en-US");
+      await page.evaluate(() => window.finishFirstTranslation());
+      await far.getByText("¿Dónde está el autobús azul?",{exact:true}).waitFor();
+      await near.getByText(/es-EC → en-US/).waitFor();
       assert.equal(await page.evaluate(() => faceSpoken.length),1,"hands-free turns stay silent");
       await start.tap();
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
