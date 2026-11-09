@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'music-lyric-editor.js'
+      - 'saved-music-conversations.js'
+      - 'tests/saved-music-conversations.test.cjs'
       - 'swipe-navigation.js'
       - 'music-venezuela-captions.js'
       - 'app.js'
@@ -25,6 +27,6 @@ jobs:
         with:
           node-version: '22'
       - name: Validate JavaScript syntax
-        run: node --check music-lyric-editor.js && node --check swipe-navigation.js && node --check music-venezuela-captions.js && node --check app.js
+        run: node --check saved-music-conversations.js && node --check music-lyric-editor.js && node --check swipe-navigation.js && node --check music-venezuela-captions.js && node --check app.js
       - name: Test iPhone keyboard editing, saved corrections and safe navigation
-        run: node --test tests/music-lyric-edit-navigation.test.cjs
+        run: node --test tests/music-lyric-edit-navigation.test.cjs tests/saved-music-conversations.test.cjs
