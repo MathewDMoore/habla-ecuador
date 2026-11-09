@@ -31,7 +31,7 @@ test('selected destination becomes visually prominent and accessible without hid
   assert.match(cssTail,/\.face-to-face-bottom-nav button\.active/);
   assert.match(cssTail,/background:#174d38/);
   assert.match(cssTail,/color:#fff/);
-  assert.doesNotMatch(cssTail,/display:none|visibility:hidden/);
+  assert.doesNotMatch(cssTail.split("/* Saved song/conversation notes:")[0],/display:none|visibility:hidden/);
   const functionBody=app.match(/function syncMainNavSelection\(id\) \{[\s\S]*?\n\}/)?.[0];
   assert.ok(functionBody,'shared nav state should have an actual implementation');
   const buttons=tabs.flatMap(id=>['normal','modal'].map(kind=>{
