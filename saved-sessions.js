@@ -3,7 +3,7 @@
  * Existing everyday translation history and academic papers remain separate. */
 (function(root){
 'use strict';
-const KEY='habla-ecuador-saved-sessions-v1',LIMIT=20,MAX_TEXT=36000,MAX_TURNS=100,MAX_PASSAGES=40;
+const KEY='habla-ecuador-saved-sessions-v1',LIMIT=20,TRASH_LIMIT=40,MAX_TEXT=36000,MAX_TURNS=100,MAX_PASSAGES=40;
 const TYPES=['music','conversation'];
 const $=selector=>typeof document!=='undefined'?document.querySelector(selector):null;
 const norm=text=>String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();
@@ -36,24 +36,33 @@ function sanitize(item){
   title:clamp(item.title,100).trim(),
   artist:clamp(item.artist,120).trim(),
   date:typeof item.date==='string'&&!Number.isNaN(Date.parse(item.date))?item.date:new Date().toISOString(),
+  deletedAt:typeof item.deletedAt==='string'&&!Number.isNaN(Date.parse(item.deletedAt))?item.deletedAt:'',
   source,translation,
   sourceLanguage:clamp(item.sourceLanguage,12),targetLanguage:clamp(item.targetLanguage,12),
   turns,passages
  };
 }
-function read(store=root.localStorage){
+function readState(store=root.localStorage){
  try{
   const data=JSON.parse(store?.getItem(KEY)||'null');
-  if(!data||data.version!==1||!Array.isArray(data.items))return [];
-  return data.items.map(sanitize).filter(Boolean).slice(0,LIMIT);
- }catch{return [];}
+  if(!data||data.version!==1||!Array.isArray(data.items))return {items:[],trash:[]};
+  return {
+   items:data.items.map(sanitize).filter(Boolean),
+   trash:Array.isArray(data.trash)?data.trash.map(sanitize).filter(Boolean):[]
+  };
+ }catch{return {items:[],trash:[]};}
 }
-function write(items,store=root.localStorage){
+function read(store=root.localStorage){return readState(store).items;}
+function writeState(next,store=root.localStorage){
  try{
-  if(!store)return false;
-  store.setItem(KEY,JSON.stringify({version:1,items:items.slice(0,LIMIT)}));
+  if(!store||next.items.length>LIMIT||next.trash.length>TRASH_LIMIT)return false;
+  store.setItem(KEY,JSON.stringify({version:1,items:next.items,trash:next.trash}));
   return true;
  }catch{return false;}
+}
+function write(items,store=root.localStorage){
+ // Preserve the existing trash if a caller uses the legacy write API.
+ return writeState({items,trash:readState(store).trash},store);
 }
 function search(items,kind,query=''){
  const q=norm(query.trim());
@@ -92,33 +101,49 @@ const config={
   action:'💾 Guardar conversación / Save conversation',label:'Nombre / Title (optional)',
   fallback:'Conversación / Conversation'}
 };
-let records=read(),binds={},ui={};
+let state=readState(),binds={},ui={};
 function status(kind,message){
  if(ui[kind]?.status)ui[kind].status.textContent=message;
+}
+function commit(next){
+ if(!writeState(next))return false;
+ state=next;refresh();return true;
 }
 function save(kind,value,title='',artist=''){
  const candidate=sanitize({...value,kind,title,artist,date:new Date().toISOString()});
  if(!candidate)return {ok:false,error:kind==='music'
   ?'No hay letra capturada para guardar. / No captured song text to save.'
   :'No hay turnos para guardar. / No conversation turns to save.'};
+ // Do not silently evict an older saved conversation or song.
+ if(state.items.length>=LIMIT)return {ok:false,
+  error:'20 saved sessions reached. Move an old entry to Trash first. / Límite de 20 sesiones. Mueve una a la Papelera para continuar.'};
  candidate.id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
- const next=[candidate,...records].slice(0,LIMIT);
- if(!write(next))return {ok:false,error:'Device storage is unavailable or full. / Almacenamiento no disponible o lleno.'};
- records=next;
- refresh();
+ if(!commit({items:[candidate,...state.items],trash:state.trash}))
+  return {ok:false,error:'Device storage is unavailable or full. / Almacenamiento no disponible o lleno.'};
  return {ok:true,item:candidate};
 }
 function remove(id){
- const next=records.filter(r=>r.id!==id);
- if(next.length===records.length)return false;
- if(!write(next))return false;
- records=next;refresh();return true;
+ const item=state.items.find(row=>row.id===id);
+ if(!item||state.trash.length>=TRASH_LIMIT)return false;
+ return commit({items:state.items.filter(row=>row.id!==id),
+  trash:[{...item,deletedAt:new Date().toISOString()},...state.trash]});
+}
+function restoreDeleted(id){
+ const item=state.trash.find(row=>row.id===id);
+ if(!item||state.items.length>=LIMIT)return false;
+ const {deletedAt,...restored}=item;
+ return commit({items:[restored,...state.items],
+  trash:state.trash.filter(row=>row.id!==id)});
+}
+function permanentlyDelete(id){
+ if(!state.trash.some(item=>item.id===id))return false;
+ return commit({items:state.items,trash:state.trash.filter(row=>row.id!==id)});
 }
 function refresh(){
  for(const kind of TYPES){
   const parts=ui[kind];if(!parts)continue;
-  const found=search(records,kind,parts.query.value);
-  parts.count.textContent=String(records.filter(r=>r.kind===kind).length);
+  const found=search(state.items,kind,parts.query.value);
+  parts.count.textContent=String(state.items.filter(r=>r.kind===kind).length);
   parts.list.replaceChildren();
   if(!found.length){parts.list.append(make('p','saved-sessions-empty',
    parts.query.value?'No results / Sin resultados':'Nothing saved here yet / Todavía no hay sesiones guardadas'));continue;}
@@ -132,13 +157,30 @@ function refresh(){
     ?(item.artist?'🎤 '+item.artist+' · ':'')+(item.source||item.passages[0]?.source||'')
     :(item.turns[0]?.speaker||'')+': '+(item.turns[0]?.source||''));
    const controls=make('div','saved-session-actions');
-   for(const [text,action] of [['Abrir / Open','open'],['Copiar / Copy','copy'],['Borrar / Delete','delete']]){
+   for(const [text,action] of [['Abrir / Open','open'],['Copiar / Copy','copy'],['Papelera / Trash','delete']]){
     const button=make('button','',text);
     button.type='button';button.dataset.savedAction=action;button.dataset.savedId=item.id;
     controls.append(button);
    }
    card.append(heading,time,excerpt,controls);parts.list.append(card);
   }
+  parts.trashCount.textContent=String(state.trash.filter(r=>r.kind===kind).length);
+  parts.trashList.replaceChildren();
+  for(const item of search(state.trash,kind,parts.query.value)){
+   const card=make('article','saved-session-entry saved-session-deleted');
+   card.append(make('strong','saved-session-title',label(item)),
+    make('p','saved-session-date','En Papelera desde / In Trash since: '+
+      (item.deletedAt?new Date(item.deletedAt).toLocaleString():'unknown')));
+   const controls=make('div','saved-session-actions');
+   for(const [text,action] of [['Recuperar / Restore','restore'],['Eliminar definitivamente / Delete forever','permanent']]){
+    const button=make('button','',text);button.type='button';
+    button.dataset.savedAction=action;button.dataset.savedId=item.id;
+    controls.append(button);
+   }
+   card.append(controls);parts.trashList.append(card);
+  }
+  if(!parts.trashList.children.length)
+   parts.trashList.append(make('p','saved-sessions-empty','Papelera vacía / Trash empty'));
  }
 }
 function mount(kind,options){
@@ -167,10 +209,15 @@ function mount(kind,options){
  filterLabel.append(query);
  const list=make('div','saved-session-list');
  const note=make('p','saved-session-privacy',
-  'Manual save only. Text and translation stay in this browser/device; no recording, upload, sync or automatic saving. Clearing site data can erase entries. / Guardado manual, sin audio ni sincronización. Borrar datos del sitio puede eliminarlo.');
- details.append(summary,filterLabel,note,list);
+  'Manual save only. Stored text stays on this device; no audio, uploads or sync. Trash can restore deleted entries, but clearing app/site data may erase everything. / Guardado manual, sin audio ni sincronización. La Papelera permite recuperar entradas; borrar datos de la app puede eliminarlas.');
+ const trashPanel=make('details','saved-session-trash');
+ const trashHeading=make('summary','','🗑️ Papelera / Trash ');
+ const trashCount=make('span','saved-session-count','0');trashHeading.append(trashCount);
+ const trashList=make('div','saved-session-trash-list');
+ trashPanel.append(trashHeading,trashList);
+ details.append(summary,filterLabel,note,list,trashPanel);
  outer.append(row,save,feedback,details);host.append(outer);
- ui[kind]={outer,title,artist,save,status:feedback,details,query,list,count};
+ ui[kind]={outer,title,artist,save,status:feedback,details,query,list,count,trashPanel,trashList,trashCount};
  binds[kind]=options;
  save.addEventListener('click',()=>{
   const data=options.getCurrent?.();
@@ -183,14 +230,10 @@ function mount(kind,options){
  query.addEventListener('input',refresh);
  list.addEventListener('click',event=>{
   const button=event.target.closest('[data-saved-action]');if(!button)return;
-  const item=records.find(x=>x.id===button.dataset.savedId&&x.kind===kind);if(!item)return;
+  const item=state.items.find(x=>x.id===button.dataset.savedId&&x.kind===kind);if(!item)return;
   if(button.dataset.savedAction==='delete'){
-   // A visible deletion step prevents a stray tap from destroying a conversation.
-   if(button.dataset.confirm!=='yes'){
-    button.dataset.confirm='yes';button.textContent='Confirmar borrado / Confirm delete';return;
-   }
-   if(remove(item.id))status(kind,'Entry deleted / Entrada borrada.');
-   else status(kind,'Could not delete / No se pudo borrar.');
+   if(remove(item.id))status(kind,'Moved to Trash. You can restore it. / En la Papelera; puedes recuperarla.');
+   else status(kind,'Trash is full or storage failed; no entry was removed. / Papelera llena o error; no se ha borrado nada.');
   }else if(button.dataset.savedAction==='copy'){
    try{
     const value=exportText(item);
@@ -205,6 +248,23 @@ function mount(kind,options){
    if(ok!==false)status(kind,'Restored without retranslating / Recuperado sin volver a traducir.');
   }
  });
+ trashList.addEventListener('click',event=>{
+  const button=event.target.closest('[data-saved-action]');if(!button)return;
+  const item=state.trash.find(x=>x.id===button.dataset.savedId&&x.kind===kind);if(!item)return;
+  if(button.dataset.savedAction==='restore'){
+   if(restoreDeleted(item.id))status(kind,'Restored from Trash / Recuperado de la Papelera.');
+   else status(kind,'Saved library is full or device storage failed. Item stays in Trash. / La biblioteca está llena; sigue en la Papelera.');
+  }else if(button.dataset.savedAction==='permanent'){
+   if(button.dataset.confirm!=='yes'){
+    button.dataset.confirm='yes';
+    button.textContent='Confirmar eliminación definitiva / Confirm permanent delete';
+    status(kind,'This action cannot be undone. / Esta acción no se puede deshacer.');
+    return;
+   }
+   if(permanentlyDelete(item.id))status(kind,'Permanently deleted / Eliminado definitivamente.');
+   else status(kind,'Could not delete / No se pudo eliminar.');
+  }
+ });
 }
 function saveSession(kind,data,title='',artist=''){
  if(!data)return {ok:false,error:'Nothing ready to save / Nada para guardar.'};
@@ -215,6 +275,6 @@ function bind({getMusic,getConversation,openMusic,openConversation}={}){
  mount('conversation',{getCurrent:getConversation,open:openConversation});
  refresh();
 }
-root.HablaSavedSessions={read,write,search,sanitize,saveSession,exportText,bind,remove,refresh};
+root.HablaSavedSessions={read,readState,write,writeState,search,sanitize,saveSession,exportText,bind,remove,restoreDeleted,permanentlyDelete,refresh};
 if(typeof module!=='undefined'&&module.exports)module.exports=root.HablaSavedSessions;
 })(typeof window!=='undefined'?window:globalThis);
