@@ -6325,7 +6325,9 @@ function init() {
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#music-retry-local")?.addEventListener("click", () => retryMusicRecognition("auto"));
   $("#music-retry-service")?.addEventListener("click", () => retryMusicRecognition("apple-service"));
-  $("#new-music-song")?.addEventListener("click", newMusicSong);
+  $("#new-music-song")?.addEventListener("click",()=>{
+    if(window.HablaSavedSessions?.askBeforeClear("music",newMusicSong)!==false)newMusicSong();
+  });
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
   $("#music-source-mode")?.addEventListener("change", () => {
@@ -6484,7 +6486,9 @@ function init() {
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
   bindFaceToFace();
-  $("#clear-conversation").addEventListener("click", clearConversation);
+  $("#clear-conversation").addEventListener("click",()=>{
+    if(window.HablaSavedSessions?.askBeforeClear("conversation",clearConversation)!==false)clearConversation();
+  });
   setConversationPlayback(conversationPlayback);
   syncConversationLocaleUi();
   $("#conversation-playback").addEventListener("change",event=>setConversationPlayback(event.target.value));
