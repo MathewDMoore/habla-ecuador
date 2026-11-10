@@ -1577,6 +1577,9 @@ body.ve-theater-open {overflow:hidden !important;}
 
 /* One visible five-tab navigation system. Swipe changes the selected tab;
    the nav stays on screen and the selected destination is a strong pill. */
+.feature-card, .view-heading, .bottom-nav, .face-to-face-bottom-nav, .face-to-face-turn {
+  touch-action:pan-y pinch-zoom;
+}
 .bottom-nav button,
 .face-to-face-bottom-nav button {
   box-sizing:border-box;

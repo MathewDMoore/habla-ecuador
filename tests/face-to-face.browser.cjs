@@ -166,16 +166,40 @@ async function main() {
         assert.equal(await mainNav.getByRole("button").count(), 5);
         const selected = mainNav.locator('[aria-current="page"]');
         assert.equal(await selected.getAttribute("data-open"), "home-view");
-        await page.evaluate(() => {
-          const view = document.querySelector(".view.active");
-          for (const [type, key, x] of [["touchstart", "touches", 240], ["touchend", "changedTouches", 90]]) {
-            const event = new Event(type, {bubbles:true});
-            Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
-            view.dispatchEvent(event);
+        const lessonCard = page.locator("#home-view .lesson-card");
+        if (engine === "chromium") {
+          await lessonCard.evaluate(card => card.scrollIntoView({block:"center",behavior:"instant"}));
+          const box = await lessonCard.boundingBox();
+          assert.ok(box);
+          const y = Math.round(box.y + box.height / 2);
+          const touch = await context.newCDPSession(page);
+          await touch.send("Input.dispatchTouchEvent", {type:"touchStart",touchPoints:[{x:240,y}]});
+          for (const x of [220,190,155,120,90]) {
+            await touch.send("Input.dispatchTouchEvent", {type:"touchMove",touchPoints:[{x,y}]});
           }
-        });
+          await touch.send("Input.dispatchTouchEvent", {type:"touchEnd",touchPoints:[]});
+          await touch.detach();
+        } else {
+          await lessonCard.evaluate(card => {
+            for (const [type, key, x] of [["touchstart", "touches", 240], ["touchmove", "touches", 215], ["touchend", "changedTouches", 90]]) {
+              const event = new Event(type, {bubbles:true,cancelable:true});
+              Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
+              card.dispatchEvent(event);
+            }
+          });
+        }
         assert.equal(await page.locator(".view.active").getAttribute("id"), "translator-view");
         assert.equal(await selected.getAttribute("data-open"), "translator-view");
+        await entry.tap();
+        await dialog.locator(".face-to-face-turn").first().evaluate(panel => {
+          for (const [type, key, x] of [["touchstart", "touches", 240], ["touchmove", "touches", 215], ["touchend", "changedTouches", 90]]) {
+            const event = new Event(type, {bubbles:true,cancelable:true});
+            Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
+            panel.dispatchEvent(event);
+          }
+        });
+        assert.equal(await dialog.isVisible(), false);
+        assert.equal(await selected.getAttribute("data-open"), "dictionary-view");
       } else {
         await page.locator("#close-face-to-face").tap();
       }
