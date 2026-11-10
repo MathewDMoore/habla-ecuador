@@ -19,9 +19,10 @@ const host=page.locator('#quick-lessons');await host.locator('summary').first().
 for(const locale of ['es-EC','en-US','en-GB']){
 await page.locator('#lesson-language').selectOption(locale);
 assert.equal(await host.getAttribute('data-learning-language'),locale);
-assert.equal(await host.locator('#quick-lesson-select option').count(),4);
+assert.equal(await host.locator('#quick-lesson-select option').count(),catalog[locale].length);
 for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
+assert.equal(await host.getByText('Inspired by My Daily Spanish.',{exact:true}).count(),lesson.inspiration?1:0);
 await host.locator('#quick-explanation-hear').click();
 assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.explanation,lang:locale==='es-EC'?'en-US':'es-EC'});
 for(let i=0;i<lesson.situations.length;i++){
@@ -64,6 +65,6 @@ if(file==='translator.html')await page.evaluate(()=>openView('home-view'));
 else await page.locator('.bottom-nav [data-open="home-view"]').click();
 assert.equal(await page.evaluate(()=>HablaQuickLessons.isProtected()),false);
 assert.deepEqual(errors,[]);
-await context.close();console.log(`${file} ${width}px: three goals, four topics, grammar challenges, audio locales, recall, stable mic prompt, language changes, navigation passed`);
+await context.close();console.log(`${file} ${width}px: three goals, lesson topics, grammar challenges, audio locales, recall, stable mic prompt, language changes, navigation passed`);
 }}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});
