@@ -1622,7 +1622,7 @@ body.ve-theater-open {overflow:hidden !important;}
 .photo-translator-toolbar h2{font-size:1rem;margin:0}
 .photo-translator-toolbar button{flex-shrink:0}
 .photo-translator-controls{display:flex;flex-wrap:wrap;gap:6px}
-.photo-translator-controls button,.photo-translator-toolbar button{font-size:.8rem;min-height:42px;padding:8px 10px}
+.photo-translator-controls button,.photo-translator-toolbar button{font:inherit;font-size:.8rem;font-weight:700;min-height:42px;padding:8px 10px;border:1px solid #a9cabc;border-radius:10px;background:#edf7f0;color:#173f35}
 .photo-translator-controls [aria-pressed="true"]{background:#173f35;color:white}
 .photo-translator-note,.photo-translator [data-photo-status]{font-size:.8rem;margin:10px 0}
 .photo-translator-stage{position:relative;width:100%;line-height:0;isolation:isolate}

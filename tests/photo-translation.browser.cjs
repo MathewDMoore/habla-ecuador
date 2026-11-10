@@ -55,6 +55,7 @@ async function run(browser,entry,width){
   return {x:(a.x-b.x)/b.width,y:(a.y-b.y)/b.height,width:a.width/b.width};
  });
  assert.ok(Math.abs(geometry.x-.1)<.01,JSON.stringify(geometry));assert.ok(Math.abs(geometry.y-.1)<.01,JSON.stringify(geometry));assert.ok(Math.abs(geometry.width-.8)<.01,JSON.stringify(geometry));
+ assert.ok(await labels.evaluateAll(items=>items.every(label=>label.scrollHeight<=label.clientHeight+1&&label.scrollWidth<=label.clientWidth+1)),'short translated labels fit their photo regions');
  await labels.first().click();assert.match(await dialog.locator('[data-photo-detail]').textContent(),/The library.*\n\nLa biblioteca/s);
  await dialog.locator('[data-photo-original]').click();assert.equal(await dialog.locator('.photo-translator-labels').isVisible(),false);
  await dialog.locator('[data-photo-original]').click();assert.equal(await labels.first().isVisible(),true);

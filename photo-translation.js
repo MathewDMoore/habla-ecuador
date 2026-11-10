@@ -20,6 +20,10 @@ const HablaPhotoTranslation=(()=>{
    label.setAttribute('aria-label',`${index+1}. ${region.text} → ${region.translation||'…'}`);
    label.addEventListener('click',()=>{detail.textContent=region.text+'\n\n'+(region.translation||'Translation pending / Traducción pendiente');});
    layer.append(label);
+   // Fit the actual rendered font, including translated words that wrap wider
+   // than their source. Very dense labels remain tappable for the full text.
+   let size=parseFloat(label.style.fontSize);
+   while(size>10&&(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1))label.style.fontSize=--size+'px';
   }
   layer.hidden=original;
  }
