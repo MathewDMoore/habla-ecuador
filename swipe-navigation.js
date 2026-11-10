@@ -5,6 +5,7 @@
  const UNSAFE='input,textarea,select,[contenteditable],[role="slider"],[data-swipe-block],.push-to-talk,[data-face-mic],.face-to-face-actions,audio,video,iframe,.lyric-lines,.ve-caption-list,.translation-history-list,.subtitle-switch';
  const SURFACE='.app-shell main, .bottom-nav';
  const OVERLAY='dialog[open]:not(#face-to-face), :is([popover]:popover-open), #tutorial-overlay:not([hidden])';
+ const SWIPE_DISTANCE=44, DRAG_START_DISTANCE=8, HORIZONTAL_RATIO=1.5;
  function inBlockedTarget(target){
   return Boolean(target?.closest?.(UNSAFE));
  }
@@ -24,7 +25,7 @@
   return at>=0&&TABS[at+delta]?TABS[at+delta]:null;
  }
  function isSwipe(dx,dy){
-  return Math.abs(dx)>=68 && Math.abs(dx)>Math.abs(dy)*1.65;
+  return Math.abs(dx)>=SWIPE_DISTANCE && Math.abs(dx)>Math.abs(dy)*HORIZONTAL_RATIO;
  }
  function bind({navigate,enabled=()=>true}={}){
   if(typeof navigate!=='function')return;
@@ -57,8 +58,8 @@
    const touch=event.touches[0];
    const dx=Math.abs(touch.clientX-start.x),dy=Math.abs(touch.clientY-start.y);
    if(!start.horizontal){
-    if(dy>=10&&dy>=dx){start=null;return;}
-    if(dx<10||dx<=dy*1.65)return;
+    if(dy>=DRAG_START_DISTANCE&&dy>=dx){start=null;return;}
+    if(dx<DRAG_START_DISTANCE||dx<=dy*HORIZONTAL_RATIO)return;
     start.horizontal=true;
    }
    if(event.cancelable)event.preventDefault();
