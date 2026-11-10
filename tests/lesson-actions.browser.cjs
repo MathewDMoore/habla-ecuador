@@ -34,9 +34,12 @@ try{
  const host=page.locator('#quick-lessons');await host.locator(':scope > summary').tap();
  // Pressed styling must keep the touch target fixed, including its edges.
  const hear=host.locator('#quick-explanation-hear');
- await hear.scrollIntoViewIfNeeded();const before=await hear.boundingBox();
+ // The fixed bottom bar can cover a button inside the viewport. Check that
+ // the browser can hit the button before using raw mouse coordinates.
+ await hear.tap({trial:true});const before=await hear.boundingBox();
  await page.mouse.move(before.x+before.width/2,before.y+before.height/2);await page.mouse.down();
  await page.waitForTimeout(180);const pressed=await hear.boundingBox();
+ assert.equal(await hear.evaluate(button=>button.classList.contains('is-pressed')),true,'geometry must be measured on the pressed lesson button');
  for(const key of ['x','y','width','height'])assert.ok(Math.abs(before[key]-pressed[key])<.5,'pressed target geometry must stay fixed: '+key);
  await page.mouse.up();
  await hear.tap({position:{x:3,y:3}});
