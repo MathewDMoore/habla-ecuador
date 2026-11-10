@@ -24,14 +24,14 @@ for(const locale of ['es-EC','en-US','en-GB']){
 }
 const spanish=catalog['es-EC'].find(item=>item.id==='solo-patterns');
 assert.deepEqual(spanish.checks.map(check=>check.answer),['solo','solo si','solo por','solo con']);
-assert.match(spanish.explanation,/sí with an accent means “yes”/,'si/sí distinction');
+assert.match(spanish.explanation,/\|Sí\| with an accent means “yes”/,'si/sí distinction');
 assert.match(spanish.explanation,/alone/,'solo adjective meaning');
 assert.match(spanish.explanation,/without an accent/,'solo current spelling guidance');
 const american=catalog['en-US'].find(item=>item.id==='only-patterns');
 const british=catalog['en-GB'].find(item=>item.id==='only-patterns');
 assert.equal(british,american,'both English learners receive identical structure');
 assert.deepEqual(american.checks.map(check=>check.answer),['only','only if','just for','only with']);
-assert.match(american.explanation,/word order/,'natural English word order');
+assert.match(american.explanation,/orden de las palabras/,'natural English word order');
 const videoTopics={
  'everyday-comparisons':['mejor','peor','mayor','menor'],
  'how-often':['Nunca','De vez en cuando','A menudo','Alguna vez'],

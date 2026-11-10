@@ -11,13 +11,13 @@ try{
  page.on('crash',()=>console.error('Web process crashed:',width,emptyVoices));
  await page.route('**/*',route=>{const u=new URL(route.request().url());let f=path.join(root,u.pathname.replace('/habla-ecuador/',''));if(f===path.join(root,'app.js')&&process.env.HABLA_APP_SOURCE)f=process.env.HABLA_APP_SOURCE;return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?route.fulfill({path:f}):route.abort();});
  await page.addInitScript(({emptyVoices})=>{
-  window.speechCalls=[];window.tapActive=false;window.speechMode='normal';
+  window.speechCalls=[];window.tapActive=false;window.speechMode='normal';window.allowSpeechContinuation=false;
   document.addEventListener('click',event=>{window.tapActive=event.isTrusted;},true);
   document.addEventListener('click',()=>window.tapActive=false);
   const synth={getVoices:()=>emptyVoices?[]:[{name:'English',lang:'en-US',voiceURI:'en-US',localService:true},{name:'English UK',lang:'en-GB',voiceURI:'en-GB',localService:true},{name:'Spanish',lang:'es-EC',voiceURI:'es-EC',localService:true}],
    cancel(){speechCalls.push({action:'cancel'});},resume(){},addEventListener(){},
    speak(u){speechCalls.push({action:'speak',text:u.text,lang:u.lang,voice:u.voice?.lang,trustedTap:tapActive,audioMode:navigator.audioSession?.type||'unsupported'});window.lastUtterance=u;
-    if(!tapActive){u.onerror?.({error:'not-allowed'});return;}
+    if(!tapActive&&!allowSpeechContinuation){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='error'){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='throw')throw Error('provider failed');
     if(speechMode!=='silent')u.onstart?.();
@@ -60,6 +60,21 @@ try{
   await page.waitForFunction(()=>document.querySelector('#quick-lessons .dictionary-practice > .speech-action-status').textContent==='Audio finished.');
   assert.equal(await page.evaluate(()=>!navigator.audioSession||navigator.audioSession.type!=='playback'),true,'speech completion releases media playback mode');
  }
+ // A single tap can read English narration and Spanish examples in order.
+ await page.locator('#lesson-language').selectOption('es-EC');
+ await host.locator('#quick-lesson-select').selectOption('future');
+ await page.evaluate(()=>{allowSpeechContinuation=true;});
+ await hear.tap();
+ assert.equal((await spoken()).at(-1).trustedTap,true);
+ assert.equal((await spoken()).at(-1).lang,'en-US');
+ await page.evaluate(()=>lastUtterance.onend());
+ await page.waitForFunction(()=>lastUtterance.text==='voy a');
+ assert.equal((await spoken()).at(-1).lang,'es-EC');
+ await page.evaluate(()=>lastUtterance.onend());
+ await page.waitForFunction(()=>lastUtterance.text==='and the basic verb.');
+ assert.equal((await spoken()).at(-1).lang,'en-US');
+ await page.evaluate(()=>{stopSpeechPlayback();allowSpeechContinuation=false;});
+ await page.locator('#lesson-language').selectOption('en-GB');
  // These must visibly change the page, not just show pointer deformation.
  await host.locator('#quick-recall').tap();assert.equal(await host.locator('#quick-lesson-model').isVisible(),false);
  await host.locator('#quick-recall').tap();assert.equal(await host.locator('#quick-lesson-model').isVisible(),true);

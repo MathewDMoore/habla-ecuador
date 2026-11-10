@@ -24,7 +24,15 @@ for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
 assert.equal(await host.getByText('Inspired by My Daily Spanish.',{exact:true}).count(),lesson.inspiration?1:0);
 await host.locator('#quick-explanation-hear').click();
-assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.explanation,lang:locale==='es-EC'?'en-US':'es-EC'});
+const explanation=host.locator('#quick-explanation');
+assert.equal(await explanation.textContent(),lesson.explanation.replaceAll('|',''));
+const {text:passages}=await page.evaluate(()=>spoken.at(-1));
+assert.equal(passages.map(part=>part.text).join(''),await explanation.textContent());
+assert.deepEqual(await explanation.locator('span').allTextContents(),passages.filter(part=>part.lang===locale).map(part=>part.text));
+assert.ok(passages.some(part=>part.lang===(locale==='es-EC'?'en-US':'es-EC')),'explanation keeps its narration language');
+if(locale==='es-EC'&&lesson.id==='future'){
+ assert.deepEqual(passages.filter(part=>part.lang==='es-EC').map(part=>part.text),['voy a','voy a comer.','comeré.']);
+}
 for(let i=0;i<lesson.situations.length;i++){
 const cue=lesson.situations[i];
 assert.equal(await host.locator('.dictionary-practice-target').textContent(),cue.phrase);
