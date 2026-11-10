@@ -16,7 +16,7 @@ test('recording preview, seek readiness, explicit frame OCR, replacement and sta
  class File{constructor(bytes,name,options){this.bytes=bytes;this.name=name;Object.assign(this,options);}}
  const context=vm.createContext({console,File,document:{readyState:'complete',getElementById:node,addEventListener:(t,f)=>events[t]=f,
   createElement:()=>({getContext:()=>({drawImage(){}}),toBlob:fn=>blobs.push(fn)})},window:{addEventListener(){}},navigator:{},
-  URL:{createObjectURL:()=>`blob:${++next}`,revokeObjectURL:url=>revoked.push(url)},HablaScreenshot:{read:file=>reads.push(file)}});
+  URL:{createObjectURL:()=>`blob:${++next}`,revokeObjectURL:url=>revoked.push(url)},HablaScreenshot:{read:(file,options)=>{assert.equal(options.overlay,false,'frame OCR keeps the recording controls available');reads.push(file);}}});
  vm.runInContext(fs.readFileSync('recording-import.js','utf8'),context);
  const open=file=>{context.file=file;vm.runInContext('HablaRecording.open(file)',context);};
  const video=node('recording-preview'),read=node('read-recording-frame');

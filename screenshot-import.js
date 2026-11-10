@@ -145,7 +145,7 @@ const HablaScreenshot = (() => {
       document.querySelector('#screenshot-bottom-value').textContent=bottom.value+'%';
       shade.style.background=`linear-gradient(to bottom,rgba(0,0,0,.65) 0% ${top.value}%,transparent ${top.value}% ${bottom.value}%,rgba(0,0,0,.65) ${bottom.value}% 100%)`;
     };
-    function read(file,{reread=false}={}) {
+    function read(file,{reread=false,overlay=true}={}) {
       try{validate(file);}catch(error){report(error.message);return;}
       if(!reread&&review){
         if(imageUrl)URL.revokeObjectURL(imageUrl);
@@ -166,7 +166,7 @@ const HablaScreenshot = (() => {
           }});
           if(id!==sequence||!result)return;
           if(!commit(result,guard)){report('Your input changed while the image was read. Your text was kept. Choose the photo again when ready.');return;}
-          if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,result);
+          if(overlay&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,result);
           const confidence=Number(result.confidence);
           report(Number.isFinite(confidence)&&confidence<65
             ? 'Image imported, but some lettering was unclear. Check and correct the recognized words below; translation is being prepared.'
@@ -212,6 +212,6 @@ const HablaScreenshot = (() => {
     }
     clearUi=()=>{sequence++;controller?.abort();if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.clear();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
-  return {bind,extract,openOcr,photoRegions,validate,imageFromClipboard,cropBounds,improveContrast,read:file=>readImage(file),clear:()=>clearUi()};
+  return {bind,extract,openOcr,photoRegions,validate,imageFromClipboard,cropBounds,improveContrast,read:(file,options)=>readImage(file,options),clear:()=>clearUi()};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=HablaScreenshot;
