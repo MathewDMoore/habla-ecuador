@@ -11,13 +11,13 @@ try{
  page.on('crash',()=>console.error('Web process crashed:',width,emptyVoices));
  await page.route('**/*',route=>{const u=new URL(route.request().url());let f=path.join(root,u.pathname.replace('/habla-ecuador/',''));if(f===path.join(root,'app.js')&&process.env.HABLA_APP_SOURCE)f=process.env.HABLA_APP_SOURCE;return u.origin===origin&&fs.existsSync(f)&&fs.statSync(f).isFile()&&!f.endsWith('.mp3')?route.fulfill({path:f}):route.abort();});
  await page.addInitScript(({emptyVoices})=>{
-  window.speechCalls=[];window.tapActive=false;window.speechMode='normal';
+  window.speechCalls=[];window.tapActive=false;window.speechMode='normal';window.allowSpeechContinuation=false;
   document.addEventListener('click',event=>{window.tapActive=event.isTrusted;},true);
   document.addEventListener('click',()=>window.tapActive=false);
   const synth={getVoices:()=>emptyVoices?[]:[{name:'English',lang:'en-US',voiceURI:'en-US',localService:true},{name:'English UK',lang:'en-GB',voiceURI:'en-GB',localService:true},{name:'Spanish',lang:'es-EC',voiceURI:'es-EC',localService:true}],
    cancel(){speechCalls.push({action:'cancel'});},resume(){},addEventListener(){},
    speak(u){speechCalls.push({action:'speak',text:u.text,lang:u.lang,voice:u.voice?.lang,trustedTap:tapActive,audioMode:navigator.audioSession?.type||'unsupported'});window.lastUtterance=u;
-    if(!tapActive){u.onerror?.({error:'not-allowed'});return;}
+    if(!tapActive&&!allowSpeechContinuation){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='error'){u.onerror?.({error:'not-allowed'});return;}
     if(speechMode==='throw')throw Error('provider failed');
     if(speechMode!=='silent')u.onstart?.();
@@ -34,9 +34,12 @@ try{
  const host=page.locator('#quick-lessons');await host.locator(':scope > summary').tap();
  // Pressed styling must keep the touch target fixed, including its edges.
  const hear=host.locator('#quick-explanation-hear');
- await hear.scrollIntoViewIfNeeded();const before=await hear.boundingBox();
+ // The fixed bottom bar can cover a button inside the viewport. Check that
+ // the browser can hit the button before using raw mouse coordinates.
+ await hear.tap({trial:true});const before=await hear.boundingBox();
  await page.mouse.move(before.x+before.width/2,before.y+before.height/2);await page.mouse.down();
  await page.waitForTimeout(180);const pressed=await hear.boundingBox();
+ assert.equal(await hear.evaluate(button=>button.classList.contains('is-pressed')),true,'geometry must be measured on the pressed lesson button');
  for(const key of ['x','y','width','height'])assert.ok(Math.abs(before[key]-pressed[key])<.5,'pressed target geometry must stay fixed: '+key);
  await page.mouse.up();
  await hear.tap({position:{x:3,y:3}});
@@ -57,6 +60,21 @@ try{
   await page.waitForFunction(()=>document.querySelector('#quick-lessons .dictionary-practice > .speech-action-status').textContent==='Audio finished.');
   assert.equal(await page.evaluate(()=>!navigator.audioSession||navigator.audioSession.type!=='playback'),true,'speech completion releases media playback mode');
  }
+ // A single tap can read English narration and Spanish examples in order.
+ await page.locator('#lesson-language').selectOption('es-EC');
+ await host.locator('#quick-lesson-select').selectOption('future');
+ await page.evaluate(()=>{allowSpeechContinuation=true;});
+ await hear.tap();
+ assert.equal((await spoken()).at(-1).trustedTap,true);
+ assert.equal((await spoken()).at(-1).lang,'en-US');
+ await page.evaluate(()=>lastUtterance.onend());
+ await page.waitForFunction(()=>lastUtterance.text==='voy a');
+ assert.equal((await spoken()).at(-1).lang,'es-EC');
+ await page.evaluate(()=>lastUtterance.onend());
+ await page.waitForFunction(()=>lastUtterance.text==='and the basic verb.');
+ assert.equal((await spoken()).at(-1).lang,'en-US');
+ await page.evaluate(()=>{stopSpeechPlayback();allowSpeechContinuation=false;});
+ await page.locator('#lesson-language').selectOption('en-GB');
  // These must visibly change the page, not just show pointer deformation.
  await host.locator('#quick-recall').tap();assert.equal(await host.locator('#quick-lesson-model').isVisible(),false);
  await host.locator('#quick-recall').tap();assert.equal(await host.locator('#quick-lesson-model').isVisible(),true);

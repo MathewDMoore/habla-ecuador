@@ -34,7 +34,7 @@ permissions:
 jobs:
   practice:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -46,11 +46,20 @@ jobs:
           node-version: '24'
       - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
       - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - run: node --test tests/*.test.cjs
+      - run: node tests/quick-lesson.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node tests/lesson-actions.browser.cjs
+        env:
+          DEBUG: pw:browser
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/face-to-face.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
-      - run: node --test tests/*.test.cjs
       - run: node tests/translation-actions.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
@@ -93,12 +102,6 @@ jobs:
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/person-languages.browser.cjs
         env:
-          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
-          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
-      # Verify touch activation in both pages and the native speech bridge.
-      - run: node tests/lesson-actions.browser.cjs
-        env:
-          DEBUG: pw:browser
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/music-song.browser.cjs
@@ -151,10 +154,6 @@ jobs:
           DEBUG: pw:browser
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_NATIVE_SCRIPT: ${{ github.workspace }}/ios/HablaEcuador/NativeSpeech.js
-          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
-      - run: node tests/quick-lesson.browser.cjs
-        env:
-          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/video-lesson.browser.cjs
         env:

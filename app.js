@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.11 · build 221";
+const APP_VERSION = "0.27.12 · build 222";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1886,7 +1886,7 @@ function splitSpeechPlaybackText(text, limit=220) {
 
 function startSpeechSegment(session) {
   if (activeSpeechPlayback !== session || session.paused || !session.chunks || session.utterance) return;
-  while (session.index < session.chunks.length && session.offset >= session.chunks[session.index].length) {
+  while (session.index < session.chunks.length && session.offset >= session.chunks[session.index].text.length) {
     session.index += 1;
     session.offset = 0;
   }
@@ -1899,13 +1899,14 @@ function startSpeechSegment(session) {
   }
   const baseOffset = session.offset;
   const token = ++session.token;
-  const utterance = new SpeechSynthesisUtterance(session.chunks[session.index].slice(baseOffset));
+  const {text,lang,voice,profile} = session.chunks[session.index];
+  const utterance = new SpeechSynthesisUtterance(text.slice(baseOffset));
   session.utterance = utterance;
-  if (session.voice) utterance.voice = session.voice;
-  utterance.lang = session.voice?.lang || session.lang;
-  utterance.rate = session.profile.rate;
-  utterance.pitch = session.profile.pitch;
-  utterance.volume = session.profile.volume;
+  if (voice) utterance.voice = voice;
+  utterance.lang = voice?.lang || lang;
+  utterance.rate = profile.rate;
+  utterance.pitch = profile.pitch;
+  utterance.volume = profile.volume;
   const current = () => activeSpeechPlayback === session && session.token === token;
   utterance.onstart = () => {
     if (!current()) return;
@@ -1914,10 +1915,9 @@ function startSpeechSegment(session) {
   };
   utterance.onboundary = event => {
     if (!current() || session.paused || !Number.isInteger(event.charIndex)) return;
-    let position = Math.min(session.chunks[session.index].length, baseOffset + Math.max(0,event.charIndex));
+    let position = Math.min(text.length, baseOffset + Math.max(0,event.charIndex));
     // Re-enter at the current word, never halfway through a word or past it.
-    while (position > 0 && position < session.chunks[session.index].length
-        && !/\s/.test(session.chunks[session.index][position-1])) position -= 1;
+    while (position > 0 && position < text.length && !/\s/.test(text[position-1])) position -= 1;
     session.offset = Math.max(session.offset,position);
   };
   utterance.onend = () => {
@@ -1985,19 +1985,25 @@ function say(text, lang="es-EC", button=null) {
   cancelMusicListening();
   stopSpeechPlayback();
   const session = {requestId:speechRequestId, paused:false, token:0, index:0, offset:0,
-    utterance:null, startTimer:null, lang, button};
+    utterance:null, startTimer:null, button, chunks:[]};
   const unavailable = message => { speechPlaybackFeedback(session,message); showToast(message); };
   if (!text || !("speechSynthesis" in window)) return unavailable("Speech playback is unavailable in this browser.");
   refreshSpeechVoices();
-  session.voice = voiceForLanguage(lang);
-  if (speechVoices.length && !session.voice) {
-    const label = normalizedLocale(lang).startsWith("es") ? "Spanish" : "English";
-    return unavailable(`${label} speech is unavailable on this device.`);
+  const passages = Array.isArray(text) ? text : [{text,lang}];
+  for (const passage of passages) {
+    if (!passage.text.trim()) continue;
+    const voice = voiceForLanguage(passage.lang);
+    if (speechVoices.length && !voice) {
+      const label = normalizedLocale(passage.lang).startsWith("es") ? "Spanish" : "English";
+      return unavailable(`${label} speech is unavailable on this device.`);
+    }
+    const profile = speechProfile(passage.text,passage.lang);
+    for (const chunk of splitSpeechPlaybackText(profile.text)) {
+      session.chunks.push({text:chunk,lang:passage.lang,voice,profile});
+    }
   }
   // An empty getVoices() list can be temporary. Submit the requested language
   // now rather than waiting for enumeration and losing the tap's activation.
-  session.profile = speechProfile(text,lang);
-  session.chunks = splitSpeechPlaybackText(session.profile.text);
   activeSpeechPlayback = session;
   speechPlaybackFeedback(session,"Starting audio…",true);
   updateSpeechPauseControls();
@@ -6381,7 +6387,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=221", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=222", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

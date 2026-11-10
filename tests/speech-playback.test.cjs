@@ -89,6 +89,20 @@ synth.speak=function(u){this.last=u;spoken.push(u);u.onstart?.();};
 run('say("Route owner test.","en-US")');audioSession.type='play-and-record';
 run('stopSpeechPlayback()');assert.equal(audioSession.type,'play-and-record');
 audioSession.type='auto';
+// Read the Spanish phrase with a Spanish device voice inside English narration.
+synth.getVoices=()=>[...getVoices(),{name:'Spanish',lang:'es-MX',voiceURI:'es',localService:true}];
+run(`say([{text:'For a plan, use',lang:'en-US'},{text:'voy a comer.',lang:'es-EC'},{text:'Try it yourself.',lang:'en-US'}]);`);
+assert.equal(spoken.at(-1).lang,'en-US');
+spoken.at(-1).onend();drain();
+assert.equal(spoken.at(-1).text,'voy a comer.');
+assert.equal(spoken.at(-1).voice.lang,'es-MX');
+assert.equal(spoken.at(-1).lang,'es-MX');
+run('toggleSpeechPause();toggleSpeechPause();');
+assert.equal(spoken.at(-1).lang,'es-MX','resuming keeps the current passage voice');
+spoken.at(-1).onend();drain();
+assert.equal(spoken.at(-1).lang,'en-US');
+spoken.at(-1).onend();drain();assert.ok(controls.every(b=>b.disabled));
+synth.getVoices=getVoices;
 // Unsupported/throwing API cannot break ordinary speech.
 Object.defineProperty(context.navigator,'audioSession',{configurable:true,get(){throw Error('unsupported');}});
 const beforeUnsupported=spoken.length;run('say("Safe fallback.","en-US")');assert.equal(spoken.length,beforeUnsupported+1);run('stopSpeechPlayback()');

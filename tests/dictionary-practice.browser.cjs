@@ -20,7 +20,7 @@ async function run(browser,native,width=390){
  await page.evaluate(()=>{window.spoken=[];window.say=(text,lang)=>window.spoken.push({text,lang});});
  const card=page.locator('#regional-slang-results .regional-slang-card').filter({has:page.locator('h3',{hasText:/^camello$/})});
  const panel=card.locator('.dictionary-practice'),mic=panel.locator('.dictionary-practice-mic');
- await panel.locator('summary').click();
+ await panel.locator(':scope > summary').click();
  assert.equal(await panel.locator('.dictionary-practice-target').textContent(),'camello');
  await panel.locator('.dictionary-practice-hear').click();
  assert.deepEqual(await page.evaluate(()=>window.spoken.at(-1)),{text:'camello',lang:'es-EC'});
@@ -32,7 +32,7 @@ async function run(browser,native,width=390){
  },{message,native:Boolean(native)});}
  // Actual pointer hold/release: release requests stop, and a late final result
  // is retained without the trailing click starting another session.
- await mic.scrollIntoViewIfNeeded();
+ await mic.tap({trial:true});
  const layout=()=>mic.evaluate(el=>({x:el.offsetLeft,y:el.offsetTop,width:el.offsetWidth,height:el.offsetHeight}));
  const beforeHold=await layout(),idleLabel=await mic.textContent();
  const box=await mic.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();
@@ -123,15 +123,15 @@ async function run(browser,native,width=390){
  await mic.evaluate(el=>el.click());await panel.locator('.dictionary-practice-hear').click();
  assert.equal(await page.evaluate(()=>window.testMessages.at(-1).action),'abort');
  assert.equal(await mic.getAttribute('aria-pressed'),'false');
- await mic.evaluate(el=>el.click());await panel.locator('summary').click();
+ await mic.evaluate(el=>el.click());await panel.locator(':scope > summary').click();
  await page.waitForFunction(()=>dictionaryPracticeSession===null);
  assert.equal(await mic.getAttribute('aria-pressed'),'false');
  // Every card family in the supplied recording gets the same in-place practice.
  const expr=page.locator('#expression-results .expression-card').filter({has:page.locator('.expression-spanish',{hasText:'aniñado'})}).first();
- const exprPanel=expr.locator('.dictionary-practice');await exprPanel.locator('summary').click();
+ const exprPanel=expr.locator('.dictionary-practice');await exprPanel.locator(':scope > summary').click();
  assert.ok(await exprPanel.locator('select option').count()>=2,'expression word and example are practice choices');
  const learner=page.locator('#dictionary-results .evidence-card').filter({has:page.locator('h2',{hasText:/^pana$/})});
- const learnerPanel=learner.locator('.dictionary-practice');await learnerPanel.locator('summary').click();
+ const learnerPanel=learner.locator('.dictionary-practice');await learnerPanel.locator(':scope > summary').click();
  const example=(await learnerPanel.locator('option').allTextContents()).find(t=>t.includes('partido'));
  assert.ok(example);await learnerPanel.locator('select').selectOption({label:example});
  assert.equal(await learnerPanel.locator('.dictionary-practice-target').textContent(),example);
@@ -147,20 +147,20 @@ async function run(browser,native,width=390){
  await page.locator('.bottom-nav [data-open="translator-view"]').click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'tab change releases practice microphone');
  await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
- await panel.locator('summary').click();await mic.evaluate(el=>el.click());
+ await panel.locator(':scope > summary').click();await mic.evaluate(el=>el.click());
  await page.locator('#regional-slang-search').fill('chiro');
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null,'filter replacement cancels old capture');
- const variants=page.locator('#regional-slang-results .dictionary-practice').first();await variants.locator('summary').click();
+ const variants=page.locator('#regional-slang-results .dictionary-practice').first();await variants.locator(':scope > summary').click();
  assert.deepEqual(await variants.locator('option').allTextContents(),['chiro','chira']);
  await variants.locator('select').selectOption({label:'chira'});
  assert.equal(await variants.locator('.dictionary-practice-target').textContent(),'chira');
  await variants.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  const other=page.locator('#regional-slang-results .dictionary-practice').nth(1);
- if(await other.count()){await other.locator('summary').click();await other.locator('.dictionary-practice-mic').evaluate(el=>el.click());assert.equal(await variants.locator('.dictionary-practice-mic').getAttribute('aria-pressed'),'false');}
+ if(await other.count()){await other.locator(':scope > summary').click();await other.locator('.dictionary-practice-mic').evaluate(el=>el.click());assert.equal(await variants.locator('.dictionary-practice-mic').getAttribute('aria-pressed'),'false');}
  await page.evaluate(()=>cancelDictionaryPractice());
  // Existing region-specific locale and English playback stay intact.
  await page.locator('#regional-slang-search').fill('');await page.locator('#regional-slang-region').selectOption('monterrey');
- const mexico=page.locator('#regional-slang-results .dictionary-practice').first();await mexico.locator('summary').click();await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
+ const mexico=page.locator('#regional-slang-results .dictionary-practice').first();await mexico.locator(':scope > summary').click();await mexico.locator('.dictionary-practice-mic').evaluate(el=>el.click());
  assert.equal(await page.evaluate(()=>window.testMessages.findLast(m=>m.action==='start').lang),'es-MX');
  await page.locator('#regional-slang-results [data-audio-lang="en-GB"]').first().click();
  assert.equal(await page.evaluate(()=>dictionaryPracticeSession),null);
@@ -199,7 +199,7 @@ async function run(browser,native,width=390){
  assert.equal(await page.evaluate(()=>dictionaryPracticeText('¡Qué frío!')===dictionaryPracticeText('que frio')),true);
  // Unsupported recognition is explicit, with model playback still available.
  await page.evaluate(()=>{window.SpeechRecognition=window.webkitSpeechRecognition=undefined;renderRegionalSlang();});
- const unsupported=page.locator('#regional-slang-results .dictionary-practice').first();await unsupported.locator('summary').click();
+ const unsupported=page.locator('#regional-slang-results .dictionary-practice').first();await unsupported.locator(':scope > summary').click();
  assert.equal(await unsupported.locator('.dictionary-practice-mic').isDisabled(),true);
  assert.match(await unsupported.locator('.dictionary-practice-status').textContent(),/unavailable/);
  assert.equal(await unsupported.locator('.dictionary-practice-hear').isEnabled(),true);
