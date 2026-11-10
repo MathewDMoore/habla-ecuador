@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.8 · build 218";
+const APP_VERSION = "0.27.9 · build 219";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1667,6 +1667,21 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
   return {text:rewritten, entries:[...new Set(matchedEntries)]};
 }
 
+function syncMainNavSelection(id) {
+  for (const button of $$(".bottom-nav button, .face-to-face-bottom-nav button")) {
+    const selected = (button.dataset.open || button.dataset.faceOpen) === id;
+    button.classList.toggle("active", selected);
+    if (selected) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  }
+}
+
+function navigateMainView(id) {
+  // The installed iPhone app can wrap openView to move its Music workspace.
+  openView(id);
+  syncMainNavSelection(id);
+}
+
 function openView(id) {
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
@@ -1675,7 +1690,7 @@ function openView(id) {
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
-  $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
+  syncMainNavSelection(id);
   window.scrollTo({top:0, behavior:typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen()?"instant":"smooth"});
   if (id === "lesson-view") { renderLesson(); renderSourcePractice(); }
   if (id === "review-view") renderReview();
@@ -4764,6 +4779,7 @@ function openFaceToFace() {
   faceTurnOffset = turns.length;
   faceStatus = "";
   dialog.showModal();
+  syncMainNavSelection("translator-view");
   renderFaceToFace();
 }
 
@@ -4771,6 +4787,12 @@ function bindFaceToFace() {
   const dialog = $("#face-to-face");
   $("#open-face-to-face").addEventListener("click", openFaceToFace);
   $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  for (const button of dialog.querySelectorAll("[data-face-open]")) {
+    button.addEventListener("click", () => {
+      closeFaceToFace();
+      navigateMainView(button.dataset.faceOpen);
+    });
+  }
   $("#start-face-conversation").addEventListener("click", toggleFaceHandsFree);
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
@@ -5960,7 +5982,15 @@ function init() {
     return;
   }
   // Navigation must work even if an optional import/media module fails setup.
-  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  $$('[data-open]').forEach(button => button.addEventListener("click", () => navigateMainView(button.dataset.open)));
+  if (!standaloneTranslator && typeof HablaSwipeNavigation !== "undefined") {
+    HablaSwipeNavigation.bind({
+      navigate: navigateMainView,
+      enabled: () => !recognition && !activeRecognitionButton && !musicListening
+        && !faceHandsFree && !faceCapture && !documentImportActive && !documentLoading
+        && !(typeof HablaTutorial !== "undefined" && HablaTutorial.isOpen())
+    });
+  }
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   initializeOptionalFeature("offline tools",() => HablaOffline.bind());
@@ -6348,7 +6378,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=218", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=219", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

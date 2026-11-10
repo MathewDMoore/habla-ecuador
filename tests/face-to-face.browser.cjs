@@ -100,7 +100,7 @@ async function main() {
       await far.getByText(/Please repeat/).waitFor();
       assert.equal(await page.evaluate(() => turns.length),2,"tentative capture is discarded");
 
-      await nearMic.press("Space");
+      await tapToTalk(nearMic);
       await page.locator("#close-face-to-face").tap();
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).aborted),true);
       assert.equal(await dialog.isVisible(),false);
@@ -151,7 +151,34 @@ async function main() {
       await far.getByText("This is terrible.",{exact:true}).waitFor();
       await far.getByText("Esto es una mierda",{exact:true}).waitFor();
       assert.equal(await page.evaluate(() => faceSpoken.length),1);
-      await page.locator("#close-face-to-face").tap();
+      if (file === "index.html") {
+        const faceNav = dialog.locator(".face-to-face-bottom-nav");
+        const buttons = faceNav.getByRole("button");
+        assert.equal(await buttons.count(), 5);
+        assert.ok(await buttons.evaluateAll(items => items.every(button => {
+          const bounds = button.getBoundingClientRect();
+          return bounds.width > 0 && bounds.height > 0 && bounds.top >= 0 && bounds.bottom <= innerHeight;
+        })));
+        assert.equal(await faceNav.locator('[aria-current="page"]').getAttribute("data-face-open"), "translator-view");
+        await faceNav.locator('[data-face-open="home-view"]').tap();
+        assert.equal(await dialog.isVisible(), false);
+        const mainNav = page.locator(".bottom-nav");
+        assert.equal(await mainNav.getByRole("button").count(), 5);
+        const selected = mainNav.locator('[aria-current="page"]');
+        assert.equal(await selected.getAttribute("data-open"), "home-view");
+        await page.evaluate(() => {
+          const view = document.querySelector(".view.active");
+          for (const [type, key, x] of [["touchstart", "touches", 240], ["touchend", "changedTouches", 90]]) {
+            const event = new Event(type, {bubbles:true});
+            Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
+            view.dispatchEvent(event);
+          }
+        });
+        assert.equal(await page.locator(".view.active").getAttribute("id"), "translator-view");
+        assert.equal(await selected.getAttribute("data-open"), "translator-view");
+      } else {
+        await page.locator("#close-face-to-face").tap();
+      }
 
       await page.evaluate(() => localStorage.removeItem("habla-tutorial-seen-v2"));
       await page.goto("https://mathewdmoore.github.io/habla-ecuador/" + file + "?start=face-to-face&ui=es");
