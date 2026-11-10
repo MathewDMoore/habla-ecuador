@@ -54,6 +54,9 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
    });
    assert.equal(imported.handled,true);
    await page.locator('#clear-recording').click();
+   // Begin the native speech scenario with no imported OCR document open.
+   await page.reload();
+   if(entry==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').click();
    // Use the real bridge contract to replay the reported startup failure.
    await page.evaluate(()=>{
     window.__speechMessages=[];
