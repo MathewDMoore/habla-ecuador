@@ -1,0 +1,30 @@
+name: Music lyric editing and swipe navigation regressions
+on:
+  pull_request:
+    paths:
+      - 'music-lyric-editor.js'
+      - 'swipe-navigation.js'
+      - 'music-venezuela-captions.js'
+      - 'app.js'
+      - 'styles.css'
+      - 'index.html'
+      - 'translator.html'
+      - 'sw.js'
+      - 'tests/music-lyric-edit-navigation.test.cjs'
+      - '.github/workflows/music-lyric-edit-navigation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lyric-editor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: node --check music-lyric-editor.js && node --check swipe-navigation.js && node --check music-venezuela-captions.js && node --check app.js
+      - name: Test iPhone keyboard editing, saved corrections and safe navigation
+        run: node --test tests/music-lyric-edit-navigation.test.cjs

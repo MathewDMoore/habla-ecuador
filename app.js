@@ -1667,6 +1667,17 @@ function prepareEmbeddedEcuadorianSlang(text, way=direction) {
   return {text:rewritten, entries:[...new Set(matchedEntries)]};
 }
 
+// Both the fixed main bar and the top-layer Face to Face bar expose the
+// same five destinations. Keep their selection/assistive labels synchronized.
+function syncMainNavSelection(id) {
+  for(const button of $$(".bottom-nav button, .face-to-face-bottom-nav button")) {
+    const selected=(button.dataset.open||button.dataset.faceOpen)===id;
+    button.classList.toggle("active",selected);
+    if(selected)button.setAttribute("aria-current","page");
+    else button.removeAttribute("aria-current");
+  }
+}
+
 function openView(id) {
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
@@ -1675,7 +1686,7 @@ function openView(id) {
   if (id !== "translator-view") cancelMusicListening();
   if(id !== "translator-view") leaveConversation();
   $$(".view").forEach(view => view.classList.toggle("active", view.id === id));
-  $$(".bottom-nav button").forEach(button => button.classList.toggle("active", button.dataset.open === id));
+  syncMainNavSelection(id);
   window.scrollTo({top:0, behavior:typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen()?"instant":"smooth"});
   if (id === "lesson-view") { renderLesson(); renderSourcePractice(); }
   if (id === "review-view") renderReview();
@@ -4764,6 +4775,7 @@ function openFaceToFace() {
   faceTurnOffset = turns.length;
   faceStatus = "";
   dialog.showModal();
+  syncMainNavSelection("translator-view");
   renderFaceToFace();
 }
 
@@ -4771,6 +4783,24 @@ function bindFaceToFace() {
   const dialog = $("#face-to-face");
   $("#open-face-to-face").addEventListener("click", openFaceToFace);
   $("#close-face-to-face").addEventListener("click", closeFaceToFace);
+  $("#save-face-conversation")?.addEventListener("click",()=>{
+    const library=window.HablaSavedSessions;
+    const result=library?.saveSession("conversation",currentSavedConversation())
+      ||{ok:false,error:"Saved sessions unavailable. / Historial no disponible."};
+    faceStatus=result.ok
+      ?"Saved on this device. / Conversación guardada en este dispositivo."
+      :result.error;
+    renderFaceToFace();
+    library?.refresh();
+  });
+  for(const button of dialog.querySelectorAll("[data-face-open]")){
+    button.addEventListener("click",()=>{
+      const destination=button.dataset.faceOpen;
+      if(!["home-view","translator-view","dictionary-view","music-view","lesson-view"].includes(destination))return;
+      closeFaceToFace(); // modal must close before the destination's navigation appears
+      openView(destination);
+    });
+  }
   $("#start-face-conversation").addEventListener("click", toggleFaceHandsFree);
   dialog.addEventListener("cancel", event => {
     event.preventDefault();
@@ -4791,6 +4821,87 @@ function bindFaceToFace() {
       else startFaceCapture(button);
     });
   }
+}
+
+// Explicit, local-only song/conversation saving. These snapshots never include
+// audio, recordings, or personal metadata beyond names present in the transcript.
+function currentSavedMusic() {
+  if(musicListening||musicFullTranslation)return null;
+  const source=$("#translator-input")?.value?.trim()||musicCapturedText||"";
+  if(!source&&!musicPassages.length)return null;
+  const matches=lastCompletedTranslation?.source===source
+    &&lastCompletedTranslation?.sourceLanguage===sourceLanguage
+    &&lastCompletedTranslation?.targetLanguage===targetLanguage;
+  return {source,
+    translation:matches?($("#natural-result")?.textContent||lastCompletedTranslation.target||""):"",
+    sourceLanguage,targetLanguage,
+    passages:musicPassages.map(p=>({
+      source:p.source,draft:p.draft,language:p.language,target:p.target
+    }))};
+}
+function currentSavedConversation() {
+  if(recognition||activeRecognitionButton||faceCapture||faceHandsFree
+      ||conversationComposerBusy||liveConversationTurn||turns.some(t=>t.pending))return null;
+  const completed=turns.filter(t=>t.source?.trim()&&!t.pending);
+  return completed.length?{turns:completed.map(t=>({
+    speaker:t.speaker,source:t.source,translation:t.translation,
+    sourceLocale:t.sourceLocale,target:t.target,slot:t.slot,role:t.role,
+    languageLabel:t.languageLabel,faceToFace:t.faceToFace,
+    failed:t.failed,languageUncertain:t.languageUncertain
+  }))}:null;
+}
+function restoreSavedMusic(item) {
+  if(musicListening||recognition||documentImportActive||documentLoading)return false;
+  if(($("#translator-input")?.value?.trim()||musicPassages.length)
+    &&!window.confirm("Replace the current song text? Save it first if needed. / ¿Reemplazar el texto actual? Guárdalo antes si quieres conservarlo."))return false;
+  newMusicSong();
+  if(TRANSLATOR_LANGUAGES[item.sourceLanguage])sourceLanguage=item.sourceLanguage;
+  if(TRANSLATOR_LANGUAGES[item.targetLanguage])targetLanguage=item.targetLanguage;
+  syncLanguagePair();
+  openView("translator-view");setMode("translate");
+  const restoredSource=item.source||item.passages.map(p=>p.source).join("\n");
+  $("#translator-input").value=restoredSource;
+  musicCapturedText=restoredSource;
+  musicCapturedLanguage=sourceLanguage;
+  musicPassages=item.passages.map((p,i)=>({
+    id:i+1,source:p.source,draft:p.draft,language:p.language||sourceLanguage,
+    target:p.target||targetLanguage,way:direction,purpose:"everyday",
+    status:"Recovered local wording / Texto local recuperado."
+  }));
+  musicPassageID=musicPassages.length;
+  selectedMusicPassage=musicPassages[0]?.id??null;
+  musicTranscriptReview=Boolean(restoredSource&&!item.translation);
+  syncMusicReview();
+  $("#translate-music").disabled=!musicTranscriptReview;
+  if(item.translation){
+    setEditableTranslation(restoredSource,item.translation,{historyRestored:true,musicSaved:true});
+    $("#translation-result").hidden=false;
+    $("#no-result").hidden=true;
+    $("#translation-result .result-label").textContent=
+      "Saved song translation / Traducción de canción guardada";
+    $("#literal-result").textContent="Restored from this device, no retranslation.";
+    $("#usage-note").textContent="Saved wording is not automatically rechecked. Review incomplete phrases and cultural context.";
+  }
+  $("#music-listening-status").textContent="Saved song wording restored / Canción guardada recuperada.";
+  return true;
+}
+function restoreSavedConversation(item) {
+  if(recognition||activeRecognitionButton||faceCapture||faceHandsFree
+      ||conversationComposerBusy||liveConversationTurn||turns.some(t=>t.pending))return false;
+  if(turns.length&&!window.confirm(
+    "Replace the open conversation? Save it first if needed. / ¿Reemplazar la conversación abierta? Guárdala primero si quieres conservarla."))return false;
+  conversationGeneration+=1;
+  stopSpeechPlayback();
+  liveConversationTurn=null;
+  turns=item.turns.map(t=>({
+    ...t,role:t.role||t.slot||"english",slot:t.slot||t.role||"english",
+    pending:false,finished:true,failed:Boolean(t.failed)
+  }));
+  openView("translator-view");setMode("conversation");
+  renderTurns();
+  $("#conversation-status").textContent=
+    "Conversation recovered without retranslating / Conversación recuperada sin traducir de nuevo.";
+  return true;
 }
 
 function clearConversation() {
@@ -5080,7 +5191,7 @@ function renderMusic() {
   const traditions = $("#music-traditions");
   const drills = $("#rhythm-drills");
   if (!recordings || !heritageRecordings || !traditions || !drills) return;
-  const renderTrackCards = tracks => tracks.map((track,index) => `<article class="open-music-card">
+  const renderTrackCards = (tracks,group) => tracks.map((track,index) => `<article class="open-music-card" data-lyric-track-group="${group}" data-lyric-track-index="${index}">
     <p class="music-region">${escapeHtml(track.region)}</p>
     <h2>${escapeHtml(track.title)}</h2>
     <p class="music-credit">${escapeHtml(track.artist)} · ${escapeHtml(track.year)}</p>
@@ -5098,25 +5209,36 @@ function renderMusic() {
           <button type="button" data-lyric-mode="both" data-track-index="${index}">Both</button>
         </div>
       </header>
-      <p class="lyric-note">${escapeHtml(track.lyricsNote)}</p>
-      <div class="lyric-lines" data-lyric-lines="${index}">${renderLyricLines(track.lyrics,"en")}</div>
+      <p class="lyric-note">${escapeHtml(track.lyricsNote)} · Toca una línea para corregirla / Tap a line to edit.</p>
+      <div class="lyric-lines" data-lyric-lines="${index}">${renderLyricLines(track.lyrics,"en",group,index,track)}</div>
     </section>` : `<p class="instrumental-label">Instrumental track · no lyric subtitles</p>`}
     <p>${escapeHtml(track.note)}</p>
     <div class="music-license"><a href="${escapeHtml(track.sourceUrl)}" target="_blank" rel="noreferrer">Recording source</a><span>·</span><a href="${escapeHtml(track.licenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(track.license)}</a></div>
   </article>`).join("");
-  recordings.innerHTML = renderTrackCards(contemporaryMusicTracks);
-  heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks);
+  recordings.innerHTML = renderTrackCards(contemporaryMusicTracks,"contemporary");
+  heritageRecordings.innerHTML = renderTrackCards(heritageMusicTracks,"heritage");
+  for(const [container,tracks,group] of [
+    [recordings,contemporaryMusicTracks,"contemporary"],
+    [heritageRecordings,heritageMusicTracks,"heritage"]
+  ]){
+    [...container.querySelectorAll(".open-music-card")].forEach((card,index)=>
+      bindMusicLyricEdits(card,tracks[index],group,index));
+  }
   const players = $$("#music-view audio");
   players.forEach(player => player.addEventListener("play", () => handleMusicPlayerPlay(player,players)));
   $$('[data-lyric-mode]').forEach(button => button.addEventListener("click", () => {
     const trackIndex = Number(button.dataset.trackIndex);
     const mode = button.dataset.lyricMode;
-    const companion = $(`[data-lyric-companion="${trackIndex}"]`);
-    const lines = $(`[data-lyric-lines="${trackIndex}"]`);
-    const track = contemporaryMusicTracks[trackIndex];
+    const companion = button.closest(".lyric-companion");
+    const card = companion?.closest(".open-music-card");
+    const group = card?.dataset.lyricTrackGroup || "contemporary";
+    const lines = companion?.querySelector(".lyric-lines");
+    const track = (group==="heritage"?heritageMusicTracks:contemporaryMusicTracks)[trackIndex];
     if (!companion || !lines || !track?.lyrics) return;
+    window.HablaMusicLyricEditing?.close();
     companion.querySelectorAll('[data-lyric-mode]').forEach(item => item.classList.toggle("active",item === button));
-    lines.innerHTML = renderLyricLines(track.lyrics,mode);
+    lines.innerHTML = renderLyricLines(track.lyrics,mode,group,trackIndex,track);
+    bindMusicLyricEdits(card,track,group,trackIndex);
   }));
   traditions.innerHTML = musicTraditions.map(item => `<article class="music-culture-card">
     <p class="music-region">${escapeHtml(item.region)}</p>
@@ -5140,11 +5262,35 @@ function renderMusic() {
   $$('[data-rhythm-drill]').forEach(button => button.addEventListener("click", () => playRhythmDrill(Number(button.dataset.rhythmDrill),button)));
 }
 
-function renderLyricLines(lyrics, mode) {
-  return lyrics.map(line => `<p class="lyric-line">
-    ${mode !== "en" ? `<span lang="es-EC" class="lyric-es">${escapeHtml(line.es)}</span>` : ""}
-    ${mode !== "es" ? `<span lang="en-US" class="lyric-en">${escapeHtml(line.en)}</span>` : ""}
+function musicLineKey(group,index,track,lineIndex,language) {
+  return `licensed:${group}:${index}:${track?.year||""}:${lineIndex}:${language}`;
+}
+function renderLyricLines(lyrics,mode,group="contemporary",trackIndex=0,track=null) {
+  const saved=(original,lineIndex,language)=>window.HablaMusicLyricEditing?.get(
+    musicLineKey(group,trackIndex,track,lineIndex,language),original)||original;
+  return lyrics.map((line,lineIndex) => `<p class="lyric-line" data-line-index="${lineIndex}">
+    ${mode !== "en" ? `<span lang="es-EC" class="lyric-es">${escapeHtml(saved(line.es,lineIndex,"es"))}</span>` : ""}
+    ${mode !== "es" ? `<span lang="en-US" class="lyric-en">${escapeHtml(saved(line.en,lineIndex,"en"))}</span>` : ""}
   </p>`).join("");
+}
+function bindMusicLyricEdits(card,track,group,index) {
+  const editor=window.HablaMusicLyricEditing;
+  if(!card||!track?.lyrics||!editor)return;
+  card.querySelectorAll(".lyric-line").forEach((row,lineIndex)=>{
+    for(const language of ["es","en"]){
+      const element=row.querySelector(language==="es"?".lyric-es":".lyric-en");
+      const original=track.lyrics[lineIndex]?.[language];
+      if(!element||!original)continue;
+      const key=musicLineKey(group,index,track,lineIndex,language);
+      editor.makeTappable(element,()=>editor.show({
+        key,original,anchor:element,after:row,
+        label:language==="es"?"✏️ Español · Corregir letra":"✏️ English · Correct translation",
+        maxLength:600,
+        pause:()=>card.querySelector("audio")?.pause(),
+        onChange:value=>{element.textContent=value;}
+      }));
+    }
+  });
 }
 
 function playRhythmDrill(index, button) {
@@ -5945,6 +6091,8 @@ function initializeOptionalFeature(name, setup) {
   } catch (error) { failed(error); }
 }
 
+
+
 function init() {
   const launchQuery = new URLSearchParams(location.search);
   const faceToFaceLaunch = launchQuery.get("start") === "face-to-face";
@@ -5961,6 +6109,14 @@ function init() {
   }
   // Navigation must work even if an optional import/media module fails setup.
   $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  if(!standaloneTranslator && typeof HablaSwipeNavigation!=="undefined"){
+    HablaSwipeNavigation.bind({
+      navigate:openView,
+      enabled:()=>!recognition&&!activeRecognitionButton&&!musicListening
+        &&!faceHandsFree&&!faceCapture&&!documentImportActive&&!documentLoading
+        &&!(typeof HablaTutorial!=="undefined"&&HablaTutorial.isOpen())
+    });
+  }
   $("#home-button").addEventListener("click", () => openView("home-view"));
   $$(".mode").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
   initializeOptionalFeature("offline tools",() => HablaOffline.bind());
@@ -6093,7 +6249,9 @@ function init() {
   $("#music-listen")?.addEventListener("click", startMusicListening);
   $("#music-retry-local")?.addEventListener("click", () => retryMusicRecognition("auto"));
   $("#music-retry-service")?.addEventListener("click", () => retryMusicRecognition("apple-service"));
-  $("#new-music-song")?.addEventListener("click", newMusicSong);
+  $("#new-music-song")?.addEventListener("click",()=>{
+    if(window.HablaSavedSessions?.askBeforeClear("music",newMusicSong)!==false)newMusicSong();
+  });
   updateMusicSourceHelp();
   $("#music-live-translation")?.addEventListener("change", event => setMusicLiveEnabled(event.target.checked));
   $("#music-source-mode")?.addEventListener("change", () => {
@@ -6252,7 +6410,9 @@ function init() {
   }));
   document.querySelectorAll("[data-speaker-role]").forEach(button => bindPushToTalk(button, current => conversationOptions(current.dataset.speakerRole, current)));
   bindFaceToFace();
-  $("#clear-conversation").addEventListener("click", clearConversation);
+  $("#clear-conversation").addEventListener("click",()=>{
+    if(window.HablaSavedSessions?.askBeforeClear("conversation",clearConversation)!==false)clearConversation();
+  });
   setConversationPlayback(conversationPlayback);
   syncConversationLocaleUi();
   $("#conversation-playback").addEventListener("change",event=>setConversationPlayback(event.target.value));
@@ -6296,6 +6456,12 @@ function init() {
   if(typeof HablaTranslationHistory!=="undefined") {
     initializeOptionalFeature("recent translation history",()=>HablaTranslationHistory.bind({
       getCurrent:currentHistoryTranslation,restore:restoreHistoryTranslation,languageLabel
+    }));
+  }
+  if(typeof HablaSavedSessions!=="undefined"){
+    initializeOptionalFeature("saved songs and conversations",()=>HablaSavedSessions.bind({
+      getMusic:currentSavedMusic,getConversation:currentSavedConversation,
+      openMusic:restoreSavedMusic,openConversation:restoreSavedConversation
     }));
   }
   renderTranslation();

@@ -42,6 +42,9 @@
   <script src="tutorial.js?v=218" defer></script>
   <script src="full-text-reader.js?v=218" defer></script>
   <script src="persistent-translation-controls.js?v=218" defer></script>
+  <script src="music-lyric-editor.js?v=218" defer></script>
+  <script src="saved-sessions.js?v=218" defer></script>
+  <script src="swipe-navigation.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
   <script src="app.js?v=218" defer></script>
@@ -217,6 +220,7 @@
             <p class="ve-reading-heading">Full English caption · high contrast / Subtítulos completos</p>
             <p id="ve-caption-reading" class="ve-reading-text">Press play to follow the captions.</p>
             <p id="ve-caption-confidence" class="ve-confidence" role="status">English draft · lyrics under review</p>
+            <p class="ve-edit-hint">✏️ Toca una línea incorrecta para editarla. / Tap an incorrect lyric to open the keyboard.</p>
             <div class="ve-playback-row">
               <button id="ve-previous" type="button">−10 s</button>
               <label for="ve-video-time">Video <output id="ve-video-time-label">0:00</output></label>
@@ -298,6 +302,7 @@
             </section>
             <div class="face-to-face-actions">
               <button id="start-face-conversation" class="primary-button" type="button">Start conversation / Iniciar conversación</button>
+              <button id="save-face-conversation" class="text-button" type="button">💾 Save / Guardar</button>
               <button id="close-face-to-face" class="text-button" type="button">Close / Cerrar</button>
             </div>
             <section class="face-to-face-side" data-face-side="english">
@@ -305,6 +310,13 @@
               <div class="face-to-face-turn" aria-live="polite"></div>
               <button class="primary-button" type="button" data-face-mic="english" aria-pressed="false" data-active-hint="Tap to finish / Toca para terminar" data-finishing-hint="Finishing… / Terminando…"><small>Tap to talk / Toca para hablar</small></button>
             </section>
+            <nav class="face-to-face-bottom-nav" aria-label="Main navigation / Navegación principal">
+              <button type="button" data-face-open="home-view"><span aria-hidden="true">⌂</span>Today</button>
+              <button type="button" class="active" aria-current="page" data-face-open="translator-view"><span aria-hidden="true">⇄</span>Translate</button>
+              <button type="button" data-face-open="dictionary-view"><span aria-hidden="true">⌕</span>Dictionary</button>
+              <button type="button" data-face-open="music-view"><span aria-hidden="true">♫</span>Music</button>
+              <button type="button" data-face-open="lesson-view"><span aria-hidden="true">◉</span>Practice</button>
+            </nav>
           </div>
         </dialog>
 
@@ -588,6 +600,7 @@
             <button id="music-live-retry" class="secondary-button" type="button" hidden>Retry live translation</button>
             <p id="music-live-pending" class="music-live-pending" hidden></p>
 
+            <div id="music-save-host" class="saved-sessions-music-host"></div>
             <details id="music-review" class="compact-info music-review" hidden>
               <summary id="music-review-heading">Review captured passages</summary>
               <p id="music-review-pair" class="result-label"></p>
@@ -885,6 +898,7 @@
             <p>Choose the language yourself for short or mixed text. Turns stay in this open session; they are cleared when you reload.</p>
           </details>
           <div id="conversation-turns" class="turns" aria-live="polite"></div>
+          <div id="conversation-save-host"></div>
           <button id="clear-conversation" class="text-button">Clear this conversation</button>
         </div>
       </section>
@@ -1023,7 +1037,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="active" data-open="home-view"><span>⌂</span>Today</button>
+      <button class="active" aria-current="page" data-open="home-view"><span>⌂</span>Today</button>
       <button data-open="translator-view"><span>⇄</span>Translate</button>
       <button data-open="dictionary-view"><span>⌕</span>Dictionary</button>
       <button data-open="music-view"><span>♫</span>Music</button>

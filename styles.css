@@ -1526,3 +1526,230 @@ body.ve-theater-open {overflow:hidden !important;}
 [data-face-mic] small { font: inherit; }
 
 [data-face-mic].listening { outline: 3px solid #b65b28; outline-offset: 2px; }
+
+
+/* The lyrics themselves launch a keyboard, with an in-place Save / Restore.
+   Keep the main music player, notes, and correction within one visual block. */
+.music-edit-tap-target { cursor:text; text-decoration:underline dotted; text-underline-offset:4px; }
+.music-edit-tap-target:focus-visible { outline:3px solid #cb8c39; outline-offset:3px; border-radius:6px; }
+.ve-caption-overlay.music-edit-tap-target,
+.ve-caption-dock > .ve-caption-overlay.music-edit-tap-target:not([hidden]) {
+  pointer-events:auto; touch-action:manipulation;
+}
+.ve-caption-overlay[hidden] { display:none !important; }
+.ve-theater-english.music-edit-tap-target, .ve-reading-text.music-edit-tap-target {
+  cursor:text; touch-action:manipulation;
+}
+.ve-edit-hint { margin:4px 0 8px; color:#496353; font-size:0.8rem; line-height:1.35; }
+.lyric-companion .music-edit-tap-target { padding:3px 0; }
+.music-inline-correction {
+  box-sizing:border-box; display:grid; gap:7px; min-width:0; max-width:100%;
+  padding:10px; margin:8px 0 10px; border-radius:13px;
+  border:2px solid #448c68; background:#f1faf3; color:#152d20;
+  -webkit-text-fill-color:initial;
+}
+.music-inline-correction-label {
+  color:#173f35; font-size:0.9rem; font-weight:800; line-height:1.35;
+}
+.music-inline-correction-text {
+  box-sizing:border-box; display:block; width:100%; max-width:100%;
+  min-height:88px; max-height:36dvh; overflow-y:auto; resize:vertical;
+  padding:11px; border-radius:10px; border:2px solid #84a58d;
+  color:#152d20; -webkit-text-fill-color:#152d20;
+  background:#fff; font-size:16px; line-height:1.4;
+  font-family:inherit; -webkit-user-select:text; user-select:text;
+}
+.music-inline-correction-text:focus-visible {
+  outline:3px solid #cb8c39; outline-offset:1px;
+}
+.music-inline-correction-actions {
+  display:flex; flex-wrap:wrap; gap:7px; align-items:center;
+}
+.music-inline-correction-actions button {
+  box-sizing:border-box; flex:1 1 112px; min-width:0; min-height:44px;
+  padding:9px 7px; border:1px solid #7eaa8b; border-radius:9px;
+  background:#fff; color:#173f35; -webkit-text-fill-color:#173f35;
+  font-weight:750; font-size:0.79rem; line-height:1.3; cursor:pointer;
+}
+.music-inline-correction-actions .music-inline-correction-save {
+  background:#145a40; color:#fff; -webkit-text-fill-color:#fff;
+}
+.music-inline-correction-notice {
+  margin:0 !important; color:#425c4b !important; -webkit-text-fill-color:#425c4b;
+  font-size:0.71rem !important; line-height:1.35;
+}
+@media(max-width:410px) {
+  .music-inline-correction { padding:9px; }
+  .music-inline-correction-actions button { flex-basis:105px; }
+}
+
+
+/* Face to face is a top-layer dialog: the regular bottom navigation sits below
+   it, so provide the same five destinations INSIDE the dialog. All controls
+   retain a touch target even on shorter iPhones and in landscape. */
+#face-to-face { overflow:hidden; }
+.face-to-face-panels {
+  grid-template-rows:minmax(0,1fr) auto minmax(0,1fr) auto;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+}
+.face-to-face-side { min-height:0; overflow:hidden; }
+.face-to-face-turn { min-height:0; overflow-y:auto; }
+.face-to-face-bottom-nav {
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;
+  flex:none;min-width:0;width:100%;align-items:stretch;
+  padding:6px 3px 2px;border:1px solid #b5d0bb;border-radius:14px;
+  background:#f0f7ee;box-sizing:border-box;
+}
+.face-to-face-bottom-nav button {
+  box-sizing:border-box;min-width:0;min-height:48px;border:0;border-radius:10px;
+  background:transparent;color:#174932;-webkit-text-fill-color:#174932;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:4px 2px;font-size:clamp(9px,2.6vw,11px);
+  font-weight:800;line-height:1.15;cursor:pointer;
+}
+.face-to-face-bottom-nav button span {font-size:17px;line-height:1;}
+.face-to-face-bottom-nav button[data-face-open="translator-view"] {
+  background:#d8ebdc;
+}
+.face-to-face-bottom-nav button:focus-visible {
+  outline:3px solid #ad6330;outline-offset:1px;
+}
+@media(max-height:630px){
+  #face-to-face {padding: max(4px,env(safe-area-inset-top)) 6px max(4px,env(safe-area-inset-bottom));}
+  .face-to-face-panels {gap:3px;}
+  .face-to-face-side {gap:3px;padding:5px;}
+  .face-to-face-side h2 {font-size:.84rem;}
+  .face-to-face-actions button {min-height:40px;}
+  .face-to-face-bottom-nav {padding:3px 2px;}
+  .face-to-face-bottom-nav button {min-height:40px;font-size:9px;}
+}
+/* iOS bottom toolbar is not covered by the keyboard or an oversized footer. */
+@supports(padding:env(safe-area-inset-bottom)){
+  #face-to-face {padding-bottom:max(9px,env(safe-area-inset-bottom));}
+}
+
+
+/* One visible five-tab navigation system. Swipe changes the selected tab;
+   the nav stays on screen and the selected destination is a strong pill. */
+.bottom-nav button,
+.face-to-face-bottom-nav button {
+  box-sizing:border-box;
+  min-width:0;
+  min-height:48px;
+  border-radius:12px;
+  transition:background-color .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.bottom-nav button.active,
+.bottom-nav button[aria-current="page"],
+.face-to-face-bottom-nav button.active,
+.face-to-face-bottom-nav button[aria-current="page"] {
+  background:#174d38;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  font-weight:900;
+  box-shadow:0 2px 5px rgba(13,54,36,.22);
+}
+.bottom-nav button.active span,
+.face-to-face-bottom-nav button.active span {font-size:22px;}
+.bottom-nav button:not(.active),
+.face-to-face-bottom-nav button:not(.active) {opacity:.83;}
+.bottom-nav button:focus-visible,
+.face-to-face-bottom-nav button:focus-visible {
+  outline:3px solid #be7139;
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+  .bottom-nav button,.face-to-face-bottom-nav button {transition:none;}
+}
+@media (max-width:360px){
+  .bottom-nav,.face-to-face-bottom-nav {column-gap:2px;}
+  .bottom-nav button,.face-to-face-bottom-nav button {font-size:clamp(9px,2.45vw,11px);}
+}
+
+
+/* Saved song/conversation notes: quiet, compact, and recoverable. */
+.saved-session-tools {min-width:0;margin:10px 0;padding:10px 12px;border:1px solid #bad2bd;border-radius:14px;background:#f7fbf7;color:#18392a;}
+.saved-session-save-row {display:flex;flex-wrap:wrap;gap:6px;}
+.saved-session-name-label {display:grid;flex:1 1 145px;min-width:0;gap:4px;font-size:.76rem;font-weight:750;}
+.saved-session-name-label input,.saved-session-query {box-sizing:border-box;width:100%;min-height:42px;border:1px solid #a5c4ad;border-radius:9px;background:#fff;color:#132e1f;font-size:16px;padding:9px;}
+.saved-session-save {box-sizing:border-box;min-height:44px;margin:9px 0;padding:8px 13px;background:#175640;color:#fff;border:0;border-radius:10px;font-weight:800;font-size:.84rem;}
+.saved-session-status {margin:2px 0!important;font-size:.8rem;line-height:1.4;color:#245139;overflow-wrap:anywhere;}
+.saved-sessions-list {margin-top:8px;padding:8px 2px;border-top:1px solid #d5e2d6;}
+.saved-sessions-list > summary,.saved-session-trash > summary {cursor:pointer;font-weight:800;font-size:.82rem;min-height:38px;padding:8px 4px;}
+.saved-session-count {display:inline-block;min-width:22px;text-align:center;border-radius:99px;background:#dfede3;color:#164d33;padding:2px 5px;margin-left:6px;}
+.saved-session-query-label {display:grid;gap:6px;font-weight:750;font-size:.8rem;}
+.saved-session-privacy,.saved-sessions-empty {font-size:.75rem;line-height:1.45;color:#52675a;}
+.saved-session-list,.saved-session-trash-list {display:grid;gap:8px;padding:7px 0;}
+.saved-session-entry {display:grid;gap:5px;padding:10px;background:#fff;border:1px solid #d4e3d7;border-radius:11px;min-width:0;}
+.saved-session-title {font-size:.9rem;overflow-wrap:anywhere;}
+.saved-session-date {font-size:.71rem;color:#607366;}
+.saved-session-excerpt {margin:0;font-size:.78rem;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;}
+.saved-session-actions {display:flex;gap:6px;flex-wrap:wrap;}
+.saved-session-actions button {flex:1 1 105px;min-height:42px;min-width:0;padding:7px;border:1px solid #9cbaa3;border-radius:9px;background:#f4f9f5;color:#164b33;font-weight:750;font-size:.75rem;}
+.saved-session-actions button[data-saved-action="permanent"] {color:#85292a;border-color:#c99d9d;}
+.saved-session-trash {margin-top:9px;padding:5px 9px;background:#fcf7f1;border:1px solid #ebd7c6;border-radius:10px;}
+.saved-session-deleted {border-color:#e2d4c2;background:#fffcf6;}
+.saved-session-tools :is(button,input,summary):focus-visible {outline:3px solid #b87035;outline-offset:2px;}
+#save-face-conversation {min-width:0;flex:1 1 120px;font-size:.78rem;padding:6px;}
+@media(max-height:630px){#save-face-conversation{min-height:40px;font-size:.72rem;}}
+
+
+/* Saved text shelves: explicitly opt-in, compact, searchable and recoverable.
+   Different from automatic 30-item everyday translator history. */
+.saved-sessions-music-host,#conversation-save-host {
+  width:100%;min-width:0;margin:9px 0 12px;
+}
+.saved-session-quick-actions,.saved-session-metadata,
+.saved-conversation-actions {display:flex;gap:8px;flex-wrap:wrap;align-items:end;}
+.saved-session-quick-actions > button {
+  min-height:44px;flex:1 1 180px;padding:9px 10px;
+  border:1px solid #487b5e;border-radius:10px;background:#18563e;color:#fff;
+  font-weight:780;line-height:1.3;
+}
+.saved-session-library {margin:8px 0 12px;padding:11px 12px;border:1px solid #c7d9c8;border-radius:13px;background:#f8fbf7;color:#1b3929;}
+.saved-session-library > summary {min-height:40px;cursor:pointer;font-weight:780;font-size:.88rem;overflow-wrap:anywhere;}
+.saved-session-body {display:grid;gap:8px;padding:8px 0 2px;min-width:0;}
+.saved-session-note {margin:0!important;font-size:.79rem!important;line-height:1.45;color:#4d6455;}
+.saved-session-field {display:grid;flex:1 1 136px;gap:4px;min-width:0;font-size:.79rem;font-weight:740;}
+.saved-session-input {display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:9px 11px;font-size:16px;border-radius:10px;border:1px solid #9ab9a1;background:#fff;color:#1d382a;}
+.saved-session-input:focus-visible,.saved-session-library button:focus-visible,.saved-session-library summary:focus-visible {outline:3px solid #b36d31;outline-offset:2px;}
+.saved-session-status {margin:0!important;font-size:.8rem;color:#18563e;overflow-wrap:anywhere;}
+.saved-session-status:empty,.face-save-status:empty {display:none;}
+.saved-session-results {display:grid;gap:9px;min-width:0;}
+.saved-session-entry {min-width:0;padding:10px;border-radius:12px;border:1px solid #c0d6c4;background:#fff;}
+.saved-session-title {display:block;font-size:.87rem;color:#173f35;overflow-wrap:anywhere;}
+.saved-session-meta,.saved-session-date {display:block;font-size:.73rem!important;color:#5d6e61;margin:4px 0;}
+.saved-session-preview {font-size:.78rem!important;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;max-height:160px;overflow-y:auto;margin:6px 0!important;}
+.saved-session-actions {display:flex;flex-wrap:wrap;gap:6px;}
+.saved-session-action {min-width:0;flex:1 1 114px;min-height:44px;padding:8px;border:1px solid #91b39a;border-radius:9px;background:#f8fbf7;color:#174630;font-size:.78rem;font-weight:760;}
+.saved-session-trash {margin:5px 0 0;border-top:1px solid #cbdccb;padding-top:9px;}
+.saved-session-trash summary {cursor:pointer;font-size:.8rem;font-weight:780;min-height:36px;}
+.saved-session-trash .saved-session-entry {background:#fff8f5;border-color:#e0c9bb;}
+.saved-session-empty {color:#5c715d;font-size:.82rem;}
+.face-to-face-actions {flex-wrap:wrap;justify-content:center;gap:5px;}
+.face-to-face-actions #start-face-conversation {flex:1 1 100%;width:100%;min-height:40px;}
+.face-to-face-actions #close-face-to-face,
+.face-to-face-actions #save-face-conversation {flex:1 1 90px;min-width:0;min-height:40px;padding:6px 7px;font-size:.75rem;line-height:1.1;}
+.face-to-face-actions .face-save-status {flex:1 1 100%;font-size:.73rem;text-align:center;line-height:1.3;color:#174630;}
+
+
+/* Before replacing song lyrics or clearing private conversation text,
+   keep the Save / recoverable Trash / Cancel decision next to Save. */
+.saved-session-decision {
+  display:grid;gap:9px;margin:10px 0;padding:10px;
+  border:2px solid #a97739;border-radius:12px;
+  background:#fff8e9;color:#3b2b19;scroll-margin-bottom:110px;
+}
+.saved-session-decision-title {margin:0!important;font-size:.88rem;line-height:1.4;font-weight:800;}
+.saved-session-decision .saved-session-actions {
+  display:flex;flex-wrap:wrap;gap:7px;align-items:stretch;
+}
+.saved-session-decision-button {
+  flex:1 1 115px;min-width:0;min-height:46px;
+  padding:8px 7px;border-radius:10px;border:1px solid #b78d62;
+  background:#fff;color:#3b2b19;font-size:.78rem;font-weight:800;
+}
+.saved-session-decision-button:first-child {background:#195940;color:white;}
+.saved-session-decision-button:focus-visible {outline:3px solid #174d38;outline-offset:2px;}

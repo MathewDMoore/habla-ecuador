@@ -1,0 +1,34 @@
+name: Music edits, swipe and saved session recovery
+
+on:
+  pull_request:
+    paths:
+      - 'music-lyric-editor.js'
+      - 'saved-sessions.js'
+      - 'swipe-navigation.js'
+      - 'music-venezuela-captions.js'
+      - 'app.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'sw.js'
+      - 'styles.css'
+      - 'tests/music-lyric-editor.test.cjs'
+      - 'tests/saved-sessions-trash.test.cjs'
+      - 'tests/swipe-navigation.test.cjs'
+      - '.github/workflows/music-edit-save-navigation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: node --check app.js && node --check music-venezuela-captions.js && node --check music-lyric-editor.js && node --check saved-sessions.js && node --check swipe-navigation.js
+      - name: iPhone keyboard edits, five tab navigation, recoverable session Trash
+        run: node --test tests/music-lyric-editor.test.cjs tests/saved-sessions-trash.test.cjs tests/swipe-navigation.test.cjs
