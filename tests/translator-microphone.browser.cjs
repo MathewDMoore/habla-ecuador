@@ -68,8 +68,8 @@ async function run(browser,file,width,native){
  assert.equal(messages.length,2,'tap works again after prior session ends');
  assert.equal(messages[1].lang,'es-EC','dictation follows the changed source language');
  // Safari may report only 'Sí' when the actual sentence was '¿Cómo estás?'.
- // A non-final fragment must NEVER be translated as a trustworthy result.
- await page.evaluate(()=>{window.translationsStarted=0;renderTranslation=()=>{window.translationsStarted++;};});
+ // Wait for the session to end before translating any tentative words.
+ await page.evaluate(()=>{window.translationSources=[];renderTranslation=()=>{translationSources.push(document.querySelector('#translator-input').value);};});
  const spanishMicTop=await relativeMicTop();
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'result',text:'Sí',final:false});
@@ -79,21 +79,19 @@ async function run(browser,file,width,native){
  assert.match(await page.locator('#translator-mic-status').textContent(),/(Partial words heard|palabras parciales)/i);
  assert.ok(Math.abs((await relativeMicTop())-spanishMicTop)<4,
   'interim transcript cannot move the microphone within its card');
+ assert.deepEqual(await page.evaluate(()=>translationSources),[],'interim Spanish output must not auto-translate');
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),true,'unfinished transcript remains pending review');
+ assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden during dictation');
  await page.evaluate(({native,id})=>{
   if(native)__hablaNativeSpeech({id,type:'end'});else testRecognition.onend?.();
  },{native,id:messages[1].id});
- assert.equal(await page.evaluate(()=>translationsStarted),0,'partial Spanish output must not auto-translate');
- assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),true,'unconfirmed transcript remains pending review');
- assert.equal(await page.locator('#translator-mic-confirm').isVisible(),true,'review action shown for unconfirmed fragment');
- assert.match(await page.locator('#translator-mic-status').textContent(),/(Only a partial transcript|transcripción parcial)/i);
- assert.equal(await page.locator('#translation-result').isVisible(),false,'stale translated result hidden');
- await page.locator('#translator-mic-confirm').click();
- assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'manual acceptance unlocks translation');
- assert.equal(await page.evaluate(()=>translationsStarted),1,'manual approval requests translation');
- assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false);
+ assert.deepEqual(await page.evaluate(()=>translationSources),['Sí'],'ending the session translates the editable draft once');
+ assert.equal(await page.evaluate(()=>translatorDictationNeedsReview),false,'ended draft can be translated');
+ assert.match(await page.locator('#translator-mic-status').textContent(),/(Recognition may be incomplete|El dictado puede estar incompleto)/i);
+ assert.equal(await page.locator('#translator-mic-confirm').isVisible(),false,'draft translation needs no extra tap');
  // An empty English recognition must explain the failure, not erase the draft.
  await page.locator('#source-language-select').selectOption('en-US');
- const beforeSilence=await page.evaluate(()=>translationsStarted);
+ const beforeSilence=await page.evaluate(()=>translationSources.length);
  await page.locator('#input-mic').click();
  messages=await page.evaluate(()=>testMessages.filter(item=>item.action==='start'));
  assert.equal(messages.length,3);
@@ -110,7 +108,7 @@ async function run(browser,file,width,native){
  await page.locator('#translator-mic-keyboard').click();
  assert.equal(await page.evaluate(()=>document.activeElement?.id),'translator-input','keyboard fallback focuses editor');
  assert.equal(await page.locator('#translator-input').inputValue(),'Sí','failed capture retains previous words');
- assert.equal(await page.evaluate(()=>translationsStarted),beforeSilence,'failed capture never translates');
+ assert.equal(await page.evaluate(()=>translationSources.length),beforeSilence,'failed capture never translates');
  // WebKit/iOS can report successful start but NEVER dispatch an end after
  // stop. The bounded watchdog must abort and free that session before retry.
  await page.locator('#source-language-select').selectOption('es-EC');
