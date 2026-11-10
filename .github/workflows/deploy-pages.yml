@@ -28,13 +28,19 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Generate public release metadata
-        run: node scripts/write-release.cjs
+      - name: Prepare public site
+        env:
+          PAGES_DIR: ${{ runner.temp }}/habla-pages
+        run: |
+          mkdir -p "$PAGES_DIR"
+          git archive HEAD | tar -xf - -C "$PAGES_DIR"
+          node scripts/share-archived-audio.cjs "$PAGES_DIR"
+          node "$PAGES_DIR/scripts/write-release.cjs"
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: '.'
+          path: ${{ runner.temp }}/habla-pages
           name: github-pages-${{ github.run_attempt }}
 
       - name: Deploy to GitHub Pages
