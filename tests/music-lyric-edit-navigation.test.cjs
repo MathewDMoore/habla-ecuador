@@ -103,8 +103,8 @@ test('swipe size and direction are conservative',()=>{
 });
 test('swiping navigates, but not over an editor, a modal, or while recording',()=>{
  const listeners={},body={};
- let active='translator-view',modal=false,recording=false,interactive=false;
- const view={id:active,parentElement:body,scrollWidth:100,clientWidth:100};
+ let modal=false,recording=false,interactive=false;
+ const view={id:'translator-view',parentElement:body,scrollWidth:100,clientWidth:100};
  const target={parentElement:view,scrollWidth:100,clientWidth:100,closest(selector){
   return selector==='.view.active'?view:interactive?{}:null;
  }};
@@ -112,11 +112,10 @@ test('swiping navigates, but not over an editor, a modal, or while recording',()
  global.document={
   body,documentElement:{dataset:{},clientWidth:390},
   addEventListener:(event,fn)=>{listeners[event]=fn;},
-  querySelector:selector=>selector==='.view.active'
-    ?(view.id=active,view):(modal?{}:null)
+  querySelector:selector=>selector==='.view.active'?view:(modal?{}:null)
  };
  const destinations=[];
- swipes.bind({navigate:to=>{destinations.push(to);active=to;},enabled:()=>!recording});
+ swipes.bind({navigate:to=>{destinations.push(to);view.id=to;},enabled:()=>!recording});
  const gesture=(start,end,dy=0)=>{
   listeners.touchstart({target,touches:[{clientX:start,clientY:200}]});
   listeners.touchend({changedTouches:[{clientX:end,clientY:200+dy}]});

@@ -8,10 +8,13 @@ const css=fs.readFileSync('styles.css','utf8');
 const script=fs.readFileSync('music-venezuela-captions.js','utf8');
 
 function render({sourceMode='youtube',ready=true,language='en-US'}={}){
+ const cueStart=script.indexOf('function originalCue(');
+ const cueEnd=script.indexOf('const cueButtons=',cueStart);
  const start=script.indexOf('function draw(force){');
  const end=script.indexOf('function renderPassages(){',start);
+ assert.ok(cueStart>=0&&cueEnd>cueStart,'must find actual caption text helpers');
  assert.ok(start>=0&&end>start,'must find actual caption drawing function');
- const drawSource=script.slice(start,end);
+ const drawSource=script.slice(cueStart,cueEnd)+script.slice(start,end);
  const caption={hidden:true,textContent:''};
  const lang={value:language};
  const overlayText={textContent:''};
@@ -19,7 +22,7 @@ function render({sourceMode='youtube',ready=true,language='en-US'}={}){
  const confidence={textContent:'',classList:{toggle(){}}};
  const timing={value:'0'};
  const ctx=vm.createContext({
-  sourceMode,ready,lang,caption,reading,confidence,
+  sourceMode,ready,lang,caption,reading,confidence,lyricEditor:undefined,
   theaterEnglish:overlayText,timeLabel:{textContent:''},timing,
   manual:0,offset:0,last:-2,cues:[[4,10,'English draft for demonstration.','UK English draft.',true]],
   document:{activeElement:null},position:()=>7,fmt:()=>'0:07',selectedCue:()=>0

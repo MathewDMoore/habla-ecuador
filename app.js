@@ -6108,7 +6108,7 @@ function init() {
     return;
   }
   // Navigation must work even if an optional import/media module fails setup.
-  $('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
+  $$('[data-open]').forEach(button => button.addEventListener("click", () => openView(button.dataset.open)));
   if(!standaloneTranslator && typeof HablaSwipeNavigation!=="undefined"){
     HablaSwipeNavigation.bind({
       navigate:openView,
