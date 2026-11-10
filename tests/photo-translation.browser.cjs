@@ -40,6 +40,8 @@ async function run(browser,entry,width){
  const chooser=await chooserPromise;await chooser.setFiles({name:'notice.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
  const dialog=page.locator('#photo-translator');await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelectorAll('.photo-translation-label[data-ready="true"]').length===2);
+ await page.waitForFunction(()=>{const image=document.querySelector('#photo-translator img');return image.complete&&image.naturalWidth>0&&image.getBoundingClientRect().height>0;});
+ if(width===390&&entry==='index.html'&&process.env.HABLA_PHOTO_SCREENSHOT)await page.screenshot({path:process.env.HABLA_PHOTO_SCREENSHOT});
  const labels=dialog.locator('.photo-translation-label');assert.equal(await labels.count(),2);
  assert.match(await labels.first().textContent(),/biblioteca/);
  assert.match(await labels.nth(1).textContent(),/tarjeta/);
@@ -47,7 +49,7 @@ async function run(browser,entry,width){
   const a=label.getBoundingClientRect(),b=document.querySelector('.photo-translator-stage img').getBoundingClientRect();
   return {x:(a.x-b.x)/b.width,y:(a.y-b.y)/b.height,width:a.width/b.width};
  });
- assert.ok(Math.abs(geometry.x-.1)<.01);assert.ok(Math.abs(geometry.y-.1)<.01);assert.ok(Math.abs(geometry.width-.8)<.01);
+ assert.ok(Math.abs(geometry.x-.1)<.01,JSON.stringify(geometry));assert.ok(Math.abs(geometry.y-.1)<.01,JSON.stringify(geometry));assert.ok(Math.abs(geometry.width-.8)<.01,JSON.stringify(geometry));
  await labels.first().click();assert.match(await dialog.locator('[data-photo-detail]').textContent(),/The library.*\n\nLa biblioteca/s);
  await dialog.locator('[data-photo-original]').click();assert.equal(await dialog.locator('.photo-translator-labels').isVisible(),false);
  await dialog.locator('[data-photo-original]').click();assert.equal(await labels.first().isVisible(),true);
