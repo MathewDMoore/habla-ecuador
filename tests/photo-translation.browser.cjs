@@ -3,7 +3,8 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,entry,width){
  const context=await browser.newContext({viewport:{width,height:844},hasTouch:true,isMobile:true,serviceWorkers:'block'});
- const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage(),errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));
+ page.on('requestfailed',request=>requests.push({url:request.url(),error:request.failure()}));
  await page.addInitScript(()=>{
   localStorage.setItem('habla-tutorial-seen-v2','1');window.__copies=[];
   Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__copies.push(text);}}});
@@ -18,6 +19,7 @@ async function run(browser,entry,width){
  });
  await page.route('**/*',route=>{
   const url=new URL(route.request().url());
+  if(url.protocol==='blob:'||url.protocol==='data:')return route.continue();
   if(url.hostname==='api.mymemory.translated.net'){
    const query=url.searchParams.get('q')||'';
    const text=query.includes('Bring')&&!query.includes('library')?'Trae tu tarjeta de socio.':'La biblioteca abre mañana.';
@@ -40,7 +42,10 @@ async function run(browser,entry,width){
  const chooser=await chooserPromise;await chooser.setFiles({name:'notice.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
  const dialog=page.locator('#photo-translator');await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelectorAll('.photo-translation-label[data-ready="true"]').length===2);
- await page.waitForFunction(()=>{const image=document.querySelector('#photo-translator img');return image.complete&&image.naturalWidth>0&&image.getBoundingClientRect().height>0;});
+ await page.waitForFunction(()=>{const image=document.querySelector('#photo-translator img');return image.complete&&image.naturalWidth>0&&image.getBoundingClientRect().height>0;},{},{timeout:10000}).catch(async error=>{
+  console.error(await page.evaluate(()=>{const i=document.querySelector('#photo-translator img');return {src:i.src,complete:i.complete,naturalWidth:i.naturalWidth,width:i.clientWidth,height:i.clientHeight,style:getComputedStyle(i).cssText};}),requests);
+  if(process.env.HABLA_PHOTO_SCREENSHOT)await page.screenshot({path:process.env.HABLA_PHOTO_SCREENSHOT});throw error;
+ });
  if(width===390&&entry==='index.html'&&process.env.HABLA_PHOTO_SCREENSHOT)await page.screenshot({path:process.env.HABLA_PHOTO_SCREENSHOT});
  const labels=dialog.locator('.photo-translation-label');assert.equal(await labels.count(),2);
  assert.match(await labels.first().textContent(),/biblioteca/);
