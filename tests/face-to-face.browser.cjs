@@ -174,14 +174,14 @@ async function main() {
           const y = Math.round(box.y + box.height / 2);
           const touch = await context.newCDPSession(page);
           await touch.send("Input.dispatchTouchEvent", {type:"touchStart",touchPoints:[{x:240,y}]});
-          for (const x of [220,190,155,120,90]) {
+          for (const x of [230,218,206,192]) {
             await touch.send("Input.dispatchTouchEvent", {type:"touchMove",touchPoints:[{x,y}]});
           }
           await touch.send("Input.dispatchTouchEvent", {type:"touchEnd",touchPoints:[]});
           await touch.detach();
         } else {
           await lessonCard.evaluate(card => {
-            for (const [type, key, x] of [["touchstart", "touches", 240], ["touchmove", "touches", 215], ["touchend", "changedTouches", 90]]) {
+            for (const [type, key, x] of [["touchstart", "touches", 240], ["touchmove", "touches", 230], ["touchend", "changedTouches", 192]]) {
               const event = new Event(type, {bubbles:true,cancelable:true});
               Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
               card.dispatchEvent(event);
