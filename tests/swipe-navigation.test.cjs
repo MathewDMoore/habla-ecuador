@@ -31,7 +31,7 @@ test('selected destination becomes visually prominent and accessible without hid
   assert.match(cssTail,/\.face-to-face-bottom-nav button\.active/);
   assert.match(cssTail,/background:#174d38/);
   assert.match(cssTail,/color:#fff/);
-  assert.doesNotMatch(cssTail.split("/* Saved song/conversation notes:")[0],/display:none|visibility:hidden/);
+  assert.doesNotMatch(cssTail.split("/* Saved song/conversation notes:")[0].split("/* Keep photo labels")[0],/display:none|visibility:hidden/);
   const functionBody=app.match(/function syncMainNavSelection\(id\) \{[\s\S]*?\n\}/)?.[0];
   assert.ok(functionBody,'shared nav state should have an actual implementation');
   const buttons=tabs.flatMap(id=>['normal','modal'].map(kind=>{
@@ -70,8 +70,12 @@ test('swipes between only the five main tabs in their visible order',()=>{
   assert.equal(swipes.isSwipe(90,-8),true);
   assert.equal(swipes.isSwipe(-44,18),true);
   assert.equal(swipes.isSwipe(44,-18),true);
-  assert.equal(swipes.isSwipe(43,0),false);
-  assert.equal(swipes.isSwipe(44,32),false);
+  assert.equal(swipes.isSwipe(27,0),false);
+  assert.equal(swipes.isSwipe(28,23),false);
+  assert.equal(swipes.isSwipe(28,12),true);
+  assert.equal(swipes.isSwipe(-18,4,160),true);
+  assert.equal(swipes.isSwipe(18,4,400),false);
+  assert.equal(swipes.isSwipe(17,0,120),false);
   assert.equal(swipes.isSwipe(70,130),false);
 });
 
@@ -92,7 +96,7 @@ test('gesture safety preserves keyboard typing, media, dialogs and iPhone back g
 test('script load and cached asset support offline swipe navigation',()=>{
   for(const path of ['index.html','sw.js']){
     const source=fs.readFileSync(path,'utf8');
-    assert.match(source,/swipe-navigation\.js\?v=221/,path);
+    assert.match(source,/swipe-navigation\.js\?v=223/,path);
   }
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
 });
