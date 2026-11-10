@@ -41,7 +41,21 @@ async function main() {
           ? route.fulfill({path:local}) : route.abort();
       });
       await page.goto("https://mathewdmoore.github.io/habla-ecuador/" + file + "?ui=en");
-      if (file === "index.html") await page.locator('.bottom-nav [data-open="translator-view"]').tap();
+      const fullApp = file === "index.html";
+      const mainNav = page.locator(".bottom-nav");
+      if (fullApp) {
+        assert.equal(await mainNav.getByRole("button").count(), 5);
+        await page.evaluate(() => {
+          const view = document.querySelector(".view.active");
+          for (const [type, key, x] of [["touchstart", "touches", 240], ["touchend", "changedTouches", 90]]) {
+            const event = new Event(type, {bubbles:true});
+            Object.defineProperty(event, key, {value:[{clientX:x,clientY:200}]});
+            view.dispatchEvent(event);
+          }
+        });
+        assert.equal(await page.locator(".view.active").getAttribute("id"), "translator-view");
+        assert.equal(await mainNav.locator('[aria-current="page"]').getAttribute("data-open"), "translator-view");
+      }
       assert.equal(await page.locator('[data-mode="translate"]').getAttribute("aria-selected"),"true");
       const entry = page.getByRole("button",{name:"Face to Face",exact:true});
       await entry.waitFor({state:"visible"});
@@ -53,6 +67,21 @@ async function main() {
       });
       await page.locator("#open-face-to-face").tap();
       const dialog = page.locator("#face-to-face");
+      if (fullApp) {
+        const faceNav = dialog.locator(".face-to-face-bottom-nav");
+        const buttons = faceNav.getByRole("button");
+        assert.equal(await buttons.count(), 5);
+        assert.ok(await buttons.evaluateAll(items => items.every(button => {
+          const bounds = button.getBoundingClientRect();
+          return bounds.width > 0 && bounds.height > 0 && bounds.top >= 0 && bounds.bottom <= innerHeight;
+        })));
+        assert.equal(await faceNav.locator('[aria-current="page"]').getAttribute("data-face-open"), "translator-view");
+        await faceNav.locator('[data-face-open="dictionary-view"]').tap();
+        assert.equal(await dialog.isVisible(), false);
+        assert.equal(await mainNav.locator('[aria-current="page"]').getAttribute("data-open"), "dictionary-view");
+        await mainNav.locator('[data-open="translator-view"]').tap();
+        await entry.tap();
+      }
       const far = dialog.locator('[data-face-side="spanish"]');
       const near = dialog.locator('[data-face-side="english"]');
       const nearMic = near.locator("[data-face-mic]");
