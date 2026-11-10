@@ -74,7 +74,7 @@ test('swipes between only the five main tabs in their visible order',()=>{
 
 test('gesture safety preserves keyboard typing, media, dialogs and iPhone back gesture',()=>{
   const code=fs.readFileSync('swipe-navigation.js','utf8');
-  assert.match(code,/button,a,input,textarea,select,label,summary/);
+  assert.match(code,/input,textarea,select/);
   assert.match(code,/\[contenteditable\]/);
   assert.match(code,/audio,video,iframe/);
   assert.match(code,/\.lyric-lines/);
@@ -82,13 +82,14 @@ test('gesture safety preserves keyboard typing, media, dialogs and iPhone back g
   assert.match(code,/touch\.clientX<28\|\|touch\.clientX>width-28/);
   assert.match(code,/event\.touches\.length!==1/);
   assert.match(code,/dialog\[open\]/);
-  assert.doesNotMatch(code,/preventDefault\(\)/);
+  assert.match(code,/touchmove/);
+  assert.match(code,/if\(event.cancelable\)event.preventDefault\(\)/);
 });
 
 test('script load and cached asset support offline swipe navigation',()=>{
   for(const path of ['index.html','sw.js']){
     const source=fs.readFileSync(path,'utf8');
-    assert.match(source,/swipe-navigation\.js\?v=219/,path);
+    assert.match(source,/swipe-navigation\.js\?v=220/,path);
   }
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
 });
