@@ -60,6 +60,21 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
     window.webkit={messageHandlers:{hablaSpeech:{postMessage:message=>window.__speechMessages.push(message)}}};
    });
    await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../ios/HablaEcuador/NativeSpeech.js'),'utf8')});
+   if(entry==='index.html'){
+    await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
+    await page.evaluate(()=>{
+     const view=document.querySelector('.view.active');
+     for(const [type,key,x] of [['touchstart','touches',240],['touchend','changedTouches',90]]){
+      const event=new Event(type,{bubbles:true});
+      Object.defineProperty(event,key,{value:[{clientX:x,clientY:200}]});
+      view.dispatchEvent(event);
+     }
+    });
+    assert.equal(await page.locator('.view.active').getAttribute('id'),'music-view');
+    assert.equal(await page.locator('.bottom-nav [aria-current="page"]').getAttribute('data-open'),'music-view');
+    assert.equal(await page.locator('#native-music-workspace #native-translation-workspace').isVisible(),true);
+    await page.locator('#native-music-options > summary').click();
+   }
    await page.locator('#native-speech-details').evaluate(panel=>panel.open=true);
    await page.locator('#native-speech-details select').selectOption('legacy-on-device');
    await page.locator('#music-listen').click();

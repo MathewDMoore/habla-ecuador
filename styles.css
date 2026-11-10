@@ -1526,3 +1526,88 @@ body.ve-theater-open {overflow:hidden !important;}
 [data-face-mic] small { font: inherit; }
 
 [data-face-mic].listening { outline: 3px solid #b65b28; outline-offset: 2px; }
+
+
+/* Face to face is a top-layer dialog: the regular bottom navigation sits below
+   it, so provide the same five destinations INSIDE the dialog. All controls
+   retain a touch target even on shorter iPhones and in landscape. */
+#face-to-face { overflow:hidden; }
+.face-to-face-panels {
+  grid-template-rows:minmax(0,1fr) auto minmax(0,1fr) auto;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+}
+.face-to-face-side { min-height:0; overflow:hidden; }
+.face-to-face-turn { min-height:0; overflow-y:auto; }
+.face-to-face-bottom-nav {
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;
+  flex:none;min-width:0;width:100%;align-items:stretch;
+  padding:6px 3px 2px;border:1px solid #b5d0bb;border-radius:14px;
+  background:#f0f7ee;box-sizing:border-box;
+}
+.face-to-face-bottom-nav button {
+  box-sizing:border-box;min-width:0;min-height:48px;border:0;border-radius:10px;
+  background:transparent;color:#174932;-webkit-text-fill-color:#174932;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:4px 2px;font-size:clamp(9px,2.6vw,11px);
+  font-weight:800;line-height:1.15;cursor:pointer;
+}
+.face-to-face-bottom-nav button span {font-size:17px;line-height:1;}
+.face-to-face-bottom-nav button[data-face-open="translator-view"] {
+  background:#d8ebdc;
+}
+.face-to-face-bottom-nav button:focus-visible {
+  outline:3px solid #ad6330;outline-offset:1px;
+}
+@media(max-height:630px){
+  #face-to-face {padding: max(4px,env(safe-area-inset-top)) 6px max(4px,env(safe-area-inset-bottom));}
+  .face-to-face-panels {gap:3px;}
+  .face-to-face-side {gap:3px;padding:5px;}
+  .face-to-face-side h2 {font-size:.84rem;}
+  .face-to-face-actions button {min-height:40px;}
+  .face-to-face-bottom-nav {padding:3px 2px;}
+  .face-to-face-bottom-nav button {min-height:40px;font-size:9px;}
+}
+/* iOS bottom toolbar is not covered by the keyboard or an oversized footer. */
+@supports(padding:env(safe-area-inset-bottom)){
+  #face-to-face {padding-bottom:max(9px,env(safe-area-inset-bottom));}
+}
+
+
+/* One visible five-tab navigation system. Swipe changes the selected tab;
+   the nav stays on screen and the selected destination is a strong pill. */
+.bottom-nav button,
+.face-to-face-bottom-nav button {
+  box-sizing:border-box;
+  min-width:0;
+  min-height:48px;
+  border-radius:12px;
+  transition:background-color .14s ease,color .14s ease,box-shadow .14s ease;
+}
+.bottom-nav button.active,
+.bottom-nav button[aria-current="page"],
+.face-to-face-bottom-nav button.active,
+.face-to-face-bottom-nav button[aria-current="page"] {
+  background:#174d38;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  font-weight:900;
+  box-shadow:0 2px 5px rgba(13,54,36,.22);
+}
+.bottom-nav button.active span,
+.face-to-face-bottom-nav button.active span {font-size:22px;}
+.bottom-nav button:not(.active),
+.face-to-face-bottom-nav button:not(.active) {opacity:.83;}
+.bottom-nav button:focus-visible,
+.face-to-face-bottom-nav button:focus-visible {
+  outline:3px solid #be7139;
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+  .bottom-nav button,.face-to-face-bottom-nav button {transition:none;}
+}
+@media (max-width:360px){
+  .bottom-nav,.face-to-face-bottom-nav {column-gap:2px;}
+  .bottom-nav button,.face-to-face-bottom-nav button {font-size:clamp(9px,2.45vw,11px);}
+}
