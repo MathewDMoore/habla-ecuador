@@ -71,7 +71,7 @@ const HablaRecording = (() => {
           if (token !== generation) return;
           converting = false; ready();
           if (!blob) { status.textContent = 'This frame could not be read. Try another moment.'; return; }
-          HablaScreenshot.read(new File([blob], 'recording-frame.png', {type:'image/png'}));
+          HablaScreenshot.read(new File([blob], 'recording-frame.png', {type:'image/png'}), {overlay:false});
           status.textContent = `Reading visible text at ${seconds.toFixed(1)} seconds. Review the extracted words below before translating. Open Image area to crop out controls.`;
         }, 'image/png');
       } catch {

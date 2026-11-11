@@ -47,6 +47,7 @@ const HablaScreenshot = (() => {
       ctx.drawImage(bitmap,bounds.x,bounds.y,bounds.width,bounds.height,0,0,canvas.width,canvas.height);
       const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);
       if(improveContrast(pixels.data))ctx.putImageData(pixels,0,0);
+      canvas.hablaCrop={top:bounds.y/height,height:bounds.height/height};
       return canvas;
     } finally {bitmap.close?.();if(url)URL.revokeObjectURL(url);}
   }
@@ -88,12 +89,27 @@ const HablaScreenshot = (() => {
     return {
       worker,
       async recognize(image) {
-        const result=await interruptible(worker.recognize(image),signal);
+        // Tesseract 6 disables geometry unless blocks output is requested.
+        const result=await interruptible(worker.recognize(image,{}, {blocks:true}),signal);
         const text=String(result.data?.text||'').replace(/\r\n?/g,'\n').replace(/\u0000/g,'').trim();
-        return {text,confidence:result.data?.confidence};
+        return {text,confidence:result.data?.confidence,regions:photoRegions(result.data?.blocks,image)};
       },
       async close() { try { await worker.terminate(); } catch {} }
     };
+  }
+  function photoRegions(blocks,image) {
+    const width=image.width,height=image.height,crop=image.hablaCrop||{top:0,height:1};
+    if(!width||!height)return [];
+    return (blocks||[]).flatMap(block=>(block.paragraphs||[]).map(paragraph=>{
+      const lines=paragraph.lines||[],text=String(paragraph.text||lines.map(line=>line.text).join('\n')).trim();
+      const boxes=lines.map(line=>line.bbox).filter(Boolean);
+      const box=paragraph.bbox||(boxes.length?{x0:Math.min(...boxes.map(b=>b.x0)),y0:Math.min(...boxes.map(b=>b.y0)),x1:Math.max(...boxes.map(b=>b.x1)),y1:Math.max(...boxes.map(b=>b.y1))}:null);
+      if(!text||!box||![box.x0,box.y0,box.x1,box.y1].every(Number.isFinite))return null;
+      const x=Math.max(0,box.x0/width),y=Math.max(0,box.y0/height);
+      const w=Math.min(1,box.x1/width)-x,h=Math.min(1,box.y1/height)-y;
+      if(w<=0||h<=0||x>=1||y>=1)return null;
+      return {text,x,y:crop.top+y*crop.height,width:w,height:h*crop.height};
+    }).filter(Boolean));
   }
   async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal,crop}={}) {
     validate(file);
@@ -114,6 +130,7 @@ const HablaScreenshot = (() => {
     const input=document.querySelector('#translator-input'),fileInput=document.querySelector('#screenshot-file');
     const choose=document.querySelector('#choose-screenshot'),paste=document.querySelector('#paste-screenshot'),cancel=document.querySelector('#cancel-screenshot'),status=document.querySelector('#screenshot-status');
     const quickChoose=document.querySelector('#quick-choose-image'),quickPaste=document.querySelector('#quick-paste-image');
+    const camera=document.querySelector('#quick-camera-image'),cameraInput=document.querySelector('#camera-photo-file');
     if(!input||!fileInput||!choose||!paste) return;
     const report=text=>{
       status.textContent=text;
@@ -128,7 +145,7 @@ const HablaScreenshot = (() => {
       document.querySelector('#screenshot-bottom-value').textContent=bottom.value+'%';
       shade.style.background=`linear-gradient(to bottom,rgba(0,0,0,.65) 0% ${top.value}%,transparent ${top.value}% ${bottom.value}%,rgba(0,0,0,.65) ${bottom.value}% 100%)`;
     };
-    function read(file,{reread=false}={}) {
+    function read(file,{reread=false,overlay=true}={}) {
       try{validate(file);}catch(error){report(error.message);return;}
       if(!reread&&review){
         if(imageUrl)URL.revokeObjectURL(imageUrl);
@@ -136,6 +153,7 @@ const HablaScreenshot = (() => {
         top.value='0';bottom.value='100';range();review.hidden=false;review.open=false;
       }
       controller?.abort();controller=new AbortController();
+      if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.clear();
       const signal=controller.signal,id=++sequence,guard=begin();
       const language=document.querySelector('#source-language-select').value.startsWith('en')?'eng':'spa';
       const crop=review?{top:top.value,bottom:bottom.value}:undefined;
@@ -148,6 +166,7 @@ const HablaScreenshot = (() => {
           }});
           if(id!==sequence||!result)return;
           if(!commit(result,guard)){report('Your input changed while the image was read. Your text was kept. Choose the photo again when ready.');return;}
+          if(overlay&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,result);
           const confidence=Number(result.confidence);
           report(Number.isFinite(confidence)&&confidence<65
             ? 'Image imported, but some lettering was unclear. Check and correct the recognized words below; translation is being prepared.'
@@ -160,6 +179,8 @@ const HablaScreenshot = (() => {
     const choosePhoto=()=>fileInput.click();
     choose.addEventListener('click',choosePhoto);
     quickChoose?.addEventListener('click',choosePhoto);
+    camera?.addEventListener('click',()=>cameraInput.click());
+    cameraInput?.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
     fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
     document.addEventListener('paste',event=>{
       if(!['translator-input','full-reader-source'].includes(event.target?.id))return;
@@ -189,8 +210,8 @@ const HablaScreenshot = (() => {
       bottom.addEventListener('input',()=>{if(+bottom.value<=+top.value)top.value=String(+bottom.value-1);range();});
       document.querySelector('#read-screenshot-area').addEventListener('click',()=>{if(currentFile)read(currentFile,{reread:true});});
     }
-    clearUi=()=>{sequence++;controller?.abort();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
+    clearUi=()=>{sequence++;controller?.abort();if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.clear();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
-  return {bind,extract,openOcr,validate,imageFromClipboard,cropBounds,improveContrast,read:file=>readImage(file),clear:()=>clearUi()};
+  return {bind,extract,openOcr,photoRegions,validate,imageFromClipboard,cropBounds,improveContrast,read:(file,options)=>readImage(file,options),clear:()=>clearUi()};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=HablaScreenshot;
