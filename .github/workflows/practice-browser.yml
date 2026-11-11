@@ -56,6 +56,12 @@ jobs:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
           HABLA_PHOTO_SCREENSHOT: ${{ runner.temp }}/photo-translation.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: photo-translation-${{ matrix.engine }}
+          path: ${{ runner.temp }}/photo-translation.png
+          if-no-files-found: ignore
       - run: node tests/face-to-face.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
@@ -169,9 +175,3 @@ jobs:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_NATIVE_SCRIPT: ${{ github.workspace }}/ios/HablaEcuador/NativeSpeech.js
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: photo-translation-${{ matrix.engine }}
-          path: ${{ runner.temp }}/photo-translation.png
-          if-no-files-found: ignore
