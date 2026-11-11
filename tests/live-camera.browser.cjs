@@ -10,7 +10,7 @@ async function run(browser,entry){
   Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async constraints=>{
    window.__cameraCalls.push(constraints);if(window.__denyCamera)throw Object.assign(new Error('Denied'),{name:'NotAllowedError'});
    const canvas=document.createElement('canvas');canvas.width=800;canvas.height=500;const ctx=canvas.getContext('2d');
-   const draw=()=>{ctx.fillStyle='#e2f1e6';ctx.fillRect(0,0,800,500);ctx.fillStyle='#173f35';ctx.font='30px sans-serif';ctx.fillText(window.__cameraWords,80,140);};draw();
+   let phase=false;const draw=()=>{phase=!phase;ctx.fillStyle=window.__movingCamera?(phase?'#555':'#fff'):'#e2f1e6';ctx.fillRect(0,0,800,500);ctx.fillStyle='#173f35';ctx.font='30px sans-serif';ctx.fillText(window.__cameraWords,80,140);};draw();
    const timer=setInterval(draw,100),stream=canvas.captureStream(15),track=stream.getVideoTracks()[0],stop=track.stop.bind(track);
    track.stop=()=>{clearInterval(timer);stop();};window.__stream=stream;
    if(window.__delayCamera)await new Promise(resolve=>window.__releaseCamera=resolve);
@@ -19,7 +19,7 @@ async function run(browser,entry){
   window.Tesseract={createWorker:async()=>{window.__workers++;return {recognize:async(frame,opts,output)=>{
    window.__ocrCalls++;window.__activeOcr++;window.__maxOcr=Math.max(window.__maxOcr,window.__activeOcr);
    if(!output.blocks||!frame.width||!frame.height)throw new Error('Real video frame/geometry missing');
-   const text=window.__cameraWords;await new Promise(resolve=>setTimeout(resolve,60));window.__activeOcr--;
+   const text=window.__cameraWords;await new Promise(resolve=>setTimeout(resolve,window.__movingCamera?900:60));window.__activeOcr--;
    return {data:{text,confidence:99,blocks:[{paragraphs:[{text,bbox:{x0:frame.width*.1,y0:frame.height*.2,x1:frame.width*.9,y1:frame.height*.38}}]}]}};
   },terminate:async()=>{window.__terminated++;}};}};
  });
@@ -37,7 +37,12 @@ async function run(browser,entry){
  await page.locator('#source-language-select').selectOption('en-US');await page.locator('#target-language-select').selectOption('es-EC');
  await page.locator('#translator-input').fill('Keep my original source.');
  assert.equal(await page.evaluate(()=>__cameraCalls.length),0,'camera never opens without a tap');
- await page.locator('#quick-live-camera').click();
+ // Camera movement during OCR must not prevent recognized words from ever
+ // being translated. Positions stay hidden until a fresh stable frame arrives.
+ await page.evaluate(()=>{window.__movingCamera=true;});
+ const translation=page.waitForResponse(response=>response.url().includes('api.mymemory.translated.net')&&new URL(response.url()).searchParams.get('q')?.includes('museum'));
+ await page.locator('#quick-live-camera').click();await translation;
+ await page.evaluate(()=>{window.__movingCamera=false;});
  const dialog=page.locator('#live-camera-translator'),labels=dialog.locator('.photo-translation-label');await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('museo'),{},{timeout:20000});
  assert.equal(await dialog.locator('video').evaluate(v=>v.paused),false,'camera preview stays live while translated labels show');
@@ -45,6 +50,10 @@ async function run(browser,entry){
  assert.equal(await page.evaluate(()=>__workers),1);assert.equal(await page.evaluate(()=>__maxOcr),1,'frames process serially using one worker');
  const constraints=await page.evaluate(()=>__cameraCalls[0]);assert.equal(constraints.audio,false);assert.equal(constraints.video.facingMode.ideal,'environment');
  assert.ok(await labels.evaluateAll(items=>items.every(label=>label.scrollHeight<=label.clientHeight+1)),'labels fit the video');
+ assert.equal(await labels.first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+ assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.65);
+ await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.35);
+ await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='65';input.dispatchEvent(new Event('input',{bubbles:true}));});
  if(process.env.HABLA_CAMERA_SCREENSHOT&&entry==='index.html')await page.screenshot({path:process.env.HABLA_CAMERA_SCREENSHOT});
  await page.evaluate(()=>{window.__cameraWords='Tickets are sold downstairs.';});
  await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('entradas'),{},{timeout:20000});

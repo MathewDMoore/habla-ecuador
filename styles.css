@@ -1638,3 +1638,8 @@ body.ve-theater-open {overflow:hidden !important;}
 .live-camera-stage{margin-inline:auto;max-width:100%}
 .live-camera-stage>video{display:block;width:100%;height:auto;max-height:none;margin:0;object-fit:contain}
 .live-camera-translator [data-camera-status]{font-size:.8rem;min-height:2em}
+/* Translucent translated lettering keeps the original camera text visible. */
+.live-camera-stage .photo-translator-labels .photo-translation-label{background:transparent;border:0;border-radius:0;box-shadow:none;opacity:var(--live-overlay-opacity,.65);color:#073f2b;text-shadow:0 0 2px #fff,0 0 1px #fff}
+.camera-overlay-control{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:8px 0}
+.camera-overlay-control input{flex:1;min-width:65px;width:90px}
+.camera-overlay-control output{min-width:3em;text-align:right}

@@ -8,7 +8,7 @@ const HablaLiveCamera=(()=>{
  const sameRoute=s=>valid(s)&&key(options.getRoute())===key(s.route);
  function report(message){status.textContent=message;}
  function paint(){
-  layer.hidden=showOriginal;layer.replaceChildren();
+  layer.hidden=showOriginal||!session?.positionCurrent;layer.replaceChildren();
   const s=session;if(!s)return;
   if(video.videoWidth&&video.videoHeight){
    stage.style.width=Math.min(dialog.clientWidth-28,innerHeight*.52*video.videoWidth/video.videoHeight)+'px';
@@ -21,8 +21,8 @@ const HablaLiveCamera=(()=>{
    label.addEventListener('click',()=>{detail.textContent=region.text+'\n\n'+text;});layer.append(label);
    if(!showOriginal){let size=20;while(size>10&&(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1))label.style.fontSize=--size+'px';}
   }
-  copy.disabled=!s.regions.length||s.regions.some(region=>!s.cache.get(region.text));
-  use.disabled=!s.text;
+  copy.disabled=!s.positionCurrent||!s.regions.length||s.regions.some(region=>!s.cache.get(region.text));
+  use.disabled=!s.positionCurrent||!s.text;
  }
  function stop(){
   const s=session;session=null;if(!s)return;
@@ -37,14 +37,16 @@ const HablaLiveCamera=(()=>{
   const ctx=s.motionCanvas.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(video,0,0,32,24);const pixels=ctx.getImageData(0,0,32,24).data;
   if(s.pixels){let delta=0;for(let i=0;i<pixels.length;i+=4)delta+=Math.abs(pixels[i]-s.pixels[i])+Math.abs(pixels[i+1]-s.pixels[i+1])+Math.abs(pixels[i+2]-s.pixels[i+2]);
-   if(delta/(32*24*3)>12){s.motion++;s.regions=[];s.text='';s.seen.clear();paint();report('Hold steady while text updates. / Mantén la cámara estable.');}}
+   if(delta/(32*24*3)>12){s.motion++;s.positionCurrent=false;paint();report('Hold steady to place the translation. / Mantén la cámara estable para colocar la traducción.');}}
   s.pixels=new Uint8ClampedArray(pixels);
  }
  async function translateVisible(s){
   if(s.translating)return;s.translating=true;
   try{
    while(sameRoute(s)){
-    const region=s.regions.find(r=>(s.seen.get(r.text)||0)>=2&&!s.cache.has(r.text)&&!s.failed.has(r.text));
+    // Translate a readable first result. Requiring identical consecutive camera
+    // frames prevented handheld scenes from ever reaching the translator.
+    const region=s.regions.find(r=>!s.cache.has(r.text)&&!s.failed.has(r.text));
     if(!region)break;
     try{
      const text=String(await options.translate(region.text,{...s.route,isCurrent:()=>sameRoute(s)})).trim();
@@ -56,7 +58,7 @@ const HablaLiveCamera=(()=>{
    if(sameRoute(s)&&s.regions.length){
     const count=s.regions.filter(r=>s.cache.has(r.text)).length;
     report(s.regions.some(r=>s.failed.has(r.text))?'Some words could not be translated. Tap Retry. / Reintenta la traducción.'
-     :count===s.regions.length?(s.frozen?'Frozen translation / Traducción congelada':'Live translation · point at other text / Traducción en vivo')
+     :count===s.regions.length?(!s.positionCurrent?'Translation ready. Hold steady to place it. / Traducción lista. Mantén la cámara estable.':s.frozen?'Frozen translation / Traducción congelada':'Live translation · point at other text / Traducción en vivo')
      :'Reading and translating… Hold steady. / Leyendo y traduciendo…');
    }
   }finally{s.translating=false;}
@@ -74,9 +76,11 @@ const HablaLiveCamera=(()=>{
    frame.getContext('2d').drawImage(video,0,0,frame.width,frame.height);
    const motion=s.motion,revision=s.revision;
    const result=await s.reader.recognize(frame);
-   if(!sameRoute(s)||motion!==s.motion||revision!==s.revision)return;
+   if(!sameRoute(s)||revision!==s.revision)return;
    const regions=(result.regions||[]).filter(r=>r.text.length<=2000).slice(0,16);
-   const previous=s.seen;s.seen=new Map(regions.map(r=>[r.text,s.frozen?2:Math.min(2,(previous.get(r.text)||0)+1)]));
+   // Movement invalidates the old positions, not the recognized words. Cache
+   // their translation while the next frame finds their current positions.
+   s.positionCurrent=motion===s.motion;
    s.regions=regions;s.text=String(result.text||'').trim().slice(0,20000);
    paint();
    if(!regions.length)report(s.text?'Text found without positions. Use text to review it. / Usa el texto para revisarlo.':'Point at clear text. / Apunta a un texto claro.');
@@ -90,7 +94,7 @@ const HablaLiveCamera=(()=>{
  async function start(){
   stop();if(!dialog.open)dialog.showModal();
   showOriginal=false;original.setAttribute('aria-pressed','false');freeze.textContent='Freeze / Congelar';freeze.disabled=true;retry.disabled=true;detail.textContent='';
-  const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',seen:new Map(),cache:new Map(),failed:new Set(),motion:0,revision:0,frozen:false};session=s;
+   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),motion:0,revision:0,frozen:false,positionCurrent:false};session=s;
   report('Opening rear camera… / Abriendo cámara trasera…');
   try{
    if(!navigator.mediaDevices?.getUserMedia)throw new Error('unsupported');
@@ -100,7 +104,9 @@ const HablaLiveCamera=(()=>{
    s.stream=stream;video.srcObject=stream;video.muted=true;await video.play();if(!valid(s))return;
    for(const track of stream.getVideoTracks())track.addEventListener('ended',()=>{if(valid(s)){stop();report('Camera stopped. Tap Retry to reopen. / Reintenta para abrir la cámara.');retry.disabled=false;}});
    paint();report('Camera live. Loading text reader… / Cámara en vivo. Preparando lector…');
-   s.reader=await HablaScreenshot.openOcr({language:s.route.source.startsWith('en')?'eng':'spa',signal:s.controller.signal});
+   s.reader=await HablaScreenshot.openOcr({language:s.route.source.startsWith('en')?'eng':'spa',signal:s.controller.signal,logger:progress=>{
+    if(valid(s)&&/loading|initializing/.test(progress.status||''))report('Preparing text reader… / Preparando lector de texto…');
+   }});
    if(!valid(s)){await s.reader.close();return;}
    s.motionCanvas=document.createElement('canvas');s.motionCanvas.width=32;s.motionCanvas.height=24;
    s.motionTimer=setInterval(()=>motionSample(s),250);freeze.disabled=false;retry.disabled=false;scan(s);
@@ -109,7 +115,7 @@ const HablaLiveCamera=(()=>{
    const denied=['NotAllowedError','PermissionDeniedError'].includes(error.name);stop();retry.disabled=false;
    report(denied?'Camera access denied. Allow camera access, then tap Retry. / Permite acceso a la cámara y reintenta.'
     :error.message==='unsupported'?'Live camera is unavailable here. Open Habla in Safari. / Abre Habla en Safari.'
-    :'Camera or text reader could not start. Tap Retry. / No se pudo iniciar. Reintenta.');
+    :'Camera or text reader could not start. '+String(error.message||'Tap Retry.'));
   }
  }
  function bind(config){
@@ -117,18 +123,21 @@ const HablaLiveCamera=(()=>{
   dialog=document.createElement('dialog');dialog.id='live-camera-translator';dialog.className='photo-translator live-camera-translator';dialog.setAttribute('aria-labelledby','live-camera-title');
   dialog.innerHTML=`<div class="photo-translator-toolbar"><h2 id="live-camera-title">Live camera / Cámara en vivo</h2><button type="button" data-camera-close>Close / Cerrar</button></div>
    <div class="photo-translator-controls"><button type="button" data-camera-freeze disabled>Freeze / Congelar</button><button type="button" data-camera-original aria-pressed="false">Original</button><button type="button" data-camera-copy disabled>Copy / Copiar</button><button type="button" data-camera-use disabled>Use text / Usar texto</button><button type="button" data-camera-retry>Retry / Reintentar</button></div>
+   <label class="camera-overlay-control">Overlay opacity / Opacidad <input data-camera-opacity type="range" min="20" max="100" value="65" aria-label="Translation overlay opacity / Opacidad de traducción"><output data-camera-opacity-value>65%</output></label>
    <p class="photo-translator-note">Point at text and hold steady. Images stay on this device; online translation sends recognized words. / Apunta al texto y mantén la cámara estable.</p><p data-camera-status role="status" aria-live="polite"></p>
    <div class="photo-translator-stage live-camera-stage"><video autoplay muted playsinline aria-label="Live rear camera / Cámara trasera en vivo"></video><div class="photo-translator-labels"></div></div><p class="photo-translator-detail" data-camera-detail aria-live="polite"></p>`;
   document.body.append(dialog);stage=dialog.querySelector('.live-camera-stage');video=stage.querySelector('video');layer=stage.querySelector('div');
   status=dialog.querySelector('[data-camera-status]');detail=dialog.querySelector('[data-camera-detail]');freeze=dialog.querySelector('[data-camera-freeze]');original=dialog.querySelector('[data-camera-original]');copy=dialog.querySelector('[data-camera-copy]');use=dialog.querySelector('[data-camera-use]');retry=dialog.querySelector('[data-camera-retry]');
+  const opacity=dialog.querySelector('[data-camera-opacity]'),opacityValue=dialog.querySelector('[data-camera-opacity-value]');
+  opacity.addEventListener('input',()=>{stage.style.setProperty('--live-overlay-opacity',Number(opacity.value)/100);opacityValue.textContent=opacity.value+'%';});
   button.addEventListener('click',start);dialog.querySelector('[data-camera-close]').addEventListener('click',close);
   dialog.addEventListener('cancel',stop);dialog.addEventListener('close',stop);retry.addEventListener('click',()=>{if(session?.reader){session.failed.clear();scan(session,true);translateVisible(session);}else start();});
   new ResizeObserver(paint).observe(video);video.addEventListener('resize',()=>{
-   const s=session;if(s){s.revision++;s.regions=[];s.text='';s.seen.clear();s.pixels=null;paint();if(s.reader)scan(s,true);}
+   const s=session;if(s){s.revision++;s.positionCurrent=false;s.regions=[];s.text='';s.pixels=null;paint();if(s.reader)scan(s,true);}
   });
   original.addEventListener('click',()=>{showOriginal=!showOriginal;original.setAttribute('aria-pressed',String(showOriginal));paint();});
   freeze.addEventListener('click',async()=>{
-   const s=session;if(!valid(s))return;s.frozen=!s.frozen;s.revision++;s.regions=[];s.text='';s.seen.clear();clearTimeout(s.timer);paint();
+   const s=session;if(!valid(s))return;s.frozen=!s.frozen;s.revision++;s.positionCurrent=false;s.regions=[];s.text='';clearTimeout(s.timer);paint();
    freeze.textContent=s.frozen?'Resume / Continuar':'Freeze / Congelar';
    if(s.frozen){video.pause();report('Reading frozen view… / Leyendo imagen congelada…');scan(s,true);}
    else {s.pixels=null;await video.play().catch(()=>{});if(valid(s))scan(s);}
