@@ -6,17 +6,27 @@ const HablaLiveCamera=(()=>{
  const key=route=>JSON.stringify([route.source,route.target,route.onDevice]);
  const valid=s=>session===s&&s.active;
  const sameRoute=s=>valid(s)&&key(options.getRoute())===key(s.route);
- function report(message){status.textContent=message;}
+ function report(message){if(status.textContent!==message)status.textContent=message;}
  function paint(){
   layer.hidden=showOriginal||!session?.positionCurrent;layer.replaceChildren();
   const s=session;if(!s)return;
   if(video.videoWidth&&video.videoHeight){
-   stage.style.width=Math.min(dialog.clientWidth-28,innerHeight*.52*video.videoWidth/video.videoHeight)+'px';
+   // Match the centered object-fit: cover crop so labels follow the printed text.
+   const scale=Math.max(stage.clientWidth/video.videoWidth,stage.clientHeight/video.videoHeight);
+   layer.style.width=video.videoWidth*scale+'px';
+   layer.style.height=video.videoHeight*scale+'px';
   }
   for(const region of s.regions){
    const text=s.cache.get(region.text);if(!text)continue;
    const label=document.createElement('button');label.type='button';label.className='photo-translation-label';
-   Object.assign(label.style,{left:region.x*100+'%',top:region.y*100+'%',width:region.width*100+'%',height:region.height*100+'%',fontSize:'20px'});
+   const angle=region.angle||0;
+   const sideways=Math.abs(angle)===90;
+   Object.assign(label.style,{
+    left:(region.x+region.width/2)*100+'%',top:(region.y+region.height/2)*100+'%',
+    width:(sideways?region.height*layer.clientHeight:region.width*layer.clientWidth)+'px',
+    height:(sideways?region.width*layer.clientWidth:region.height*layer.clientHeight)+'px',
+    transform:'translate(-50%, -50%) rotate('+angle+'deg)',fontSize:'20px'
+   });
    label.textContent=text;label.dataset.ready='true';label.setAttribute('aria-label',region.text+' → '+text);
    label.addEventListener('click',()=>{detail.textContent=region.text+'\n\n'+text;});layer.append(label);
    if(!showOriginal){let size=20;while(size>10&&(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1))label.style.fontSize=--size+'px';}
@@ -63,6 +73,25 @@ const HablaLiveCamera=(()=>{
    }
   }finally{s.translating=false;}
  }
+ function rotateFrame(frame,angle){
+  if(!angle)return frame;
+  const rotated=document.createElement('canvas');
+  const sideways=Math.abs(angle)===90;
+  rotated.width=sideways?frame.height:frame.width;
+  rotated.height=sideways?frame.width:frame.height;
+  const context=rotated.getContext('2d');
+  context.translate(rotated.width/2,rotated.height/2);
+  context.rotate(angle*Math.PI/180);
+  context.drawImage(frame,-frame.width/2,-frame.height/2);
+  return rotated;
+ }
+ function frameRegion(region,angle){
+  const {x,y,width,height}=region;
+  if(angle===90)return {...region,x:y,y:1-x-width,width:height,height:width,angle:-90};
+  if(angle===-90)return {...region,x:1-y-height,y:x,width:height,height:width,angle:90};
+  if(angle===180)return {...region,x:1-x-width,y:1-y-height,angle:180};
+  return region;
+ }
  async function scan(s,force=false){
   if(!valid(s)||!s.reader)return;
   if(!sameRoute(s)){report('Languages changed. Close and reopen Live camera. / Reabre Cámara en vivo.');return;}
@@ -75,15 +104,23 @@ const HablaLiveCamera=(()=>{
    const frame=document.createElement('canvas');frame.width=Math.round(video.videoWidth*factor);frame.height=Math.round(video.videoHeight*factor);
    frame.getContext('2d').drawImage(video,0,0,frame.width,frame.height);
    const motion=s.motion,revision=s.revision;
-   const result=await s.reader.recognize(frame);
-   if(!sameRoute(s)||revision!==s.revision)return;
-   const regions=(result.regions||[]).filter(r=>r.text.length<=2000).slice(0,16);
+   const angles=[s.angle,...[0,90,-90,180].filter(angle=>angle!==s.angle)];
+   let regions=[],text='';
+   for(const angle of angles){
+    const result=await s.reader.recognize(rotateFrame(frame,angle));
+    if(!sameRoute(s)||revision!==s.revision)return;
+    if(!(result.confidence>=65))continue;
+    regions=(result.regions||[]).filter(r=>r.text.length<=2000&&
+     (r.confidence==null||r.confidence>=65)).slice(0,16).map(r=>frameRegion(r,angle));
+    if(regions.length){text=regions.map(r=>r.text).join('\n');s.angle=angle;break;}
+    if(!result.regions?.length)text=String(result.text||'').trim();
+   }
    // Movement invalidates the old positions, not the recognized words. Cache
    // their translation while the next frame finds their current positions.
    s.positionCurrent=motion===s.motion;
-   s.regions=regions;s.text=String(result.text||'').trim().slice(0,20000);
+   s.regions=regions;s.text=text.slice(0,20000);
    paint();
-   if(!regions.length)report(s.text?'Text found without positions. Use text to review it. / Usa el texto para revisarlo.':'Point at clear text. / Apunta a un texto claro.');
+   if(!regions.length)report(s.text?'Text found without positions. Use text to review it. / Usa el texto para revisarlo.':'Text unclear. Move closer or hold steady. / Acércate o mantén la cámara estable.');
    else {report('Reading and translating… Hold steady. / Leyendo y traduciendo…');translateVisible(s);}
   }catch(error){if(valid(s)&&!s.controller.signal.aborted)report('Text could not be read. Hold steady or tap Retry. / Mantén la cámara estable o reintenta.');}
   finally{
@@ -94,7 +131,7 @@ const HablaLiveCamera=(()=>{
  async function start(){
   stop();if(!dialog.open)dialog.showModal();
   showOriginal=false;original.setAttribute('aria-pressed','false');freeze.textContent='Freeze / Congelar';freeze.disabled=true;retry.disabled=true;detail.textContent='';
-   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),motion:0,revision:0,frozen:false,positionCurrent:false};session=s;
+   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),motion:0,revision:0,angle:0,frozen:false,positionCurrent:false};session=s;
   report('Opening rear camera… / Abriendo cámara trasera…');
   try{
    if(!navigator.mediaDevices?.getUserMedia)throw new Error('unsupported');
@@ -121,11 +158,11 @@ const HablaLiveCamera=(()=>{
  function bind(config){
   options=config;const button=document.querySelector('#quick-live-camera');if(!button)return;
   dialog=document.createElement('dialog');dialog.id='live-camera-translator';dialog.className='photo-translator live-camera-translator';dialog.setAttribute('aria-labelledby','live-camera-title');
-  dialog.innerHTML=`<div class="photo-translator-toolbar"><h2 id="live-camera-title">Live camera / Cámara en vivo</h2><button type="button" data-camera-close>Close / Cerrar</button></div>
+  dialog.innerHTML=`<div class="live-camera-controls"><div class="photo-translator-toolbar"><h2 id="live-camera-title">Live camera / Cámara en vivo</h2><button type="button" data-camera-close>Close / Cerrar</button></div>
    <div class="photo-translator-controls"><button type="button" data-camera-freeze disabled>Freeze / Congelar</button><button type="button" data-camera-original aria-pressed="false">Original</button><button type="button" data-camera-copy disabled>Copy / Copiar</button><button type="button" data-camera-use disabled>Use text / Usar texto</button><button type="button" data-camera-retry>Retry / Reintentar</button></div>
-   <label class="camera-overlay-control">Overlay opacity / Opacidad <input data-camera-opacity type="range" min="20" max="100" value="65" aria-label="Translation overlay opacity / Opacidad de traducción"><output data-camera-opacity-value>65%</output></label>
-   <p class="photo-translator-note">Point at text and hold steady. Images stay on this device; online translation sends recognized words. / Apunta al texto y mantén la cámara estable.</p><p data-camera-status role="status" aria-live="polite"></p>
-   <div class="photo-translator-stage live-camera-stage"><video autoplay muted playsinline aria-label="Live rear camera / Cámara trasera en vivo"></video><div class="photo-translator-labels"></div></div><p class="photo-translator-detail" data-camera-detail aria-live="polite"></p>`;
+   <details class="live-camera-settings"><summary>Overlay settings / Ajustes</summary><label class="camera-overlay-control">Overlay opacity / Opacidad <input data-camera-opacity type="range" min="20" max="100" value="65" aria-label="Translation overlay opacity / Opacidad de traducción"><output data-camera-opacity-value>65%</output></label><p class="photo-translator-note">Images stay on this device. Online translation sends recognized words. / Las imágenes quedan en el dispositivo. La traducción en línea envía el texto reconocido.</p></details>
+   <p data-camera-status role="status" aria-live="polite"></p><p class="photo-translator-detail" data-camera-detail aria-live="polite"></p></div>
+   <div class="photo-translator-stage live-camera-stage"><video autoplay muted playsinline aria-label="Live rear camera / Cámara trasera en vivo"></video><div class="photo-translator-labels"></div></div>`;
   document.body.append(dialog);stage=dialog.querySelector('.live-camera-stage');video=stage.querySelector('video');layer=stage.querySelector('div');
   status=dialog.querySelector('[data-camera-status]');detail=dialog.querySelector('[data-camera-detail]');freeze=dialog.querySelector('[data-camera-freeze]');original=dialog.querySelector('[data-camera-original]');copy=dialog.querySelector('[data-camera-copy]');use=dialog.querySelector('[data-camera-use]');retry=dialog.querySelector('[data-camera-retry]');
   const opacity=dialog.querySelector('[data-camera-opacity]'),opacityValue=dialog.querySelector('[data-camera-opacity-value]');
