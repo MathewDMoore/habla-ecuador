@@ -108,7 +108,7 @@ const HablaScreenshot = (() => {
       const x=Math.max(0,box.x0/width),y=Math.max(0,box.y0/height);
       const w=Math.min(1,box.x1/width)-x,h=Math.min(1,box.y1/height)-y;
       if(w<=0||h<=0||x>=1||y>=1)return null;
-      return {text,x,y:crop.top+y*crop.height,width:w,height:h*crop.height};
+      return {text,x,y:crop.top+y*crop.height,width:w,height:h*crop.height,confidence:paragraph.confidence};
     }).filter(Boolean));
   }
   async function extract(file,{language='spa',logger=()=>{},isCurrent=()=>true,reader,signal,crop}={}) {

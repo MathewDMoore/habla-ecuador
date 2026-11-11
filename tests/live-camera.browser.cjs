@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,entry){
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,serviceWorkers:'block'});
- const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage(),errors=[],cameraQueries=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
   localStorage.setItem('habla-tutorial-seen-v2','1');
   window.__cameraWords='The museum opens at nine.';window.__cameraCalls=[];window.__copies=[];window.__ocrCalls=0;window.__workers=0;window.__activeOcr=0;window.__maxOcr=0;window.__terminated=0;
@@ -19,14 +19,16 @@ async function run(browser,entry){
   window.Tesseract={createWorker:async()=>{window.__workers++;return {recognize:async(frame,opts,output)=>{
    window.__ocrCalls++;window.__activeOcr++;window.__maxOcr=Math.max(window.__maxOcr,window.__activeOcr);
    if(!output.blocks||!frame.width||!frame.height)throw new Error('Real video frame/geometry missing');
-   const text=window.__cameraWords;await new Promise(resolve=>setTimeout(resolve,window.__movingCamera?900:60));window.__activeOcr--;
-   return {data:{text,confidence:99,blocks:[{paragraphs:[{text,bbox:{x0:frame.width*.1,y0:frame.height*.2,x1:frame.width*.9,y1:frame.height*.38}}]}]}};
+   const sidewaysFrame=frame.height>frame.width;
+   const text=sidewaysFrame===Boolean(window.__sidewaysText)?window.__cameraWords:'I1I l| o0 Qfd';await new Promise(resolve=>setTimeout(resolve,window.__movingCamera?900:60));window.__activeOcr--;
+   return {data:{text,confidence:text===window.__cameraWords?99:25,blocks:[{paragraphs:[{text,bbox:{x0:frame.width*.1,y0:frame.height*.2,x1:frame.width*.9,y1:frame.height*.38}}]}]}};
   },terminate:async()=>{window.__terminated++;}};}};
  });
  await page.route('**/*',route=>{
   const url=new URL(route.request().url());if(['blob:','data:'].includes(url.protocol))return route.continue();
   if(url.hostname==='api.mymemory.translated.net'){
-   const query=url.searchParams.get('q')||'',text=query.includes('Tickets')?'Las entradas se venden abajo.':'El museo abre a las nueve.';
+   const query=url.searchParams.get('q')||'';cameraQueries.push(query);
+   const text=query.includes('Tickets')?'Las entradas se venden abajo.':'El museo abre a las nueve.';
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({responseData:{translatedText:text},responseStatus:200})});
   }
   if(url.origin!==origin||!url.pathname.startsWith('/habla-ecuador/'))return route.abort();
@@ -46,6 +48,7 @@ async function run(browser,entry){
  const dialog=page.locator('#live-camera-translator'),labels=dialog.locator('.photo-translation-label');await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('museo'),{},{timeout:20000});
  assert.equal(await dialog.locator('video').evaluate(v=>v.paused),false,'camera preview stays live while translated labels show');
+ assert.deepEqual(await dialog.locator('video').boundingBox(),{x:0,y:0,width:390,height:844},'the video fills the viewport');
  assert.equal(await page.locator('#translator-input').inputValue(),'Keep my original source.');
  assert.equal(await page.evaluate(()=>__workers),1);assert.equal(await page.evaluate(()=>__maxOcr),1,'frames process serially using one worker');
  const constraints=await page.evaluate(()=>__cameraCalls[0]);assert.equal(constraints.audio,false);assert.equal(constraints.video.facingMode.ideal,'environment');
@@ -55,10 +58,12 @@ async function run(browser,entry){
  await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.35);
  await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='65';input.dispatchEvent(new Event('input',{bubbles:true}));});
  if(process.env.HABLA_CAMERA_SCREENSHOT&&entry==='index.html')await page.screenshot({path:process.env.HABLA_CAMERA_SCREENSHOT});
- await page.evaluate(()=>{window.__cameraWords='Tickets are sold downstairs.';});
+ await page.evaluate(()=>{window.__sidewaysText=true;window.__cameraWords='Tickets are sold downstairs.';});
  await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('entradas'),{},{timeout:20000});
  assert.equal(await dialog.locator('video').evaluate(v=>v.paused),false,'new camera text replaces old labels without taking a photo');
  assert.equal(await labels.count(),1);
+ assert.match(await labels.first().getAttribute('style'),/rotate\(-90deg\)/,'sideways recognition maps the overlay back onto the source');
+ assert.ok(!cameraQueries.some(query=>query.includes('Qfd')),'low-confidence OCR never reaches translation');
  await dialog.locator('[data-camera-freeze]').click();await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('entradas'));
  assert.equal(await dialog.locator('video').evaluate(v=>v.paused),true,'Freeze holds the live view');
  await dialog.locator('[data-camera-original]').click();assert.equal(await dialog.locator('.photo-translator-labels').isVisible(),false);
