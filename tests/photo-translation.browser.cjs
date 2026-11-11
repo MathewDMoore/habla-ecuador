@@ -59,6 +59,7 @@ async function run(browser,entry,width){
  await labels.first().click();assert.match(await dialog.locator('[data-photo-detail]').textContent(),/The library.*\n\nLa biblioteca/s);
  await dialog.locator('[data-photo-original]').click();assert.equal(await dialog.locator('.photo-translator-labels').isVisible(),false);
  await dialog.locator('[data-photo-original]').click();assert.equal(await labels.first().isVisible(),true);
+ assert.ok(await labels.evaluateAll(items=>items.every(label=>label.scrollHeight<=label.clientHeight+1&&label.scrollWidth<=label.clientWidth+1)),'labels still fit after returning from the original');
  await dialog.locator('[data-photo-copy]').click();assert.match((await page.evaluate(()=>__copies))[0],/biblioteca.*\n\nTrae/s);
  assert.ok(await dialog.evaluate(d=>d.scrollWidth<=d.clientWidth+1),'dialog must fit a narrow screen');
  if(width===390&&entry==='index.html'&&process.env.HABLA_PHOTO_SCREENSHOT)await page.screenshot({path:process.env.HABLA_PHOTO_SCREENSHOT});

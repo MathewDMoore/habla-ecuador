@@ -6,6 +6,8 @@ const HablaPhotoTranslation=(()=>{
  const routeKey=route=>JSON.stringify([route.source,route.target,route.onDevice]);
  function current(token,route){return generation===token&&session&&routeKey(getRoute())===routeKey(route);}
  function paint(){
+  // Reveal before measuring; hidden labels have zero scroll/client geometry.
+  layer.hidden=original;
   layer.replaceChildren();
   if(!session)return;
   const width=stage.clientWidth,height=image.clientHeight;
@@ -25,7 +27,6 @@ const HablaPhotoTranslation=(()=>{
    let size=parseFloat(label.style.fontSize);
    while(size>10&&(label.scrollHeight>label.clientHeight+1||label.scrollWidth>label.clientWidth+1))label.style.fontSize=--size+'px';
   }
-  layer.hidden=original;
  }
  async function run(){
   if(!session||!dialog.open)return;
