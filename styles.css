@@ -1633,3 +1633,8 @@ body.ve-theater-open {overflow:hidden !important;}
 .photo-translator-labels .photo-translation-label[data-ready="false"]{background:#fff4d6;border-style:dashed}
 .photo-translator-detail{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-size:1rem}
 #image-quick-actions{flex-wrap:wrap}
+
+/* Match overlay geometry to the uncropped camera video, including rotation. */
+.live-camera-stage{margin-inline:auto;max-width:100%}
+.live-camera-stage>video{display:block;width:100%;height:auto;max-height:none;margin:0;object-fit:contain}
+.live-camera-translator [data-camera-status]{font-size:.8rem;min-height:2em}

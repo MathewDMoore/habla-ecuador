@@ -1,0 +1,33 @@
+name: Live camera translation
+on:
+  pull_request:
+    paths: ['live-camera-translation.js', 'screenshot-import.js', 'photo-translation.js', 'app.js', 'index.html', 'translator.html', 'styles.css', 'tests/live-camera*', '.github/workflows/live-camera.yml']
+permissions:
+  contents: read
+jobs:
+  camera:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
+      - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
+      - run: node --test tests/*.test.cjs
+      - run: node tests/live-camera.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+          HABLA_CAMERA_SCREENSHOT: ${{ runner.temp }}/live-camera.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-camera-${{ matrix.engine }}
+          path: ${{ runner.temp }}/live-camera.png
+          if-no-files-found: ignore
