@@ -1413,7 +1413,7 @@ function syncVisibleLocationChoices(role,profile) {
     const panel=document.querySelector('[data-location-options="'+role+'-'+kind+'"]');
     const list=panel?.querySelector('[data-location-choices]');
     if(!list)continue;
-    const choices=kind==='country' ? Object.entries(PERSON_COUNTRY_LABELS) : kind==='region' ? speakerRegionOptions(profile.country,profile.region).map(value=>[value,value]) : speakerCityOptions(profile.country,profile.city,profile.region).map(place=>[place.city,[place.city,place.region].filter(Boolean).join(' · ')]);
+    const choices=kind==='country' ? Object.keys(PERSON_COUNTRY_LABELS).map(value=>[value,speakerCountryLabel(value)]) : kind==='region' ? speakerRegionOptions(profile.country,profile.region).map(value=>[value,value]) : speakerCityOptions(profile.country,profile.city,profile.region).map(place=>[place.city,[place.city,place.region].filter(Boolean).join(' · ')]);
     const current=kind==='country' ? profile.country : kind==='region' ? profile.region : profile.city;
     const label=kind==='country' ? 'countries / países' : kind==='region' ? 'regions / regiones' : 'cities / ciudades';
     panel.querySelector('summary').textContent='Show '+choices.length+' '+label;
@@ -1425,7 +1425,12 @@ function syncVisibleLocationChoices(role,profile) {
     if(!current)panel.open=true;
   }
 }
-function speakerCountryLabel(country) { return PERSON_COUNTRY_LABELS[country] || ""; }
+function speakerCountryLabel(country) {
+  const label=PERSON_COUNTRY_LABELS[country];
+  if(!label || !/^es-[A-Z]{2}$/.test(country))return label || "";
+  const flag=String.fromCodePoint(...Array.from(country.slice(-2),letter=>0x1f1e6 + letter.charCodeAt(0) - 65));
+  return flag+" "+label;
+}
 function conversationProfileRegion(name) {
   const profile=speakerRegionProfile(name);
   return [profile.city,profile.region,speakerCountryLabel(profile.country)].filter(Boolean).join(", ") || "Region not set / Región sin indicar";
@@ -1438,7 +1443,7 @@ function syncSpeakerRegion(role) {
   if(country && country.options) {
     if(!country.options.length) {
       country.innerHTML='<option value="">Not set / Sin indicar</option>'
-        + Object.entries(PERSON_COUNTRY_LABELS).map(([value,label])=>'<option value="'+value+'">'+escapeHtml(label)+'</option>').join("");
+        + Object.keys(PERSON_COUNTRY_LABELS).map(value=>'<option value="'+value+'">'+escapeHtml(speakerCountryLabel(value))+'</option>').join("");
     }
     country.value=profile.country;
   }
