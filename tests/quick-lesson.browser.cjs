@@ -53,15 +53,17 @@ if(lesson.checks){
  const choice=host.locator('[data-quick-answer="'+question.answer+'"]');
  assert.equal(await choice.getAttribute('aria-pressed'),'true');
 }
-await host.locator('[data-quick-hear]').first().click();
-assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.examples[0][0],lang:locale});
+const exampleIndex = i % lesson.examples.length;
+const [phrase, , exampleLocale = locale] = lesson.examples[exampleIndex];
+await host.locator('[data-quick-hear]').nth(exampleIndex).click();
+assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:phrase,lang:exampleLocale});
 await host.locator('#quick-recall').click();
 assert.equal(await host.locator('#quick-lesson-model').isVisible(),false);
 assert.equal(await host.locator('.quick-lesson-examples').isVisible(),false);
 await host.locator('#quick-recall').click();
 assert.equal(await host.locator('#quick-lesson-model').isVisible(),true);
 await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
-assert.equal(await page.evaluate(()=>testRecognition.lang),locale);
+assert.equal(await page.evaluate(()=>testRecognition.lang),cue.locale ?? locale);
 assert.equal(await host.locator('.dictionary-practice-target').isVisible(),true,'stable model while microphone is active');
 await host.locator('#quick-next').click();
 }

@@ -174,6 +174,37 @@ const spanish=[
     ['Azogues study', 'https://ebuah.uah.es/xmlui/bitstream/handle/10017/34173/usted_lavender_LIN_2017_15.pdf?isAllowed=y&sequence=1'],
     ['RAE–ASALE on voseo', 'https://www.rae.es/dpd/voseo']
    ]
+  },
+  {
+   id: 'spanish-varieties',
+   title: 'Compare Spanish varieties',
+   explanation: '|Castellano| can name the whole Spanish language or refer more specifically to Spanish from Castile. ' +
+    'Castilian and Canarian Spanish are varieties spoken in Spain. Andean Spanish includes highland speech in parts of Ecuador and Bolivia. ' +
+    'In much of Castile, |casa| and |caza| sound different. In Ecuador and the Canaries, they share an s sound, a pattern called |seseo|. ' +
+    'Compare how you would invite friends over in each variety.',
+   examples: [
+    ['¿Ustedes quieren venir a casa mañana?', 'Ecuadorian Andean Spanish · Ustedes is the plural form in Ecuador’s Sierra, as in Andean Bolivia.', 'es-EC'],
+    ['¿Vosotros queréis venir a casa mañana?', 'Castilian Spanish · Vosotros is familiar plural in Castile and much of mainland Spain.', 'es-ES'],
+    ['¿Ustedes quieren venir a casa mañana?', 'Canarian Spanish · Ustedes is usual for a group, including friends.', 'es-ES'],
+    ['¿Vos querés venir a casa mañana?', 'Rioplatense Spanish · Vos querés is a familiar singular form heard around the Río de la Plata in Argentina and Uruguay.', 'es-AR']
+   ],
+   situations: [
+    {scene: 'Ecuadorian Andean Spanish. Invite two friends over in Ecuador’s Sierra. Use ustedes.',
+     phrase: '¿Ustedes quieren venir a casa mañana?', meaning: 'Do you all want to come over tomorrow?', locale: 'es-EC'},
+    {scene: 'Castilian Spanish. Invite two friends over in Castile. Use vosotros.',
+     phrase: '¿Vosotros queréis venir a casa mañana?', meaning: 'Do you all want to come over tomorrow?', locale: 'es-ES'},
+    {scene: 'Canarian Spanish. Invite two friends over in the Canary Islands. Use ustedes.',
+     phrase: '¿Ustedes quieren venir a casa mañana?', meaning: 'Do you all want to come over tomorrow?', locale: 'es-ES'},
+    {scene: 'Rioplatense Spanish. Invite one friend over in Buenos Aires. Use vos.',
+     phrase: '¿Vos querés venir a casa mañana?', meaning: 'Do you want to come over tomorrow?', locale: 'es-AR'}
+   ],
+   sources: [
+    ['Meaning of castellano', 'https://www.rae.es/dpd/espa%C3%B1ol'],
+    ['Ustedes and vosotros', 'https://www.rae.es/dpd/usted'],
+    ['Seseo', 'https://www.rae.es/dpd/seseo'],
+    ['Canarian Spanish', 'https://www.academiacanarialengua.org/consultas/2024/02/dialecto-habla-canaria/'],
+    ['Andean and Rioplatense Spanish', 'https://www.rae.es/dpd/voseo']
+   ]
   }
 ];
 const english=[
@@ -220,14 +251,18 @@ function render(){
  const items=catalog[locale],item=items.find(i=>i.id===selected[locale])||items[0],cue=item.situations[situation],esc=root.escapeHtml;
  selected[locale]=item.id;
  const support=locale==='es-EC'?'en':'es-EC';
+ const cueLocale = cue.locale ?? locale;
  const explanation=()=>explanationPassages(item.explanation,locale,typeof englishVariant!=='undefined'&&englishVariant==='uk'?'en-GB':'en-US');
  content.innerHTML=`<label>Choose a short lesson<select id="quick-lesson-select">${items.map(i=>`<option value="${i.id}" ${i.id===item.id?'selected':''} data-ui-content>${esc(i.title)}</option>`).join('')}</select></label>
  <p id="quick-explanation" lang="${support}" data-ui-content>${explanation().map(({text,lang},index)=>index%2?`<span lang="${lang}">${esc(text)}</span>`:esc(text)).join('')}</p>
  <button type="button" id="quick-explanation-hear" class="secondary-button">🔊 Hear explanation</button>
- <div class="quick-lesson-examples">${item.examples.map(([phrase,meaning])=>`<div><strong lang="${locale}" data-ui-content>${esc(phrase)}</strong><p lang="${support}" data-ui-content>${esc(meaning)}</p><button type="button" class="secondary-button" data-quick-hear="${esc(phrase)}">🔊 Hear example</button></div>`).join('')}</div>
+ <div class="quick-lesson-examples">${item.examples.map(([phrase, meaning, exampleLocale = locale]) => `<div>
+  <strong lang="${exampleLocale}" data-ui-content>${esc(phrase)}</strong><p lang="${support}" data-ui-content>${esc(meaning)}</p>
+  <button type="button" class="secondary-button" data-quick-hear="${esc(phrase)}" data-quick-locale="${exampleLocale}">🔊 Hear example</button>
+ </div>`).join('')}</div>
  <h3>Use it in a situation</h3><p lang="${support}" data-ui-content>${esc(cue.scene)}</p>
  <button type="button" id="quick-recall" class="secondary-button" aria-pressed="${recall}">${recall?'Show me the phrase':'Try without reading'}</button>
- <div id="quick-lesson-model" ${recall?'hidden':''}><article class="expression-card" data-practice-text="${esc(cue.phrase)}" data-practice-lang="${locale}"><p lang="${locale}" data-ui-content><strong>${esc(cue.phrase)}</strong></p><p lang="${support}" data-ui-content>${esc(cue.meaning)}</p></article></div>
+ <div id="quick-lesson-model" ${recall?'hidden':''}><article class="expression-card" data-practice-text="${esc(cue.phrase)}" data-practice-lang="${cueLocale}"><p lang="${cueLocale}" data-ui-content><strong>${esc(cue.phrase)}</strong></p><p lang="${support}" data-ui-content>${esc(cue.meaning)}</p></article></div>
  ${item.checks?(()=>{const check=item.checks[situation%item.checks.length];return `<section class="quick-grammar-check" aria-labelledby="quick-grammar-check-title"><h3 id="quick-grammar-check-title">Fill in the blank / Completa la frase</h3><p id="quick-grammar-prompt" lang="${locale}" data-ui-content>${esc(check.prompt)}</p><div id="quick-grammar-choices" role="group" aria-label="Choose the missing expression / Elige la expresión que falta">${check.options.map(choice=>`<button type="button" class="quick-grammar-choice" data-quick-answer="${esc(choice)}" aria-pressed="false" lang="${locale}">${esc(choice)}</button>`).join('')}</div><p id="quick-grammar-feedback" role="status" aria-live="polite"></p></section>`;})():''}
  <p>Different replies can work. Speaking feedback below compares recognized words with this model; it does not judge whether another reply communicates your meaning.</p>
  <button type="button" id="quick-next" class="primary-button">Try another situation →</button>
@@ -236,7 +271,10 @@ function render(){
  ${item.inspiration?`<p>Inspired by ${esc(item.inspiration)}.</p>`:''}`;
  content.querySelector('#quick-lesson-select').addEventListener('change',event=>{leave();selected[locale]=event.target.value;situation=0;recall=false;render();});
  content.querySelector('#quick-explanation-hear').addEventListener('click',event=>{root.cancelDictionaryPractice();root.say(explanation(),undefined,event.currentTarget);});
- content.querySelectorAll('[data-quick-hear]').forEach(button=>button.addEventListener('click',()=>{root.cancelDictionaryPractice();root.say(button.dataset.quickHear,locale,button);}));
+ content.querySelectorAll('[data-quick-hear]').forEach(button => button.addEventListener('click', () => {
+  root.cancelDictionaryPractice();
+  root.say(button.dataset.quickHear, button.dataset.quickLocale, button);
+ }));
  content.querySelector('#quick-recall').addEventListener('click',()=>{
   leave();recall=!recall;
   content.querySelector('#quick-lesson-model').hidden=recall;
