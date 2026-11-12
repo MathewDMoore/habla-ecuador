@@ -4101,7 +4101,9 @@ function previewScreenshotText(extracted,guard) {
   stopSpeechPlayback();
   documentLoading = false;
   documentImportActive = true;
-  importedDocument = {name:"Image",kind:"image",sections:safeDocumentSections(extracted.text),index:0,total:extracted.text.length};
+  const pastedText = extracted.kind === "text";
+  importedDocument = {name:pastedText ? "Pasted text" : "Image",kind:pastedText ? "text" : "image",
+    sections:safeDocumentSections(extracted.text),index:0,total:extracted.text.length};
   const select = $("#document-section");
   select.replaceChildren();
   importedDocument.sections.forEach((text,index) => {
@@ -4113,7 +4115,9 @@ function previewScreenshotText(extracted,guard) {
   $("#document-preview").hidden = false;
   $("#translate-document").disabled = false;
   selectDocumentSection(0);
-  $("#document-status").textContent = `Image · ${extracted.text.length.toLocaleString()} characters recognized. Preparing translation automatically; please check the original words.`;
+  $("#document-status").textContent = pastedText
+    ? `Pasted text · ${extracted.text.length.toLocaleString()} characters. Translating automatically; your source remains editable.`
+    : `Image · ${extracted.text.length.toLocaleString()} characters recognized. Preparing translation automatically; please check the original words.`;
   // An image is a translation request, not merely a document import. Begin
   // translation automatically after OCR commits the editable source. The
   // same request cancellation protects the learner if they change the text.
@@ -4125,8 +4129,10 @@ function previewScreenshotText(extracted,guard) {
     if(importedDocument!==imageDocument||$("#translator-input").value.trim()!==extractedText)return;
     const ready=lastCompletedTranslation?.source===extractedText;
     $("#document-status").textContent=ready
-      ? "Image translation ready. Check the recognized original carefully. Edit any misread words, then choose Translate image text to update."
-      : "Image words recognized, but the translation could not finish. Check the source, then tap Translate image text to retry.";
+      ? (pastedText ? "Pasted text translated. Review the source and result before sharing."
+          : "Image translation ready. Check the recognized original carefully. Edit any misread words, then choose Translate image text to update.")
+      : (pastedText ? "Pasted text received but translation failed. Review the source and retry translation."
+          : "Image words recognized, but the translation could not finish. Check the source, then tap Translate image text to retry.");
     const quick=$("#quick-image-status");
     if(quick)quick.textContent=$("#document-status").textContent;
   }).catch(()=>{
