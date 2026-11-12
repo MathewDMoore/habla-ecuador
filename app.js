@@ -1,5 +1,18 @@
 const phrases = [
   {
+    en:"When will she arrive?",
+    es:"¿Cuándo llegará ella?",
+    natural:"¿Cuándo llegará?",
+    exactMatch:true,
+    register:"Everyday · arrival plans",
+    note:"Use ella to make the subject explicit. / Usa ella para aclarar quién llega.",
+    alternatives:{es:[
+      {text:"¿Cuándo llega?",label:"Conversational / Conversacional",note:"The present tense can ask about a planned arrival. / El presente puede referirse a una llegada prevista."},
+      {text:"¿Cuándo va a llegar?",label:"Everyday future / Futuro cotidiano"},
+      {text:"¿Cuándo llegará ella?",label:"Explicit subject / Sujeto explícito"}
+    ]}
+  },
+  {
     en:"When is she coming here?",
     es:"¿Cuándo va a venir ella aquí?",
     natural:"¿Cuándo va a venir aquí?",
