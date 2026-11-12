@@ -257,8 +257,12 @@ async function main(){
     assert.ok(!wholePanel.includes('id="import-document-progress"'),'backup recovery remains outside the hidden active-document panel');
     assert.ok(!source.includes('the whole document is not translated at once'));
   }
-  const cacheVersion=fs.readFileSync('sw.js','utf8').match(/habla-ecuador-v(\d+)/)[1];
-  assert.ok(fs.readFileSync('sw.js','utf8').includes(`whole-document.js?v=${cacheVersion}`));
+  const sw=fs.readFileSync('sw.js','utf8');
+  const cacheVersion=sw.match(/habla-ecuador-v(\d+)/)[1];
+  for(const page of ['index.html','translator.html']){
+    const script=fs.readFileSync(page,'utf8').match(/src="(whole-document\.js\?v=\d+)"/)?.[1];
+    assert.ok(script&&sw.includes(`"${script}"`),'offline cache includes the whole-document asset used by '+page);
+  }
   assert.ok(fs.readFileSync('app.js','utf8').includes(`register("sw.js?v=${cacheVersion}"`));
   console.log('Whole-document checks passed: sequential processing, pause/resume, reload persistence, segment retries, complete-only export, multiple papers, language preservation, edits, privacy, storage errors and safe printable output.');
 }

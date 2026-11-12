@@ -1,5 +1,16 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Other Spanish counterparts": "Otras equivalencias en español",
+  "Matches across other indexed regions, with their own usage and tone.": "Coincidencias en otras regiones del diccionario, con su propio uso y tono.",
+  "No entries match these filters. Spanish alternatives outside your filters are shown below.": "No hay entradas con estos filtros. Abajo se muestran alternativas en español fuera de los filtros elegidos.",
+  "General Spanish: sexual attractiveness. Primary region unconfirmed.": "Español general: atractivo sexual. Región principal sin confirmar.",
+  "Both spellings are recorded. For a person or an outfit, sexi keeps the sexual sense. Atractivo can be milder.": "Se documentan ambas grafías. Para una persona o un atuendo, sexi conserva el sentido sexual. Atractivo puede sonar más suave.",
+  "Documented in Guayaquil, Ecuador. Good-looking is milder than sexy. Primary region unconfirmed.": "Documentado en Guayaquil, Ecuador. Significa guapo y tiene menos carga sexual que sexi. Región principal sin confirmar.",
+  "Describes a physically attractive person. It can be a compliment without explicitly sexual emphasis.": "Describe a una persona físicamente atractiva. Puede ser un cumplido sin énfasis sexual explícito.",
+  "Colloquial; can sound objectifying": "Coloquial. Puede sonar cosificador.",
+  "Documented in Mexico for physical attractiveness. Primary region unconfirmed.": "Documentado en México para el atractivo físico. Región principal sin confirmar.",
+  "An informal comment about someone’s looks. Use care when saying it about a person. Estar bueno has other meanings in other contexts.": "Comentario informal sobre el aspecto de una persona. Úsalo con cuidado. Estar bueno tiene otras acepciones según el contexto.",
+
   "Documented in Guayaquil, Ecuador. Primary region unconfirmed.": "Documentada en Guayaquil, Ecuador. Región principal sin confirmar.",
   "Playful exaggeration for being very hungry.": "Exageración humorística para decir que se tiene mucha hambre.",
   "Face to Face": "Cara a cara",
