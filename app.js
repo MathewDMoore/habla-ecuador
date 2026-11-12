@@ -4141,6 +4141,58 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
+
+  // Pasted research joins the same recoverable whole-paper queue as imported files.
+  // A paste never sends text until the learner explicitly taps this action.
+  const pastedResearchStatus = $("#pasted-paper-status");
+  $("#translate-pasted-paper")?.addEventListener("click", () => {
+    const input = $("#translator-input");
+    const original = input.value;
+    const report = message => { if (pastedResearchStatus) pastedResearchStatus.textContent = message; };
+    if (!original.trim()) { report("Paste your research text into the field above first."); return; }
+    if (documentLoading || documentImportActive || wholeDocumentTools?.runner?.busy) {
+      report("Finish or close the current document before starting another paper. Saved progress is preserved.");
+      return;
+    }
+    if (original.length > 200000) {
+      report("This paper exceeds 200,000 characters. Split it into separate papers before translating. Your pasted text is unchanged.");
+      return;
+    }
+    if (!wholeDocumentTools || typeof HablaWholeDocument === "undefined") {
+      report("The whole-paper translator is unavailable. Your research text has not been changed.");
+      return;
+    }
+    const route = {sourceLanguage,targetLanguage,purpose:"academic",
+      onDevice:typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()};
+    const name = "Pasted research - " + new Date().toISOString().slice(0,10) + ".txt";
+    let sections;
+    try {
+      sections = safeDocumentSections(original);
+      // Validate supported language pairs and progress limits before replacing any UI.
+      HablaWholeDocument.create({name,sections},route);
+    } catch (error) { report(error.message || "This research text could not be prepared."); return; }
+    wholeDocumentTools.pause("Preparing the pasted paper. Previously saved progress is unchanged.");
+    cancelMusicListening();
+    musicTranscriptReview = false;
+    musicCapturedText = "";
+    updateMusicListenLabel();
+    documentImportController?.abort();
+    documentImportController = undefined;
+    documentImportRequest++;
+    clearTimeout(translationTimer);
+    translationRequest++;
+    stopSpeechPlayback();
+    preservedCulturalContext = null;
+    importedDocument = {name,sections,index:0,total:original.length};
+    documentImportActive = true;
+    input.blur();
+    setTranslationPurpose("academic",false);
+    populateDocumentSections();
+    $("#research-document-workspace").open = true;
+    report("Pasted paper opened. Translation starts only from this button, and completed progress is saved on this device.");
+    $("#whole-document-tools").scrollIntoView({block:"start"});
+    $("#translate-entire-document").click();
+  });
   const chooseResearchDocument = () => {
     $("#translation-setup").open = true;
     $("#choose-document").closest("details").open = true;
