@@ -247,7 +247,7 @@ async function main(){
   // than sending a too-long text-box request or requiring a Word/PDF file.
   run('closeImportedDocument();sourceLanguage="en-US";targetLanguage="es-AR";syncLanguagePair({persist:false});setTranslationPurpose("academic",false);');
   run('requestGeneralTranslation = async text => "Traducido: " + text;');
-  const pastedPaper=Array.from({length:190},(_,i)=>'Research paragraph '+i+': exercise adaptation after four weeks.').join('\\n\\n');
+  const pastedPaper=Array.from({length:190},(_,i)=>'Research paragraph '+i+': exercise adaptation after four weeks.').join('\n\n');
   const totalBeforePasting=whole.list(store).length;
   element('#translator-input').value=pastedPaper;
   await element('#translate-pasted-paper').handlers.click();
