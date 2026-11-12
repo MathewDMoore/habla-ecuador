@@ -255,7 +255,9 @@ async function main(){
   assert.equal(run('importedDocument.name').startsWith('Pasted research - '),true);
   assert.ok(run('importedDocument.sections.length')>1,'long pasted papers are split into resumable sections');
   assert.equal(whole.list(store).length,totalBeforePasting+1,'the pasted research becomes a saved paper');
-  assert.equal(whole.completed(whole.list(store)[0]),run('importedDocument.sections.length'),'a pasted paper uses the complete translation queue');
+  const completedPaste=whole.list(store).find(job=>job.name.startsWith('Pasted research - '));
+  assert.ok(completedPaste,'the pasted paper remains recoverable in saved progress');
+  assert.equal(whole.completed(completedPaste),run('importedDocument.sections.length'),'a pasted paper uses the complete translation queue');
   assert.equal(fetchCalls.length,count,'pasted-paper queue uses the selected translation adapter, not an unrequested provider call');
   run('closeImportedDocument();sourceLanguage="en-US";targetLanguage="en-GB";syncLanguagePair({persist:false});setTranslationPurpose("academic",false);');
   element('#translator-input').value='The text remains intact if the document route is unsupported.';
