@@ -43,6 +43,13 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  ]);
  select('#translator-input').value="When is she coming here tomorrow?";
  assert.equal(run('translationWordingAlternatives().length'),0);
+ select('#translator-input').value="When will she arrive?";
+ select('#natural-result').textContent="¿Cuándo llegará?";
+ run('lastCompletedTranslation={source:"When will she arrive?",sourceLanguage,targetLanguage};');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  "¿Cuándo llega?","¿Cuándo va a llegar?","¿Cuándo llegará ella?"
+ ]);
+
 
  run('sourceLanguage="en-US";targetLanguage="es-CU";syncLanguagePair();');
  const original="Disculpe en caso de que si estoy tarde.";
