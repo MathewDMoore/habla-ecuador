@@ -242,6 +242,27 @@ async function main(){
   assert.equal(context.HablaOffline.shouldUse(),false,'the rest of the app keeps its existing mode');
   assert.equal(element('#document-full-draft-label').textContent,'Complete translation draft');
   assert.equal(element('#share-document').disabled,false);
+
+  // Pasting a paper promotes the exact source into the document queue rather
+  // than sending a too-long text-box request or requiring a Word/PDF file.
+  run('closeImportedDocument();sourceLanguage="en-US";targetLanguage="es-AR";syncLanguagePair({persist:false});setTranslationPurpose("academic",false);');
+  run('requestGeneralTranslation = async text => "Traducido: " + text;');
+  const pastedPaper=Array.from({length:190},(_,i)=>'Research paragraph '+i+': exercise adaptation after four weeks.').join('\\n\\n');
+  const totalBeforePasting=whole.list(store).length;
+  element('#translator-input').value=pastedPaper;
+  await element('#translate-pasted-paper').handlers.click();
+  assert.equal(run('importedDocument.sections.join("")'),pastedPaper,'pasting keeps every original character and paragraph delimiter');
+  assert.equal(run('importedDocument.name').startsWith('Pasted research - '),true);
+  assert.ok(run('importedDocument.sections.length')>1,'long pasted papers are split into resumable sections');
+  assert.equal(whole.list(store).length,totalBeforePasting+1,'the pasted research becomes a saved paper');
+  assert.equal(whole.completed(whole.list(store)[0]),run('importedDocument.sections.length'),'a pasted paper uses the complete translation queue');
+  assert.equal(fetchCalls.length,count,'pasted-paper queue uses the selected translation adapter, not an unrequested provider call');
+  run('closeImportedDocument();sourceLanguage="en-US";targetLanguage="en-GB";syncLanguagePair({persist:false});setTranslationPurpose("academic",false);');
+  element('#translator-input').value='The text remains intact if the document route is unsupported.';
+  await element('#translate-pasted-paper').handlers.click();
+  assert.match(element('#pasted-paper-status').textContent,/Choose English/,'unsupported same-language whole-paper route is explained');
+  assert.equal(element('#translator-input').value,'The text remains intact if the document route is unsupported.');
+  assert.equal(run('documentImportActive'),false,'invalid paste never opens a document');
   // Both app entry points load the new module before app.js and keep unique controls.
   for(const name of ['index.html','translator.html']){
     const source=fs.readFileSync(name,'utf8');
@@ -249,6 +270,7 @@ async function main(){
     const appScript=source.match(/app\.js\?v=\d+/)?.[0];
     assert.ok(wholeScript && appScript && source.indexOf(wholeScript)<source.indexOf(appScript));
     assert.equal((source.match(/id="translate-entire-document"/g)||[]).length,1);
+    assert.equal((source.match(/id="translate-pasted-paper"/g)||[]).length,1,"research paste control exists once per entry point");
     assert.equal((source.match(/id="research-document-workspace"/g)||[]).length,1);
     assert.ok(source.indexOf('id="research-document-workspace"')<source.indexOf('id="shared-translation-workspace"'),'paper entry remains above the text editors');
     assert.ok(source.indexOf('id="whole-document-tools"')<source.indexOf('class="music-capture document-tools"'),'whole-document controls stay ahead of music settings');
