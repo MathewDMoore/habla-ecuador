@@ -33,6 +33,6 @@ for(const term of ['culo (anatomy)','puta (noun / insult)','afeminado / afeminad
 assert.deepEqual(cuban.filter(e=>e.speech==='dar bola').map(e=>e.id),['p201-dar-bola-ride'],'Cuba excludes other regional senses of dar bola');
 for(const file of ['index.html','translator.html']){
  const html=fs.readFileSync(file,'utf8');
- assert.match(html,/<option value="es-CU">Cuba · dictionary<\/option>/);
- for(const id of ['regional-slang-region','regional-slang-target'])assert.match(html.match(new RegExp('<select id="'+id+'"[^>]*>[\\s\\S]*?<\/select>'))[0],/<option value="es-CU">Cuba<\/option>/);
+ assert.match(html,/<option value="es-CU">🇨🇺 Cuba · dictionary<\/option>/);
+ for(const id of ['regional-slang-region','regional-slang-target'])assert.match(html.match(new RegExp('<select id="'+id+'"[^>]*>[\\s\\S]*?<\/select>'))[0],/<option value="es-CU">🇨🇺 Cuba<\/option>/);
 }
