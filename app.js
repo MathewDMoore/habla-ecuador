@@ -48,7 +48,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.19 · build 229";
+const APP_VERSION = "0.27.20 · build 230";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3098,14 +3098,13 @@ function translationErrorMessage(error) {
 }
 
 const translationChunkCache = new Map();
-async function requestTranslationChunk(text, way=direction, purpose=translationPurpose) {
+async function requestTranslationChunk(text, way=direction, purpose=translationPurpose, receiveAlternatives) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
   const protectedText = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   // Never truncate text to fit a request. The caller splits the whole passage.
   if (utf8Length(protectedText.text) > 500) throw translationFailure("request_limit", "Segment exceeds 500 UTF-8 bytes.");
   const key = JSON.stringify([pair,purpose,text]);
-  if (translationChunkCache.has(key)) return translationChunkCache.get(key);
-  const request = (async () => {
+  const request = translationChunkCache.get(key) || (async () => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
@@ -3129,14 +3128,20 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
       // Provider warnings must never become editable 'translations'.
       if (/^MYMEMORY WARNING/i.test(output.trim())) throw translationFailure("service",detail,status);
       if(typeof HablaOffline!=="undefined")HablaOffline.reportOnlineSuccess?.();
-      return protectedText.restore(decodeTranslation(output));
+      return {
+        text:protectedText.restore(decodeTranslation(output)),
+        alternatives:purpose !== "academic" && Array.isArray(payload.matches) ? payload.matches
+          .filter(match => match?.match === 1 && match.segment === text && typeof match.translation === "string")
+          .slice(0,12).map(match => decodeTranslation(match.translation)) : []
+      };
     } catch(error){if(typeof HablaOffline!=="undefined")HablaOffline.reportOnlineFailure?.();throw error;} finally { clearTimeout(timeout); }
   })();
   translationChunkCache.set(key,request);
   try {
     const translated = await request;
     if (translationChunkCache.size > 200) translationChunkCache.delete(translationChunkCache.keys().next().value);
-    return translated;
+    receiveAlternatives?.(translated.alternatives);
+    return translated.text;
   } catch (error) { translationChunkCache.delete(key); throw error; }
 }
 
@@ -3162,7 +3167,7 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
@@ -3228,11 +3233,13 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
   const chunks = splitLongTranslationText(protectedDocument.text);
   if (!onDevice && chunks.filter(chunk => !chunk.separator).length > 20) throw translationFailure("research_limit");
   const translated = [];
+  const captureAlternatives = !onDevice && purpose !== "academic" && !inputType
+    && chunks.length === 1 && chunks[0].text === text ? receiveAlternatives : undefined;
   for (let index=0;index<chunks.length;index++) {
     const chunk=chunks[index];
     if (!isCurrent()) throw translationFailure("superseded");
     const cached=chunk.separator?undefined:chunkProgress?.read(index,chunk.text);
-    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose));
+    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives));
     if (!isCurrent()) throw translationFailure("superseded");
     if(!chunk.separator&&cached===undefined)chunkProgress?.write(index,chunk.text,draft);
     let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;
@@ -3854,10 +3861,12 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       : `<strong>General translation</strong><span>${onDevice ? "Preparing the on-device model. This may take a moment." : "Checking the free translation service."} Regional naturalness has not yet been verified.</span>`;
     try {
       const inputType=importedDocument?.kind==='image'?'image':musicInput?'music':undefined;
-      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType});
+      let providerAlternatives = [];
+      const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType,
+        receiveAlternatives:embeddedSlang.text === sourceText ? choices => { providerAlternatives = choices; } : undefined});
       if (!current()) return;
       const regionalIdiom = !autoMusic && HablaSpanishContext.figurativeExpression(sourceText,requestContext);
-      setEditableTranslation(sourceText, translated, {regionalIdiom,culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
+      setEditableTranslation(sourceText, translated, {regionalIdiom,providerAlternatives,culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
       const regionalReview = targetLanguage === "es-EC"
         ? "Ecuadorian review pending"
@@ -4349,15 +4358,24 @@ function translationWordingAlternatives() {
     || completed.sourceLanguage!==sourceLanguage || completed.targetLanguage!==targetLanguage)return [];
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
   const phrase=localRoute ? matchPhrase(completed.source) : null;
-  if(!phrase)return [];
-  const choices=phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
+  const choices=phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},
-       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]);
-  const seen=new Set([$("#natural-result").textContent.trim()]);
+       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]) : [];
+  const seen=new Set([normalize($("#natural-result").textContent),normalize(completed.source)]);
+  const providerChoices=(completed.providerAlternatives || []).map(text=>({
+    text:languageFamily(targetLanguage)==="en" ? convertEnglishVariety(text,targetLanguage,{source:completed.source,purpose:translationPurpose}) : text,
+    label:"Translation memory / Memoria de traducción",
+    note:"Exact source match. Review the wording in context. / Coincide con el texto original. Revisa la variante en contexto."
+  }));
   return choices.flatMap(choice=>typeof choice.text==="string" ? choice.text.split(" / ").map(text=>({...choice,text:text.trim()})) : [])
-    .filter(choice=>choice.text && !seen.has(choice.text) && seen.add(choice.text));
+    .concat(providerChoices)
+    .map(choice=>({...choice,text:choice.text.trim()}))
+    .filter(choice=>{
+      const key=normalize(choice.text);
+      return key && !/^MYMEMORY WARNING/i.test(choice.text) && !seen.has(key) && seen.add(key);
+    }).slice(0,5);
 }
 
 function swapDirection() {
@@ -6458,7 +6476,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=229", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=230", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

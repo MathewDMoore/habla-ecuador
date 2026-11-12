@@ -12,6 +12,29 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ const source='The keys are on the table.';
+ handler=async()=>({ok:true,status:200,json:async()=>({
+  responseStatus:200,responseData:{translatedText:'Las llaves están sobre la mesa.'},
+  matches:[
+   {segment:source,match:1,translation:'Las llaves están en la mesa.'},
+   {segment:source,match:1,translation:'Las llaves están sobre la mesa.'},
+   {segment:source,match:0.9,translation:'Las llaves están en el cajón.'},
+   {segment:'The keys are in the drawer.',match:1,translation:'Las llaves están en el cajón.'}
+  ]
+ })});
+ context.receiveChoices=choices=>{context.receivedChoices=choices;};
+ for(let attempt=0;attempt<2;attempt++){
+  assert.equal(await run('requestGeneralTranslation("The keys are on the table.","en-ec",{source:"en-US",target:"es-MX",receiveAlternatives:receiveChoices})'),'Las llaves están sobre la mesa.');
+  assert.equal(context.receivedChoices.length,2);
+ }
+ assert.equal(requests.length,1,'cached choices reuse the primary translation request');
+ run('sourceLanguage="en-US";targetLanguage="es-MX";translationPurpose="everyday"');
+ element('#translator-input').value=source;
+ element('#natural-result').textContent='Las llaves están sobre la mesa.';
+ run('lastCompletedTranslation={source:"The keys are on the table.",sourceLanguage,targetLanguage,providerAlternatives:receivedChoices}');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['Las llaves están en la mesa.']);
+ element('#translator-input').value='Another sentence.';
+ assert.equal(run('translationWordingAlternatives().length'),0);
  fresh();
  // A language ability term cannot be reduced to the language name "Español".
  handler=async()=>ok('Español');
