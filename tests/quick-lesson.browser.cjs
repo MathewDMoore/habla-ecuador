@@ -22,7 +22,8 @@ assert.equal(await host.getAttribute('data-learning-language'),locale);
 assert.equal(await host.locator('#quick-lesson-select option').count(),catalog[locale].length);
 for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
-assert.equal(await host.getByText('Inspired by My Daily Spanish.',{exact:true}).count(),lesson.inspiration?1:0);
+assert.deepEqual(await host.getByText(/^Inspired by /).allTextContents(),
+ lesson.inspiration ? [`Inspired by ${lesson.inspiration}.`] : []);
 const sources = await host.locator('.quick-lesson-sources a').evaluateAll(links =>
  links.map(link => [link.textContent, link.getAttribute('href')])
 );

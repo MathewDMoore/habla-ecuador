@@ -150,6 +150,119 @@ const spanish=[
   ]
   },
   {
+   id: 'ordering-at-a-cafe',
+   title: 'En un café · Ordering',
+   inspiration: 'My Daily Spanish',
+   explanation: 'In an Ecuadorian café, try |¿Me da…?| to order for yourself or |¿Nos trae…?| to ask for something for the table. ' +
+    'Say |un poquito de leche| for a splash of milk. The |ñ| in |caña| sounds like the middle of “canyon.” ' +
+    'In Spain, |una caña| can order a small beer on tap. In Ecuador, ask for |una cerveza de barril| if you want beer on tap.',
+   examples: [
+    ['¿Me da un café con un poquito de leche, por favor?', 'Could I have a coffee with a splash of milk, please?'],
+    ['¿Nos trae un poco más de pan, por favor?', 'Could you bring us a bit more bread, please?'],
+    ['Para mí, una cerveza de barril, por favor.', 'I’ll have a beer on tap, please.'],
+    ['¿Me pone una caña, por favor?', 'Could I have a small glass of beer on tap, please?', 'es-ES']
+   ],
+   situations: [
+    {scene: 'You’re at a café in Quito. Order a coffee with a splash of milk.',
+     phrase: '¿Me da un café con un poquito de leche, por favor?', meaning: 'Could I have a coffee with a splash of milk, please?'},
+    {scene: 'You’re sharing bread with a friend. Ask the server to bring you both a bit more.',
+     phrase: '¿Nos trae un poco más de pan, por favor?', meaning: 'Could you bring us a bit more bread, please?'},
+    {scene: 'The server in Ecuador asks what you’ll have. Order a beer on tap.',
+     phrase: 'Para mí, una cerveza de barril, por favor.', meaning: 'I’ll have a beer on tap, please.'},
+    {scene: 'You’re at a bar in Spain. Use caña to order a small glass of beer on tap.',
+     phrase: '¿Me pone una caña, por favor?', meaning: 'Could I have a small glass of beer on tap, please?', locale: 'es-ES'}
+   ],
+   sources: [['RAE–ASALE · caña', 'https://dle.rae.es/ca%C3%B1a']]
+  },
+  {
+   id: 'pie-expressions',
+   title: 'Pie · a pie · de pie · en pie',
+   inspiration: 'Spanish in my Pocket',
+   explanation: 'Say |pie| in one syllable. |El pie| is your foot, and |ir a pie| means to walk somewhere. ' +
+    'A person can |estar de pie| or |estar en pie| when standing. A bridge that |sigue en pie| is still standing. ' +
+    'A meeting that |sigue en pie| is still on.',
+   examples: [
+    ['Me duele el pie izquierdo.', 'My left foot hurts.'],
+    ['Voy al mercado a pie.', 'I walk to the market.'],
+    ['Estoy de pie junto a la ventana.', 'I’m standing by the window.'],
+    ['La reunión sigue en pie.', 'The meeting is still on.']
+   ],
+   situations: [
+    {scene: 'You stepped on a stone. Say your left foot hurts.', phrase: 'Me duele el pie izquierdo.', meaning: 'My left foot hurts.'},
+    {scene: 'The market is nearby. Say you walk there.', phrase: 'Voy al mercado a pie.', meaning: 'I walk to the market.'},
+    {scene: 'Your friend is looking for you. Say you’re standing by the window.', phrase: 'Estoy de pie junto a la ventana.', meaning: 'I’m standing by the window.'},
+    {scene: 'Someone asks if the meeting was canceled. Say it’s still on.', phrase: 'La reunión sigue en pie.', meaning: 'The meeting is still on.'}
+   ],
+   checks: [
+    {prompt: 'Me duele _____ izquierdo. (My left foot hurts.)', answer: 'el pie', options: ['a pie', 'el pie', 'en pie', 'de pie'],
+     note: 'El pie names the body part. / El pie nombra la parte del cuerpo.'},
+    {prompt: 'Voy al mercado _____. (I walk there.)', answer: 'a pie', options: ['en pie', 'de pie', 'el pie', 'a pie'],
+     note: 'A pie describes how you get there. / A pie indica cómo llegas.'},
+    {prompt: 'Estoy _____ junto a la ventana. (I’m standing.)', answer: 'de pie', options: ['de pie', 'el pie', 'a pie', 'por pie'],
+     note: 'Estoy de pie describes your posture. Estoy en pie can also mean this. / Estoy de pie describe tu postura. También puedes decir estoy en pie.'},
+    {prompt: 'La reunión sigue _____. (It’s still on.)', answer: 'en pie', options: ['el pie', 'a pie', 'en pie', 'por pie'],
+     note: 'The meeting is still scheduled. / La reunión se mantiene programada.'}
+   ],
+   sources: [['FundéuRAE · de pie y en pie', 'https://www.fundeu.es/consulta/como-se-dice-10/']]
+  },
+  {
+   id: 'words-for-work',
+   title: 'Trabajo · Words for work',
+   explanation: '|Trabajo| works across regions. |Chamba| is informal and is recorded in Ecuador, Bolivia, Mexico and elsewhere. ' +
+    'In Ecuador it can also mean an occasional job. |Laburo| is recorded in Ecuador, Bolivia and around the Río de la Plata, among other places. ' +
+    'Listen for |curro| in Spain and |brete| in Costa Rica. Both are informal words for work in those places.',
+   examples: [
+    ['El lunes empiezo un trabajo nuevo.', 'I start a new job on Monday.'],
+    ['Me salió una chamba para el sábado.', 'I picked up a gig for Saturday.'],
+    ['Nos vemos después del laburo.', 'See you after work.', 'es-BO'],
+    ['Mañana salgo temprano del curro.', 'I finish work early tomorrow.', 'es-ES'],
+    ['¿Qué tal el brete nuevo?', 'How’s the new job going?', 'es-CR']
+   ],
+   situations: [
+    {scene: 'Tell a friend in Ecuador that you start a new job on Monday.',
+     phrase: 'El lunes empiezo un trabajo nuevo.', meaning: 'I start a new job on Monday.'},
+    {scene: 'You picked up a one-off job for Saturday. Tell a friend using chamba.',
+     phrase: 'Me salió una chamba para el sábado.', meaning: 'I picked up a gig for Saturday.'},
+    {scene: 'A friend in Bolivia uses laburo. Tell them you’ll see them after work.',
+     phrase: 'Nos vemos después del laburo.', meaning: 'See you after work.', locale: 'es-BO'},
+    {scene: 'Tell a friend in Spain you’ll finish work early tomorrow. Try curro.',
+     phrase: 'Mañana salgo temprano del curro.', meaning: 'I finish work early tomorrow.', locale: 'es-ES'},
+    {scene: 'Ask a friend in Costa Rica how their new job is going. Try brete.',
+     phrase: '¿Qué tal el brete nuevo?', meaning: 'How’s the new job going?', locale: 'es-CR'}
+   ],
+   sources: [
+    ['ASALE · chamba', 'https://www.asale.org/damer/chamba'],
+    ['ASALE · laburo', 'https://www.asale.org/damer/laburo'],
+    ['RAE–ASALE · curro', 'https://dle.rae.es/curro'],
+    ['ASALE · brete', 'https://www.asale.org/damer/brete']
+   ]
+  },
+  {
+   id: 'saying-no',
+   title: 'Decir que no · Tone',
+   inspiration: 'My Daily Spanish',
+   explanation: 'Use |No, gracias| for a polite refusal. |No tengo ganas de salir| says you don’t feel like going out. ' +
+    'In Spain you may hear |No me apetece salir| for the same feeling. |Ni hablar| is a firm no, and |Ni en sueños| can sound dismissive. ' +
+    'The last example, |¡Y una mierda!|, is a vulgar refusal from Spain. Listen for the change in tone.',
+   examples: [
+    ['No, gracias. Esta vez paso.', 'No, thanks. I’ll pass this time.'],
+    ['No tengo ganas de salir hoy.', 'I don’t feel like going out today.'],
+    ['No me apetece salir esta noche.', 'I don’t feel like going out tonight.', 'es-ES'],
+    ['Ni hablar. No te presto mi carro.', 'No way. I’m not lending you my car.'],
+    ['¡Y una mierda! No voy a pagar tu parte.', 'Fuck that. I’m not paying your share.', 'es-ES']
+   ],
+   situations: [
+    {scene: 'A friend offers you another coffee. Decline politely.', phrase: 'No, gracias. Esta vez paso.', meaning: 'No, thanks. I’ll pass this time.'},
+    {scene: 'Your friend wants to go out. Say you don’t feel like going out today.', phrase: 'No tengo ganas de salir hoy.', meaning: 'I don’t feel like going out today.'},
+    {scene: 'A friend in Spain asks about going out tonight. Try the softer reply with apetece.',
+     phrase: 'No me apetece salir esta noche.', meaning: 'I don’t feel like going out tonight.', locale: 'es-ES'},
+    {scene: 'Someone keeps asking to borrow your car. Give a firm refusal.', phrase: 'Ni hablar. No te presto mi carro.', meaning: 'No way. I’m not lending you my car.'},
+    {scene: 'Someone expects you to pay their share. Practice a deliberately vulgar refusal from Spain.',
+     phrase: '¡Y una mierda! No voy a pagar tu parte.', meaning: 'Fuck that. I’m not paying your share.', locale: 'es-ES'}
+   ],
+   sources: [['RAE–ASALE · apetecer', 'https://dle.rae.es/apetecer']]
+  },
+  {
    id: 'forms-of-address',
    title: 'Tú · usted · vos',
    explanation: 'All four examples ask “Are you working tomorrow?” Choose a form based on the person and the situation. ' +
@@ -210,7 +323,8 @@ const spanish=[
 const englishGuides = {
  'solo-patterns': {
   id: 'only-patterns', title: 'Only · only if · just for · only with',
-  explanation: 'Usa |only| para limitar algo, |only if| para poner una condición, |just for| para expresar el motivo y |only with| para indicar lo que hace falta.',
+  explanation: 'Usa |only| para limitar algo, |only if| para poner una condición, |just for| para expresar el motivo y |only with| para indicar lo que hace falta. ' +
+   'Fíjate en el orden de las palabras cuando la frase empieza con |only with|.',
   checks:[
    {prompt:'I _____ need a few minutes.',answer:'only',options:['only','only if','just for','only with'],note:'Only limits how much time is needed. / Only limita el tiempo.'},
    {prompt:'I will go out with you _____ it stops raining.',answer:'only if',options:['only','only if','just for','only with'],note:'Only if gives a condition. / Only if expresa una condición.'},
@@ -258,6 +372,62 @@ const englishGuides = {
   title: 'Cooking actions · Acciones en la cocina',
   explanation: 'Practica |get out| para sacar los utensilios, |peel| para pelar, |slice| para cortar en rodajas y |chop| para picar.',
   scenes: ['Vas a cocinar. Di qué utensilios sacas primero.', 'Explica cómo pelas una zanahoria.', 'Quieres preparar rodajas de manzana. Di qué haces.', 'Vas a preparar sopa. Di que picas los champiñones.']
+ },
+ 'ordering-at-a-cafe': {
+  title: 'Ordering at a café · Hacer un pedido',
+  explanation: 'Para pedir algo, prueba |Could I have…?| o |I’ll have…|. Usa |Could you bring us…?| para pedir algo para la mesa. ' +
+   'La l de |could| es muda. Escucha cómo se unen |could I| en la pregunta.',
+  scenes: [
+   'Estás en un café en Quito. Pide un café con un poquito de leche.',
+   'Compartes pan con una amistad. Pide que les traigan un poco más.',
+   'Te preguntan qué vas a tomar. Pide una cerveza de barril.',
+   'Estás en un bar en España. Pide un vaso pequeño de cerveza de barril.'
+  ]
+ },
+ 'pie-expressions': {
+  title: 'Foot · walk · standing · still on',
+  explanation: '|Foot| es el pie. Usa |on foot| o |walk| si vas a pie. |I’m standing| indica que estás de pie. ' +
+   'Si la reunión sigue programada, di |The meeting is still on.| La l de |walk| es muda.',
+  scenes: [
+   'Pisaste una piedra. Di que te duele el pie izquierdo.',
+   'El mercado queda cerca. Di que vas a pie.',
+   'Una amistad te está buscando. Di que estás de pie junto a la ventana.',
+   'Te preguntan si se canceló la reunión. Di que sigue en pie.'
+  ],
+  checks: [
+   {prompt: 'My left _____ hurts. (Me duele el pie izquierdo.)', answer: 'foot', options: ['foot', 'walk', 'standing', 'still on'],
+    note: 'Foot names the body part. / Foot nombra la parte del cuerpo.'},
+   {prompt: 'I _____ to the market. (Voy a pie.)', answer: 'walk', options: ['foot', 'standing', 'still on', 'walk'],
+    note: 'Walk tells how you get there. / Walk indica que vas caminando.'},
+   {prompt: 'I’m _____ by the window. (Estoy de pie.)', answer: 'standing', options: ['walk', 'standing', 'foot', 'still on'],
+    note: 'Standing describes your posture. / Standing describe tu postura.'},
+   {prompt: 'The meeting is _____. (La reunión sigue en pie.)', answer: 'still on', options: ['standing', 'foot', 'still on', 'walk'],
+    note: 'Still on means the meeting is going ahead. / Still on indica que la reunión sigue programada.'}
+  ]
+ },
+ 'words-for-work': {
+  title: 'Work, a job, a gig · Trabajo',
+  explanation: 'Usa |a job| para un empleo, |work| para hablar del trabajo en general y |a gig| para un trabajo puntual en una conversación informal. ' +
+   'En |work|, escucha la vocal de tu variante de inglés y termina con el sonido de la k.',
+  scenes: [
+   'Cuéntale a una amistad que el lunes empiezas un trabajo nuevo.',
+   'Te salió una chamba para el sábado. Cuéntaselo a una amistad.',
+   'Dile a tu amistad en Bolivia que se ven después del trabajo.',
+   'Dile a una amistad en España que mañana sales temprano del trabajo.',
+   'Pregúntale a una amistad en Costa Rica cómo le va en el trabajo nuevo.'
+  ]
+ },
+ 'saying-no': {
+  title: 'Saying no · Elegir el tono',
+  explanation: '|No, thanks| es amable. |I don’t feel like going out| expresa que no tienes ganas. ' +
+   '|No way| es un rechazo firme. |Fuck that| es vulgar. Para sonar firme con |No way|, marca la palabra |way|.',
+  scenes: [
+   'Te ofrecen otro café. Recházalo con amabilidad.',
+   'Tu amistad quiere salir. Di que hoy no tienes ganas de salir.',
+   'Una amistad te invita a salir esta noche. Di que no tienes ganas.',
+   'Alguien insiste en que le prestes tu carro. Rechaza la petición con firmeza.',
+   'Alguien espera que pagues su parte. Practica una respuesta deliberadamente vulgar.'
+  ]
  }
 };
 
@@ -266,6 +436,8 @@ const english = spanish.filter(lesson => Object.hasOwn(englishGuides, lesson.id)
  return {
   id: lesson.id,
   ...guide,
+  inspiration: lesson.inspiration,
+  sources: lesson.sources,
   examples: lesson.examples.map(([phrase, meaning]) => [meaning, phrase]),
   situations: lesson.situations.map(({phrase, meaning}, index) => ({
    scene: scenes[index], phrase: meaning, meaning: phrase
