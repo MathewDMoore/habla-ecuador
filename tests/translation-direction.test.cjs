@@ -31,6 +31,19 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  });
  vm.runInContext(fs.readFileSync('app.js','utf8'),ctx);
  const run=script=>vm.runInContext(script,ctx);
+ run('sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair();');
+ const arrivalQuestion="When is she coming here?";
+ select('#translator-input').value=arrivalQuestion;
+ select('#natural-result').textContent="¿Cuándo va a venir aquí?";
+ run('lastCompletedTranslation={source:"When is she coming here?",sourceLanguage,targetLanguage};');
+ assert.equal(run('matchPhrase("When is she coming here").natural'),"¿Cuándo va a venir aquí?");
+ assert.equal(run('matchPhrase("When is she coming here tomorrow?")'),null);
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  "¿Cuándo viene?","¿Cuándo va a venir ella aquí?","¿Cuándo llega aquí?"
+ ]);
+ select('#translator-input').value="When is she coming here tomorrow?";
+ assert.equal(run('translationWordingAlternatives().length'),0);
+
  run('sourceLanguage="en-US";targetLanguage="es-CU";syncLanguagePair();');
  const original="Disculpe en caso de que si estoy tarde.";
  select('#translator-input').value=original;

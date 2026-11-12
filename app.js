@@ -1,4 +1,17 @@
 const phrases = [
+  {
+    en:"When is she coming here?",
+    es:"¿Cuándo va a venir ella aquí?",
+    natural:"¿Cuándo va a venir aquí?",
+    exactMatch:true,
+    register:"Everyday · arrival plans",
+    note:"Use ella when you need to make clear who is coming. / Usa ella cuando necesites aclarar quién viene.",
+    alternatives:{es:[
+      {text:"¿Cuándo viene?",label:"Conversational / Conversacional",note:"Use this when both people know who is coming and where. / Úsala si ambos saben quién viene y adónde."},
+      {text:"¿Cuándo va a venir ella aquí?",label:"Explicit subject / Sujeto explícito",note:"Ella makes clear who you mean. / Ella aclara de quién hablas."},
+      {text:"¿Cuándo llega aquí?",label:"Arrival time / Hora de llegada",note:"Use this to ask when she will arrive. / Úsala para preguntar cuándo llegará."}
+    ]}
+  },
   { en:"Spanish is very beneficial for business.", es:"El español es muy beneficioso para los negocios.", natural:"El español es muy útil para los negocios.", note:"Neutral wording suitable in Ecuador and elsewhere. / Expresión neutra válida en Ecuador y otros países.", register:"Everyday · business", keys:["espanol es muy beneficioso para negocios","el espanol es muy beneficioso para los negocios","spanish is very beneficial for business"], alternatives:{en:[{text:"Spanish is very useful in business.",label:"Natural phrasing / Uso natural",note:"An everyday way to express the practical benefit. / Una forma cotidiana de expresar la utilidad práctica."},{text:"Spanish offers substantial benefits in business.",label:"Formal / Formal",note:"Suitable for professional writing. / Adecuada para textos profesionales."}],es:[{text:"El español ofrece grandes beneficios en los negocios.",label:"Formal / Formal",note:"Una alternativa para contextos profesionales. / An alternative for professional contexts."}] } },
   { en:"How are you?", us:"How are you? / How's it going?", uk:"How are you? / You alright?", es:"¿Cómo estás?", natural:"¿Cómo estás? / ¿Qué tal?", note:"Both sound natural in Ecuador. ¿Qué tal? is relaxed and conversational.", register:"Friendly · everyday", keys:["como estas","que tal"] },
   { en:"Maybe another time.", es:"Tal vez en otra ocasión.", natural:"Quizás otro día.", note:"Quizás otro día is the warmer everyday option when declining without sounding final.", register:"Friendly · neutral Ecuador", keys:["tal vez otra vez","talvez un otra vez","quizas otro dia"] },
@@ -1639,7 +1652,7 @@ function matchPhrase(value, way=direction) {
   if (!clean) return null;
   const phraseMatch = phrases.find(phrase => {
     const candidates = way === "en-ec" ? [phrase.en, phrase.us, phrase.uk] : [phrase.es, phrase.natural, ...(phrase.keys || [])];
-    return candidates.filter(Boolean).some(candidate => matchesPhraseCandidate(clean,candidate));
+    return candidates.filter(Boolean).some(candidate => phrase.exactMatch ? clean === normalize(candidate) : matchesPhraseCandidate(clean,candidate));
   });
   if (phraseMatch) return phraseMatch;
   if (way !== "ec-en") return null;
