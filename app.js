@@ -4183,10 +4183,13 @@ function bindDocumentTools() {
     translationRequest++;
     stopSpeechPlayback();
     preservedCulturalContext = null;
+    // Research-mode refresh reads the active editor back into section zero.
+    // Switch mode before activating the document, while the editor still
+    // contains the entire pasted paper, or it would duplicate later sections.
+    setTranslationPurpose("academic",false);
     importedDocument = {name,sections,index:0,total:original.length};
     documentImportActive = true;
     input.blur?.();
-    setTranslationPurpose("academic",false);
     populateDocumentSections();
     $("#research-document-workspace").open = true;
     report("Pasted paper opened. Translation starts only from this button, and completed progress is saved on this device.");
