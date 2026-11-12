@@ -207,30 +207,71 @@ const spanish=[
    ]
   }
 ];
-const english=[
- {id:'only-patterns',title:'Only · only if · just for · only with',
-  explanation:'La palabra |only| limita una cantidad o una acción. |Only if| introduce una condición, |just for| indica el motivo y |only with| indica lo que hace falta. Fíjate en el orden de las palabras. Por ejemplo, |only with patience can we improve.| En español, estas expresiones suelen corresponder a solo, solo si, solo por y solo con. Traduce el sentido completo.',
-  examples:[['I only need a few minutes.','Solo necesito unos minutos.'],['I will join you only if it stops raining.','Te acompaño solo si deja de llover.'],['I came just for the music.','Vine solo por la música.'],['Only with patience can we improve.','Solo con paciencia podemos mejorar.']],
-  situations:[{scene:'Solo necesitas unos minutos. Díselo a tu amigo en inglés.',phrase:'I only need a few minutes.',meaning:'Solo necesito unos minutos.'},{scene:'Está lloviendo. Dile a tu amiga que irás con ella únicamente si deja de llover.',phrase:'I will join you only if it stops raining.',meaning:'Te acompaño solo si deja de llover.'},{scene:'Fuiste al festival únicamente por la música. Explícalo en inglés.',phrase:'I came just for the music.',meaning:'Vine solo por la música.'},{scene:'Explica en inglés que la paciencia es necesaria para mejorar.',phrase:'Only with patience can we improve.',meaning:'Solo con paciencia podemos mejorar.'}],
+const englishGuides = {
+ 'solo-patterns': {
+  id: 'only-patterns', title: 'Only · only if · just for · only with',
+  explanation: 'Usa |only| para limitar algo, |only if| para poner una condición, |just for| para expresar el motivo y |only with| para indicar lo que hace falta.',
   checks:[
    {prompt:'I _____ need a few minutes.',answer:'only',options:['only','only if','just for','only with'],note:'Only limits how much time is needed. / Only limita el tiempo.'},
-   {prompt:'I will join you _____ it stops raining.',answer:'only if',options:['only','only if','just for','only with'],note:'Only if gives a condition. / Only if expresa una condición.'},
+   {prompt:'I will go out with you _____ it stops raining.',answer:'only if',options:['only','only if','just for','only with'],note:'Only if gives a condition. / Only if expresa una condición.'},
    {prompt:'I came _____ the music.',answer:'just for',options:['only','only if','just for','only with'],note:'Just for identifies the reason. / Just for indica el motivo.'},
    {prompt:'_____ patience can we improve.',answer:'only with',options:['only','only if','just for','only with'],note:'Only with introduces what is necessary. / Only with indica lo necesario.'}
-  ]},
- {id:'already-still',title:'Already · still · not yet',
-  explanation:'Piensa en la situación: algo ya terminó, continúa o todavía no ha ocurrido. |Already| indica que algo ya pasó. |Still| indica que continúa. |Not yet| significa todavía no. Aprende las expresiones completas.',
-  examples:[["I've already eaten.",'Ya he comido.'],["I'm still eating.",'Todavía estoy comiendo.'],["I haven't eaten yet.",'Todavía no he comido.']],
-  situations:[{scene:'Te ofrecen comida, pero ya comiste. Explica por qué no necesitas comer.',phrase:"I've already eaten.",meaning:'Ya he comido.'},{scene:'Tu amistad quiere salir, pero sigues comiendo. Explica qué pasa.',phrase:"I'm still eating.",meaning:'Todavía estoy comiendo.'},{scene:'Te preguntan si ya comiste. Todavía no lo has hecho.',phrase:"I haven't eaten yet.",meaning:'Todavía no he comido.'}]},
- {id:'purpose',title:'For · to: destinatario y propósito',
-  explanation:'Para indicar quién recibe algo, usa |for.| Por ejemplo, |this is for Ana.| Para expresar un propósito con una acción, usa |to| y el verbo. Por ejemplo, |to learn.| No traduzcas cada por o para con la misma palabra. Fíjate en lo que quieres comunicar.',
-  examples:[['This coffee is for Ana.','Este café es para Ana.'],['I study to learn English.','Estudio para aprender inglés.'],['Thank you for your help.','Gracias por tu ayuda.']],
-  situations:[{scene:'Compraste un café para Ana. Indica quién lo recibirá.',phrase:'This coffee is for Ana.',meaning:'Este café es para Ana.'},{scene:'Explica tu propósito al estudiar: aprender inglés.',phrase:'I study to learn English.',meaning:'Estudio para aprender inglés.'},{scene:'Una amistad te ayudó. Dale las gracias por su ayuda.',phrase:'Thank you for your help.',meaning:'Gracias por tu ayuda.'}]},
- {id:'future',title:'Planes: going to · will',
-  explanation:'Para comunicar un plan, practica |I am going to| y un verbo. |Will| también sirve para hablar del futuro, por ejemplo al tomar una decisión en ese momento. Estas formas tienen más usos. Practica el contexto además de la estructura.',
-  examples:[["I'm going to eat.",'Voy a comer.'],["I'm going to drink some water.",'Voy a beber agua.'],["I'll have tea, please.",'Tomaré té, por favor.']],
-  situations:[{scene:'Ya tienes un plan para comer pronto. Cuenta qué vas a hacer.',phrase:"I'm going to eat.",meaning:'Voy a comer.'},{scene:'Tienes tu botella lista. Di que vas a beber agua.',phrase:"I'm going to drink some water.",meaning:'Voy a beber agua.'},{scene:'Te ofrecen café o té. Decides pedir té en ese momento.',phrase:"I'll have tea, please.",meaning:'Tomaré té, por favor.'}]}
-];
+  ],
+  scenes: ['Tu amiga pregunta cuánto tiempo necesitas. Solo necesitas unos minutos.', 'Te invitan a salir, pero está lloviendo. Acepta con una condición.', 'Fuiste al festival solamente por la música. Explica por qué fuiste.', 'Dile a un amigo qué hace falta para aprender algo difícil.']
+ },
+ 'already-still': {
+  title: 'Already · still · not yet',
+  explanation: '|Already| indica que algo ya pasó. |Still| indica que algo sigue ocurriendo. |Not yet| indica que todavía no ha pasado.',
+  scenes: ['Un amigo te pregunta si estás listo. Ya terminaste el trabajo.', 'Tu amiga está lista para salir, pero tú sigues trabajando.', 'Te preguntan si ya comiste. Todavía no has comido.']
+ },
+ 'por-para': {
+  id: 'purpose', title: 'For · to · through',
+  explanation: 'Usa |for| para indicar quién recibe algo, |to| para señalar un destino o propósito, y |through| para describir un recorrido que pasa por un lugar.',
+  scenes: ['Compraste un café para Ana. Dile al mesero para quién es.', 'Una amistad te ayudó. Dale las gracias.', 'Describe tu ruta a pie por el parque.']
+ },
+ future: {
+  title: 'Planes · going to y will',
+  explanation: 'Usa |I am going to| para hablar de un plan y |I will| para decir lo que harás. En una conversación, también puedes decir |I’m going to| o |I’ll|.',
+  scenes: ['Vas a comer pronto. Cuéntale a una amistad qué vas a hacer.', 'Ya tienes tu botella. Di que vas a beber agua.', 'Ahora estás ocupado. Di que comerás más tarde.']
+ },
+ 'everyday-comparisons': {
+  title: 'Better · worse · older · younger',
+  explanation: 'Usa |better| y |worse| para comparar calidad, |older| y |younger| para la edad, y |bigger| o |smaller| para el tamaño.',
+  scenes: ['La cámara de tu teléfono viejo era mala. Di que la nueva es mejor.', 'El bus tardó más hoy. Compara el tráfico de hoy con el de ayer.', 'Di que tu hermana es dos años mayor que tú.', 'Di que tu primo es un año menor que tú.']
+ },
+ 'how-often': {
+  title: 'How often? · Frecuencia',
+  explanation: 'Palabras como |never|, |often| y |always| indican frecuencia. En una pregunta con |Have you ever…?|, preguntas si la otra persona ha hecho algo alguna vez.',
+  scenes: ['Un amigo te ofrece café de noche. Dile que nunca lo tomas a esa hora.', 'Describe tu costumbre de cocinar con amigos de vez en cuando.', 'Di que a menudo escuchas música mientras cocinas.', 'Pregúntale a una amistad si alguna vez ha visitado Cuenca.']
+ },
+ 'everyday-actions': {
+  title: 'Everyday actions · Acciones diarias',
+  explanation: 'Practica expresiones completas como |lift weights|, |turn up the volume|, |set the alarm| y |put your shoes away|.',
+  scenes: ['No oyes bien la canción. Pide que suban un poquito el volumen.', 'Alguien está tratando de dormir. Ofrécete a bajar el volumen.', 'Necesitas levantarte a las seis. Di lo que tienes que hacer.', 'Tus zapatos están junto a la puerta. Di dónde los vas a guardar.']
+ },
+ 'llevar-traer-tenses': {
+  title: 'Take and bring · Yesterday, today, tomorrow',
+  explanation: 'En estos ejemplos, usa |take| para llevar algo a otro lugar y |bring| para traerlo aquí. Practica los pasados |took| y |brought|.',
+  scenes: ['Cuenta que ayer llevaste pan a la reunión.', 'Cuenta que ayer trajiste pan a casa.', 'Di que hoy llevas fruta al trabajo.', 'Di que mañana traerás café para todos.']
+ },
+ 'cooking-actions': {
+  title: 'Cooking actions · Acciones en la cocina',
+  explanation: 'Practica |get out| para sacar los utensilios, |peel| para pelar, |slice| para cortar en rodajas y |chop| para picar.',
+  scenes: ['Vas a cocinar. Di qué utensilios sacas primero.', 'Explica cómo pelas una zanahoria.', 'Quieres preparar rodajas de manzana. Di qué haces.', 'Vas a preparar sopa. Di que picas los champiñones.']
+ }
+};
+
+const english = spanish.filter(lesson => Object.hasOwn(englishGuides, lesson.id)).map(lesson => {
+ const {scenes, ...guide} = englishGuides[lesson.id];
+ return {
+  id: lesson.id,
+  ...guide,
+  examples: lesson.examples.map(([phrase, meaning]) => [meaning, phrase]),
+  situations: lesson.situations.map(({phrase, meaning}, index) => ({
+   scene: scenes[index], phrase: meaning, meaning: phrase
+  }))
+ };
+});
 const catalog={'es-EC':spanish,'en-US':english,'en-GB':english};
 // Text between pairs of | characters is in the language being studied.
 function explanationPassages(text,locale,englishLocale){
