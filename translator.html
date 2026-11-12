@@ -27,7 +27,7 @@
   <script src="live-camera-translation.js?v=226" defer></script>
   <script src="recording-import.js?v=223" defer></script>
   <script src="regional-vocabulary.js?v=218" defer></script>
-  <script src="spanish-context.js?v=218" defer></script>
+  <script src="spanish-context.js?v=218-dictionary" defer></script>
   <script src="language-community-terms.js?v=218" defer></script>
   <script src="bilingual-music.js?v=218" defer></script>
   <script src="button-feedback.js?v=218" defer></script>
@@ -44,7 +44,7 @@
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
-  <script src="app.js?v=226" defer></script>
+  <script src="app.js?v=226-dictionary" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -694,13 +694,18 @@
       <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
         <div class="view-heading">
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
-          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish dictionary</h1></div>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish–English dictionary</h1></div>
         </div>
         <p id="shared-app-context" class="shared-app-context" role="status" hidden></p>
         <section class="regional-slang" aria-labelledby="regional-slang-title">
           <p class="eyebrow">Ecuador first · compare regions</p>
           <h2 id="regional-slang-title">Regional dictionary</h2>
           <details class="compact-info feature-guide" data-feature-guide="dictionary" translate="no"><summary>Dictionary guide</summary></details>
+          <div class="context-choice-actions" role="group" aria-label="Dictionary lookup direction">
+            <button type="button" data-dictionary-direction="es-EC" aria-pressed="true">Spanish → English</button>
+            <button type="button" data-dictionary-direction="en-US" aria-pressed="false">🇺🇸 English → Spanish</button>
+            <button type="button" data-dictionary-direction="en-GB" aria-pressed="false">🇬🇧 UK English → Spanish</button>
+          </div>
           <label class="dictionary-search"><span class="sr-only">Search regional dictionary</span><input id="regional-slang-search" type="search" placeholder="Spanish term, English meaning, or city…"></label>
           <div class="regional-slang-filters">
             <label>Region<select id="regional-slang-region">
