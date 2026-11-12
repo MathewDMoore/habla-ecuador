@@ -120,6 +120,11 @@ textarea::placeholder { color: #9ca39f; }
 .research-source-label { margin-top: 6px; font-weight: 800; }
 #ecuador-research-source { width: 100%; min-width: 0; padding: 10px; border: 1px solid #bca8ca; border-radius: 9px; background: white; color: #2f2440; font: inherit; font-size: 13px; }
 .research-mode .input-card { border-color: #bca8ca; box-shadow: 0 10px 30px rgba(73,52,100,.09); }
+.research-paste-actions { display:none; }
+.research-mode .research-paste-actions { display:block; margin:12px 0 0; }
+.research-paste-actions button { width:100%; min-height:48px; padding:11px 12px; border:0; border-radius:13px; background:var(--green); color:white; font-size:14px; font-weight:800; white-space:normal; text-align:center; touch-action:manipulation; }
+.research-paste-actions p { margin:8px 0 0; color:var(--green); font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.research-paste-actions p:empty { display:none; }
 .research-mode #translator-input { min-height: 190px; font-family: Georgia,"Times New Roman",serif; font-size: 17px; line-height: 1.55; }
 .research-mode .result-card { background: #2f2440; }
 .research-mode .result-label { color: #d7c5e5; }
