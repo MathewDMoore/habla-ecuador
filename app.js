@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.18 · build 228";
+const APP_VERSION = "0.27.19 · build 229";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1427,7 +1427,7 @@ function syncVisibleLocationChoices(role,profile) {
 }
 function speakerCountryLabel(country) {
   const label=PERSON_COUNTRY_LABELS[country];
-  if(!label || !/^es-[A-Z]{2}$/.test(country))return label || "";
+  if(!label || !/^(?:es|en)-[A-Z]{2}$/.test(country))return label || "";
   const flag=String.fromCodePoint(...Array.from(country.slice(-2),letter=>0x1f1e6 + letter.charCodeAt(0) - 65));
   return flag+" "+label;
 }
@@ -6445,7 +6445,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=228", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=229", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
