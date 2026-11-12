@@ -228,7 +228,7 @@ const HablaSpanishContext = (() => {
     {
       id:'attraction-pintero', term:'pintero', category:'slang', regions:['es-EC'],
       register:'Informal', scope:'Documented in Guayaquil, Ecuador. Good-looking is milder than sexy. Primary region unconfirmed.',
-      us:'good-looking', uk:'good-looking', searchNotes:false,
+      us:'good-looking', uk:'good-looking', searchAliases:['sexy'], searchNotes:false,
       note:'Describes a physically attractive person. It can be a compliment without explicitly sexual emphasis.',
       url:'https://www.eluniverso.com/noticias/informes/como-es-la-movida-estas-25-frases-y-palabras-forman-parte-del-dia-a-dia-del-guayaquileno-nota/',
       sourceName:'El Universo · Guayaquil usage'

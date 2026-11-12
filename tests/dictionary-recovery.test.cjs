@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const dictionary=require('../spanish-context.js'),source=fs.readFileSync('app.js','utf8'),context={HablaSpanishContext:dictionary};
-vm.createContext(context);vm.runInContext(source.slice(source.indexOf('function regionalSearchRecovery('),source.indexOf('function clearRegionalSearchFilters(')),context);
+vm.createContext(context);vm.runInContext(source.match(/^const normalize = .+$/m)[0]+'\n'+source.slice(source.indexOf('function englishCounterpartAlternatives('),source.indexOf('function clearRegionalSearchFilters(')),context);
 const base={query:'buddy',region:'en-US',target:'es-EC',category:'slang',usage:'culture',tone:'caution'};
 assert.equal(context.regionalSearchRecovery(base,dictionary.dictionary(base)).kind,'filters');
 const missing={...base,query:'synthetic-unlisted-expression'};assert.equal(context.regionalSearchRecovery(missing,[]).kind,'missing');
@@ -23,4 +23,7 @@ for(const region of ['en-US','en-GB']){
  assert.ok(dictionary.dictionary({...options,target:'es-MX',usage:'all',tone:'mild'}).some(entry=>entry.id==='attraction-estar-bueno'));
  assert.deepEqual(context.regionalSearchRecovery({...options,query:'cock sucker',tone:'mild'},[]).alternatives,[]);
 }
+const cock={query:'Cock',region:'en-US',target:'es-EC',category:'slang',usage:'idiom',tone:'caution'};
+assert.equal(dictionary.dictionary(cock).length,0);
+assert.deepEqual(context.regionalSearchRecovery(cock,[]).alternatives.map(e=>e.term),['verga (vulgar anatomy)']);
 console.log('Dictionary recovery: hidden-filter vs regional vs coverage distinction; sourced insult spelling variants, explicit uncertainty, tone/type filters and no automatic mapping passed');

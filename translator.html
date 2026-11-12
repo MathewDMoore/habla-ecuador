@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
   <link rel="stylesheet" href="styles.css?v=226">
-  <script src="interface-es.js?v=227" defer></script>
+  <script src="interface-es.js?v=228" defer></script>
   <script src="interface-language.js?v=218" defer></script>
   <script src="research-reference.js?v=218" defer></script>
   <script src="document-import.js?v=218" defer></script>
@@ -27,7 +27,7 @@
   <script src="live-camera-translation.js?v=226" defer></script>
   <script src="recording-import.js?v=223" defer></script>
   <script src="regional-vocabulary.js?v=218" defer></script>
-  <script src="spanish-context.js?v=227" defer></script>
+  <script src="spanish-context.js?v=228" defer></script>
   <script src="language-community-terms.js?v=218" defer></script>
   <script src="bilingual-music.js?v=218" defer></script>
   <script src="button-feedback.js?v=218" defer></script>
@@ -44,7 +44,7 @@
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
-  <script src="app.js?v=227" defer></script>
+  <script src="app.js?v=228" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -53,7 +53,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.17 · build 227</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.18 · build 228</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -715,8 +715,10 @@
             <label>Tone<select id="regional-slang-tone"><option value="all">All tones</option><option value="mild">Without vulgarity / insults</option><option value="caution">Vulgar / potentially offensive</option></select></label>
             <label id="regional-slang-target-label" hidden>Spanish counterpart<select id="regional-slang-target"><option value="all">All Spanish regions</option><option value="es-EC" selected>🇪🇨 Ecuador</option><option value="es-BO">🇧🇴 Bolivia</option><option value="es-MX">🇲🇽 Mexico</option><option value="es-VE">🇻🇪 Venezuela</option><option value="es-PE">🇵🇪 Peru</option><option value="es-CO">🇨🇴 Colombia</option><option value="es-CU">🇨🇺 Cuba</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-CL">🇨🇱 Chile</option><option value="es-CR">🇨🇷 Costa Rica</option><option value="es-DO">🇩🇴 Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 El Salvador</option><option value="es-GT">🇬🇹 Guatemala</option><option value="es-HN">🇭🇳 Honduras</option><option value="es-NI">🇳🇮 Nicaragua</option><option value="es-PA">🇵🇦 Panama / Panamá</option><option value="es-PY">🇵🇾 Paraguay</option><option value="es-PR">🇵🇷 Puerto Rico</option><option value="es-ES">🇪🇸 Spain / España</option><option value="es-UY">🇺🇾 Uruguay</option><option value="es-GQ">🇬🇶 Equatorial Guinea / Guinea Ecuatorial</option></select></label>
           </div>
+          <div id="regional-dictionary-sources">
           <details class="compact-info"><summary>Usage &amp; sources</summary><p>Usage type describes how an expression works; tone describes its strength. An idiom can also be informal or vulgar. Country labels cover this entry, not every sense or every city. Read Meaning by country / region before choosing a sense. Choose U.S. or U.K. English to browse English meanings with their Spanish counterparts. Choose the Spanish counterpart region separately. Clinical and literal meanings have separate categories; their availability under a country does not make them local slang. These views index the current Spanish collection; shared Spanish pairs have country review pending. Strong English phrases keep vulgar Spanish counterparts. Tone labels describe the Spanish source; English wording may differ in strength. Meanings depend on the sentence, relationship and tone. English options are editorial glosses, not automatic replacements. Linked dictionaries and studies support the noted usage; they do not certify every city or accent. Caracas and Lima currently have country guidance; city review is pending. Entries stay available offline after the app has loaded; source links require internet. Voices depend on your device.</p></details>
           <details id="regional-source-coverage" class="compact-info regional-source-coverage"><summary>Sources &amp; coverage / Fuentes y cobertura</summary><p>Loading source references…</p></details>
+          </div>
           <p id="regional-slang-count" class="status" role="status"></p>
           <p id="regional-active-filters" class="regional-search-help" hidden></p>
           <div class="regional-search-actions"><button id="regional-clear-filters" type="button" hidden>Show all usage types, categories &amp; tones</button><button id="regional-broaden-search" type="button" hidden>Show matches across regions</button><button id="regional-suggest-entry" type="button" hidden>Suggest / check this entry</button></div>

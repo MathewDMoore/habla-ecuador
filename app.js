@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.17 · build 227";
+const APP_VERSION = "0.27.18 · build 228";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4946,14 +4946,28 @@ function renderSlangIndex(query="") {
   }).join("") : `<li class="slang-index-empty">No slang entries match this search.</li>`;
 }
 
+function englishCounterpartAlternatives(entries, options) {
+  const english = options.region === "en-US" ? "us" : options.region === "en-GB" ? "uk" : null;
+  const query = normalize(options.query);
+  if (!english || !query) return [];
+  const caution = entry => /vulgar|offensive|insult/i.test(entry.register);
+  const sameTone = options.tone === "caution" ? entries.filter(caution) : [];
+  const alternatives = options.tone === "all" ? entries : sameTone.length ? sameTone : entries.filter(entry => !caution(entry));
+  // A whole English word is a better counterpart than a fragment of a
+  // different word. Keep partial lookup when no whole-word gloss exists.
+  if (!/^[a-z]+$/.test(query)) return alternatives;
+  const wholeWord = alternatives.filter(entry =>
+    normalize(entry[english]).split(/\s+/).includes(query) ||
+    entry.searchAliases?.some(alias => normalize(alias) === query));
+  return wholeWord.length ? wholeWord : alternatives;
+}
+
 function regionalSearchRecovery(options, entries) {
   if (entries.length) return {kind:"results"};
   const cleared = {...options,usage:"all",category:"all",tone:"all"};
   const local = HablaSpanishContext.dictionary(cleared);
   if (local.length) {
-    const englishLookup = options.query.trim() && (options.region === "en-US" || options.region === "en-GB");
-    const alternatives = englishLookup ? local.filter(entry => !/vulgar|offensive|insult/i.test(entry.register)) : [];
-    return {kind:"filters",count:local.length,alternatives};
+    return {kind:"filters",count:local.length,alternatives:englishCounterpartAlternatives(local,options)};
   }
   let broader = {...cleared,region:options.region === "en-US" || options.region === "en-GB" ? options.region : "all",target:"all"};
   let matches = HablaSpanishContext.dictionary(broader);
@@ -5032,11 +5046,24 @@ function renderRegionalSlang() {
   renderRegionalSourceCoverage();
   const recovery = regionalSearchRecovery(options,entries);
   const alternatives = recovery.alternatives || [];
+  const lookupActive = Boolean(options.query.trim());
+  const otherRegions = englishLead && lookupActive && options.target !== "all"
+    ? englishCounterpartAlternatives(
+        HablaSpanishContext.dictionary({...options,target:"all",usage:"all",category:"all",tone:"all"})
+          .filter(entry => !entry.regions.includes(options.target)),
+        {...options,tone:options.tone === "caution" ? "all" : options.tone})
+    : [];
   const emptyMessage = alternatives.length ? "No entries match these filters. Spanish alternatives outside your filters are shown below."
     : recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
     : recovery.kind === "region" ? `No entries match this regional view. ${recovery.count} indexed matches are available in other regional views.`
     : "No entries match this search across the current collection, even with filters cleared. Coverage is limited; this does not mean the expression is wrong or unused.";
-  $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : emptyMessage;
+  const status = $("#regional-slang-count");
+  const sourcesPanel = $("#regional-dictionary-sources");
+  if (sourcesPanel) {
+    if (lookupActive && root.nextElementSibling !== sourcesPanel) root.after(sourcesPanel);
+    if (!lookupActive && sourcesPanel.nextElementSibling !== status) status.before(sourcesPanel);
+  }
+  status.textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : emptyMessage;
   const activeFilters = ["#regional-dictionary-category","#regional-usage-type","#regional-slang-tone"].map(selector => $(selector)).filter(element => element && element.value !== "all");
   const filterNote = $("#regional-active-filters");
   if (filterNote) { filterNote.hidden = !activeFilters.length; filterNote.textContent = activeFilters.length ? "Active filters: " + activeFilters.map(element => element.selectedOptions[0].textContent).join(" · ") : ""; }
@@ -5044,9 +5071,9 @@ function renderRegionalSlang() {
   const broaden = $("#regional-broaden-search");
   if (broaden) { broaden.hidden = recovery.kind !== "region"; broaden.dataset.region = recovery.region || "all"; }
   const suggest = $("#regional-suggest-entry"); if (suggest) suggest.hidden = !options.query.trim();
-  root.innerHTML = (entries.length ? entries : alternatives).map(entry => {
+  const renderCard = (entry, comparison=false) => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
-    const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
+    const spanishRegion = comparison ? entry.regions[0] : englishLead ? options.target : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
     const sources = [{name:entry.sourceName || (entry.url.includes("dem.colmex") ? "El Colegio de México · DEM" : entry.url.includes("dle.rae") ? "RAE · DLE" : entry.url.includes("cancer.gov") ? "NIH · National Cancer Institute" : entry.url.includes("medlineplus.gov") ? "NIH · MedlinePlus" : entry.url.includes("cancer.org") ? "American Cancer Society" : entry.url.includes("cun.es") ? "Clínica Universidad de Navarra" : "ASALE · Americanisms"), url:entry.url}, ...(entry.references || [])];
     return `<article class="expression-card regional-slang-card">
@@ -5074,7 +5101,15 @@ function renderRegionalSlang() {
       </details>
       <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">Report this entry</button>
     </article>`;
-  }).join("");
+  };
+  root.innerHTML = (entries.length ? entries : alternatives).map(entry => renderCard(entry)).join("");
+  if (otherRegions.length) {
+    root.insertAdjacentHTML("beforeend", `<section class="expression-results" aria-labelledby="regional-other-matches">
+      <h3 id="regional-other-matches">Other Spanish counterparts</h3>
+      <p class="regional-search-help">Matches across other indexed regions, with their own usage and tone.</p>
+      ${otherRegions.map(entry => renderCard(entry,true)).join("")}
+    </section>`);
+  }
   bindDictionaryPractice(root);
 }
 
@@ -6410,7 +6445,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=227", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=228", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
