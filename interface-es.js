@@ -1,5 +1,7 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Other Spanish counterparts": "Otras equivalencias en español",
+  "Matches across other indexed regions, with their own usage and tone.": "Coincidencias en otras regiones del diccionario, con su propio uso y tono.",
   "No entries match these filters. Spanish alternatives outside your filters are shown below.": "No hay entradas con estos filtros. Abajo se muestran alternativas en español fuera de los filtros elegidos.",
   "General Spanish: sexual attractiveness. Primary region unconfirmed.": "Español general: atractivo sexual. Región principal sin confirmar.",
   "Both spellings are recorded. For a person or an outfit, sexi keeps the sexual sense. Atractivo can be milder.": "Se documentan ambas grafías. Para una persona o un atuendo, sexi conserva el sentido sexual. Atractivo puede sonar más suave.",
