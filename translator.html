@@ -12,12 +12,12 @@
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
-  <link rel="stylesheet" href="styles.css?v=226">
+  <link rel="stylesheet" href="styles.css?v=227">
   <script src="interface-es.js?v=218" defer></script>
   <script src="interface-language.js?v=218" defer></script>
   <script src="research-reference.js?v=218" defer></script>
   <script src="document-import.js?v=218" defer></script>
-  <script src="whole-document.js?v=226" defer></script>
+  <script src="whole-document.js?v=227" defer></script>
   <script src="saved-paper.js?v=218" defer></script>
   <script src="offline-device.js?v=218" defer></script>
   <script src="english-varieties.js?v=218" defer></script>
@@ -44,7 +44,7 @@
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
-  <script src="app.js?v=226" defer></script>
+  <script src="app.js?v=227" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -138,7 +138,7 @@
           <details class="compact-info feature-guide" data-feature-guide="translate" translate="no"><summary>Translate guide</summary></details>
           <details id="research-document-workspace" class="compact-info research-document-workspace">
             <summary>Scientific research translation · PDF / Word</summary>
-            <p>Choose a complete paper, then translate every section into one editable draft. Select the source and target languages above.</p>
+            <p>Paste your paper in the text box below and tap Translate entire pasted research, or choose PDF / Word / text. Select the source and target languages above.</p>
             <div class="import-actions">
               <button id="quick-choose-document" type="button">Choose paper · PDF / Word / text</button>
               <button id="quick-open-research" type="button">Saved papers &amp; progress</button>
@@ -194,6 +194,10 @@
           <div class="input-card">
             <label class="sr-only" for="translator-input">Text to translate</label>
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <div class="research-paste-actions" role="group" aria-label="Paste and translate a complete research paper">
+              <button id="translate-pasted-paper" type="button">Translate entire pasted research / Traducir investigación pegada</button>
+              <p id="pasted-paper-status" role="status" aria-live="polite"></p>
+            </div>
             <div class="translator-mic-actions">
               <button id="translator-mic-add" type="button" aria-label="Add missing dictated words while keeping the existing source text">＋ Add missing words / Añadir palabras</button>
               <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Start fresh dictation; tap again to finish">🎙</button>
