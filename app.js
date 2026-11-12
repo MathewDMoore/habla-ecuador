@@ -5021,10 +5021,22 @@ function renderRegionalSlang() {
   const region = $("#regional-slang-region").value;
   const englishLead = region === "en-US" ? "us" : region === "en-GB" ? "uk" : null;
   $("#regional-slang-target-label").hidden = !englishLead;
+  document.querySelectorAll("[data-dictionary-direction]").forEach(button => {
+    button.setAttribute("aria-pressed", String(englishLead ? button.dataset.dictionaryDirection === region : button.dataset.dictionaryDirection === "es-EC"));
+  });
   const directionLabel = englishLead ? `${englishLead === "us" ? "U.S." : "U.K."} English → Spanish` : "U.S. & U.K. English";
   $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Spanish term, English meaning, or city…";
   const options = {query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,usage:$("#regional-usage-type")?.value || "all",target:englishLead?$("#regional-slang-target").value:"all"};
   const entries = HablaSpanishContext.dictionary(options);
+  const equivalentsByGloss = new Map();
+  if (englishLead && options.query.trim() && entries.length) {
+    for (const entry of HablaSpanishContext.dictionary({...options, query:"", target:"all"})) {
+      if (entry.shared || !entry.regions.length) continue;
+      const key = normalize(entry[englishLead]) + "|" + entry.register;
+      if (!equivalentsByGloss.has(key)) equivalentsByGloss.set(key, []);
+      equivalentsByGloss.get(key).push(entry);
+    }
+  }
   renderRegionalSourceCoverage();
   const recovery = regionalSearchRecovery(options,entries);
   const emptyMessage = recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
@@ -5039,6 +5051,10 @@ function renderRegionalSlang() {
   if (broaden) { broaden.hidden = recovery.kind !== "region"; broaden.dataset.region = recovery.region || "all"; }
   const suggest = $("#regional-suggest-entry"); if (suggest) suggest.hidden = !options.query.trim();
   root.innerHTML = entries.map(entry => {
+    const alternatives = englishLead && !entry.shared
+      ? (equivalentsByGloss.get(normalize(entry[englishLead]) + "|" + entry.register) || [])
+          .filter(other => normalize(other.term) !== normalize(entry.term) && other.regions.some(code => !entry.regions.includes(code)))
+      : [];
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
@@ -5046,6 +5062,7 @@ function renderRegionalSlang() {
     return `<article class="expression-card regional-slang-card">
       <header><h3>${escapeHtml(englishLead ? entry[englishLead] : entry.term)}</h3><span class="slang-tone ${caution ? "caution" : ""}">${escapeHtml(entry.register)}</span></header>
       ${englishLead ? `<p class="regional-gloss"><b>${entry.shared ? "Spanish counterpart · country review pending" : "Spanish"}</b> ${escapeHtml(entry.term)}</p>` : ""}
+      ${alternatives.length ? `<div class="expression-comparisons"><strong>Regional equivalents</strong>${alternatives.map(other => `<p><b>${escapeHtml(other.regions.map(speakerCountryLabel).join(" · "))}</b> ${escapeHtml(other.term)} <a href="${escapeHtml(other.url)}" target="_blank" rel="noreferrer">Source</a></p>`).join("")}</div>` : ""}
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || (entry.category === "literal" && !entry.regionalSenseAttested) || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
@@ -6325,6 +6342,16 @@ function init() {
   });
   $("#conversation-text-form").addEventListener("submit",event=>{event.preventDefault();submitConversationText();});
   $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
+  document.querySelectorAll("[data-dictionary-direction]").forEach(button => {
+    button.addEventListener("click", () => {
+      const region = $("#regional-slang-region");
+      const direction = button.dataset.dictionaryDirection;
+      if (button.getAttribute("aria-pressed") === "true") return;
+      region.value = direction;
+      if (direction !== "es-EC") $("#regional-slang-target").value = "es-EC";
+      region.dispatchEvent(new Event("change"));
+    });
+  });
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
   $("#regional-slang-region").addEventListener("change", () => {
     const context = $("#shared-app-context");
