@@ -23,6 +23,10 @@ assert.equal(await host.locator('#quick-lesson-select option').count(),catalog[l
 for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
 assert.equal(await host.getByText('Inspired by My Daily Spanish.',{exact:true}).count(),lesson.inspiration?1:0);
+const sources = await host.locator('.quick-lesson-sources a').evaluateAll(links =>
+ links.map(link => [link.textContent, link.getAttribute('href')])
+);
+assert.deepEqual(sources, lesson.sources ?? []);
 await host.locator('#quick-explanation-hear').click();
 const explanation=host.locator('#quick-explanation');
 assert.equal(await explanation.textContent(),lesson.explanation.replaceAll('|',''));

@@ -148,7 +148,33 @@ const spanish=[
    {prompt:'_____ la manzana en rodajas. (I cut it into slices.)',answer:'Corto',options:['Pelo','Corto','Saco','Agrego'],note:'Cortar en rodajas means to slice. / En rodajas indica la forma de los cortes.'},
    {prompt:'_____ los champiñones. (I chop them into small bits.)',answer:'Pico',options:['Agrego','Saco','Pico','Pelo'],note:'Picar is to chop into small pieces. / Picar es cortar en pedacitos.'}
   ]
- }
+  },
+  {
+   id: 'forms-of-address',
+   title: 'Tú · usted · vos',
+   explanation: 'All four examples ask “Are you working tomorrow?” Choose a form based on the person and the situation. ' +
+    '|Tú| is a familiar form. |Usted| can express courtesy at work or warmth among friends and family, as researchers observed in Azogues. ' +
+    'In one study of university students, |vos| could signal closeness among classmates in Cuenca and sound disrespectful among classmates in Quito. ' +
+    'Listen for the stress in |trabajas| (tra-BA-jas) and |trabajás| (tra-ba-JÁS). Both patterns occur in Ecuador. ' +
+    'In Bolivia, |vos trabajas| illustrates a pattern in the Andes and |vos trabajás| illustrates one in the north and east.',
+   examples: [
+    ['¿Tú trabajas mañana?', 'Familiar tú · a coworker you already address as tú.'],
+    ['¿Usted trabaja mañana?', 'Courteous usted · a supervisor you already address as usted.'],
+    ['¿Vos trabajas mañana?', 'Ecuadorian Sierra · vos with the tú verb form.'],
+    ['¿Vos trabajás mañana?', 'Ecuadorian Costa · vos with stress on the last syllable of trabajás.']
+   ],
+   situations: [
+    {scene: 'Ask a coworker you already call tú if they’re working tomorrow.', phrase: '¿Tú trabajas mañana?', meaning: 'Are you working tomorrow?'},
+    {scene: 'Ask a supervisor you already call usted the same question.', phrase: '¿Usted trabaja mañana?', meaning: 'Are you working tomorrow?'},
+    {scene: 'Try a pattern documented in Ecuador’s Sierra. Use vos and put the stress on BA in trabajas.', phrase: '¿Vos trabajas mañana?', meaning: 'Are you working tomorrow?'},
+    {scene: 'Try a pattern documented on Ecuador’s coast. Use vos and put the stress on JÁS in trabajás.', phrase: '¿Vos trabajás mañana?', meaning: 'Are you working tomorrow?'}
+   ],
+   sources: [
+    ['Quito and Cuenca study', 'https://repositorio.puce.edu.ec/items/26309eea-55e4-480c-891c-dc262057c153'],
+    ['Azogues study', 'https://ebuah.uah.es/xmlui/bitstream/handle/10017/34173/usted_lavender_LIN_2017_15.pdf?isAllowed=y&sequence=1'],
+    ['RAE–ASALE on voseo', 'https://www.rae.es/dpd/voseo']
+   ]
+  }
 ];
 const english=[
  {id:'only-patterns',title:'Only · only if · just for · only with',
@@ -206,6 +232,7 @@ function render(){
  <p>Different replies can work. Speaking feedback below compares recognized words with this model; it does not judge whether another reply communicates your meaning.</p>
  <button type="button" id="quick-next" class="primary-button">Try another situation →</button>
  <p>Original Habla lesson · device voices</p>
+  ${item.sources ? `<p class="quick-lesson-sources">${item.sources.map(([title, url]) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-ui-content>${esc(title)}</a>`).join(' · ')}</p>` : ''}
  ${item.inspiration?`<p>Inspired by ${esc(item.inspiration)}.</p>`:''}`;
  content.querySelector('#quick-lesson-select').addEventListener('change',event=>{leave();selected[locale]=event.target.value;situation=0;recall=false;render();});
  content.querySelector('#quick-explanation-hear').addEventListener('click',event=>{root.cancelDictionaryPractice();root.say(explanation(),undefined,event.currentTarget);});
