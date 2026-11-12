@@ -14,4 +14,13 @@ for(const spelling of ['cocksucker','cock sucker','cock-sucker','COCK SUCKER'])f
  assert.equal(dictionary.translateEnglishVulgarity(spelling),null,'dictionary addition never becomes a universal automatic translation');
 }
 for(const query of ['unrelated-synthetic-word','cocksuckersxyz'])assert.equal(dictionary.dictionary({region:'all',query}).length,0);
+for(const region of ['en-US','en-GB']){
+ const options={query:'Sexy',region,target:'es-EC',category:'slang',usage:'vocabulary',tone:'caution'};
+ assert.equal(dictionary.dictionary(options).length,0,'a strict vulgar filter does not misclassify milder words');
+ const recovery=context.regionalSearchRecovery(options,[]);
+ assert.deepEqual(recovery.alternatives.map(entry=>entry.term),['sexi / sexy','pintero']);
+ assert.match(recovery.alternatives[1].scope,/Guayaquil.*milder/);
+ assert.ok(dictionary.dictionary({...options,target:'es-MX',usage:'all',tone:'mild'}).some(entry=>entry.id==='attraction-estar-bueno'));
+ assert.deepEqual(context.regionalSearchRecovery({...options,query:'cock sucker',tone:'mild'},[]).alternatives,[]);
+}
 console.log('Dictionary recovery: hidden-filter vs regional vs coverage distinction; sourced insult spelling variants, explicit uncertainty, tone/type filters and no automatic mapping passed');

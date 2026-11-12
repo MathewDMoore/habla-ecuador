@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.16 · build 226";
+const APP_VERSION = "0.27.17 · build 227";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4950,7 +4950,11 @@ function regionalSearchRecovery(options, entries) {
   if (entries.length) return {kind:"results"};
   const cleared = {...options,usage:"all",category:"all",tone:"all"};
   const local = HablaSpanishContext.dictionary(cleared);
-  if (local.length) return {kind:"filters",count:local.length};
+  if (local.length) {
+    const englishLookup = options.query.trim() && (options.region === "en-US" || options.region === "en-GB");
+    const alternatives = englishLookup ? local.filter(entry => !/vulgar|offensive|insult/i.test(entry.register)) : [];
+    return {kind:"filters",count:local.length,alternatives};
+  }
   let broader = {...cleared,region:options.region === "en-US" || options.region === "en-GB" ? options.region : "all",target:"all"};
   let matches = HablaSpanishContext.dictionary(broader);
   if (!matches.length && broader.region !== "all") {
@@ -5027,7 +5031,9 @@ function renderRegionalSlang() {
   const entries = HablaSpanishContext.dictionary(options);
   renderRegionalSourceCoverage();
   const recovery = regionalSearchRecovery(options,entries);
-  const emptyMessage = recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
+  const alternatives = recovery.alternatives || [];
+  const emptyMessage = alternatives.length ? "No entries match these filters. Spanish alternatives outside your filters are shown below."
+    : recovery.kind === "filters" ? `No entries match these filters. ${recovery.count} indexed matches are hidden by the usage, category or tone filters.`
     : recovery.kind === "region" ? `No entries match this regional view. ${recovery.count} indexed matches are available in other regional views.`
     : "No entries match this search across the current collection, even with filters cleared. Coverage is limited; this does not mean the expression is wrong or unused.";
   $("#regional-slang-count").textContent = entries.length ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${directionLabel}` : emptyMessage;
@@ -5038,7 +5044,7 @@ function renderRegionalSlang() {
   const broaden = $("#regional-broaden-search");
   if (broaden) { broaden.hidden = recovery.kind !== "region"; broaden.dataset.region = recovery.region || "all"; }
   const suggest = $("#regional-suggest-entry"); if (suggest) suggest.hidden = !options.query.trim();
-  root.innerHTML = entries.map(entry => {
+  root.innerHTML = (entries.length ? entries : alternatives).map(entry => {
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = englishLead ? $("#regional-slang-target").value : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
@@ -6404,7 +6410,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=226", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=227", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

@@ -217,6 +217,30 @@ const HablaSpanishContext = (() => {
   // Recording-inspired headwords, independently checked 2026-10-12.
   // Shared literal/clinical entries indicate availability, not local slang evidence.
   const sharedRegions = Object.keys(dictionaryRegions).filter(code=>code!=='es-CU');
+  const attractionEntries = [
+    {
+      id:'attraction-sexi', term:'sexi / sexy', speech:'sexi', category:'literal', regions:sharedRegions, shared:true,
+      register:'Neutral', scope:'General Spanish: sexual attractiveness. Primary region unconfirmed.',
+      us:'sexy', uk:'sexy', searchNotes:false,
+      note:'Both spellings are recorded. For a person or an outfit, sexi keeps the sexual sense. Atractivo can be milder.',
+      url:'https://dle.rae.es/sexi'
+    },
+    {
+      id:'attraction-pintero', term:'pintero', category:'slang', regions:['es-EC'],
+      register:'Informal', scope:'Documented in Guayaquil, Ecuador. Good-looking is milder than sexy. Primary region unconfirmed.',
+      us:'good-looking', uk:'good-looking', searchNotes:false,
+      note:'Describes a physically attractive person. It can be a compliment without explicitly sexual emphasis.',
+      url:'https://www.eluniverso.com/noticias/informes/como-es-la-movida-estas-25-frases-y-palabras-forman-parte-del-dia-a-dia-del-guayaquileno-nota/',
+      sourceName:'El Universo · Guayaquil usage'
+    },
+    {
+      id:'attraction-estar-bueno', term:'estar bueno / estar buena', speech:'estar bueno', category:'slang', regions:['es-MX'],
+      register:'Colloquial; can sound objectifying', scope:'Documented in Mexico for physical attractiveness. Primary region unconfirmed.',
+      us:'be hot (of a person)', uk:'be hot (of a person)', searchAliases:['sexy'], searchNotes:false,
+      note:'An informal comment about someone’s looks. Use care when saying it about a person. Estar bueno has other meanings in other contexts.',
+      url:'https://dem.colmex.mx/Ver/bueno'
+    }
+  ];
   const nci = term => `https://www.cancer.gov/espanol/publicaciones/diccionarios/diccionario-cancer/def/${term}`;
   const contributedEntries = [
   {
@@ -541,13 +565,13 @@ const HablaSpanishContext = (() => {
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [hungerIdiom,...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
+    return [hungerIdiom,...attractionEntries,...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       // Contrast notes and literal learning aids must not become English equivalents.
       const searchable=plain([entry.term,...(english?[entry[english]]:[entry.us,entry.uk]),entry.scope,...(entry.batch === 'regional-vocabulary-116'||entry.searchNotes===false ? [] : [entry.note]),entry.register,...(entry.searchAliases||[]),...entry.regions.map(code=>dictionaryRegions[code])].join(' '));
       return regionMatches && (usage==='all'||(usage==='metaphor' ? entry.figurative===true : usageMetadata(entry).type===usage)) && (category==='all'||category===(entry.category||'slang')) && (tone==='all'||(tone==='caution'?caution:tone==='mild'&&!caution)) && (!search||searchable.includes(search));
-    }).sort((a,b) => english ? a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
+    }).sort((a,b) => english ? Number(plain(b[english])===search)-Number(plain(a[english])===search) || a[english].localeCompare(b[english],'en') : (region==='all' ? Number(b.regions.includes('es-EC'))-Number(a.regions.includes('es-EC')) : 0) || a.term.localeCompare(b.term,'es')).map(entry => {
       const {pattern,aliases,requireExclamation,...publicEntry}=entry;
       publicEntry.usage = usageMetadata(entry);
       return JSON.parse(JSON.stringify(publicEntry));
