@@ -55,4 +55,28 @@ for(const [id,answers] of Object.entries(videoTopics)){
   assert.ok(phrase&&meaning,'both languages are included for each example');
  }
 }
+
+const pairedVideoTopics = {
+ 'ordering-at-a-cafe': 4,
+ 'pie-expressions': 4,
+ 'words-for-work': 5,
+ 'saying-no': 5
+};
+for (const [id, sceneCount] of Object.entries(pairedVideoTopics)) {
+ const spanishLesson = catalog['es-EC'].find(item => item.id === id);
+ assert.ok(spanishLesson, `Spanish has the ${id} lesson`);
+ assert.equal(spanishLesson.situations.length, sceneCount);
+ const spanishPairs = spanishLesson.situations.map(({phrase, meaning}) => [phrase, meaning]);
+ assert.deepEqual(spanishLesson.examples.map(([phrase, meaning]) => [phrase, meaning]), spanishPairs);
+
+ for (const locale of ['en-US', 'en-GB']) {
+  const englishLesson = catalog[locale].find(item => item.id === id);
+  assert.ok(englishLesson, `${locale} has the ${id} lesson`);
+  assert.deepEqual(englishLesson.examples, spanishPairs.map(([spanish, english]) => [english, spanish]));
+  assert.deepEqual(englishLesson.situations.map(({phrase, meaning}) => [meaning, phrase]), spanishPairs);
+  assert.ok(englishLesson.situations.every(({scene}) => scene?.trim()), 'every pair has an English-learning prompt');
+  assert.deepEqual(englishLesson.sources, spanishLesson.sources);
+  assert.equal(englishLesson.inspiration, spanishLesson.inspiration);
+ }
+}
 console.log('Short lessons: bilingual models, speaking situations, scored grammar exercises and creator credit verified.');

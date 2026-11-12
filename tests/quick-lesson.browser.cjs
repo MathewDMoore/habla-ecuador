@@ -22,7 +22,12 @@ assert.equal(await host.getAttribute('data-learning-language'),locale);
 assert.equal(await host.locator('#quick-lesson-select option').count(),catalog[locale].length);
 for(const lesson of catalog[locale]){
 await host.locator('#quick-lesson-select').selectOption(lesson.id);
-assert.equal(await host.getByText('Inspired by My Daily Spanish.',{exact:true}).count(),lesson.inspiration?1:0);
+assert.deepEqual(await host.getByText(/^Inspired by /).allTextContents(),
+ lesson.inspiration ? [`Inspired by ${lesson.inspiration}.`] : []);
+const sources = await host.locator('.quick-lesson-sources a').evaluateAll(links =>
+ links.map(link => [link.textContent, link.getAttribute('href')])
+);
+assert.deepEqual(sources, lesson.sources ?? []);
 await host.locator('#quick-explanation-hear').click();
 const explanation=host.locator('#quick-explanation');
 assert.equal(await explanation.textContent(),lesson.explanation.replaceAll('|',''));
@@ -49,15 +54,17 @@ if(lesson.checks){
  const choice=host.locator('[data-quick-answer="'+question.answer+'"]');
  assert.equal(await choice.getAttribute('aria-pressed'),'true');
 }
-await host.locator('[data-quick-hear]').first().click();
-assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:lesson.examples[0][0],lang:locale});
+const exampleIndex = i % lesson.examples.length;
+const [phrase, , exampleLocale = locale] = lesson.examples[exampleIndex];
+await host.locator('[data-quick-hear]').nth(exampleIndex).click();
+assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:phrase,lang:exampleLocale});
 await host.locator('#quick-recall').click();
 assert.equal(await host.locator('#quick-lesson-model').isVisible(),false);
 assert.equal(await host.locator('.quick-lesson-examples').isVisible(),false);
 await host.locator('#quick-recall').click();
 assert.equal(await host.locator('#quick-lesson-model').isVisible(),true);
 await host.locator('.dictionary-practice-mic').evaluate(el=>el.click());
-assert.equal(await page.evaluate(()=>testRecognition.lang),locale);
+assert.equal(await page.evaluate(()=>testRecognition.lang),cue.locale ?? locale);
 assert.equal(await host.locator('.dictionary-practice-target').isVisible(),true,'stable model while microphone is active');
 await host.locator('#quick-next').click();
 }
