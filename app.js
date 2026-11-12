@@ -35,7 +35,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.16 · build 226";
+const APP_VERSION = "0.27.17 · build 227";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4141,6 +4141,61 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
+
+  // Pasted research joins the same recoverable whole-paper queue as imported files.
+  // A paste never sends text until the learner explicitly taps this action.
+  const pastedResearchStatus = $("#pasted-paper-status");
+  $("#translate-pasted-paper")?.addEventListener("click", () => {
+    const input = $("#translator-input");
+    const original = input.value;
+    const report = message => { if (pastedResearchStatus) pastedResearchStatus.textContent = message; };
+    if (!original.trim()) { report("Paste your research text into the field above first."); return; }
+    if (documentLoading || documentImportActive || wholeDocumentTools?.runner?.busy) {
+      report("Finish or close the current document before starting another paper. Saved progress is preserved.");
+      return;
+    }
+    if (original.length > 200000) {
+      report("This paper exceeds 200,000 characters. Split it into separate papers before translating. Your pasted text is unchanged.");
+      return;
+    }
+    if (!wholeDocumentTools || typeof HablaWholeDocument === "undefined") {
+      report("The whole-paper translator is unavailable. Your research text has not been changed.");
+      return;
+    }
+    const route = {sourceLanguage,targetLanguage,purpose:"academic",
+      onDevice:typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()};
+    const name = "Pasted research - " + new Date().toISOString().slice(0,10) + ".txt";
+    let sections;
+    try {
+      sections = safeDocumentSections(original);
+      // Validate supported language pairs and progress limits before replacing any UI.
+      HablaWholeDocument.create({name,sections},route);
+    } catch (error) { report(error.message || "This research text could not be prepared."); return; }
+    wholeDocumentTools.pause("Preparing the pasted paper. Previously saved progress is unchanged.");
+    cancelMusicListening();
+    musicTranscriptReview = false;
+    musicCapturedText = "";
+    updateMusicListenLabel();
+    documentImportController?.abort();
+    documentImportController = undefined;
+    documentImportRequest++;
+    clearTimeout(translationTimer);
+    translationRequest++;
+    stopSpeechPlayback();
+    preservedCulturalContext = null;
+    // Research-mode refresh reads the active editor back into section zero.
+    // Switch mode before activating the document, while the editor still
+    // contains the entire pasted paper, or it would duplicate later sections.
+    setTranslationPurpose("academic",false);
+    importedDocument = {name,sections,index:0,total:original.length};
+    documentImportActive = true;
+    input.blur?.();
+    populateDocumentSections();
+    $("#research-document-workspace").open = true;
+    report("Pasted paper opened. Translation starts only from this button, and completed progress is saved on this device.");
+    $("#whole-document-tools").scrollIntoView({block:"start"});
+    return $("#translate-entire-document").click();
+  });
   const chooseResearchDocument = () => {
     $("#translation-setup").open = true;
     $("#choose-document").closest("details").open = true;
@@ -6404,7 +6459,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=226", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=227", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

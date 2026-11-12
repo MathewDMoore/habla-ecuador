@@ -3,7 +3,9 @@
   'use strict';
   const SCHEMA = 'habla-ecuador.whole-document.v1';
   const PREFIX = 'habla-ecuador-whole-document-v1:';
-  const LANGUAGES = ['en-US','en-GB','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO'];
+  const LANGUAGES = ['en-US','en-GB','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO',
+    'es-CU','es-AR','es-CL','es-CR','es-DO','es-SV','es-GT','es-HN','es-NI',
+    'es-PA','es-PY','es-PR','es-ES','es-UY','es-GQ'];
   const MAX_TEXT = 200000;
   const MAX_DRAFT = 600000;
   const FREE_ONLINE_CHARACTERS = 5000;
