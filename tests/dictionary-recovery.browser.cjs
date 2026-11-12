@@ -1,15 +1,29 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {chromium}=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
+const playwright=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
-(async()=>{const browser=await chromium.launch({headless:true});try{
+(async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';const browser=await playwright[engine].launch({headless:true});try{
  for(const width of [390,320]){
   const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
   if(process.env.HABLA_NATIVE_SCRIPT)await page.addInitScript({path:process.env.HABLA_NATIVE_SCRIPT});
+  await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v2','1'));
   await page.goto(origin+'/habla-ecuador/index.html');await page.locator('.bottom-nav [data-open="dictionary-view"]').click();
   const search=page.locator('#regional-slang-search'),count=page.locator('#regional-slang-count'),cards=page.locator('#regional-slang-results .regional-slang-card');
   await page.locator('#regional-slang-region').selectOption('en-US');await page.locator('#regional-slang-target').selectOption('es-EC');await page.locator('#regional-dictionary-category').selectOption('slang');await page.locator('#regional-usage-type').selectOption('culture');await page.locator('#regional-slang-tone').selectOption('caution');await search.fill('cock sucker');
   assert.match(await count.textContent(),/hidden by/);assert.match(await page.locator('#regional-active-filters').textContent(),/Cultural usage/);assert.equal(await cards.count(),0);
+  await page.locator('#regional-usage-type').selectOption('vocabulary');
+  await search.fill('Sexy');
+  assert.match(await count.textContent(),/Spanish alternatives outside your filters/);
+  assert.equal(await cards.count(),2);
+  assert.match(await cards.first().textContent(),/sexi \/ sexy/);
+  assert.match(await cards.last().textContent(),/pintero.*Guayaquil.*milder/s);
+  assert.equal(await page.locator('#regional-slang-tone').inputValue(),'caution');
+  assert.equal(await page.locator('#regional-slang-target').inputValue(),'es-EC');
+  await page.locator('#regional-slang-target').selectOption('es-MX');
+  assert.match(await cards.last().textContent(),/estar bueno \/ estar buena.*Mexico/s);
+  await page.locator('#regional-slang-target').selectOption('es-EC');
+  await page.locator('#regional-usage-type').selectOption('culture');
+  await search.fill('cock sucker');
   await page.locator('#regional-clear-filters').click();assert.equal(await search.inputValue(),'cock sucker');assert.equal(await page.locator('#regional-slang-region').inputValue(),'en-US');assert.equal(await page.locator('#regional-slang-target').inputValue(),'es-EC');assert.equal(await cards.count(),1);assert.match(await cards.first().textContent(),/country review pending/);assert.match(await cards.first().textContent(),/literal sexual act/);await cards.first().locator('summary').filter({hasText:'Context & sources'}).click();assert.match(await cards.first().textContent(),/WordReference/);
   await search.fill('buddy');assert.ok(await cards.count()>0,'existing nonvulgar counterpart remains available');
   await search.fill('synthetic-unlisted-expression');assert.match(await count.textContent(),/Coverage is limited/);assert.equal(await page.locator('#regional-broaden-search').isVisible(),false);
