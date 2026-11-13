@@ -24,7 +24,7 @@ assert.equal(typeof harness(undefined, "/habla-ecuador/index.html").window.__hab
 const appSource = fs.readFileSync("app.js", "utf8");
 // A different app's audio session is not proof the ScreenCaptureKit stream ended.
 const nativeCaptureSource = fs.readFileSync("ios/HablaEcuador/NativeSpeechCapture.swift", "utf8");
-assert.match(nativeCaptureSource, /guard !self\\.systemAudio else \\{ return \\}/,
+assert.ok(nativeCaptureSource.includes("guard !self.systemAudio else { return }"),
   "native screen-audio capture ignores unrelated microphone session interruptions");
 const nativeAppSource = fs.readFileSync("ios/HablaEcuador/HablaEcuadorApp.swift", "utf8");
 assert.match(nativeAppSource, /isSystemAudioActive != true/,
