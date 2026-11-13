@@ -3111,13 +3111,13 @@ function translationErrorMessage(error) {
 }
 
 const translationChunkCache = new Map();
-async function requestTranslationChunk(text, way=direction, purpose=translationPurpose, receiveAlternatives) {
+async function requestTranslationChunk(text, way=direction, purpose=translationPurpose, receiveAlternatives, forceFresh=false) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
   const protectedText = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   // Never truncate text to fit a request. The caller splits the whole passage.
   if (utf8Length(protectedText.text) > 500) throw translationFailure("request_limit", "Segment exceeds 500 UTF-8 bytes.");
   const key = JSON.stringify([pair,purpose,text]);
-  const request = translationChunkCache.get(key) || (async () => {
+  const request = (forceFresh ? undefined : translationChunkCache.get(key)) || (async () => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
@@ -3180,7 +3180,7 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives, forceFresh=false}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
@@ -3252,7 +3252,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     const chunk=chunks[index];
     if (!isCurrent()) throw translationFailure("superseded");
     const cached=chunk.separator?undefined:chunkProgress?.read(index,chunk.text);
-    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives));
+    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives,forceFresh));
     if (!isCurrent()) throw translationFailure("superseded");
     if(!chunk.separator&&cached===undefined)chunkProgress?.write(index,chunk.text,draft);
     let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;

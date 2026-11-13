@@ -6,6 +6,13 @@ const HablaLiveCamera=(()=>{
  const key=route=>JSON.stringify([route.source,route.target,route.onDevice]);
  const valid=s=>session===s&&s.active;
  const sameRoute=s=>valid(s)&&key(options.getRoute())===key(s.route);
+ // Never place a changed quantity over the original label. Different number
+ // formatting (4.5 / 4,5) is okay, but missing, added or changed values are not.
+ const numbers=text=>(String(text).match(/\d+(?:[.,]\d+)*/g)||[]).map(n=>n.replace(/,/g,'.')).sort();
+ const keepsNumbers=(source,translation)=>{
+  const original=numbers(source),translated=numbers(translation);
+  return original.length===translated.length&&original.every((n,i)=>n===translated[i]);
+ };
  function report(message){if(status.textContent!==message)status.textContent=message;}
  function paint(){
   layer.hidden=showOriginal||!session?.positionCurrent;layer.replaceChildren();
@@ -59,15 +66,21 @@ const HablaLiveCamera=(()=>{
     const region=s.regions.find(r=>!s.cache.has(r.text)&&!s.failed.has(r.text));
     if(!region)break;
     try{
-     const text=String(await options.translate(region.text,{...s.route,isCurrent:()=>sameRoute(s)})).trim();
+     const text=String(await options.translate(region.text,{...s.route,forceFresh:s.fresh.has(region.text),isCurrent:()=>sameRoute(s)})).trim();
      if(!sameRoute(s))return;if(!text)throw new Error('Empty translation');
+     if(!keepsNumbers(region.text,text)){
+      s.numericMismatch.add(region.text);
+      throw new Error('Translation altered printed numbers');
+     }
+     s.fresh.delete(region.text);
      s.cache.set(region.text,text);if(s.cache.size>120)s.cache.delete(s.cache.keys().next().value);
     }catch{if(!sameRoute(s))return;s.failed.add(region.text);}
     paint();
    }
    if(sameRoute(s)&&s.regions.length){
     const count=s.regions.filter(r=>s.cache.has(r.text)).length;
-    report(s.regions.some(r=>s.failed.has(r.text))?'Some words could not be translated. Tap Retry. / Reintenta la traducción.'
+    report(s.regions.some(r=>s.numericMismatch.has(r.text))?'Numbers differ from the label. Original text is visible; tap Retry or Use text to check. / Los números no coinciden. Revisa el texto original.'
+      :s.regions.some(r=>s.failed.has(r.text))?'Some words could not be translated. Tap Retry. / Reintenta la traducción.'
      :count===s.regions.length?(!s.positionCurrent?'Translation ready. Hold steady to place it. / Traducción lista. Mantén la cámara estable.':s.frozen?'Frozen translation / Traducción congelada':'Live translation · point at other text / Traducción en vivo')
      :'Reading and translating… Hold steady. / Leyendo y traduciendo…');
    }
@@ -131,7 +144,7 @@ const HablaLiveCamera=(()=>{
  async function start(){
   stop();if(!dialog.open)dialog.showModal();
   showOriginal=false;original.setAttribute('aria-pressed','false');freeze.textContent='Freeze / Congelar';freeze.disabled=true;retry.disabled=true;detail.textContent='';
-   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),motion:0,revision:0,angle:0,frozen:false,positionCurrent:false};session=s;
+   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),numericMismatch:new Set(),fresh:new Set(),motion:0,revision:0,angle:0,frozen:false,positionCurrent:false};session=s;
   report('Opening rear camera… / Abriendo cámara trasera…');
   try{
    if(!navigator.mediaDevices?.getUserMedia)throw new Error('unsupported');
@@ -160,7 +173,7 @@ const HablaLiveCamera=(()=>{
   dialog=document.createElement('dialog');dialog.id='live-camera-translator';dialog.className='photo-translator live-camera-translator';dialog.setAttribute('aria-labelledby','live-camera-title');
   dialog.innerHTML=`<div class="live-camera-controls"><div class="photo-translator-toolbar"><h2 id="live-camera-title">Live camera / Cámara en vivo</h2><button type="button" data-camera-close>Close / Cerrar</button></div>
    <div class="photo-translator-controls"><button type="button" data-camera-freeze disabled>Freeze / Congelar</button><button type="button" data-camera-original aria-pressed="false">Original</button><button type="button" data-camera-copy disabled>Copy / Copiar</button><button type="button" data-camera-use disabled>Use text / Usar texto</button><button type="button" data-camera-retry>Retry / Reintentar</button></div>
-   <details class="live-camera-settings"><summary>Overlay settings / Ajustes</summary><label class="camera-overlay-control">Overlay opacity / Opacidad <input data-camera-opacity type="range" min="20" max="100" value="65" aria-label="Translation overlay opacity / Opacidad de traducción"><output data-camera-opacity-value>65%</output></label><p class="photo-translator-note">Images stay on this device. Online translation sends recognized words. / Las imágenes quedan en el dispositivo. La traducción en línea envía el texto reconocido.</p></details>
+   <details class="live-camera-settings"><summary>Overlay settings / Ajustes</summary><label class="camera-overlay-control">Label background / Fondo de texto <input data-camera-opacity type="range" min="20" max="100" value="65" aria-label="Translated label background opacity / Opacidad del fondo de traducción"><output data-camera-opacity-value>65%</output></label><p class="photo-translator-note">Images stay on this device. Online translation sends recognized words. / Las imágenes quedan en el dispositivo. La traducción en línea envía el texto reconocido.</p></details>
    <p data-camera-status role="status" aria-live="polite"></p><p class="photo-translator-detail" data-camera-detail aria-live="polite"></p></div>
    <div class="photo-translator-stage live-camera-stage"><video autoplay muted playsinline aria-label="Live rear camera / Cámara trasera en vivo"></video><div class="photo-translator-labels"></div></div>`;
   document.body.append(dialog);stage=dialog.querySelector('.live-camera-stage');video=stage.querySelector('video');layer=stage.querySelector('div');
@@ -168,7 +181,7 @@ const HablaLiveCamera=(()=>{
   const opacity=dialog.querySelector('[data-camera-opacity]'),opacityValue=dialog.querySelector('[data-camera-opacity-value]');
   opacity.addEventListener('input',()=>{stage.style.setProperty('--live-overlay-opacity',Number(opacity.value)/100);opacityValue.textContent=opacity.value+'%';});
   button.addEventListener('click',start);dialog.querySelector('[data-camera-close]').addEventListener('click',close);
-  dialog.addEventListener('cancel',stop);dialog.addEventListener('close',stop);retry.addEventListener('click',()=>{if(session?.reader){session.failed.clear();scan(session,true);translateVisible(session);}else start();});
+  dialog.addEventListener('cancel',stop);dialog.addEventListener('close',stop);retry.addEventListener('click',()=>{if(session?.reader){for(const text of session.numericMismatch)session.fresh.add(text);session.failed.clear();session.numericMismatch.clear();scan(session,true);translateVisible(session);}else start();});
   new ResizeObserver(paint).observe(video);video.addEventListener('resize',()=>{
    const s=session;if(s){s.revision++;s.positionCurrent=false;s.regions=[];s.text='';s.pixels=null;paint();if(s.reader)scan(s,true);}
   });
