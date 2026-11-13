@@ -2760,7 +2760,11 @@ function startMusicListening() {
         ? "No words captured. Check that music is still audible on the Bluetooth speaker. iOS may have paused it or changed the audio route. Your previous text is unchanged."
         : "No words captured. Move closer to the other device or try clearer vocals. Your previous text is unchanged.");
   };
-  session.timer = setTimeout(() => { if (musicListening === session) stopMusicListening(); }, session.song ? 600000 : 30000);
+  // Native iPhone system sharing has an explicit Stop control and its own OS capture indicator.
+  // Do not terminate it just because the listener switched apps or a 10-minute web timer elapsed.
+  session.timer = session.systemAudio ? null : setTimeout(() => {
+    if (musicListening === session) stopMusicListening();
+  }, session.song ? 600000 : 30000);
   startMusicSegment(session);
 }
 
@@ -2773,7 +2777,7 @@ function startMusicSegment(session) {
       if (session.stopping) return;
       $("#music-listen").textContent = "Stop listening";
       if(typeof HablaMusicWorkspace!=="undefined")HablaMusicWorkspace.phase("Listening — waiting for words");
-      const duration = session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
+      const duration = session.systemAudio ? "Until you tap Stop listening" : session.song ? "Maximum 10 minutes" : "Up to 30 seconds";
       status.textContent = session.systemAudio
         ? `Capturing this iPhone's audio… ${duration}. You can switch to the playback app; tap Stop listening when finished.`
         : session.phoneBluetooth
