@@ -66,12 +66,13 @@ const HablaLiveCamera=(()=>{
     const region=s.regions.find(r=>!s.cache.has(r.text)&&!s.failed.has(r.text));
     if(!region)break;
     try{
-     const text=String(await options.translate(region.text,{...s.route,isCurrent:()=>sameRoute(s)})).trim();
+     const text=String(await options.translate(region.text,{...s.route,forceFresh:s.fresh.has(region.text),isCurrent:()=>sameRoute(s)})).trim();
      if(!sameRoute(s))return;if(!text)throw new Error('Empty translation');
      if(!keepsNumbers(region.text,text)){
       s.numericMismatch.add(region.text);
       throw new Error('Translation altered printed numbers');
      }
+     s.fresh.delete(region.text);
      s.cache.set(region.text,text);if(s.cache.size>120)s.cache.delete(s.cache.keys().next().value);
     }catch{if(!sameRoute(s))return;s.failed.add(region.text);}
     paint();
@@ -143,7 +144,7 @@ const HablaLiveCamera=(()=>{
  async function start(){
   stop();if(!dialog.open)dialog.showModal();
   showOriginal=false;original.setAttribute('aria-pressed','false');freeze.textContent='Freeze / Congelar';freeze.disabled=true;retry.disabled=true;detail.textContent='';
-   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),numericMismatch:new Set(),motion:0,revision:0,angle:0,frozen:false,positionCurrent:false};session=s;
+   const s={id:++sequence,active:true,route:{...options.getRoute()},controller:new AbortController(),regions:[],text:'',cache:new Map(),failed:new Set(),numericMismatch:new Set(),fresh:new Set(),motion:0,revision:0,angle:0,frozen:false,positionCurrent:false};session=s;
   report('Opening rear camera… / Abriendo cámara trasera…');
   try{
    if(!navigator.mediaDevices?.getUserMedia)throw new Error('unsupported');
@@ -180,7 +181,7 @@ const HablaLiveCamera=(()=>{
   const opacity=dialog.querySelector('[data-camera-opacity]'),opacityValue=dialog.querySelector('[data-camera-opacity-value]');
   opacity.addEventListener('input',()=>{stage.style.setProperty('--live-overlay-opacity',Number(opacity.value)/100);opacityValue.textContent=opacity.value+'%';});
   button.addEventListener('click',start);dialog.querySelector('[data-camera-close]').addEventListener('click',close);
-  dialog.addEventListener('cancel',stop);dialog.addEventListener('close',stop);retry.addEventListener('click',()=>{if(session?.reader){session.failed.clear();session.numericMismatch.clear();scan(session,true);translateVisible(session);}else start();});
+  dialog.addEventListener('cancel',stop);dialog.addEventListener('close',stop);retry.addEventListener('click',()=>{if(session?.reader){for(const text of session.numericMismatch)session.fresh.add(text);session.failed.clear();session.numericMismatch.clear();scan(session,true);translateVisible(session);}else start();});
   new ResizeObserver(paint).observe(video);video.addEventListener('resize',()=>{
    const s=session;if(s){s.revision++;s.positionCurrent=false;s.regions=[];s.text='';s.pixels=null;paint();if(s.reader)scan(s,true);}
   });
