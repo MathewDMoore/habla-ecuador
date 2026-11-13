@@ -1,5 +1,28 @@
 const phrases = [
   {
+    en:"Rest well!", us:"Rest well!", uk:"Rest well!",
+    es:"Que descanses.", natural:"Que descanses.",
+    exactMatch:true, sharedSpanish:true,
+    register:"Friendly farewell · shared Spanish",
+    note:"A natural way to wish someone a good rest. Sleep well and Good night are appropriate only in a bedtime context. / Deseo amable de buen descanso; las variantes de dormir o buenas noches dependen del contexto.",
+    alternatives:{
+      en:[
+        {text:"Sleep well!",label:"Bedtime / Antes de dormir",note:"When the person is going to sleep; not a general daytime goodbye."},
+        {text:"Get some rest!",label:"Friendly suggestion / Sugerencia amistosa",note:"More of an encouragement or suggestion than a neutral farewell."},
+        {text:"Have a good rest!",label:"Warm wish / Buen deseo",note:"Natural when someone is going to rest."},
+        {text:"Rest up!",label:"Casual / Informal",note:"Friendly encouragement, especially when someone is tired."},
+        {text:"Good night!",label:"Nighttime farewell / Despedida nocturna",note:"A context-based equivalent when parting at night, not a literal translation."}
+      ],
+      es:[
+        {text:"Descansa bien.",label:"Friendly / Amistoso",note:"Direct, everyday wish or suggestion."},
+        {text:"Que duermas bien.",label:"Bedtime / Antes de dormir",note:"Specifically wishes the person a good sleep."},
+        {text:"Que tengas un buen descanso.",label:"Warm wish / Buen deseo",note:"A longer, neutral expression."},
+        {text:"Descansa.",label:"Brief and casual / Breve e informal",note:"A short, friendly parting wish."},
+        {text:"Buenas noches.",label:"Nighttime farewell / Despedida nocturna",note:"Only when saying good night; it is not an exact substitute in every context."}
+      ]
+    }
+  },
+  {
     en:"When will she arrive?",
     es:"¿Cuándo llegará ella?",
     natural:"¿Cuándo llegará?",
@@ -61,7 +84,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.20 · build 230";
+const APP_VERSION = "0.27.21 · build 231";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3144,7 +3167,8 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
       return {
         text:protectedText.restore(decodeTranslation(output)),
         alternatives:purpose !== "academic" && Array.isArray(payload.matches) ? payload.matches
-          .filter(match => match?.match === 1 && match.segment === text && typeof match.translation === "string")
+          .filter(match => typeof match?.translation === "string" && typeof match.segment === "string"
+             && normalize(match.segment) === normalize(text) && Number(match.match) >= 0.98)
           .slice(0,12).map(match => decodeTranslation(match.translation)) : []
       };
     } catch(error){if(typeof HablaOffline!=="undefined")HablaOffline.reportOnlineFailure?.();throw error;} finally { clearTimeout(timeout); }
@@ -3854,7 +3878,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     return;
   }
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
-  const phrase = translationPurpose === "academic" || autoMusic || !ecuadorLocalRoute ? null : preservedEntry || matchPhrase($("#translator-input").value);
+  const matchedPhrase = translationPurpose === "academic" || autoMusic ? null : preservedEntry || matchPhrase($("#translator-input").value);
+  const phrase = ecuadorLocalRoute || matchedPhrase?.sharedSpanish ? matchedPhrase : null;
   if (!phrase) {
     const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
     const onDevice = Boolean((allowImported&&wholeDocumentTools?.usesDevice())
@@ -4370,7 +4395,8 @@ function translationWordingAlternatives() {
     || completed.source!==$("#translator-input").value.trim()
     || completed.sourceLanguage!==sourceLanguage || completed.targetLanguage!==targetLanguage)return [];
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
-  const phrase=localRoute ? matchPhrase(completed.source) : null;
+  const candidate=matchPhrase(completed.source);
+  const phrase=localRoute || candidate?.sharedSpanish ? candidate : null;
   const choices=phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
@@ -6489,7 +6515,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=230", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=231", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
