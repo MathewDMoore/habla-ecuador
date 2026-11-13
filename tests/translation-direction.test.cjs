@@ -51,6 +51,29 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  ]);
 
 
+ // The iPhone regression: this farewell must not show an empty alternatives panel.
+ run('sourceLanguage="es-EC";targetLanguage="en-US";syncLanguagePair();');
+ select('#translator-input').value='Que descanses';
+ select('#natural-result').textContent='Rest well!';
+ run('lastCompletedTranslation={source:"Que descanses",sourceLanguage,targetLanguage};');
+ assert.equal(run('matchPhrase("Que descanses").en'),'Rest well!');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  'Sleep well!','Get some rest!','Have a good rest!','Rest up!','Good night!'
+ ]);
+ for(const region of ['es-BO','es-MX','es-VE']){
+  run('sourceLanguage='+JSON.stringify(region)+';targetLanguage="en-US";syncLanguagePair();');
+  run('lastCompletedTranslation={source:"Que descanses",sourceLanguage,targetLanguage};');
+  assert.equal(run('translationWordingAlternatives().length'),5,'shared farewell choices for '+region);
+ }
+ assert.equal(run('matchPhrase("Que descanses mañana")'),null,'longer input must not get the short phrase translation');
+ run('sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair();');
+ select('#translator-input').value='Rest well!';
+ select('#natural-result').textContent='Que descanses.';
+ run('lastCompletedTranslation={source:"Rest well!",sourceLanguage,targetLanguage};');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  'Descansa bien.','Que duermas bien.','Que tengas un buen descanso.','Descansa.','Buenas noches.'
+ ]);
+
  run('sourceLanguage="en-US";targetLanguage="es-CU";syncLanguagePair();');
  const original="Disculpe en caso de que si estoy tarde.";
  select('#translator-input').value=original;
