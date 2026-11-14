@@ -850,7 +850,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-invitation-actions { display:flex;flex-wrap:wrap;gap:9px;margin-top:12px; }
 .tutorial-invitation button { min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid #a1c9b1;background:white;color:var(--green);font-size:13px;font-weight:800; }
 #tutorial-invite-start { background:var(--green);color:white; }
-#tutorial-overlay[hidden], .tutorial-panel [hidden] { display:none !important; }
+#tutorial-overlay[hidden], .tutorial-panel [hidden], #tutorial-resume[hidden] { display:none !important; }
 #tutorial-overlay { position:fixed;inset:auto;z-index:250;pointer-events:auto; }
 .tutorial-shade { position:absolute;background:rgba(11,28,24,.70);touch-action:none; }
 #tutorial-spotlight { position:absolute;box-sizing:border-box;border:3px solid #ffc35a;border-radius:12px;box-shadow:0 0 0 2px #173f35,0 0 20px 5px rgba(255,184,73,.38);touch-action:none; }
@@ -860,7 +860,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-content:focus-visible {outline:2px solid #d66927;outline-offset:-2px;}
 .tutorial-panel-top { display:flex;align-items:center;justify-content:space-between;gap:10px; }
 #tutorial-progress {font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:800; }
-#tutorial-close {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
+#tutorial-close, #tutorial-try {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
+#tutorial-try {margin-left:auto;background:#e7f3eb;}
+#tutorial-resume {position:fixed;z-index:249;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 16px);min-height:44px;padding:8px 14px;border:1px solid #c5e0d0;border-radius:12px;background:var(--green);color:white;font-size:13px;font-weight:850;box-shadow:0 3px 12px rgba(0,0,0,.24);}
+#tutorial-try:focus-visible,#tutorial-resume:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
 #tutorial-symbol {font-size:30px;line-height:1.1;margin:2px 0 8px;}
 .tutorial-panel h2 {margin:0;color:var(--green);font-size:21px;line-height:1.22;}
 .tutorial-panel h3 {margin:0;color:var(--green);font-size:17px;line-height:1.25;}
@@ -941,12 +944,12 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-panel[data-compact="true"] #tutorial-skip {display:none;}
 .tutorial-panel[data-compact="true"] .tutorial-controls {flex-wrap:nowrap;}
 .tutorial-panel[data-compact="true"] .tutorial-controls button {flex:1 1 0;min-width:0;padding:6px 3px;}
-.tutorial-panel[data-compact="true"] #tutorial-close {padding:6px;font-size:12px;white-space:nowrap;}
+.tutorial-panel[data-compact="true"] :is(#tutorial-close,#tutorial-try) {padding:6px;font-size:12px;white-space:nowrap;}
 .tutorial-panel[data-compact="true"] #tutorial-progress {flex:0 0 auto;}
 
 .tutorial-panel {-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .tutorial-panel[data-compact="true"] .tutorial-controls button {font-size:11px;padding:6px 2px;}
-.tutorial-panel[data-compact="true"] #tutorial-close {font-size:11px;padding:6px 3px;}
+.tutorial-panel[data-compact="true"] :is(#tutorial-close,#tutorial-try) {font-size:11px;padding:6px 3px;}
 
 #music-song-lesson {padding:16px;border:1px solid #b4cdbd;border-radius:18px;background:#fffdf8;}
 #music-song-lesson audio {width:100%;}

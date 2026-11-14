@@ -149,7 +149,7 @@ function mountFeatureGuides(){
 const $=s=>document.querySelector(s);
 function targetFor(step){const target=$(step.target);return step.groupTarget?target?.closest(step.groupTarget)||target:target;}
 let currentMode="full";
-let steps=[],index=0,active=false,previousView="home-view",navigate=null,trigger=null,overlay=null,panel=null,bound=false,layoutFrame=0,spotFrame=0,observer=null;
+let steps=[],index=0,active=false,previousView="home-view",tryView=null,navigate=null,trigger=null,overlay=null,panel=null,resumeButton=null,bound=false,layoutFrame=0,spotFrame=0,observer=null;
 function seen(){try{return localStorage.getItem(KEY)==="1";}catch{return false;}}
 function remember(){try{localStorage.setItem(KEY,"1");}catch{}}
 function button(text,id){const b=document.createElement("button");b.type="button";b.textContent=text;b.id=id;return b;}
@@ -166,7 +166,9 @@ function make(){
  const top=document.createElement("div");top.className="tutorial-panel-top";
  const progress=document.createElement("span");progress.id="tutorial-progress";
  const close=button("Close / Cerrar","tutorial-close");close.setAttribute("aria-label","Close tutorial / Cerrar tutorial");close.addEventListener("click",finish);
- top.append(progress,close);
+ const trySection=button("Try it / Pruébalo","tutorial-try");
+ trySection.addEventListener("click",tryCurrentSection);
+ top.append(progress,trySection,close);
  const symbol=document.createElement("div");symbol.id="tutorial-symbol";symbol.setAttribute("aria-hidden","true");
  const title=document.createElement("h2");title.id="tutorial-title";
  const english=document.createElement("p");english.id="tutorial-english";
@@ -185,7 +187,11 @@ function make(){
  preview.innerHTML='<div class="home-brand-preview"><img src="app-icon-192.png?brand=20261031" width="72" height="72" alt="Habla Ecuador: mountain, sun and pink flower"><div><strong>Habla Ecuador 🇪🇨</strong><p>¿Cómo estás?<br>How are you?</p></div><div class="home-widget-shortcuts" aria-hidden="true">Translate · Traducir<br>Practice · Practicar<br>Dictionary · Diccionario<br>Tutorial</div></div><figcaption></figcaption>';
  content.append(symbol,title,preview,english,divider,spanishTitle,spanish,note);
  panel.append(top,content,controls);
- overlay.append(panel);document.body.append(overlay);
+ overlay.append(panel);
+ resumeButton=button("Resume tutorial / Volver al tutorial","tutorial-resume");
+ resumeButton.hidden=true;
+ resumeButton.addEventListener("click",resume);
+ document.body.append(overlay,resumeButton);
 }
 function go(view){if(view&&!$("#"+view)?.classList.contains("active"))navigate?.(view);}
 // Fixed elements use the layout viewport; Safari's bars and zoom change the
@@ -200,7 +206,7 @@ function placeViewport(){
  return v;
 }
 function spotlight(){
- if(!active||!overlay)return;
+ if(!active||overlay.hidden)return;
  const v=placeViewport(),origin=overlay.getBoundingClientRect();
  const element=targetFor(steps[index]),frame=$("#tutorial-spotlight");
  const panelTop=panel.getBoundingClientRect().top-origin.top-10;
@@ -224,7 +230,7 @@ function spotlight(){
  }
 }
 function layout(){
- layoutFrame=0;if(!active)return;
+ layoutFrame=0;if(!active||overlay.hidden)return;
  const v=placeViewport(),el=targetFor(steps[index]);
  panel.dataset.compact=String(v.width<300);
  // A tall input card gets more room; the instructions scroll between controls
@@ -245,11 +251,13 @@ function layout(){
  }
  spotlight();
 }
-function scheduleLayout(){if(active&&!layoutFrame)layoutFrame=requestAnimationFrame(layout);}
-function trackSpotlight(){if(active){spotlight();spotFrame=requestAnimationFrame(trackSpotlight);}}
+function scheduleLayout(){if(active&&!overlay.hidden&&!layoutFrame)layoutFrame=requestAnimationFrame(layout);}
+function trackSpotlight(){if(active&&!overlay.hidden){spotlight();spotFrame=requestAnimationFrame(trackSpotlight);}}
 function render(){
  if(!active)return;
  const step=steps[index];go(step.view);
+ if(step.view==="translator-view")$(".mode[data-mode=translate]:not(.active)")?.click();
+ $("#tutorial-try").hidden=Boolean(step.art);
  const preview=$("#home-screen-preview");preview.hidden=!step.art;
  preview.dataset.art=step.art||"";
  preview.querySelector("figcaption").textContent=step.art==="widget" ? "Widget preview · Vista previa del widget" : "Our Home Screen icon · Nuestro icono de inicio";
@@ -265,7 +273,7 @@ function render(){
  if(observer){observer.disconnect();observer.observe(panel);const el=targetFor(step);if(el)observer.observe(el);}
  scheduleLayout();
 }
-function move(n){if(active){index=Math.max(0,Math.min(steps.length-1,index+n));render();}}
+function move(n){if(active&&!overlay.hidden){index=Math.max(0,Math.min(steps.length-1,index+n));render();}}
 function open(opener,mode="full"){
  if(active)return;
  make();
@@ -279,14 +287,42 @@ function open(opener,mode="full"){
  placeViewport();overlay.hidden=false;document.documentElement.dataset.tutorialOpen="true";
  render();trackSpotlight();
 }
+function hideOverlay(){
+ cancelAnimationFrame(spotFrame);
+ cancelAnimationFrame(layoutFrame);
+ layoutFrame=0;
+ observer?.disconnect();
+ overlay.hidden=true;
+ delete document.documentElement.dataset.tutorialOpen;
+}
+function tryCurrentSection(){
+ if(!active||overlay.hidden)return;
+ // Feedback has a global trigger. Keep its original view if the learner navigates.
+ tryView=$(".view.active")?.id;
+ hideOverlay();
+ resumeButton.hidden=false;
+ resumeButton.focus({preventScroll:true});
+}
+function resume(){
+ if(!active||!overlay.hidden)return;
+ go(steps[index].view||tryView);
+ resumeButton.hidden=true;
+ placeViewport();
+ overlay.hidden=false;
+ document.documentElement.dataset.tutorialOpen="true";
+ render();
+ trackSpotlight();
+}
 function finish(){
  if(!active)return;
- active=false;cancelAnimationFrame(spotFrame);cancelAnimationFrame(layoutFrame);layoutFrame=0;observer?.disconnect();overlay.hidden=true;delete document.documentElement.dataset.tutorialOpen;
+ active=false;
+ hideOverlay();
+ resumeButton.hidden=true;
  if(currentMode!=="home-screen")remember();$("#tutorial-invitation")?.remove();go(previousView);
  if(trigger?.isConnected)trigger.focus({preventScroll:true});else $("button[data-tutorial-open]")?.focus({preventScroll:true});
 }
 function keyboard(event){
- if(!active)return;
+ if(!active||overlay.hidden)return;
  if(event.key==="Escape"){event.preventDefault();finish();}
  else if(event.key==="Tab"){
   const controls=[...panel.querySelectorAll("button:not([disabled]),[tabindex=\"0\"]")];if(!controls.length)return;
