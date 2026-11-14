@@ -96,7 +96,7 @@ test('gesture safety preserves keyboard typing, media, dialogs and iPhone back g
 test('script load and cached asset support offline swipe navigation',()=>{
   for(const path of ['index.html','sw.js']){
     const source=fs.readFileSync(path,'utf8');
-    assert.match(source,/swipe-navigation\.js\?v=223/,path);
+    assert.match(source,/swipe-navigation\.js\?v=232/,path);
   }
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
 });

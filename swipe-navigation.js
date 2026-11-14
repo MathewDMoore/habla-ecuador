@@ -4,7 +4,8 @@
  const TABS=['home-view','translator-view','dictionary-view','music-view','lesson-view'];
  const UNSAFE='input,textarea,select,[contenteditable],[role="slider"],[data-swipe-block],.push-to-talk,[data-face-mic],.face-to-face-actions,audio,video,iframe,.lyric-lines,.ve-caption-list,.translation-history-list,.subtitle-switch';
  const SURFACE='.app-shell main, .bottom-nav';
- const OVERLAY='dialog[open]:not(#face-to-face), :is([popover]:popover-open), #tutorial-overlay:not([hidden])';
+ const TUTORIAL="#tutorial-overlay:not([hidden])";
+ const OVERLAY='dialog[open]:not(#face-to-face), :is([popover]:popover-open)';
  const SWIPE_DISTANCE=28, DRAG_START_DISTANCE=6, HORIZONTAL_RATIO=1.3;
  function inBlockedTarget(target){
   return Boolean(target?.closest?.(UNSAFE));
@@ -29,28 +30,33 @@
   return (distance>=SWIPE_DISTANCE || (distance>=18&&duration>=0&&duration<=260))
    && distance>Math.abs(dy)*HORIZONTAL_RATIO;
  }
- function bind({navigate,enabled=()=>true}={}){
+ function bind({navigate,enabled=()=>true,tutorialSwipe}={}){
   if(typeof navigate!=='function')return;
   if(document.documentElement.dataset.hablaSwipeBound==='true')return;
   document.documentElement.dataset.hablaSwipeBound='true';
   let start=null;
-  const currentScreen=()=>enabled()&&!document.querySelector(OVERLAY)
-   ? document.querySelector('#face-to-face[open]')||document.querySelector('.view.active')
-   : null;
+  const currentScreen=()=>{
+   const tutorial=document.querySelector(TUTORIAL);
+   if(tutorial)return typeof tutorialSwipe==='function'?tutorial:null;
+   return enabled()&&!document.querySelector(OVERLAY)
+    ? document.querySelector('#face-to-face[open]')||document.querySelector('.view.active')
+    : null;
+  };
   document.addEventListener('touchstart',event=>{
    start=null;
    if(event.touches.length!==1)return;
    const screen=currentScreen();
    if(!screen)return;
    const target=event.target;
+   const inTutorial=screen.id==='tutorial-overlay';
    const inFace=screen.id==='face-to-face';
-   if(!target?.closest?.(inFace?'#face-to-face':SURFACE))return;
+   if(!target?.closest?.(inTutorial?'#tutorial-overlay':inFace?'#face-to-face':SURFACE))return;
    const tab=inFace?'translator-view':screen.id;
-   if(!TABS.includes(tab)||inBlockedTarget(target)||scrollsHorizontally(target))return;
+   if((!inTutorial&&!TABS.includes(tab))||inBlockedTarget(target)||scrollsHorizontally(target))return;
    const touch=event.touches[0];
    const width=root.innerWidth||document.documentElement.clientWidth;
    if(touch.clientX<28||touch.clientX>width-28)return; // respect OS back gestures
-   start={x:touch.clientX,y:touch.clientY,time:event.timeStamp,screen,tab,horizontal:false};
+   start={x:touch.clientX,y:touch.clientY,time:event.timeStamp,screen,tab,inTutorial,horizontal:false};
   },{passive:true});
   // Claim a sideways drag before WebKit takes it over or taps the start target.
   // Leave vertical scrolling, ordinary taps and pinch gestures to the browser.
@@ -74,7 +80,13 @@
    const dx=touch.clientX-first.x,dy=touch.clientY-first.y;
    if(!isSwipe(dx,dy,event.timeStamp-first.time))return;
    // Swipe left means next tab, swipe right previous tab.
-   const to=nextTab(first.tab,dx<0?1:-1);
+   const delta=dx<0?1:-1;
+   if(first.inTutorial){
+    if(event.cancelable)event.preventDefault();
+    tutorialSwipe(delta);
+    return;
+   }
+   const to=nextTab(first.tab,delta);
    if(to){if(event.cancelable)event.preventDefault();navigate(to);}
   },{passive:false});
   document.addEventListener('touchcancel',()=>{start=null;},{passive:true});
