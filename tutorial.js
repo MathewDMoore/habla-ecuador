@@ -174,7 +174,7 @@ function make(){
  const spanishTitle=document.createElement("h3");spanishTitle.id="tutorial-title-es";spanishTitle.lang="es";
  const spanish=document.createElement("p");spanish.id="tutorial-spanish";spanish.lang="es";
  const note=document.createElement("p");note.className="tutorial-step-note";
- note.textContent="Follow the highlighted part of the app. / Sigue la parte resaltada de la app.";
+ note.textContent="Swipe left for next or right to go back. / Desliza a la izquierda para avanzar o a la derecha para volver.";
  const controls=document.createElement("div");controls.className="tutorial-controls";
  const skip=button("Skip / Omitir","tutorial-skip"),back=button("Back / Atrás","tutorial-back"),next=button("Next / Siguiente","tutorial-next");
  skip.addEventListener("click",finish);back.addEventListener("click",()=>move(-1));
@@ -314,7 +314,7 @@ function bind({navigate:route,launchQuery}={}){
  else if(params.get("tour")==="lessons")open($("button[data-lesson-tutorial-open]"),"lessons");
  else if(params.get("tour")==="1"||(params.get("start")!=="face-to-face"&&!seen()))open($("button[data-tutorial-open]"));
 }
-const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
+const api={bind,open,openLessons:opener=>open(opener,"lessons"),close:finish,swipe:move,isOpen:()=>active,get step(){return index+1;},get count(){return steps.length;}};
 if(typeof module!=="undefined"&&module.exports)module.exports={STEPS,HOME_SCREEN_STEPS,FEATURE_GUIDES,api};
 root.HablaTutorial=api;
 })(typeof window==="object"?window:globalThis);

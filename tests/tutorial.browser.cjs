@@ -30,6 +30,20 @@ async function highlightFits(page,selector){
   return spot.width>0&&spot.top<=r.top&&spot.bottom>=r.bottom&&spot.left<=r.left&&spot.right>=r.right&&spot.bottom<=panel.top;
  },selector,{timeout:3000}).catch(async e=>{console.log(await page.evaluate(selector=>Object.fromEntries([selector,"#tutorial-spotlight",".tutorial-panel"].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()])),selector));throw e;});
 }
+async function swipe(page,dx,dy){
+ return page.locator('.tutorial-content').evaluate((target,{dx,dy})=>{
+  const event=(type,x,y)=>{
+   const point={clientX:x,clientY:y};
+   const e=new Event(type,{bubbles:true,cancelable:true});
+   Object.defineProperties(e,{touches:{value:type==='touchend'?[]:[point]},changedTouches:{value:[point]}});
+   return target.dispatchEvent(e);
+  };
+  event('touchstart',150,200);
+  const scrolled=event('touchmove',150+dx,200+dy);
+  event('touchend',150+dx,200+dy);
+  return scrolled;
+ },{dx,dy});
+}
 async function run(browser,file,width,height=844){
  const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  const page=await context.newPage(),errors=[];
@@ -52,6 +66,14 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
  assert.equal(await page.locator('#tutorial-close').isVisible(),true,'Close is visible on launch');
  assert.equal(await page.locator('#tutorial-close').textContent(),'Close / Cerrar');
+ assert.equal(await swipe(page,65,0),false);
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),1);
+ assert.equal(await swipe(page,-65,3),false);
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),2);
+ assert.equal(await swipe(page,3,65),true,'vertical drag is left to native scrolling');
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),2);
+ assert.equal(await swipe(page,65,3),false);
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),1);
  await tap(page,'#tutorial-close');
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),false,'Close dismisses immediate onboarding');
  assert.equal(await page.evaluate(()=>localStorage.getItem('habla-tutorial-seen-v2')),'1');
