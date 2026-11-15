@@ -46,7 +46,7 @@ async function main(){
    assert.equal(await run('requestGeneralTranslation("mamahuevos","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Assholes.');
   }
  }
- assert.equal(requests.length,1,'no online request is made for exact local documented slang forms; unrelated earlier test request remains');
+ assert.equal(requests.length,0,'no online request is made for exact local documented slang forms');
  fresh();
  handler=async()=>ok('Different sentence translated.');
  assert.equal(await run('requestGeneralTranslation("Mamma huevos no es una comida.","ec-en",{source:"es-EC",target:"en-US"})'),'Different sentence translated.');
