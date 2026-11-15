@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.23 · build 233";
+const APP_VERSION = "0.27.24 · build 234";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3243,6 +3243,12 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     if (!isCurrent()) throw translationFailure("superseded");
     return reviewedCourtesy;
   }
+  const attestedInsult=typeof HablaSpanishContext!=="undefined"
+    ? HablaSpanishContext.documentedVulgarInsult(text,{source,target,purpose}) : null;
+  if (attestedInsult) {
+    if (!isCurrent()) throw translationFailure("superseded");
+    return attestedInsult.text;
+  }
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
     if (musicTranslationRequestCost(text,source,target,purpose) > 20) throw translationFailure("research_limit");
@@ -3989,6 +3995,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       }
       const localVulgarity = HablaSpanishContext.translateEnglishVulgarity(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
       const localIndifference = HablaSpanishContext.translateIndifferenceExpression(sourceText,{source:sourceLanguage,target:targetLanguage});
+      const documentedInsult = HablaSpanishContext.documentedVulgarInsult(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
       const wordMeanings = HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
       if(wordMeanings.length){
         $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · word meanings`;
@@ -4005,12 +4012,17 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
         $("#literal-result").textContent = "Local editorial expression · source register retained";
         $("#usage-note").innerHTML = `<strong>${escapeHtml(localIndifference.register)}</strong><span>${escapeHtml(localIndifference.note)} ${escapeHtml(localIndifference.scope)} <a href="${escapeHtml(localIndifference.url)}" target="_blank" rel="noreferrer">Usage: ASALE</a></span>`;
       }
+      if(documentedInsult) {
+        $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · ${documentedInsult.uncertain ? "possible vulgar expression" : "documented vulgar insult"}`;
+        $("#literal-result").textContent = documentedInsult.literal;
+        $("#usage-note").innerHTML = `<strong>${escapeHtml(documentedInsult.register)}</strong><span>${escapeHtml(documentedInsult.scope)} ${escapeHtml(documentedInsult.note)} <a href="${escapeHtml(documentedInsult.url)}" target="_blank" rel="noopener noreferrer">ASALE · Dictionary of Americanisms</a></span>`;
+      }
       if(regionalIdiom?.preferIdiomatic) {
         $("#translation-result .result-label").textContent = `${languageLabel(targetLanguage)} · Guayaquil idiom`;
         $("#literal-result").textContent = "Local editorial expression";
         $("#usage-note").textContent = regionalIdiom.note;
       }
-      if (onDevice && !regionalIdiom?.preferIdiomatic && !referenceMatch && !localVulgarity && !localIndifference && !wordMeanings.length) {
+      if (onDevice && !regionalIdiom?.preferIdiomatic && !referenceMatch && !localVulgarity && !localIndifference && !documentedInsult && !wordMeanings.length) {
         $("#literal-result").textContent += " · On-device machine draft";
         $("#usage-note").innerHTML += "<p>Translated on this device without the online service. Review regional wording and research terminology.</p>";
       }
@@ -4435,13 +4447,15 @@ function translationWordingAlternatives() {
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
   const candidate=matchPhrase(completed.source);
   const phrase=localRoute || candidate?.sharedSpanish ? candidate : null;
-  const choices=phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
+  const insult=typeof HablaSpanishContext!=="undefined"
+    ? HablaSpanishContext.documentedVulgarInsult(completed.source,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}) : null;
+  const choices=insult ? insult.alternatives : phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},
        {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]) : [];
   const seen=new Set([normalize($("#natural-result").textContent),normalize(completed.source)]);
-  const providerChoices=(completed.providerAlternatives || []).map(text=>({
+  const providerChoices=(insult ? [] : (completed.providerAlternatives || [])).map(text=>({
     text:languageFamily(targetLanguage)==="en" ? convertEnglishVariety(text,targetLanguage,{source:completed.source,purpose:translationPurpose}) : text,
     label:"Translation memory / Memoria de traducción",
     note:"Exact source match. Review the wording in context. / Coincide con el texto original. Revisa la variante en contexto."
@@ -6559,7 +6573,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=233", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=234", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
