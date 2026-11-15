@@ -37,6 +37,8 @@ button { cursor: pointer; }
 .topbar-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .dialect-pill { padding: 8px 10px; border-radius: 999px; background: var(--mint); color: #315f4d; font-size: 12px; font-weight: 800; }
 .version-pill { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .05em; }
+.translation-update-notice { margin: 12px 14px; padding: 10px 12px; border: 1px solid #f0bf72; border-radius: 12px; background: #fff0d5; color: #543510; font-size: 14px; font-weight: 700; line-height: 1.4; }
+.translation-update-notice[hidden] { display: none; }
 
 .view { display: none; animation: enter .24s ease both; }
 .view.active { display: block; }
