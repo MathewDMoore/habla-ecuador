@@ -1,7 +1,36 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression}=require('../spanish-context.js');
+const {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult}=require('../spanish-context.js');
+// User-supplied screenshots: "Mamma huevos" is not literally "Mamma Eggs".
+for(const locale of ['es-EC','es-VE','es-DO']){
+ for(const target of ['en-US','en-GB']){
+  const typo=documentedVulgarInsult('Mamma huevos',{source:locale,target});
+  assert.ok(typo?.uncertain,'malformed source is flagged as uncertain');
+  assert.match(typo.text,/Possibly.*asshole.*check spelling/);
+  assert.match(typo.note,/not the attested headword.*suck my balls/i);
+  assert.equal(documentedVulgarInsult('mamagüevo',{source:locale,target}).text,'Asshole.');
+  assert.equal(documentedVulgarInsult('MAMAHUEVOS!',{source:locale,target}).text,'Assholes.');
+  assert.equal(documentedVulgarInsult('mamaguevo',{source:locale,target}).text,'Asshole.');
+ }
+}
+assert.ok(documentedVulgarInsult('Mamma huevos',{source:'es-EC'}).alternatives.some(x=>x.text==='Suck balls!'&&/uncertain/i.test(x.label)));
+for(const invalid of ['huevos','mamma eggs','Mamma huevos por favor','“Mamma huevos”','mamaguévo hay','mama huevo y pan']){
+ assert.equal(documentedVulgarInsult(invalid,{source:'es-EC'}),null,'no guess or partial rewrite: '+invalid);
+}
+assert.equal(documentedVulgarInsult('Mamma huevos',{source:'es-VE',purpose:'academic'}),null);
+assert.equal(documentedVulgarInsult('Mamma huevos',{source:'en-US'}),null);
+assert.equal(documentedVulgarInsult('Mamma huevos',{target:'es-EC'}),null);
+const regionalInsult=dictionary({region:'es-DO',query:'mamma huevos',tone:'caution'});
+assert.equal(regionalInsult.length,1);
+assert.equal(regionalInsult[0].term,'mamagüevo / mamahuevo');
+assert.deepEqual(regionalInsult[0].regions,['es-VE','es-DO']);
+assert.match(regionalInsult[0].url,/asale\.org\/damer/);
+assert.equal(dictionary({region:'es-VE',query:'mamaguevo',tone:'caution'}).length,1);
+assert.equal(dictionary({region:'es-EC',query:'mamma huevos'}).length,0,'selected Ecuador does not imply attested Ecuadorian origin');
+assert.equal(dictionary({region:'en-US',target:'es-DO',query:'cocksucker',tone:'caution'}).length,1);
+assert.equal(dictionary({region:'es-DO',query:'mamma huevos',tone:'mild'}).length,0);
+assert.match(analyse('Mamma huevos',{source:'es-EC',target:'en-US'})[0].detail,/Dominican Republic and Venezuela.*does not establish Ecuadorian/);
 const leona='¡Tengo una leona!';
 assert.equal(figurativeExpression(leona,{source:'es-EC',target:'en-GB'}).text,'I could eat a horse!');
 assert.equal(figurativeExpression(leona).preferIdiomatic,true);
