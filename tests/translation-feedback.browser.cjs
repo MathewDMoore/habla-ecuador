@@ -29,7 +29,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
    alternatives:translationWordingAlternatives().map(item=>item.text)
   };
  });
- assert.match(vulgar.result,/Possibly.*asshole.*check spelling/);
+ assert.match(vulgar.result,/Possibly.*asshole.*verify what was heard/);
  assert.doesNotMatch(vulgar.result,/eggs/i);
  assert.match(vulgar.usage,/Dominican Republic and Venezuela.*does not establish Ecuadorian/);
  assert.ok(vulgar.alternatives.includes('Cocksucker.'));
