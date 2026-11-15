@@ -8,6 +8,16 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dirname,'..',u.pathname.replace('/habla-ecuador/',''));return u.origin==='https://mathewdmoore.github.io'&&fs.existsSync(p)&&fs.statSync(p).isFile()?r.fulfill({path:p}):r.abort();});
  await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file+'?ui=es');
  if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').tap();
+ // Mobile render check on both translator entry points: no "TY" for "Gracias".
+ const gratitude=await page.evaluate(async()=>{
+  sourceLanguage='es-EC';targetLanguage='en-US';syncLanguagePair();
+  document.querySelector('#translator-input').value='Gracias';
+  await renderTranslation();
+  return {result:document.querySelector('#natural-result').textContent,
+   alternatives:translationWordingAlternatives().map(item=>item.text)};
+ });
+ assert.equal(gratitude.result,'Thank you.','full-word translation on mobile '+file);
+ assert.deepEqual(gratitude.alternatives,['Thanks!','I appreciate it.','Much appreciated.']);
  await page.evaluate(()=>{
   sourceLanguage='en-US';targetLanguage='es-PA';syncLanguagePair();
   document.querySelector('#translator-input').value="I don't know if I want to work on this application tonight.";

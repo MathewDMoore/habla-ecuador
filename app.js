@@ -1,5 +1,23 @@
 const phrases = [
   {
+    en:"Thank you.", us:"Thank you.", uk:"Thank you.",
+    es:"Gracias.", natural:"Gracias.", exactMatch:true, sharedSpanish:true,
+    register:"Everyday gratitude · shared Spanish",
+    note:"Gracias is a widely used expression of thanks throughout Spanish-speaking communities. Normal English is Thank you, not texting shorthand. / Gracias es un agradecimiento común en el mundo hispanohablante; no implica una variedad regional particular.",
+    alternatives:{
+      en:[
+        {text:"Thanks!",label:"Everyday · informal / Informal",note:"A casual and natural expression of thanks in U.S. and U.K. English."},
+        {text:"I appreciate it.",label:"Personal gratitude / Agradecimiento personal",note:"More personal or specific; best when thanking someone for something they did."},
+        {text:"Much appreciated.",label:"Concise · informal / Breve",note:"An informal way to acknowledge help or a favor."}
+      ],
+      es:[
+        {text:"Muchas gracias.",label:"More emphasis / Más énfasis",note:"Thank you very much; stronger than the original."},
+        {text:"Te lo agradezco.",label:"Personal gratitude / Agradecimiento personal",note:"I appreciate it; appropriate when addressing someone informally."},
+        {text:"Gracias de verdad.",label:"Sincere gratitude / Agradecimiento sincero",note:"Adds emphasis on sincerity; not interchangeable in every context."}
+      ]
+    }
+  },
+  {
     en:"Rest well!", us:"Rest well!", uk:"Rest well!",
     es:"Que descanses.", natural:"Que descanses.",
     exactMatch:true, sharedSpanish:true,
@@ -84,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.22 · build 232";
+const APP_VERSION = "0.27.23 · build 233";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3204,8 +3222,27 @@ function refineImageEnglish(draft,source,fullSource=source,{musicContext=false}=
   return result;
 }
 
+// Curated, dialect-neutral courtesy words must never be replaced by crowd-sourced
+// texting abbreviations such as "TY" or "TYSM". Exact phrases only: never alter
+// longer messages (e.g. "Gracias por venir") or research quotations.
+function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}={}) {
+  if (purpose === "academic" || languageFamily(source) !== "es" || languageFamily(target) !== "en") return null;
+  const translation = {
+    "gracias": "Thank you",
+    "muchas gracias": "Thank you very much",
+    "muchisimas gracias": "Thank you so much"
+  }[normalize(text)];
+  if (!translation) return null;
+  return translation + (/[!！]/.test(text) ? "!" : ".");
+}
+
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
+  const reviewedCourtesy = reviewedCourtesyTranslation(text,{source,target,purpose});
+  if (reviewedCourtesy !== null) {
+    if (!isCurrent()) throw translationFailure("superseded");
+    return reviewedCourtesy;
+  }
   if (inputType === "music" && purpose !== "academic" && musicSourceMode !== "selected" && bilingualMusicEnabled()) {
     const plan = HablaBilingualMusic.plan(text,{source,target});
     if (musicTranslationRequestCost(text,source,target,purpose) > 20) throw translationFailure("research_limit");
@@ -3276,7 +3313,8 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     const chunk=chunks[index];
     if (!isCurrent()) throw translationFailure("superseded");
     const cached=chunk.separator?undefined:chunkProgress?.read(index,chunk.text);
-    const draft=chunk.separator ? chunk.text : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives));
+    const reviewedPart=chunk.separator?null:reviewedCourtesyTranslation(chunk.text,{source,target,purpose});
+    const draft=chunk.separator ? chunk.text : reviewedPart !== null ? reviewedPart : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives));
     if (!isCurrent()) throw translationFailure("superseded");
     if(!chunk.separator&&cached===undefined)chunkProgress?.write(index,chunk.text,draft);
     let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;
@@ -4413,7 +4451,12 @@ function translationWordingAlternatives() {
     .map(choice=>({...choice,text:choice.text.trim()}))
     .filter(choice=>{
       const key=normalize(choice.text);
-      return key && !/^MYMEMORY WARNING/i.test(choice.text) && !seen.has(key) && seen.add(key);
+      // Do not resurface provider texting shortcuts as "alternatives" for normal prose.
+      const textingAbbreviation=/^(?:ty|thx|thnx|tnx|tks|tysm)[.!?]*$/i.test(choice.text);
+      const shorthandRequested=/^(?:ty|thx|thnx|tnx|tks|tysm)[.!?]*$/i.test(completed.source.trim());
+      return key && !/^MYMEMORY WARNING/i.test(choice.text)
+        && !(languageFamily(targetLanguage)==="en" && textingAbbreviation && !shorthandRequested)
+        && !seen.has(key) && seen.add(key);
     }).slice(0,5);
 }
 
@@ -6516,7 +6559,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=232", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=233", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
