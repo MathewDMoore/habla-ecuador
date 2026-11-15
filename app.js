@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.24 · build 234";
+const APP_VERSION = "0.27.25 · build 235";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3924,6 +3924,25 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   const ecuadorLocalRoute = (direction === "en-ec" && targetLanguage === "es-EC") || (direction === "ec-en" && sourceLanguage === "es-EC");
   const matchedPhrase = translationPurpose === "academic" || autoMusic ? null : preservedEntry || matchPhrase($("#translator-input").value);
   const phrase = ecuadorLocalRoute || matchedPhrase?.sharedSpanish ? matchedPhrase : null;
+  // Reviewed single-word slang takes the display path directly. Do not let a
+  // machine response, a cached draft or a broad phrase candidate override it.
+  // Attach the very same reviewed alternatives to this completed translation.
+  const reviewedInsult = !autoMusic && translationPurpose !== "academic"
+    ? HablaSpanishContext.documentedVulgarInsult(sourceText,requestContext) : null;
+  if (reviewedInsult) {
+    if (!current()) return;
+    result.hidden = false;
+    missing.hidden = true;
+    $("#translation-result .result-label").textContent =
+      `${languageLabel(targetLanguage)} · ${reviewedInsult.uncertain ? "possible vulgar expression" : "documented vulgar insult"}`;
+    setEditableTranslation(sourceText,reviewedInsult.text,{
+      reviewedAlternatives:reviewedInsult.alternatives,reviewedSlang:true
+    });
+    $("#literal-result").textContent = reviewedInsult.literal;
+    $("#usage-note").innerHTML =
+      `<strong>${escapeHtml(reviewedInsult.register)}</strong><span>${escapeHtml(reviewedInsult.scope)} ${escapeHtml(reviewedInsult.note)} <a href="${escapeHtml(reviewedInsult.url)}" target="_blank" rel="noopener noreferrer">ASALE · Dictionary of Americanisms</a></span>`;
+    return;
+  }
   if (!phrase) {
     const embeddedSlang = autoMusic ? {text:sourceText,entries:[]} : prepareEmbeddedEcuadorianSlang(sourceText,direction);
     const onDevice = Boolean((allowImported&&wholeDocumentTools?.usesDevice())
@@ -4449,11 +4468,12 @@ function translationWordingAlternatives() {
   const phrase=localRoute || candidate?.sharedSpanish ? candidate : null;
   const insult=typeof HablaSpanishContext!=="undefined"
     ? HablaSpanishContext.documentedVulgarInsult(completed.source,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}) : null;
-  const choices=insult ? insult.alternatives : phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
+  const reviewedChoices=Array.isArray(completed.reviewedAlternatives) ? completed.reviewedAlternatives : null;
+  const choices=reviewedChoices || (insult ? insult.alternatives : phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},
-       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]) : [];
+       {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]) : []);
   const seen=new Set([normalize($("#natural-result").textContent),normalize(completed.source)]);
   const providerChoices=(insult ? [] : (completed.providerAlternatives || [])).map(text=>({
     text:languageFamily(targetLanguage)==="en" ? convertEnglishVariety(text,targetLanguage,{source:completed.source,purpose:translationPurpose}) : text,
@@ -6573,7 +6593,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=234", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=235", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
