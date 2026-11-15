@@ -51,8 +51,10 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.deepEqual(attested.alternatives,['Fucking idiot.','Cocksucker.','Dickhead.']);
  await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length===3);
  assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
- // Restore the baseline practice layout after checking the open alternatives cards.
- await page.locator('#inline-translation-alternatives > summary').click();
+ // Reload the same mobile page between independent feature scenarios.
+ // A click/scroll during Alternatives must not contaminate the practice hold test.
+ await page.reload();
+ if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').tap();
  await page.evaluate(()=>{
   sourceLanguage='en-US';targetLanguage='es-PA';syncLanguagePair();
   document.querySelector('#translator-input').value="I don't know if I want to work on this application tonight.";
