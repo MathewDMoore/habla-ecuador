@@ -10,7 +10,23 @@
   let checking=false,newest=null,ready=false,reloading=false,timer=null,lastActivity=Date.now(),composing=false;
   const baseline=new WeakMap();
   document.querySelectorAll('input,textarea,select').forEach(el=>baseline.set(el,el.type==='checkbox'?el.checked:el.value));
-  const message=text=>{if(status)status.textContent=text;};
+  // A translation open on iPhone deliberately blocks automatic reloads.
+  // Surface the pending version beside the result so a user doesn't silently
+  // keep testing an old engine, without erasing or submitting their draft.
+  const translationNotice=document.createElement('p');
+  translationNotice.id='translation-update-notice';
+  translationNotice.className='translation-update-notice';
+  translationNotice.setAttribute('role','status');
+  translationNotice.hidden=true;
+  document.getElementById('translation-result')?.prepend(translationNotice);
+  const message=text=>{
+   if(status)status.textContent=text;
+   if(!newest||newest.build<=current){translationNotice.hidden=true;return;}
+   translationNotice.hidden=false;
+   translationNotice.textContent=ready
+    ? `Habla build ${newest.build} is ready. Finish your work, then close and reopen Habla for the latest translation and alternatives. / Nueva versión lista; termina y vuelve a abrir Habla.`
+    : `Habla build ${newest.build} is available. The update is downloading; your current translation is preserved. / Actualización disponible; tu traducción se conserva.`;
+  };
   const activity=()=>{lastActivity=Date.now();clearTimeout(timer);timer=null;if(newest&&ready)schedule();};
   for(const event of ['pointerdown','keydown','input','change'])document.addEventListener(event,activity,{capture:true,passive:true});
   document.addEventListener('compositionstart',()=>{composing=true;activity();});document.addEventListener('compositionend',()=>{composing=false;activity();});

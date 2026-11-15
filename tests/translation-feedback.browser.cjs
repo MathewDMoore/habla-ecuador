@@ -18,7 +18,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  });
  assert.equal(gratitude.result,'Thank you.','full-word translation on mobile '+file);
  assert.deepEqual(gratitude.alternatives,['Thanks!','I appreciate it.','Much appreciated.']);
- // User-reported iPhone misspelling: recognize probable vulgar insult, not a food.
+ // User's phonetic transcription: offer probable slang without calling the spelling wrong.
  const vulgar=await page.evaluate(async()=>{
   sourceLanguage='es-EC';targetLanguage='en-US';syncLanguagePair();
   document.querySelector('#translator-input').value='Mamma huevos';
@@ -29,11 +29,32 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
    alternatives:translationWordingAlternatives().map(item=>item.text)
   };
  });
- assert.match(vulgar.result,/Possibly.*asshole.*check spelling/);
+ assert.match(vulgar.result,/Possibly.*asshole.*verify what was heard/);
  assert.doesNotMatch(vulgar.result,/eggs/i);
  assert.match(vulgar.usage,/Dominican Republic and Venezuela.*does not establish Ecuadorian/);
  assert.ok(vulgar.alternatives.includes('Cocksucker.'));
  assert.ok(vulgar.alternatives.includes('Suck balls!'));
+ // Test the actual user-visible Alternatives panel, not just its helper array.
+ const optionsPanel=page.locator('#inline-translation-alternatives');
+ await page.locator('#inline-translation-alternatives > summary').click();
+ await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length>=4);
+ assert.match(await page.locator('#inline-alternatives-list').textContent(),/Fucking idiot.*Cocksucker.*Dickhead.*Suck balls/s);
+ assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
+ // Correct headword should also expose alternatives, without using free provider.
+ const attested=await page.evaluate(async()=>{
+  document.querySelector('#translator-input').value='mamagüevo';
+  await renderTranslation();
+  return {result:document.querySelector('#natural-result').textContent,
+   alternatives:translationWordingAlternatives().map(x=>x.text)};
+ });
+ assert.equal(attested.result,'Asshole.');
+ assert.deepEqual(attested.alternatives,['Fucking idiot.','Cocksucker.','Dickhead.']);
+ await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length===3);
+ assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
+ // Reload the same mobile page between independent feature scenarios.
+ // A click/scroll during Alternatives must not contaminate the practice hold test.
+ await page.reload();
+ if(file==='index.html')await page.locator('.bottom-nav [data-open="translator-view"]').tap();
  await page.evaluate(()=>{
   sourceLanguage='en-US';targetLanguage='es-PA';syncLanguagePair();
   document.querySelector('#translator-input').value="I don't know if I want to work on this application tonight.";

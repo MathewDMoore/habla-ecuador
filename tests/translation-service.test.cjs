@@ -41,7 +41,7 @@ async function main(){
  for(const locale of ['es-EC','es-VE','es-DO']){
   for(const english of ['en-US','en-GB']){
    assert.equal(await run('requestGeneralTranslation("Mamma huevos","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),
-    'Possibly “asshole” (vulgar insult; check spelling).');
+    'Possibly “asshole” (vulgar insult; verify what was heard).');
    assert.equal(await run('requestGeneralTranslation("mamagüevo","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Asshole.');
    assert.equal(await run('requestGeneralTranslation("mamahuevos","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Assholes.');
   }

@@ -100,21 +100,21 @@ const HablaSpanishContext = (() => {
   }
   // ASALE records mamagüevo as a vulgar, derogatory insult in the
   // Dominican Republic and Venezuela, not as a uniquely Ecuadorian term.
-  // Short learner misspellings are candidates, never proof of regional origin.
+  // Phonetic spellings supplied by a learner are clues, not spelling errors or proof of regional origin.
   function documentedVulgarInsult(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
     if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return null;
     const original=text.trim();
     if(/["“”`]/.test(original))return null;
     const word=plain(original).replace(/^[¡¿]+/,'').replace(/[.!?]+$/,'').trim();
     const attested=/^mama(?:hue|gue)[vb]os?$/.test(word);
-    const likelySpelling=/^(?:mamma\s*huevos?|mama\s+huevos?)$/.test(word);
+    const likelySpelling=/^(?:mamma\s*huevos?|mama\s+huevos?|mamma?\s*we[bv]os?)$/.test(word);
     if(!attested&&!likelySpelling)return null;
     const plural=attested&&/os$/.test(word);
     const preferred=plural?'Assholes.':'Asshole.';
-    const textResult=likelySpelling?'Possibly “asshole” (vulgar insult; check spelling).':preferred;
+    const textResult=likelySpelling?'Possibly “asshole” (vulgar insult; verify what was heard).':preferred;
     const scope='ASALE documents mamagüevo in the Dominican Republic and Venezuela. This does not establish Ecuadorian or city-specific usage.';
     const note=likelySpelling
-      ? '“Mamma huevos” is not the attested headword. It may be an attempted spelling of mamahuevo/mamagüevo, or a separate verb phrase. Verify what the speaker actually said. “Suck my balls” adds “my,” which is absent.'
+      ? 'A learner may write “mamma huevos” to capture an unfamiliar sound. A likely candidate is mamagüevo/mamahuevo, but the original audio and surrounding conversation are needed to confirm it. The separate verb reading is possible; “suck my balls” adds the absent possessive “my.”'
       : 'Used as a strongly derogatory insult meaning an idiot or contemptible person. “Cocksucker” is a vulgar English gloss, not a reliable word-for-word translation in every conversation.';
     const alternatives=[
       {text:plural?'Fucking idiots.':'Fucking idiot.',label:'Strong insult / Insulto fuerte',note:'An insulting equivalent reflecting the stupid-person sense documented by ASALE.'},
@@ -123,7 +123,7 @@ const HablaSpanishContext = (() => {
     ];
     if(likelySpelling)alternatives.push({
       text:'Suck balls!',label:'Possible verb reading · uncertain / Lectura verbal incierta',
-      note:'Only possible if the speaker meant the separate words mama huevos as a command. No possessive “my” is present. Not the default noun meaning.'
+      note:'Only possible if the sound represented two separate words intended as a command. No possessive “my” is present. This is not the default insult reading.'
     });
     return {text:textResult,term:'mamagüevo / mamahuevo',uncertain:likelySpelling,register:'Strong vulgar insult / Insulto vulgar fuerte',
       scope,note,literal:'The words evoke a vulgar sexual image, not edible eggs.',alternatives,
@@ -238,9 +238,9 @@ const HablaSpanishContext = (() => {
       scope:'Dominican Republic and Venezuela: ASALE records a vulgar, derogatory insult for a stupid or idiotic person. No Ecuadorian or specific-city use is established by this entry.',
       us:'asshole / fucking idiot; cocksucker (very vulgar counterpart)',
       uk:'prick / fucking idiot; cocksucker (very vulgar counterpart)',
-      searchAliases:['mamma huevos','mammahuevos','mama huevos','mamahuevos','mamaguevo','mamagüevos','mamaguevos','mamahuebo','mamagüebo','mamaguebo'],
+      searchAliases:['mamma huevos','mammahuevos','mama huevos','mamahuevos','mamma webo','mama webo','mamawebo','mamaguevo','mamagüevos','mamaguevos','mamahuebo','mamagüebo','mamaguebo'],
       literalUs:'Vulgar sexual imagery; not edible eggs',literalUk:'Vulgar sexual imagery; not edible eggs',
-      note:'A noun/adjective insult, not automatically the command “suck my balls.” The screenshot form “mamma huevos” is a possible misspelling or separate verb phrase; verify the intended words. Anger, joking among intimates, and offensiveness depend on context. English glosses are editorial; country labels are based on ASALE.',
+      note:'A noun/adjective insult, not automatically the command “suck my balls.” The user may write “mamma huevos” phonetically after hearing unfamiliar speech. Offer mamagüevo/mamahuevo as a possible match, never label the user’s phonetic attempt incorrect, and verify against the audio. Tone and relationship determine force. English glosses are editorial; country labels are from ASALE.',
       uncertainty:'ASALE supports Dominican and Venezuelan usage, not the meaning of the malformed spelling. No city attribution or native-speaker register validation is established.',
       url:asale('mamagüevo'),references:[{name:'ASALE · mamahuevo',url:asale('mamahuevo')},
         {name:'SpanishDict · English insult gloss',url:'https://www.spanishdict.com/translate/mamahuevo'}]},
