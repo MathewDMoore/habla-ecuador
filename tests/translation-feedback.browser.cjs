@@ -36,7 +36,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.ok(vulgar.alternatives.includes('Suck balls!'));
  // Test the actual user-visible Alternatives panel, not just its helper array.
  const optionsPanel=page.locator('#inline-translation-alternatives');
- await optionsPanel.locator('summary').click();
+ await page.locator('#inline-translation-alternatives > summary').click();
  await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length>=4);
  assert.match(await page.locator('#inline-alternatives-list').textContent(),/Fucking idiot.*Cocksucker.*Dickhead.*Suck balls/s);
  assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
@@ -52,7 +52,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length===3);
  assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
  // Restore the baseline practice layout after checking the open alternatives cards.
- await optionsPanel.locator('summary').click();
+ await page.locator('#inline-translation-alternatives > summary').click();
  await page.evaluate(()=>{
   sourceLanguage='en-US';targetLanguage='es-PA';syncLanguagePair();
   document.querySelector('#translator-input').value="I don't know if I want to work on this application tonight.";
