@@ -7,7 +7,7 @@ for(const locale of ['es-EC','es-VE','es-DO']){
  for(const target of ['en-US','en-GB']){
   const typo=documentedVulgarInsult('Mamma huevos',{source:locale,target});
   assert.ok(typo?.uncertain,'malformed source is flagged as uncertain');
-  assert.match(typo.text,/Possibly.*asshole.*check spelling/);
+  assert.match(typo.text,/Possibly.*asshole.*verify what was heard/);
   assert.match(typo.note,/not the attested headword.*suck my balls/i);
   assert.equal(documentedVulgarInsult('mamagüevo',{source:locale,target}).text,'Asshole.');
   assert.equal(documentedVulgarInsult('MAMAHUEVOS!',{source:locale,target}).text,'Assholes.');
