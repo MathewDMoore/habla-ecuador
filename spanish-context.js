@@ -98,6 +98,37 @@ const HablaSpanishContext = (() => {
     return /\b(?:voy|vamos|va|ir|llego|llegar|salgo|salir)\s+(?:a\s+el|al|del)\s+camello\b/.test(source)
       || /\b(?:empleo|trabajo|oficina|jefe|laboral|sueldo|salario)\b/.test(source);
   }
+  // ASALE records mamagüevo as a vulgar, derogatory insult in the
+  // Dominican Republic and Venezuela, not as a uniquely Ecuadorian term.
+  // Short learner misspellings are candidates, never proof of regional origin.
+  function documentedVulgarInsult(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
+    if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return null;
+    const original=text.trim();
+    if(/["“”`]/.test(original))return null;
+    const word=plain(original).replace(/^[¡¿]+/,'').replace(/[.!?]+$/,'').trim();
+    const attested=/^mama(?:hue|gue)[vb]os?$/.test(word);
+    const likelySpelling=/^(?:mamma\s*huevos?|mama\s+huevos?)$/.test(word);
+    if(!attested&&!likelySpelling)return null;
+    const plural=attested&&/os$/.test(word);
+    const preferred=plural?'Assholes.':'Asshole.';
+    const textResult=likelySpelling?'Possibly “asshole” (vulgar insult; check spelling).':preferred;
+    const scope='ASALE documents mamagüevo in the Dominican Republic and Venezuela. This does not establish Ecuadorian or city-specific usage.';
+    const note=likelySpelling
+      ? '“Mamma huevos” is not the attested headword. It may be an attempted spelling of mamahuevo/mamagüevo, or a separate verb phrase. Verify what the speaker actually said. “Suck my balls” adds “my,” which is absent.'
+      : 'Used as a strongly derogatory insult meaning an idiot or contemptible person. “Cocksucker” is a vulgar English gloss, not a reliable word-for-word translation in every conversation.';
+    const alternatives=[
+      {text:plural?'Fucking idiots.':'Fucking idiot.',label:'Strong insult / Insulto fuerte',note:'An insulting equivalent reflecting the stupid-person sense documented by ASALE.'},
+      {text:plural?'Cocksuckers.':'Cocksucker.',label:'Explicit insult / Insulto explícito',note:'A vulgar English counterpart recorded in bilingual references; not necessarily a sexual command.'},
+      {text:plural?'Dickheads.':'Dickhead.',label:'Colloquial insult / Insulto coloquial',note:'A possible English insult, especially in U.K. usage; degree of offence depends on context.'}
+    ];
+    if(likelySpelling)alternatives.push({
+      text:'Suck balls!',label:'Possible verb reading · uncertain / Lectura verbal incierta',
+      note:'Only possible if the speaker meant the separate words mama huevos as a command. No possessive “my” is present. Not the default noun meaning.'
+    });
+    return {text:textResult,term:'mamagüevo / mamahuevo',uncertain:likelySpelling,register:'Strong vulgar insult / Insulto vulgar fuerte',
+      scope,note,literal:'The words evoke a vulgar sexual image, not edible eggs.',alternatives,
+      url:asale('mamagüevo')};
+  }
   function wordMeanings(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
     if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return [];
     const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
@@ -139,6 +170,12 @@ const HablaSpanishContext = (() => {
     if(!source.startsWith('es') || purpose==='academic')return findings;
     const value=unquoted(text);
     const add=(term,detail,url)=>findings.push({term,detail,url});
+    const documentedInsult=documentedVulgarInsult(text,{source,target,purpose});
+    if(documentedInsult) {
+      findings.push({term:documentedInsult.term,kind:'context-sensitive-slang',
+        detail:`${documentedInsult.register}. ${documentedInsult.scope} ${documentedInsult.note}`,
+        url:documentedInsult.url});
+    }
     if(/\bching(?:ar(?:se)?|a|as|an|amos|ando|ue|ues|uen|o)\b/i.test(plain(value))) {
       const meanings=wordMeanings(text,{source,target,purpose});
       const detail='Chinga can be a form of chingar, not just a noun. RAE records bothering/annoying and a sexual sense; in Mexico, chinga can also be a punishing obligation or beating, and en chinga means quickly. Mexican sexual senses can involve assault; do not infer consent. The full sentence and source variety decide the reading. Neutral bother/annoy can understate vulgar force; fuck with someone may fit a vulgar rebuke.';
@@ -196,6 +233,18 @@ const HablaSpanishContext = (() => {
   // The browseable dictionary shares translator notes; extra headwords do not
   // change translation rules or turn country evidence into a city claim.
   const dictionaryExtras = [
+    {term:'mamagüevo / mamahuevo',speech:'mamagüevo',category:'slang',regions:['es-VE','es-DO'],
+      register:'Strong vulgar insult / Insulto vulgar fuerte',
+      scope:'Dominican Republic and Venezuela: ASALE records a vulgar, derogatory insult for a stupid or idiotic person. No Ecuadorian or specific-city use is established by this entry.',
+      us:'asshole / fucking idiot; cocksucker (very vulgar counterpart)',
+      uk:'prick / fucking idiot; cocksucker (very vulgar counterpart)',
+      searchAliases:['mamma huevos','mammahuevos','mama huevos','mamahuevos','mamaguevo','mamagüevos','mamaguevos','mamahuebo','mamagüebo','mamaguebo'],
+      literalUs:'Vulgar sexual imagery; not edible eggs',literalUk:'Vulgar sexual imagery; not edible eggs',
+      note:'A noun/adjective insult, not automatically the command “suck my balls.” The screenshot form “mamma huevos” is a possible misspelling or separate verb phrase; verify the intended words. Anger, joking among intimates, and offensiveness depend on context. English glosses are editorial; country labels are based on ASALE.',
+      uncertainty:'ASALE supports Dominican and Venezuelan usage, not the meaning of the malformed spelling. No city attribution or native-speaker register validation is established.',
+      url:asale('mamagüevo'),references:[{name:'ASALE · mamahuevo',url:asale('mamahuevo')},
+        {name:'SpanishDict · English insult gloss',url:'https://www.spanishdict.com/translate/mamahuevo'}]},
+
     {"term": "asere / acere", "us": "close friend / buddy", "uk": "close friend / mate", "scope": "Cuba: a close friend or companion.", "note": "Informal address depends on the relationship. ASALE lists asere as a variant of acere.", "register": "Informal", "url": "https://www.asale.org/damer/acere", "references": [{"name": "ASALE · asere", "url": "https://www.asale.org/damer/asere"}], "regions": ["es-CU"], "batch": "cuba-154", "uncertainty": "Country-attested; Holguín / Oriente-specific review pending.", "speech": "asere / acere", "exampleEs": "Él es mi asere.", "exampleUs": "He is my close friend.", "exampleUk": "He is my close friend."},
     {"term": "guagua (Cuba)", "us": "bus", "uk": "bus", "scope": "Cuba: bus; this meaning is shared with other regions.", "note": "In Ecuador and Bolivia, guagua can refer to a young child. Check the country and sentence before choosing the meaning.", "register": "Everyday regional vocabulary", "url": "https://www.asale.org/damer/guagua", "regions": ["es-CU"], "batch": "cuba-154", "uncertainty": "Country-attested; Holguín / Oriente-specific review pending.", "speech": "guagua", "exampleEs": "Voy a tomar la guagua.", "exampleUs": "I am going to take the bus.", "exampleUk": "I am going to take the bus."},
     {"term": "jaba (Cuba)", "us": "bag", "uk": "bag", "scope": "Cuba: a cloth, paper or plastic bag.", "note": "This entry covers the bag sense. Basket and crate senses are separate; context matters.", "register": "Everyday regional vocabulary", "url": "https://www.asale.org/damer/jaba", "regions": ["es-CU"], "batch": "cuba-154", "uncertainty": "Country-attested; Holguín / Oriente-specific review pending.", "speech": "jaba", "exampleEs": "Necesito una jaba.", "exampleUs": "I need a bag.", "exampleUk": "I need a bag."},
@@ -212,11 +261,12 @@ const HablaSpanishContext = (() => {
   ];
   const dictionaryRegions = {
     'es-EC':'Ecuador', 'es-BO':'Bolivia', 'es-MX':'Mexico',
-    'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia', 'es-CU':'Cuba'
+    'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia', 'es-CU':'Cuba',
+    'es-DO':'Dominican Republic'
   };
   // Recording-inspired headwords, independently checked 2026-10-12.
   // Shared literal/clinical entries indicate availability, not local slang evidence.
-  const sharedRegions = Object.keys(dictionaryRegions).filter(code=>code!=='es-CU');
+  const sharedRegions = Object.keys(dictionaryRegions).filter(code=>!['es-CU','es-DO'].includes(code));
   const attractionEntries = [
     {
       id:'attraction-sexi', term:'sexi / sexy', speech:'sexi', category:'literal', regions:sharedRegions, shared:true,
@@ -577,7 +627,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression};
+  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 

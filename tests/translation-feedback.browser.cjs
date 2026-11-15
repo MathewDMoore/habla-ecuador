@@ -18,6 +18,22 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  });
  assert.equal(gratitude.result,'Thank you.','full-word translation on mobile '+file);
  assert.deepEqual(gratitude.alternatives,['Thanks!','I appreciate it.','Much appreciated.']);
+ // User-reported iPhone misspelling: recognize probable vulgar insult, not a food.
+ const vulgar=await page.evaluate(async()=>{
+  sourceLanguage='es-EC';targetLanguage='en-US';syncLanguagePair();
+  document.querySelector('#translator-input').value='Mamma huevos';
+  await renderTranslation();
+  return {
+   result:document.querySelector('#natural-result').textContent,
+   usage:document.querySelector('#usage-note').textContent,
+   alternatives:translationWordingAlternatives().map(item=>item.text)
+  };
+ });
+ assert.match(vulgar.result,/Possibly.*asshole.*check spelling/);
+ assert.doesNotMatch(vulgar.result,/eggs/i);
+ assert.match(vulgar.usage,/Dominican Republic and Venezuela.*does not establish Ecuadorian/);
+ assert.ok(vulgar.alternatives.includes('Cocksucker.'));
+ assert.ok(vulgar.alternatives.includes('Suck balls!'));
  await page.evaluate(()=>{
   sourceLanguage='en-US';targetLanguage='es-PA';syncLanguagePair();
   document.querySelector('#translator-input').value="I don't know if I want to work on this application tonight.";
