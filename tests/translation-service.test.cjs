@@ -36,6 +36,20 @@ async function main(){
  element('#translator-input').value='Another sentence.';
  assert.equal(run('translationWordingAlternatives().length'),0);
  fresh();
+ // Screenshot regression: a free provider must never turn gracias into "TY".
+ handler=async()=>ok('TY');
+ for(const locale of ['es-EC','es-BO','es-MX','es-ES']){
+  for(const english of ['en-US','en-GB']){
+   assert.equal(await run('requestGeneralTranslation("Gracias","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Thank you.');
+   assert.equal(await run('requestGeneralTranslation("¡GRACIAS!","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Thank you!');
+   assert.equal(await run('requestGeneralTranslation("Muchas gracias","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Thank you very much.');
+  }
+ }
+ assert.equal(requests.length,0,'reviewed gratitude works offline without requesting TY');
+ handler=async()=>ok('Thank you for coming.');
+ assert.equal(await run('requestGeneralTranslation("Gracias por venir.","ec-en",{source:"es-EC",target:"en-US"})'),'Thank you for coming.');
+ assert.equal(requests.length,1,'longer sentences still use complete context');
+ fresh();
  // A language ability term cannot be reduced to the language name "Español".
  handler=async()=>ok('Español');
  for(const source of ['en-US','en-GB'])for(const target of ['es-EC','es-BO','es-MX']){
