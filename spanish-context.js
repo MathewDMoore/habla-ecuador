@@ -261,11 +261,12 @@ const HablaSpanishContext = (() => {
   ];
   const dictionaryRegions = {
     'es-EC':'Ecuador', 'es-BO':'Bolivia', 'es-MX':'Mexico',
-    'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia', 'es-CU':'Cuba'
+    'es-VE':'Venezuela', 'es-PE':'Peru', 'es-CO':'Colombia', 'es-CU':'Cuba',
+    'es-DO':'Dominican Republic'
   };
   // Recording-inspired headwords, independently checked 2026-10-12.
   // Shared literal/clinical entries indicate availability, not local slang evidence.
-  const sharedRegions = Object.keys(dictionaryRegions).filter(code=>code!=='es-CU');
+  const sharedRegions = Object.keys(dictionaryRegions).filter(code=>!['es-CU','es-DO'].includes(code));
   const attractionEntries = [
     {
       id:'attraction-sexi', term:'sexi / sexy', speech:'sexi', category:'literal', regions:sharedRegions, shared:true,
