@@ -51,6 +51,29 @@ test('Detect strong Spanish-English source mismatch, preserving uncertain short 
  ]);
 
 
+ // Screenshot regression: plain Spanish gratitude must not become "TY".
+ run('sourceLanguage="es-EC";targetLanguage="en-US";syncLanguagePair();');
+ select('#translator-input').value='Gracias';
+ select('#natural-result').textContent='Thank you.';
+ run('lastCompletedTranslation={source:"Gracias",sourceLanguage,targetLanguage,providerAlternatives:["TY","Thx","Thanks!"]};');
+ assert.equal(run('matchPhrase("Gracias").en'),'Thank you.');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  'Thanks!','I appreciate it.','Much appreciated.'
+ ]);
+ for(const locale of ['es-BO','es-MX','es-VE','es-PE','es-ES']){
+  run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-GB";syncLanguagePair();');
+  run('lastCompletedTranslation={source:"Gracias",sourceLanguage,targetLanguage,providerAlternatives:["TY"]};');
+  assert.equal(run('translationWordingAlternatives().length'),3,'shared Spanish gratitude: '+locale);
+ }
+ assert.equal(run('matchPhrase("Gracias por venir")'),null,'do not replace a longer thank-you sentence');
+ run('sourceLanguage="en-US";targetLanguage="es-EC";syncLanguagePair();');
+ select('#translator-input').value='Thank you.';
+ select('#natural-result').textContent='Gracias.';
+ run('lastCompletedTranslation={source:"Thank you.",sourceLanguage,targetLanguage};');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),[
+  'Muchas gracias.','Te lo agradezco.','Gracias de verdad.'
+ ]);
+
  // The iPhone regression: this farewell must not show an empty alternatives panel.
  run('sourceLanguage="es-EC";targetLanguage="en-US";syncLanguagePair();');
  select('#translator-input').value='Que descanses';
