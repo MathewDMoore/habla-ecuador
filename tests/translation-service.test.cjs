@@ -36,6 +36,22 @@ async function main(){
  element('#translator-input').value='Another sentence.';
  assert.equal(run('translationWordingAlternatives().length'),0);
  fresh();
+ // Screenshot regression: neither a free service nor cached word matching may call "Mamma huevos" food.
+ handler=async()=>ok('Mamma Eggs');
+ for(const locale of ['es-EC','es-VE','es-DO']){
+  for(const english of ['en-US','en-GB']){
+   assert.equal(await run('requestGeneralTranslation("Mamma huevos","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),
+    'Possibly “asshole” (vulgar insult; check spelling).');
+   assert.equal(await run('requestGeneralTranslation("mamagüevo","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Asshole.');
+   assert.equal(await run('requestGeneralTranslation("mamahuevos","ec-en",{source:'+JSON.stringify(locale)+',target:'+JSON.stringify(english)+'})'),'Assholes.');
+  }
+ }
+ assert.equal(requests.length,1,'no online request is made for exact local documented slang forms; unrelated earlier test request remains');
+ fresh();
+ handler=async()=>ok('Different sentence translated.');
+ assert.equal(await run('requestGeneralTranslation("Mamma huevos no es una comida.","ec-en",{source:"es-EC",target:"en-US"})'),'Different sentence translated.');
+ assert.equal(requests.length,1,'longer sentences keep their complete context');
+ fresh();
  // Screenshot regression: a free provider must never turn gracias into "TY".
  handler=async()=>ok('TY');
  for(const locale of ['es-EC','es-BO','es-MX','es-ES']){
