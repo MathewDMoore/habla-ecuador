@@ -1362,6 +1362,7 @@
   "Translation changed. Tap Copy again for the current text.": "La traducción cambió. Toca Copiar otra vez para copiar el texto actual.",
   "Translation copied. Paste it into your chosen app.": "Traducción copiada. Pégala en la aplicación que quieras.",
   "Clipboard access is unavailable. Select and copy the translation below.": "No se pudo acceder al portapapeles. Selecciona y copia la traducción de abajo.",
+  "Strong vulgar insult / Insulto vulgar fuerte": "Insulto vulgar fuerte",
   "About Habla Ecuador": "Acerca de Habla Ecuador",
   "Our story · Nuestra historia": "Nuestra historia · Our story",
   "Back to home": "Volver al inicio",
