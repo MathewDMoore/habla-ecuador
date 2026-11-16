@@ -22,6 +22,9 @@ on:
       - 'tests/tutorial*'
       - 'quick-lessons.js'
       - 'styles.css'
+      - 'grammar-reference.js'
+      - 'grammar-reference.css'
+      - 'tests/grammar-reference*'
       - 'index.html'
       - 'translator.html'
       - 'tests/translation-copy.browser.cjs'
@@ -83,6 +86,10 @@ jobs:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
       - run: node tests/quick-lesson.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
+      - run: node tests/grammar-reference.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: ${{ matrix.engine }}
