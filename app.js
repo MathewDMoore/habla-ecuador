@@ -1767,6 +1767,7 @@ function navigateMainView(id) {
 function openView(id) {
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
+  if (typeof HablaEnglishVoiceLab !== "undefined") HablaEnglishVoiceLab.leave();
   cancelDictionaryPractice();
   if (activeRecognitionButton?.id === "lesson-mic" && id !== "lesson-view") cancelListening(false);
   if (id !== "translator-view") cancelMusicListening();
@@ -2074,7 +2075,10 @@ function say(text, lang="es-EC", button=null) {
   const passages = Array.isArray(text) ? text : [{text,lang}];
   for (const passage of passages) {
     if (!passage.text.trim()) continue;
-    const voice = voiceForLanguage(passage.lang);
+    const voice = passage.voice || voiceForLanguage(passage.lang);
+    if (passage.requireExactVoice && (!passage.voice || normalizedLocale(voice?.lang) !== normalizedLocale(passage.lang))) {
+      return unavailable("The requested regional voice is unavailable. No substitute was played.");
+    }
     if (speechVoices.length && !voice) {
       const label = normalizedLocale(passage.lang).startsWith("es") ? "Spanish" : "English";
       return unavailable(`${label} speech is unavailable on this device.`);
@@ -6557,6 +6561,14 @@ function init() {
   }
   renderTranslation();
   renderLesson();
+  if (typeof HablaEnglishVoiceLab !== "undefined") {
+    initializeOptionalFeature("six-country English voice lab",() => HablaEnglishVoiceLab.bind({
+      speak:passages => say(passages),
+      stop:stopSpeechPlayback,
+      bindPractice:bindDictionaryPractice,
+      cancelPractice:cancelDictionaryPractice
+    }));
+  }
   const updateLessonLanguage = () => {
     if ($("#lesson-content")?.dataset.targetLanguage === lessonTargetLocale()) return;
     lessonStep = 1; selectedChoice = "";
