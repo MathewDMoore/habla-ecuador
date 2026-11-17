@@ -92,7 +92,7 @@
       practiceText.textContent = item.text;
       practiceText.lang = left.value;
       help.textContent = item.spanish;
-      bindPractice?.(practice);
+      bindPractice?.(host);
     }
     function play(side) {
       const voice = get(side);
