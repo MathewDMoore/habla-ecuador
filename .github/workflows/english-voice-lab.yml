@@ -1,0 +1,30 @@
+name: English voice exchange pilot
+
+on:
+  pull_request:
+    paths:
+      - 'english-voice-lab.js'
+      - 'app.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'sw.js'
+      - 'app-version.json'
+      - 'tests/english-voice-lab.test.cjs'
+      - 'tests/english-country-flags.test.cjs'
+      - '.github/workflows/english-voice-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  voice-exchange:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node --check english-voice-lab.js && node --check app.js && node --check sw.js
+      - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/dictionary-practice.test.cjs
