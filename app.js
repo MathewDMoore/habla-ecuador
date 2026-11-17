@@ -3114,8 +3114,10 @@ function refineAcademicEnglish(text, source="") {
 }
 
 function convertEnglishVariety(text, target=targetLanguage, options={}) {
+  // Other English-country choices currently use an explicitly labelled general baseline.
+  const baseline = englishBaseVariant(target) === "uk" ? "en-GB" : "en-US";
   if (typeof HablaEnglish !== "undefined") {
-    const adapted=HablaEnglish.adapt(text,target,options).text;
+    const adapted=HablaEnglish.adapt(text,baseline,options).text;
     return HablaEnglish.preserveCompleteSolutions(adapted,options.source);
   }
   const ukPairs = [
@@ -3126,7 +3128,7 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
     ["favorite","favourite"],["favorites","favourites"],["traveling","travelling"],
     ["traveled","travelled"],["program","programme"]
   ];
-  const pairs = target === "en-GB" ? ukPairs : ukPairs.map(([us,uk]) => [uk,us]);
+  const pairs = baseline === "en-GB" ? ukPairs : ukPairs.map(([us,uk]) => [uk,us]);
   return pairs.reduce((result,[from,to]) => result.replace(new RegExp(`\\b${from}\\b`,"gi"), match => {
     if (match === match.toUpperCase()) return to.toUpperCase();
     if (match[0] === match[0].toUpperCase()) return `${to[0].toUpperCase()}${to.slice(1)}`;
