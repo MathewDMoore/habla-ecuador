@@ -1041,37 +1041,34 @@
         <details id="quick-lessons" class="compact-info source-practice"><summary>Short lessons · one useful idea</summary><div id="quick-lessons-content"></div></details>
         <details id="recorded-practice" class="compact-info source-practice"><summary>Native voices · regional speaking pilot</summary><div id="recorded-practice-content"></div></details>
         <details id="source-practice" class="compact-info source-practice" hidden><summary>Work &amp; friends · radio-story speaking lesson</summary><div id="source-practice-content"></div></details>
-        <details id="english-voice-lab" class="compact-info source-practice" aria-label="English voice comparison and practice">
-          <summary>🎧 English voices · compare &amp; repeat · 6 countries</summary>
-          <p>Compare the <strong>same words</strong> in regional synthetic voices exposed by your device. These are not recordings of verified local speakers, and no voice learns or retrains itself.</p>
-          <label>Practice phrase / Frase<select id="voice-lab-phrase">
-            <option value="meet">Nice to meet you.</option>
-            <option value="repeat">Could you say that again, please?</option>
-            <option value="coffee">I'd like a coffee, please.</option>
-            <option value="thanks">Thank you for your help.</option>
+        <details id="english-voice-lab" class="compact-info source-practice" aria-label="Hands-free English voice exchange">
+          <summary>🎧 English voice exchange · 6 countries · no repeating</summary>
+          <p>Two device voices carry on a <strong>four-turn conversation</strong> while you listen. No learner microphone, repeating aloud, or homework.</p>
+          <label>Conversation / Conversación<select id="voice-lab-scene">
+            <option value="meeting">Meeting someone</option>
+            <option value="coffee">At a coffee shop</option>
+            <option value="directions">Finding the library</option>
+            <option value="work">Checking a schedule</option>
           </select></label>
           <div class="language-picker-row">
-            <label>Voice A / Voz A<select id="voice-lab-left"><option value="en-US">🇺🇸 United States</option><option value="en-GB">🇬🇧 United Kingdom</option><option value="en-CA">🇨🇦 Canada</option><option value="en-AU">🇦🇺 Australia</option><option value="en-NZ">🇳🇿 New Zealand</option><option value="en-IE">🇮🇪 Ireland</option></select>
+            <label>Speaker A / Voz A<select id="voice-lab-left"><option value="en-US">🇺🇸 United States</option><option value="en-GB">🇬🇧 United Kingdom</option><option value="en-CA">🇨🇦 Canada</option><option value="en-AU">🇦🇺 Australia</option><option value="en-NZ">🇳🇿 New Zealand</option><option value="en-IE">🇮🇪 Ireland</option></select>
               <small id="voice-lab-voice-left">Checking device voices…</small></label>
-            <label>Voice B / Voz B<select id="voice-lab-right"><option value="en-US">🇺🇸 United States</option><option value="en-GB" selected>🇬🇧 United Kingdom</option><option value="en-CA">🇨🇦 Canada</option><option value="en-AU">🇦🇺 Australia</option><option value="en-NZ">🇳🇿 New Zealand</option><option value="en-IE">🇮🇪 Ireland</option></select>
+            <label>Speaker B / Voz B<select id="voice-lab-right"><option value="en-US">🇺🇸 United States</option><option value="en-GB" selected>🇬🇧 United Kingdom</option><option value="en-CA">🇨🇦 Canada</option><option value="en-AU">🇦🇺 Australia</option><option value="en-NZ">🇳🇿 New Zealand</option><option value="en-IE">🇮🇪 Ireland</option></select>
               <small id="voice-lab-voice-right">Checking device voices…</small></label>
           </div>
           <div class="document-actions">
-            <button type="button" id="voice-lab-play-left" class="secondary-button">🔊 Play A</button>
-            <button type="button" id="voice-lab-play-right" class="secondary-button">🔊 Play B</button>
-            <button type="button" id="voice-lab-play-pair" class="primary-button">🔁 A then B</button>
-            <button type="button" id="voice-lab-stop" class="secondary-button">Stop audio</button>
+            <button type="button" id="voice-lab-play-exchange" class="primary-button">▶ Start A ↔ B exchange</button>
+            <button type="button" id="voice-lab-swap" class="secondary-button">⇄ Swap speakers</button>
+            <button type="button" id="voice-lab-stop" class="secondary-button">Stop</button>
           </div>
           <p id="voice-lab-status" role="status" aria-live="polite"></p>
-          <article class="expression-card" id="voice-lab-practice" data-practice-text="Nice to meet you." data-practice-lang="en-US">
-            <h3>🎙 Your turn / Tu turno</h3>
-            <p id="voice-lab-practice-text" lang="en-US">Nice to meet you.</p>
-            <p id="voice-lab-spanish" lang="es">Mucho gusto.</p>
-            <p>Repeat the sentence using the microphone below. Recognized-word feedback is <strong>not an accent score</strong>.</p>
-          </article>
-          <details class="compact-info"><summary>How the comparison works / Cómo funciona</summary>
-            <p>Exact locale voices are required: 🇺🇸 en-US, 🇬🇧 en-GB, 🇨🇦 en-CA, 🇦🇺 en-AU, 🇳🇿 en-NZ, and 🇮🇪 en-IE. If the selected locale voice is missing, playback is disabled rather than silently using a different national accent.</p>
-            <p>Playback is generated by your device's speech system, not speaker recordings. A/B listening and microphone word checks do not prove regional authenticity or automatically train voices. Research-backed country-specific expressions and licensed human examples remain a separate review step.</p>
+          <div class="expression-card">
+            <h3>Conversation transcript / Transcripción</h3>
+            <ol id="voice-lab-transcript"></ol>
+          </div>
+          <details class="compact-info"><summary>What do the voices actually learn?</summary>
+            <p>This first pilot is an automatic scripted conversation and a listening comparison. The voices do <strong>not</strong> train one another or validate each other's accents. Each phrase is original general English, not proof of specific national vocabulary. Research-linked regional expressions, licensed human references, and automated evaluation require separate validation.</p>
+            <p>Playback uses only an exact matching device locale: 🇺🇸 en-US, 🇬🇧 en-GB, 🇨🇦 en-CA, 🇦🇺 en-AU, 🇳🇿 en-NZ, 🇮🇪 en-IE. If a voice is missing, the demo will not invent that country's accent.</p>
           </details>
         </details>
         <div id="lesson-content"></div>
