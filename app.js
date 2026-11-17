@@ -107,6 +107,10 @@ const APP_VERSION = "0.27.25 · build 235";
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
   "en-GB": {label:"U.K. English", family:"en", voice:"en-GB"},
+  "en-CA": {label:"Canadian English (general English draft)", family:"en", voice:"en-CA"},
+  "en-AU": {label:"Australian English (general English draft)", family:"en", voice:"en-AU"},
+  "en-NZ": {label:"New Zealand English (general English draft)", family:"en", voice:"en-NZ"},
+  "en-IE": {label:"Irish English (general English draft)", family:"en", voice:"en-IE"},
   "es-EC": {label:"Ecuadorian Spanish", family:"es", voice:"es-EC"},
   "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"},
   "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"},
@@ -281,10 +285,15 @@ function languageLabel(code) {
   return TRANSLATOR_LANGUAGES[code]?.label || code;
 }
 
+// These are generic editorial baselines, not verified country-dialect translations.
+function englishBaseVariant(code) {
+  return ["en-GB","en-AU","en-NZ","en-IE"].includes(code) ? "uk" : "us";
+}
+
 function syncLanguagePair({persist=true}={}) {
   wholeDocumentTools?.pause('Paused because the language settings changed. Saved progress keeps its original languages.');
   direction = translatorRoute();
-  englishVariant = targetLanguage === "en-GB" || (languageFamily(targetLanguage) !== "en" && sourceLanguage === "en-GB") ? "uk" : "us";
+  englishVariant = englishBaseVariant(languageFamily(targetLanguage) === "en" ? targetLanguage : sourceLanguage);
   if (persist) localStorage.setItem(TRANSLATOR_PAIR_STORAGE_KEY, JSON.stringify({source:sourceLanguage,target:targetLanguage}));
   const sourceSelect = $("#source-language-select");
   const targetSelect = $("#target-language-select");
@@ -313,7 +322,7 @@ let savedLanguagePair = (() => {
 let sourceLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.source] ? savedLanguagePair.source : "en-US";
 let targetLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.target] ? savedLanguagePair.target : "es-EC";
 let direction = TRANSLATOR_LANGUAGES[sourceLanguage].family === "en" && TRANSLATOR_LANGUAGES[targetLanguage].family === "es" ? "en-ec" : "ec-en";
-let englishVariant = (targetLanguage === "en-GB" || (TRANSLATOR_LANGUAGES[targetLanguage].family !== "en" && sourceLanguage === "en-GB")) ? "uk" : "us";
+let englishVariant = englishBaseVariant(TRANSLATOR_LANGUAGES[targetLanguage].family === "en" ? targetLanguage : sourceLanguage);
 let translationPurpose = localStorage.getItem(TRANSLATION_PURPOSE_STORAGE_KEY) === "academic" ? "academic" : "everyday";
 let voiceRate = readVoiceRate();
 let lessonStep = 1;
@@ -419,6 +428,7 @@ function speakerRegionProfile(name) {
 }
 const PERSON_COUNTRY_LABELS = {
   "en-US":"United States / Estados Unidos", "en-GB":"United Kingdom / Reino Unido",
+  "en-CA":"Canada / Canadá", "en-AU":"Australia", "en-NZ":"New Zealand / Nueva Zelanda", "en-IE":"Ireland / Irlanda",
   "es-EC":"Ecuador", "es-BO":"Bolivia", "es-MX":"Mexico / México", "es-VE":"Venezuela",
   "es-PE":"Peru / Perú", "es-CO":"Colombia", "es-CU":"Cuba", "es-AR":"Argentina",
   "es-CL":"Chile", "es-CR":"Costa Rica", "es-DO":"Dominican Republic / República Dominicana",
@@ -4752,7 +4762,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     : null;
   try {
     turn.translation = spokenExclamation ?? (phrase
-      ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
+      ? way === "en-ec" ? phrase.natural : (englishBaseVariant(englishLocale) === "uk" ? phrase.uk : phrase.us) || phrase.en
       : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)}));
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
