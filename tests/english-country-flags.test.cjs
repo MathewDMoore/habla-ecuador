@@ -28,7 +28,7 @@ test('both web entrypoints show all six correctly labelled English flags in tran
     assert.match(html,/id="english-country-coverage"/);
     assert.match(html,/not yet validated/);
     assert.match(html,/socialworkengland.org.uk/);
-    assert.ok(html.includes('app.js?v=236')&&html.includes('whole-document.js?v=236')&&html.includes('app-feedback.js?v=236'));
+    assert.ok(html.includes('app.js?v=237')&&html.includes('whole-document.js?v=236')&&html.includes('app-feedback.js?v=236'));
   }
 });
 test('country locale selection keeps general-English routing and distinct speech locale',()=>{
