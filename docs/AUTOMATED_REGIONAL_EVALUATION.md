@@ -40,3 +40,27 @@ Extend to verified regional comparisons beyond Ecuador–Bolivia, add source-to-
 ## Release condition
 
 PR #170 is still a draft based on PR #169. Resolve all tests, check browser/mobile WebKit and physical iPhone voices, and review the claims before merge/deployment. A committed preview file is **not** publication.
+
+## Broader regional sense discovery (second evaluation engine)
+
+The companion \`regional-sense-discovery.js\` groups **54 existing source-cited records** by their exact spoken expression (not a shared headword). It identifies **12 groups with differing senses**: **seven regional contrast candidates** and **five multi-sense/overlap cases**. Its review-only artifact is \`data/regional-sense-candidates-v1.json\`.
+
+Examples include:
+- \`llucho\`: Ecuador's documented unclothed sense versus a Bolivian wool-hat sense.
+- \`bacán\`: Ecuador/Peru excellent versus a documented Bolivian wealthy-person sense.
+- \`atatay\`: Ecuador/Peru disgust versus Bolivian pain.
+- \`arrecho\`: documented Venezuela anger versus a documented sexual-arousal sense in Ecuador/Bolivia/Peru/Colombia.
+- \`dar bola\`: separate documented meanings in Ecuador, Bolivia, Peru and Cuba.
+- \`palta\`: multi-sense overlap, **not** an exclusive Ecuador-versus-Peru split because Peru has more than one documented sense.
+
+Other region-tagged terms may have multiple senses **within a country**, so the engine refuses to label all such cases as cross-country differences. It also refuses to treat \`dar el avión\`, \`dar papaya\`, and \`dar bola\` as the same expression merely because the headword is \`dar\`.
+
+Run or regenerate:
+
+\`\`\`sh
+node --test tests/regional-sense-discovery.test.cjs
+node scripts/discover-regional-senses.cjs --check
+node scripts/discover-regional-senses.cjs --output=data/regional-sense-candidates-v1.json
+\`\`\`
+
+The Practice research panel can display both review queues. Its sources are not pushed into the learner-facing published curriculum. Further evidence review is needed for frequency, native usage and pronunciation.
