@@ -69,7 +69,7 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
   await city.fill('');await city.press('Tab');
   assert.equal(await cityPanel.locator('[data-location-value="Guayaquil"]').isVisible(),true,'clearing city reveals named choices');
   const countries=await country.locator('option').evaluateAll(opts=>opts.map(o=>o.value).filter(Boolean));
-  assert.equal(countries.length,23,'clearing a country leaves all country choices available');
+  assert.equal(countries.length,27,'clearing a country preserves all 21 Spanish and six English speaker-country choices');
   for(const code of countries){
    await country.selectOption(code);
    assert.ok(await choices.locator('option').count()>2,code+' has region suggestions');
