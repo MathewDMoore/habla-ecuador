@@ -60,3 +60,22 @@ test("review cannot be faked by an unrelated URL or missing verification",()=>{
  assert.equal(atatay.sourceStatus,"reference-link-awaits-review");
  assert.equal(atatay.evidence.review,null);
 });
+
+test("generated evidence queue is review-only, complete and exposed in both entrypoints",()=>{
+ const report=data("regional-lesson-proposals-v1.json");
+ assert.equal(report.candidates.length,input.comparisons.length);
+ assert.equal(report.counts.reviewedSources,3);
+ assert.equal(report.counts.evidenceGaps,1);
+ assert.ok(report.candidates.every(item=>item.publishable===false));
+ for(const page of ["index.html","translator.html"]){
+   const html=fs.readFileSync(path.join(__dirname,"..",page),"utf8");
+   assert.match(html,/id="regional-evaluation-queue"/);
+   assert.match(html,/regional-evaluation-review\.js\?v=238/);
+ }
+ const sw=fs.readFileSync(path.join(__dirname,"..","sw.js"),"utf8");
+ assert.match(sw,/data\/regional-lesson-proposals-v1\.json/);
+ assert.match(sw,/regional-evaluation-review\.js\?v=238/);
+ const viewer=fs.readFileSync(path.join(__dirname,"..","regional-evaluation-review.js"),"utf8");
+ assert.doesNotMatch(viewer,/innerHTML\s*=/,"source text must render without HTML injection");
+ assert.match(viewer,/textContent/);
+});
