@@ -11,6 +11,9 @@ on:
       - 'app-version.json'
       - 'tests/english-voice-lab.test.cjs'
       - 'tests/english-country-flags.test.cjs'
+      - 'tests/english-practice-regions.test.cjs'
+      - 'quick-lessons.js'
+      - 'recorded-practice.js'
       - '.github/workflows/english-voice-lab.yml'
   workflow_dispatch:
 
@@ -26,5 +29,5 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: node --check english-voice-lab.js && node --check app.js && node --check sw.js
-      - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/dictionary-practice.test.cjs
+      - run: node --check english-voice-lab.js && node --check app.js && node --check quick-lessons.js && node --check recorded-practice.js && node --check sw.js
+      - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/english-practice-regions.test.cjs tests/dictionary-practice.test.cjs
