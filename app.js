@@ -443,6 +443,11 @@ const PERSON_COUNTRY_LABELS = {
 };
 // Country-specific suggestions from country-region-data (MIT); see docs/region-data-license.txt.
 const PERSON_REGION_OPTIONS = {
+  // Starter geographic suggestions only. These are not dialect/accent claims.
+  "en-CA": ["Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland and Labrador","Nova Scotia","Ontario","Quebec","Saskatchewan"],
+  "en-AU": ["Australian Capital Territory","New South Wales","Northern Territory","Queensland","South Australia","Tasmania","Victoria","Western Australia"],
+  "en-NZ": ["Auckland","Bay of Plenty","Canterbury","Otago","Waikato","Wellington"],
+  "en-IE": ["County Dublin","County Cork","County Galway","County Kerry","County Limerick","County Mayo"],
   "en-US": [
     "Alabama",
     "Alaska",
