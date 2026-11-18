@@ -15,13 +15,19 @@ on:
       - 'quick-lessons.js'
       - 'recorded-practice.js'
       - 'regional-lesson-evaluator.js'
+      - 'regional-sense-discovery.js'
+      - 'regional-evaluation-review.js'
+      - 'regional-vocabulary.js'
+      - 'data/regional-sense-candidates-v1.json'
+      - 'scripts/discover-regional-senses.cjs'
+      - 'tests/regional-sense-discovery.test.cjs'
       - 'data/ecuador-bolivia-comparisons-v1.json'
       - 'data/learner-entries-v1.json'
       - 'data/sources.json'
       - 'data/regional-evidence-reviews-v1.json'
       - 'data/regional-lesson-proposals-v1.json'
       - 'scripts/evaluate-regional-lessons.cjs'
-      - 'tests/regional-lesson-evaluator.test.cjs'
+      - 'tests/regional-lesson-evaluator.test.cjs tests/regional-sense-discovery.test.cjs'
       - '.github/workflows/english-voice-lab.yml'
   workflow_dispatch:
 
@@ -37,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: node --check english-voice-lab.js && node --check app.js && node --check quick-lessons.js && node --check recorded-practice.js && node --check sw.js && node --check regional-lesson-evaluator.js
+      - run: node --check english-voice-lab.js && node --check app.js && node --check quick-lessons.js && node --check recorded-practice.js && node --check sw.js && node --check regional-lesson-evaluator.js && node --check regional-sense-discovery.js && node --check regional-evaluation-review.js
       - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/english-practice-regions.test.cjs tests/dictionary-practice.test.cjs tests/regional-lesson-evaluator.test.cjs
       - run: node scripts/evaluate-regional-lessons.cjs --check
       - run: node scripts/evaluate-regional-lessons.cjs --output=regional-lesson-review-artifact.json
@@ -45,4 +51,11 @@ jobs:
         with:
           name: regional-lesson-proposals
           path: regional-lesson-review-artifact.json
+          if-no-files-found: error
+      - run: node scripts/discover-regional-senses.cjs --check
+      - run: node scripts/discover-regional-senses.cjs --output=regional-sense-review-artifact.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: regional-sense-discoveries
+          path: regional-sense-review-artifact.json
           if-no-files-found: error
