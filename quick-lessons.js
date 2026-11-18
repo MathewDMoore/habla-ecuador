@@ -174,7 +174,7 @@ const english=[
   examples:[["I'm going to eat.",'Voy a comer.'],["I'm going to drink some water.",'Voy a beber agua.'],["I'll have tea, please.",'Tomaré té, por favor.']],
   situations:[{scene:'Ya tienes un plan para comer pronto. Cuenta qué vas a hacer.',phrase:"I'm going to eat.",meaning:'Voy a comer.'},{scene:'Tienes tu botella lista. Di que vas a beber agua.',phrase:"I'm going to drink some water.",meaning:'Voy a beber agua.'},{scene:'Te ofrecen café o té. Decides pedir té en ese momento.',phrase:"I'll have tea, please.",meaning:'Tomaré té, por favor.'}]}
 ];
-const catalog={'es-EC':spanish,'en-US':english,'en-GB':english};
+const catalog={'es-EC':spanish,'en-US':english,'en-GB':english,'en-CA':english,'en-AU':english,'en-NZ':english,'en-IE':english,'en-JM':english,'en-BS':english,'en-BB':english,'en-GY':english,'en-TT':english,'en-AG':english,'en-KN':english,'en-LC':english,'en-VC':english,'en-GD':english,'en-ZA':english,'en-SG':english};
 // Text between pairs of | characters is in the language being studied.
 function explanationPassages(text,locale,englishLocale){
  const support=locale==='es-EC'?englishLocale:'es-EC';

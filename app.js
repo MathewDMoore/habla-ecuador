@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.26 · build 236";
+const APP_VERSION = "0.27.28 · build 238";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -330,8 +330,13 @@ let selectedChoice = "";
 let lessonLanguagePreference = "";
 try { lessonLanguagePreference = localStorage.getItem("habla-lesson-language-v1") || ""; } catch {}
 
+const ENGLISH_PRACTICE_LOCALES = Object.freeze(["en-US","en-GB","en-CA","en-AU","en-NZ","en-IE","en-JM","en-BS","en-BB","en-GY","en-TT","en-AG","en-KN","en-LC","en-VC","en-GD","en-ZA","en-SG"]);
+const ENGLISH_PRACTICE_PREVIEW = new Set(ENGLISH_PRACTICE_LOCALES.slice(2));
+const SPANISH_PRACTICE_LOCALES = Object.keys(TRANSLATOR_LANGUAGES).filter(code => TRANSLATOR_LANGUAGES[code].family === "es");
+const SPANISH_PRACTICE_PREVIEW = new Set(SPANISH_PRACTICE_LOCALES.filter(code => code !== "es-EC"));
 function lessonTargetLocale(preference=lessonLanguagePreference, ui=window.HablaUI?.language || "en") {
-  return ["es-EC","en-US","en-GB"].includes(preference) ? preference : ui === "es" ? "en-US" : "es-EC";
+  return SPANISH_PRACTICE_LOCALES.includes(preference) || ENGLISH_PRACTICE_LOCALES.includes(preference)
+    ? preference : ui === "es" ? "en-US" : "es-EC";
 }
 let turns = [];
 let liveConversationTurn = null;
@@ -438,6 +443,11 @@ const PERSON_COUNTRY_LABELS = {
 };
 // Country-specific suggestions from country-region-data (MIT); see docs/region-data-license.txt.
 const PERSON_REGION_OPTIONS = {
+  // Starter geographic suggestions only. These are not dialect/accent claims.
+  "en-CA": ["Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland and Labrador","Nova Scotia","Ontario","Quebec","Saskatchewan"],
+  "en-AU": ["Australian Capital Territory","New South Wales","Northern Territory","Queensland","South Australia","Tasmania","Victoria","Western Australia"],
+  "en-NZ": ["Auckland","Bay of Plenty","Canterbury","Otago","Waikato","Wellington"],
+  "en-IE": ["County Dublin","County Cork","County Galway","County Kerry","County Limerick","County Mayo"],
   "en-US": [
     "Alabama",
     "Alaska",
@@ -1767,6 +1777,7 @@ function navigateMainView(id) {
 function openView(id) {
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
+  if (typeof HablaEnglishVoiceLab !== "undefined") HablaEnglishVoiceLab.leave();
   cancelDictionaryPractice();
   if (activeRecognitionButton?.id === "lesson-mic" && id !== "lesson-view") cancelListening(false);
   if (id !== "translator-view") cancelMusicListening();
@@ -2074,7 +2085,15 @@ function say(text, lang="es-EC", button=null) {
   const passages = Array.isArray(text) ? text : [{text,lang}];
   for (const passage of passages) {
     if (!passage.text.trim()) continue;
-    const voice = voiceForLanguage(passage.lang);
+    const voice = passage.voice || (ENGLISH_PRACTICE_PREVIEW.has(passage.lang)
+      ? [...speechVoices].filter(item => normalizedLocale(item.lang) === normalizedLocale(passage.lang) && !VOICE_NAME_BLOCKLIST.test(item.name))
+          .sort((a,b) => voiceQualityScore(b,normalizedLocale(passage.lang),"en") - voiceQualityScore(a,normalizedLocale(passage.lang),"en"))[0] || null
+      : voiceForLanguage(passage.lang));
+    const requestedLocale = normalizedLocale(passage.lang);
+    const needsExactVoice = passage.requireExactVoice || ENGLISH_PRACTICE_PREVIEW.has(passage.lang);
+    if (needsExactVoice && (!voice || normalizedLocale(voice.lang) !== requestedLocale)) {
+      return unavailable("No matching regional voice is available on this device. The text lesson remains usable; no substitute accent was played.");
+    }
     if (speechVoices.length && !voice) {
       const label = normalizedLocale(passage.lang).startsWith("es") ? "Spanish" : "English";
       return unavailable(`${label} speech is unavailable on this device.`);
@@ -6092,15 +6111,24 @@ function renderSourcePractice() {
 function renderLesson() {
   if (activeRecognitionButton?.id === "lesson-mic") cancelListening(false);
   const content = $("#lesson-content");
-  const locale = lessonTargetLocale(), english = locale !== "es-EC";
+  const locale = lessonTargetLocale(), english = locale.startsWith("en-"), spanishPreview = SPANISH_PRACTICE_PREVIEW.has(locale);
   content.dataset.targetLanguage = locale;
-  if ($("#lesson-language")) $("#lesson-language").value = ["es-EC","en-US","en-GB"].includes(lessonLanguagePreference) ? lessonLanguagePreference : "";
+  if ($("#lesson-language")) $("#lesson-language").value = SPANISH_PRACTICE_LOCALES.includes(lessonLanguagePreference) || ENGLISH_PRACTICE_LOCALES.includes(lessonLanguagePreference) ? lessonLanguagePreference : "";
   $$(".lesson-card .card-kicker").forEach(el => { el.textContent = english ? "A1 English speaking lesson" : "A1 speaking lesson"; });
-  if ($("#lesson-learning-goal")) $("#lesson-learning-goal").textContent = english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
-  if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.setLearningLanguage(locale);
+  if ($("#lesson-learning-goal")) $("#lesson-learning-goal").textContent = spanishPreview
+    ? "General Spanish starter lesson only. Country-specific vocabulary and pronunciation are not validated; Ecuador-only examples are hidden."
+    : ENGLISH_PRACTICE_PREVIEW.has(locale)
+      ? "General English lessons only. Region-specific vocabulary, pronunciation and lesson audio are not yet validated for this country."
+      : english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
+  const shortLessons = $("#quick-lessons");
+  if (spanishPreview && typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
+  if (shortLessons) {shortLessons.hidden = spanishPreview; if (spanishPreview) shortLessons.open = false;}
+  if (!spanishPreview && typeof HablaQuickLessons !== "undefined") HablaQuickLessons.setLearningLanguage(locale);
   const recorded = $("#recorded-practice");
-  if (recorded && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.setLearningLanguage(locale);
-  if ($("#source-practice")) $("#source-practice").hidden = english;
+  if (spanishPreview && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
+  if (recorded) {recorded.hidden = spanishPreview; if(spanishPreview) recorded.open = false;}
+  if (!spanishPreview && recorded && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.setLearningLanguage(locale);
+  if ($("#source-practice")) $("#source-practice").hidden = english || spanishPreview;
   $("#lesson-step-count").textContent = `${lessonStep}/4`;
   $("#lesson-progress-bar").style.width = `${lessonStep * 25}%`;
   if (english) { renderEnglishLesson(content,locale); bindLesson(); return; }
@@ -6134,9 +6162,17 @@ function renderEnglishLesson(content,locale) {
   }
 }
 
+function playLessonAudio(text,locale,button) {
+  if (!SPANISH_PRACTICE_PREVIEW.has(locale)) return say(text,locale,button);
+  refreshSpeechVoices();
+  const voice = speechVoices
+    .filter(item => normalizedLocale(item.lang) === normalizedLocale(locale) && !VOICE_NAME_BLOCKLIST.test(item.name))
+    .sort((a,b) => voiceQualityScore(b,normalizedLocale(locale),"es") - voiceQualityScore(a,normalizedLocale(locale),"es"))[0];
+  return say([{text,lang:locale,voice,requireExactVoice:true}],locale,button);
+}
 function bindLesson() {
-  const locale = lessonTargetLocale(), english = locale !== "es-EC";
-  $("#lesson-play")?.addEventListener("click", event => say(english ? "What time does the sun set?" : "¿A qué hora se pone el sol?",locale,event.currentTarget));
+  const locale = lessonTargetLocale(), english = locale.startsWith("en-");
+  $("#lesson-play")?.addEventListener("click", event => playLessonAudio(english ? "What time does the sun set?" : "¿A qué hora se pone el sol?",locale,event.currentTarget));
   $("#lesson-next")?.addEventListener("click", () => { if (lessonStep < 4) { lessonStep += 1; renderLesson(); } });
   bindPushToTalk($("#lesson-mic"), button => ({lang:locale,button,onText:text => {
     const heard = normalize(text);
@@ -6150,13 +6186,17 @@ function bindLesson() {
     selectedChoice = button.textContent;
     $$(".choice").forEach(item => { item.classList.toggle("selected", item === button); const old = $("small", item); if (old) old.remove(); });
     const note = document.createElement("small");
-    note.textContent = english ? button.dataset.correct ? "✓ Natural everyday English." : "Understandable, but less natural for everyday conversation." : button.dataset.correct ? "✓ Natural and conversational in Ecuador." : "Correct Spanish, but not the ordinary conversational choice.";
+    note.textContent = english
+      ? button.dataset.correct ? "✓ Natural everyday English." : "Understandable, but less natural for everyday conversation."
+      : button.dataset.correct
+        ? locale === "es-EC" ? "✓ Natural and conversational in Ecuador." : "✓ General Spanish phrasing. National usage has not been verified."
+        : "Correct Spanish, but not the ordinary conversational choice.";
     button.append(note);
     $("#lesson-next").disabled = false;
   }));
   $$('[data-say]').forEach(button => {
     button.setAttribute("aria-label", `Hear: ${button.dataset.say}`);
-    button.addEventListener("click", () => say(button.dataset.say,button.dataset.sayLang || locale,button));
+    button.addEventListener("click", () => playLessonAudio(button.dataset.say,button.dataset.sayLang || locale,button));
   });
   $("#lesson-finish")?.addEventListener("click", () => { lessonStep = 1; selectedChoice = ""; openView("home-view"); showToast("Lesson complete — ¡bien hecho!"); });
 }
@@ -6557,6 +6597,12 @@ function init() {
   }
   renderTranslation();
   renderLesson();
+  if (typeof HablaEnglishVoiceLab !== "undefined") {
+    initializeOptionalFeature("six-country English voice lab",() => HablaEnglishVoiceLab.bind({
+      speak:passages => say(passages),
+      stop:stopSpeechPlayback
+    }));
+  }
   const updateLessonLanguage = () => {
     if ($("#lesson-content")?.dataset.targetLanguage === lessonTargetLocale()) return;
     lessonStep = 1; selectedChoice = "";
@@ -6605,7 +6651,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=236", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=238", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

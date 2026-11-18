@@ -55,7 +55,7 @@ async function run(browser,entry){
  assert.ok(await labels.evaluateAll(items=>items.every(label=>label.scrollHeight<=label.clientHeight+1)),'labels fit the video');
  assert.equal(await labels.first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
  assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.65);
- await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.35);
+ await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForFunction(()=>Math.abs(Number(getComputedStyle(document.querySelector('#live-camera-translator .photo-translation-label')).opacity)-.35)<.01,null,{timeout:3000});
  await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='65';input.dispatchEvent(new Event('input',{bubbles:true}));});
  if(process.env.HABLA_CAMERA_SCREENSHOT&&entry==='index.html')await page.screenshot({path:process.env.HABLA_CAMERA_SCREENSHOT});
  await page.evaluate(()=>{window.__sidewaysText=true;window.__cameraWords='Tickets are sold downstairs.';});
