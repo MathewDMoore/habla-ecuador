@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright');
 (async()=>{const engine=process.env.HABLA_BROWSER_ENGINE||'chromium',browser=await pw[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
 try{for(const file of ['index.html','translator.html'])for(const width of [320,390]){
- const context=await browser.newContext({viewport:{width,height:667},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage();
+ const context=await browser.newContext({viewport:{width,height:667},isMobile:true,hasTouch:true,reducedMotion:'reduce',serviceWorkers:'block'}),page=await context.newPage();
  await page.addInitScript(()=>{localStorage.setItem('habla-tutorial-seen-v2','1');window.SpeechRecognition=class{start(){window.feedbackRecognition=this;}stop(){}abort(){}};});
  await page.route('**/*',r=>{const u=new URL(r.request().url()),p=path.join(__dirname,'..',u.pathname.replace('/habla-ecuador/',''));return u.origin==='https://mathewdmoore.github.io'&&fs.existsSync(p)&&fs.statSync(p).isFile()?r.fulfill({path:p}):r.abort();});
  await page.goto('https://mathewdmoore.github.io/habla-ecuador/'+file+'?ui=es');
