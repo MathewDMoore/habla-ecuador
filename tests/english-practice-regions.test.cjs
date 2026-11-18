@@ -107,3 +107,13 @@ test('Spanish Practice has 21 flagged varieties, without pretending Ecuador less
   assert.match(app,/No matching regional voice is available/);
   assert.match(app,/Country-specific vocabulary and pronunciation are not validated/);
 });
+
+
+test('Spanish interface translates the new flagged Practice options and readiness labels',()=>{
+  const ui=require('../interface-language.js');
+  assert.equal(ui.t('🇨🇦 Canada · general English pilot','es'),'🇨🇦 Canadá · inglés general (piloto)');
+  assert.equal(ui.t('🇲🇽 Mexico · general Spanish preview','es'),'🇲🇽 México · español general (vista previa)');
+  assert.equal(ui.t('🇿🇦 South Africa · research preview','es'),'🇿🇦 Sudáfrica · en investigación');
+  assert.equal(ui.t('🇬🇧 U.K. English','es'),'🇬🇧 Inglés del Reino Unido');
+  assert.match(ui.t('Spanish varieties · general lesson previews','es'),/Variedades del español/);
+});
