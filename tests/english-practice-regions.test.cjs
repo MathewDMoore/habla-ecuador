@@ -74,3 +74,36 @@ test('release, cached module versions, and original speaking engine are retained
     assert.ok(sw.includes('"'+entry+'?v=238"'),entry+' not in offline shell');
   assert.match(app,/const ENGLISH_PRACTICE_LOCALES/);
 });
+
+
+const spanish=[
+ ['es-EC','🇪🇨'],['es-BO','🇧🇴'],['es-MX','🇲🇽'],['es-VE','🇻🇪'],
+ ['es-PE','🇵🇪'],['es-CO','🇨🇴'],['es-CU','🇨🇺'],['es-AR','🇦🇷'],
+ ['es-CL','🇨🇱'],['es-CR','🇨🇷'],['es-DO','🇩🇴'],['es-SV','🇸🇻'],
+ ['es-GT','🇬🇹'],['es-HN','🇭🇳'],['es-NI','🇳🇮'],['es-PA','🇵🇦'],
+ ['es-PY','🇵🇾'],['es-PR','🇵🇷'],['es-ES','🇪🇸'],['es-UY','🇺🇾'],['es-GQ','🇬🇶']
+];
+
+test('Spanish Practice has 21 flagged varieties, without pretending Ecuador lessons are local',()=>{
+  for(const page of ['index.html','translator.html']){
+    const html=fs.readFileSync(page,'utf8');
+    const picker=html.match(/<select id="lesson-language">([\s\S]*?)<\/select>/);
+    assert.ok(picker);
+    for(const [code,flag] of spanish){
+      const m=picker[1].match(new RegExp('<option value="'+code+'">([^<]+)<\\/option>'));
+      assert.ok(m,page+' missing '+code);
+      assert.ok(m[1].includes(flag),page+' wrong flag '+code);
+    }
+    assert.equal([...picker[1].matchAll(/<option value="es-[A-Z]{2}">/g)].length,21);
+    assert.match(picker[1],/Spanish varieties · general lesson previews/);
+    // 21 Spanish options + 18 English options + a follow-app-language option.
+    assert.equal([...picker[1].matchAll(/<option value="/g)].length,40);
+  }
+  const app=fs.readFileSync('app.js','utf8');
+  assert.match(app,/SPANISH_PRACTICE_PREVIEW\.has\(locale\)/);
+  assert.match(app,/english = locale\.startsWith\("en-"\)/);
+  assert.match(app,/shortLessons\.hidden = spanishPreview/);
+  assert.match(app,/recorded\.hidden = spanishPreview/);
+  assert.match(app,/No matching regional voice is available/);
+  assert.match(app,/Country-specific vocabulary and pronunciation are not validated/);
+});
