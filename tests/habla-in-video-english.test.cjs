@@ -7,7 +7,7 @@ const html=fs.readFileSync('index.html','utf8');
 const css=fs.readFileSync('styles.css','utf8');
 const script=fs.readFileSync('music-venezuela-captions.js','utf8');
 
-function render({sourceMode='youtube',ready=true,language='en-US'}={}){
+function render({sourceMode='youtube',ready=true,language='en-US',spanishText='Texto de prueba.'}={}){
  const start=script.indexOf('function draw(force){');
  const end=script.indexOf('function renderPassages(){',start);
  assert.ok(start>=0&&end>start,'must find actual caption drawing function');
@@ -21,7 +21,7 @@ function render({sourceMode='youtube',ready=true,language='en-US'}={}){
  const ctx=vm.createContext({
   sourceMode,ready,lang,caption,reading,confidence,
   theaterEnglish:overlayText,timeLabel:{textContent:''},timing,
-  manual:0,offset:0,last:-2,cues:[[4,10,'English draft for demonstration.','UK English draft.',true]],
+  manual:0,offset:0,last:-2,cues:[[4,10,'English draft for demonstration.','UK English draft.',true,spanishText]],
   document:{activeElement:null},position:()=>7,fmt:()=>'0:07',selectedCue:()=>0
  });
  vm.runInContext(drawSource+'\ndraw(true);',ctx);
@@ -42,6 +42,21 @@ test('UK option selects UK draft on the video',()=>{
  assert.equal(rendered.caption.hidden,false);
 });
 
+test('Spanish renders in the inline and expanded companions for both video sources',()=>{
+ for(const sourceMode of ['youtube','local']){
+  const {caption,reading,overlayText}=render({sourceMode,language:'es'});
+  for(const node of [caption,reading,overlayText]){
+   assert.equal(node.lang,'es');
+   assert.equal(node.textContent,'Texto de prueba.');
+  }
+  assert.equal(caption.hidden,false);
+ }
+ const gap=render({language:'es',spanishText:''});
+ assert.equal(gap.caption.hidden,true);
+ assert.match(gap.overlayText.textContent,/Sin subtítulos en español/);
+ assert.doesNotMatch(render({language:'es',ready:false}).caption.textContent,/Texto de prueba/);
+});
+
 test('Off hides the English overlay but keeps the video visible',()=>{
  const rendered=render({language:'off'});
  assert.equal(rendered.caption.hidden,true);
@@ -51,7 +66,7 @@ test('Off hides the English overlay but keeps the video visible',()=>{
 test('unconfirmed iframe time displays a syncing message, not invented synchronized lyrics',()=>{
  const rendered=render({ready:false});
  assert.equal(rendered.caption.hidden,false);
- assert.match(rendered.caption.textContent,/connecting to video time/);
+ assert.match(rendered.caption.textContent,/connecting to video time/i);
  assert.doesNotMatch(rendered.caption.textContent,/English draft for demonstration/);
 });
 
@@ -63,6 +78,7 @@ test('authored English controls move into a dedicated dock outside the player',(
  assert.ok(iframe>=0&&control>iframe&&overlay>control&&boxEnd>overlay);
  assert.match(html,/value="en-US">🇺🇸 English on/);
  assert.match(html,/value="en-GB">🇬🇧 UK English on/);
+ assert.match(html,/value="es">🇻🇪 Español/);
  assert.match(html,/value="off">Subtitles off/);
  assert.match(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{z-index:24;\}/);
  assert.doesNotMatch(css,/\.ve-video-box:has\(iframe:not\(\[hidden\]\)\) \.ve-caption-overlay \{display:none !important;\}/);

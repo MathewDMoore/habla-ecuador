@@ -18,18 +18,18 @@ const cues=[
 [67.1,72.4,"With you I'll stay on standby. ♪ Vocal refrain ♪"],
 [72.5,77.4,"I'm never going to say goodbye to you."],
 [77.5,81.4,"Baby, you're right by my side. With you I'll stay on standby."],
-[81.5,85.2,"When I looked into your eyes, I don't know what the hell happened.",null,true],
-[85.3,87,"I don't know if it was that ass of yours that left me dazed.","I don't know if it was that arse of yours that left me dazed.",true],
-[87.1,91.5,'Before sleeping, I always asked God to put me in your path.',null,true],
-[91.6,93.3,'And he finally granted my wish.',null,true],
-[93.4,98.4,"Nothing like this has ever happened to me, certainly not with the lovers I'd had by my side.",null,true],
-[98.5,105.6,"Baby, you've left my heart ice-cold, like the mountains of Colorado.",null,true],
+[81.5,85.2,"When I looked into your eyes, I don't know what the hell happened.",null,true,'Al verte a los ojos, no sé qué diablos pasó.'],
+[85.3,87,"I don't know if it was that ass of yours that left me dazed.","I don't know if it was that arse of yours that left me dazed.",true,'No sé si fue ese culo que me idiotizó.'],
+[87.1,91.5,'Before sleeping, I always asked God to put me in your path.',null,true,'Al irme a dormir, siempre le pedí a Dios que me pusiera en tu camino.'],
+[91.6,93.3,'And he finally granted my wish.',null,true,'Y ya me lo cumplió.'],
+[93.4,98.4,"Nothing like this has ever happened to me, certainly not with the lovers I'd had by my side.",null,true,'En mi vida nunca había pasado, menos por los amores que había a mi lado.'],
+[98.5,105.6,"Baby, you've left my heart ice-cold, like the mountains of Colorado.",null,true,'Baby, tú me tienes el corazón frío, helado como las montañas frías de Colorado.'],
 [105.7,108.2,'♪ Vocal refrain ♪'],
 [108.3,113.5,"I'm never going to say goodbye to you. Baby, you're right by my side."],
 [113.6,118.3,"With you I'll stay on standby. ♪ Vocal refrain ♪"],
 [118.4,125.5,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[125.6,132.8,"With you I'll stay on standby. I want to make love while gazing at the stars.",null,true],
-[132.9,136.3,'From a lookout in a neighborhood of Marbella.','From a viewpoint in a neighbourhood of Marbella.',true],
+[125.6,132.8,"With you I'll stay on standby. I want to make love while gazing at the stars.",null,true,'Quiero hacer el amor mirando las estrellas.'],
+[132.9,136.3,'From a lookout in a neighborhood of Marbella.','From a viewpoint in a neighbourhood of Marbella.',true,'En el mirador, en un barrio de Marbella.'],
 [136.4,140.1,"I'm your warrior, babe. You're my maiden."],
 [140.2,145.2,"I've found the princess for my castle. I'm never going to say goodbye to you."],
 [145.3,151.1,"Baby, you're right by my side. With you I'll stay on standby."],
@@ -74,7 +74,7 @@ theaterEnglish=id('theater-english'),inVideoLanguage=id('in-video-language');
 // embedded player's rectangle. YouTube owns its controls and their positions.
 const captionDock=document.createElement('div');
 captionDock.className='ve-caption-dock';
-captionDock.setAttribute('aria-label','English captions and language');
+captionDock.setAttribute('aria-label','Subtitles and language');
 const videoBox=frame.closest('.ve-video-box');
 videoBox.after(captionDock);
 captionDock.append(inVideoLanguage.closest('.ve-in-video-switch'),caption);
@@ -93,7 +93,7 @@ let theaterOpen=false,previousFocus=null;
 const expandedStage=host.querySelector('.ve-stage');
 const expandPlayer=document.createElement('button');
 expandPlayer.id='ve-player-expand';expandPlayer.type='button';
-expandPlayer.textContent='⛶ Expand video + English / Ampliar video + inglés';
+expandPlayer.textContent='⛶ Expand video / Ampliar video';
 expandPlayer.setAttribute('aria-expanded','false');
 expandedStage.before(expandPlayer);
 expandPlayer.addEventListener('click',()=>theaterButton.click());
@@ -151,20 +151,23 @@ function draw(force){
  // The YouTube IFrame API must confirm the current playback time before
  // applying any time-coded words. Never pretend a guessed cue is synchronized.
  const synced=sourceMode!=='youtube'||ready;
- const text=enabled&&synced&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
+ const spanish=lang.value==='es';
+ const text=enabled&&synced&&cue?(spanish?cue[5]||'':lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
+ caption.lang=theaterEnglish.lang=reading.lang=enabled?lang.value:'';
+ const missing=spanish?'Sin subtítulos en español en este momento.':'No verified English caption for this moment. Timing is approximate.';
  const onVideo=sourceMode==='youtube'||sourceMode==='local';
  const waitingForSync=onVideo&&sourceMode==='youtube'&&!ready;
- const overlayText=text||(enabled&&waitingForSync?'🇺🇸 English on · connecting to video time…':'');
+ const overlayText=text||(enabled&&waitingForSync?(spanish?'Conectando con el video…':'Connecting to video time…'):'');
  caption.hidden=!(onVideo&&enabled&&overlayText);
  caption.textContent=overlayText;
  // The video itself is cross-origin; its fullscreen playback hides the page.
- // Keep an English caption strip in Habla's own viewing mode, adjacent to video.
- theaterEnglish.textContent=text||(!enabled?'English captions are off. Select English in Translation / Traducción.'
+ // Keep a caption strip in Habla's own viewing mode, adjacent to video.
+ theaterEnglish.textContent=text||(!enabled?'Subtitles are off. Choose a language in Subtitles / Subtítulos.'
   :sourceMode==='youtube'&&!ready?'Connecting to YouTube timing. Tap Play; if text stays still, review the caption timeline below.'
-  :'No verified English caption for this moment. Timing is approximate.');
+  :missing);
  reading.textContent=text||(sourceMode==='none'
-  ?'English lyric translations are ready below. Choose a saved screen recording to follow them during playback.'
-  :enabled?'No caption verified for this moment.':'English captions off.');
+  ?'Choose a saved video or use the subtitle timeline below.'
+  :enabled?missing:'Subtitles off.');
  confidence.textContent=cue?(cue[4]?'Listener-supplied wording · approximate timing':'Provisional auto-caption-based draft · needs review'):'No timed line';
  confidence.classList.toggle('ve-reviewed',Boolean(cue&&cue[4]));
 }
@@ -197,10 +200,16 @@ function seek(sec){
 }
 for(let i=0;i<cues.length;i++){
  const cue=cues[i],button=document.createElement('button');button.type='button';
- button.textContent=fmt(cue[0])+' '+cue[2];button.addEventListener('click',()=>seek(cue[0]));list.append(button);
+ button.addEventListener('click',()=>seek(cue[0]));list.append(button);
 }
 function syncInVideoLanguage(){
  inVideoLanguage.value=lang.value;
+ for(let i=0;i<cues.length;i++){
+  const cue=cues[i],button=list.children[i];
+  const spanish=lang.value==='es';
+  button.hidden=spanish&&!cue[5];
+  button.textContent=fmt(cue[0])+' '+(spanish?cue[5]||'':lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]);
+ }
  inVideoLanguage.parentElement.hidden=!(sourceMode==='youtube'||sourceMode==='local');
  draw(true);renderPassages();
 }
@@ -229,7 +238,7 @@ function importLocalVideo(file){
   syncInVideoLanguage();
   localVideo.src=localUrl;localVideo.hidden=false;
   frame.hidden=true;playerStart.hidden=true;caption.hidden=true;
-  status.textContent='Saved video loaded from this device. Tap play; Habla English captions follow the video time. Adjust caption offset if needed.';
+  status.textContent='Saved video loaded from this device. Tap play; Habla subtitles follow the video time. Adjust caption offset if needed.';
   localVideo.load();
   draw(true);
  }catch(e){
@@ -254,11 +263,11 @@ function connect(){
   player=new root.YT.Player(frame,{events:{
    onReady:e=>{
     player=e.target;ready=true;
-    status.textContent='YouTube is attempting inline playback. If it leaves Habla, use a saved video instead so English captions remain visible.';
+    status.textContent='YouTube is attempting inline playback. If it leaves Habla, use a saved video instead so subtitles remain visible.';
     draw(true);
    },
    onError:e=>{
-    status.textContent='YouTube refuses embedded playback (code '+e.data+'). Choose a saved recording; your English translations stay here.';
+    status.textContent='YouTube refuses embedded playback (code '+e.data+'). Choose a saved recording; your subtitles stay here.';
    },
    onStateChange:()=>draw(true)
   }});
@@ -303,7 +312,7 @@ function showNativePlayerOnMusicTab(){
  if(root.__hablaNativeInlineVideo===true && sourceMode==='none' &&
     document.getElementById('music-view')?.classList.contains('active')){
    tryYoutube.click(); // Loads the frame, never auto-plays video or audio.
-   status.textContent='The video is now in the Habla Music tab. Tap its play button to start; English captions appear below the player.';
+   status.textContent='The video is now in the Habla Music tab. Tap its play button to start; subtitles appear below the player.';
  }
 }
 // The native iOS Music layout moves older sections into a CLOSED
