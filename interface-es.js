@@ -1,5 +1,6 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Dominican Republic and Venezuela: ASALE records a vulgar, derogatory insult for a stupid or idiotic person. No Ecuadorian or specific-city use is established by this entry.": "República Dominicana y Venezuela: ASALE registra un insulto vulgar y despectivo para referirse a una persona tonta o idiota. Esta entrada no acredita su uso en Ecuador ni en una ciudad concreta.",
   "Strong vulgar insult / Insulto vulgar fuerte": "Insulto vulgar fuerte",
   "Other Spanish counterparts": "Otras equivalencias en español",
   "Matches across other indexed regions, with their own usage and tone.": "Coincidencias en otras regiones del diccionario, con su propio uso y tono.",
