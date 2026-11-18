@@ -54,7 +54,7 @@ test("voice exchange keeps exact locale voice and release wiring",()=>{
   const app=fs.readFileSync("app.js","utf8"),
         sw=fs.readFileSync("sw.js","utf8"),
         release=JSON.parse(fs.readFileSync("app-version.json","utf8"));
-  assert.match(app,/const voice = passage\.voice \|\| voiceForLanguage\(passage\.lang\)/);
+  assert.match(app,/const voice = passage\.voice \|\| \(ENGLISH_PRACTICE_PREVIEW\.has\(passage\.lang\)/);
   assert.match(app,/passage\.requireExactVoice/);
   assert.match(app,/speak:passages => say\(passages\)/);
   assert.match(sw,/english-voice-lab\.js\?v=237/);
