@@ -6116,9 +6116,11 @@ function renderLesson() {
       ? "General English lessons only. Region-specific vocabulary, pronunciation and lesson audio are not yet validated for this country."
       : english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
   const shortLessons = $("#quick-lessons");
+  if (spanishPreview && typeof HablaQuickLessons !== "undefined") HablaQuickLessons.leave();
   if (shortLessons) {shortLessons.hidden = spanishPreview; if (spanishPreview) shortLessons.open = false;}
   if (!spanishPreview && typeof HablaQuickLessons !== "undefined") HablaQuickLessons.setLearningLanguage(locale);
   const recorded = $("#recorded-practice");
+  if (spanishPreview && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.leave();
   if (recorded) {recorded.hidden = spanishPreview; if(spanishPreview) recorded.open = false;}
   if (!spanishPreview && recorded && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.setLearningLanguage(locale);
   if ($("#source-practice")) $("#source-practice").hidden = english || spanishPreview;
