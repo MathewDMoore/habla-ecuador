@@ -2078,7 +2078,10 @@ function say(text, lang="es-EC", button=null) {
   const passages = Array.isArray(text) ? text : [{text,lang}];
   for (const passage of passages) {
     if (!passage.text.trim()) continue;
-    const voice = passage.voice || voiceForLanguage(passage.lang);
+    const voice = passage.voice || (ENGLISH_PRACTICE_PREVIEW.has(passage.lang)
+      ? [...speechVoices].filter(item => normalizedLocale(item.lang) === normalizedLocale(passage.lang) && !VOICE_NAME_BLOCKLIST.test(item.name))
+          .sort((a,b) => voiceQualityScore(b,normalizedLocale(passage.lang),"en") - voiceQualityScore(a,normalizedLocale(passage.lang),"en"))[0] || null
+      : voiceForLanguage(passage.lang));
     const requestedLocale = normalizedLocale(passage.lang);
     const needsExactVoice = passage.requireExactVoice || ENGLISH_PRACTICE_PREVIEW.has(passage.lang);
     if (needsExactVoice && (!voice || normalizedLocale(voice.lang) !== requestedLocale)) {
