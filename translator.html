@@ -46,6 +46,7 @@
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
   <script src="english-voice-lab.js?v=237" defer></script>
+  <script src="regional-evaluation-review.js?v=238" defer></script>
   <script src="app.js?v=238" defer></script>
 </head>
 <body>
@@ -858,6 +859,12 @@
             <p>This first pilot is an automatic scripted conversation and a listening comparison. The voices do <strong>not</strong> train one another or validate each other's accents. Each phrase is original general English, not proof of specific national vocabulary. Research-linked regional expressions, licensed human references, and automated evaluation require separate validation.</p>
             <p>Playback uses only an exact matching device locale: 🇺🇸 en-US, 🇬🇧 en-GB, 🇨🇦 en-CA, 🇦🇺 en-AU, 🇳🇿 en-NZ, 🇮🇪 en-IE. If a voice is missing, the demo will not invent that country's accent.</p>
           </details>
+        </details>
+        <details id="regional-evaluation-queue" class="compact-info source-practice">
+          <summary>🇪🇨 ↔ 🇧🇴 Regional differences · evidence review / Comparaciones en revisión</summary>
+          <p>Research candidates only. These dictionary-based comparisons require editorial review and are not automatically published as lessons. Voice and city-specific claims remain unverified.</p>
+          <p id="regional-evaluation-status" role="status">Open to inspect regional evidence / Abre para revisar las fuentes.</p>
+          <div id="regional-evaluation-results"></div>
         </details>
         <div id="lesson-content"></div>
       </section>
