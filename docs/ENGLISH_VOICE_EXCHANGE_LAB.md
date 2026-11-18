@@ -1,4 +1,4 @@
-# English voice exchange pilot (proposed build 237)
+# English voice exchange pilot (proposed build 238)
 
 ## What the user requested
 The user does **not** want to repeat sentences into the microphone. The objective is to let Habla's English country voices interact with one another and, eventually, help the product find and refine evidence-supported regional lessons without recruiting speakers individually.
@@ -34,3 +34,7 @@ These follow-on steps are **not implemented** here.
 
 ## Relationship to country flags
 This change is based on PR #169, which registers 🇨🇦 🇦🇺 🇳🇿 🇮🇪 as general English **draft** varieties. Their country-specific translation, vocabulary, accent accuracy and published lessons remain unvalidated. Voice presence does not establish any of those features.
+
+## Practice country selector expansion (build 238)
+
+In addition to the six-country A/B voice selector, the Practice language picker now includes 18 English-country choices and 21 Spanish varieties. This is a separate general-language lesson coverage preview: country-specific authenticity remains unvalidated. The 20 additional Spanish selections do not reuse Ecuador-only lesson packs as if local. See docs/PRACTICE_LANGUAGE_COVERAGE.md. The voice lab itself still supports six device speech localities rather than pretending all 39 have regional voices.
