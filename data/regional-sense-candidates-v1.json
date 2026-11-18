@@ -1,0 +1,1057 @@
+{
+  "schemaVersion": 1,
+  "method": "same-expression-region-tagged-sense-discovery",
+  "automaticallyPublished": false,
+  "counts": {
+    "records": 54,
+    "candidates": 12,
+    "regionalCandidates": 7,
+    "overlapCandidates": 5,
+    "issues": 0
+  },
+  "candidates": [
+    {
+      "id": "sense-arrecho",
+      "expression": "arrecho",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-CO",
+        "es-PE",
+        "es-VE"
+      ],
+      "senses": [
+        {
+          "id": "v116-arrecho-angry",
+          "display": "arrecho / arrecha (angry)",
+          "expression": "arrecho",
+          "gloss": "pissed off / furious",
+          "ukGloss": "pissed off / furious",
+          "register": "Vulgar / emotional",
+          "regionLabels": [
+            "es-VE"
+          ],
+          "scope": "Venezuela: angry or in a furious mood; the source marks the Venezuelan use vulgar.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/arrecho",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Está arrecho por la demora.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-arrecho-aroused",
+          "display": "arrecho / arrecha (sexually aroused)",
+          "expression": "arrecho",
+          "gloss": "horny / sexually aroused",
+          "ukGloss": "horny / sexually aroused",
+          "register": "Vulgar / sexual",
+          "regionLabels": [
+            "es-EC",
+            "es-BO",
+            "es-PE",
+            "es-CO"
+          ],
+          "scope": "Ecuador, Bolivia, Peru and Colombia: sexual arousal, marked vulgar by ASALE.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/arrecho",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Se siente arrecho.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-arrecho-aroused"
+          ],
+          "rightSenseIds": [
+            "v116-arrecho-angry"
+          ]
+        },
+        {
+          "left": "es-BO",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-arrecho-aroused"
+          ],
+          "rightSenseIds": [
+            "v116-arrecho-angry"
+          ]
+        },
+        {
+          "left": "es-CO",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-arrecho-aroused"
+          ],
+          "rightSenseIds": [
+            "v116-arrecho-angry"
+          ]
+        },
+        {
+          "left": "es-PE",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-arrecho-aroused"
+          ],
+          "rightSenseIds": [
+            "v116-arrecho-angry"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of arrecho",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-atatay",
+      "expression": "atatay",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-PE"
+      ],
+      "senses": [
+        {
+          "id": "v116-atatay-disgust",
+          "display": "¡atatay! (disgust)",
+          "expression": "atatay",
+          "gloss": "yuck / ugh (disgust)",
+          "ukGloss": "yuck / ugh (disgust)",
+          "register": "Informal exclamation",
+          "regionLabels": [
+            "es-EC",
+            "es-PE"
+          ],
+          "scope": "Ecuador and Peru: a reaction of disgust.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/%C2%A1atatay%21",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "¡Atatay, esa comida huele mal!",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-atatay-pain",
+          "display": "¡atatay! (pain)",
+          "expression": "atatay",
+          "gloss": "ow / ouch (pain)",
+          "ukGloss": "ow / ouch (pain)",
+          "register": "Informal / regional exclamation",
+          "regionLabels": [
+            "es-BO"
+          ],
+          "scope": "Eastern, central and southern Bolivia: pain, particularly from a burn.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/%C2%A1atatay%21",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "¡Atatay, me quemé la mano!",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-BO",
+          "leftSenseIds": [
+            "v116-atatay-disgust"
+          ],
+          "rightSenseIds": [
+            "v116-atatay-pain"
+          ]
+        },
+        {
+          "left": "es-BO",
+          "right": "es-PE",
+          "leftSenseIds": [
+            "v116-atatay-pain"
+          ],
+          "rightSenseIds": [
+            "v116-atatay-disgust"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of atatay",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-bacán",
+      "expression": "bacán",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-PE"
+      ],
+      "senses": [
+        {
+          "id": "v116-bacan-excellent",
+          "display": "bacán / bacana (excellent)",
+          "expression": "bacán",
+          "gloss": "cool / awesome / excellent",
+          "ukGloss": "cool / brilliant / excellent",
+          "register": "Informal / praise",
+          "regionLabels": [
+            "es-EC",
+            "es-PE"
+          ],
+          "scope": "Ecuador and Peru: a person or thing described as very good or excellent.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/bac%C3%A1n",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "El concierto estuvo bacán.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-bacan-wealthy",
+          "display": "bacán / bacana (wealthy person)",
+          "expression": "bacán",
+          "gloss": "wealthy person / rich person",
+          "ukGloss": "wealthy person / rich person",
+          "register": "Popular / social description",
+          "regionLabels": [
+            "es-BO"
+          ],
+          "scope": "Bolivia: a person who has substantial money.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/bac%C3%A1n",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Ese bacán tiene varios negocios.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-BO",
+          "leftSenseIds": [
+            "v116-bacan-excellent"
+          ],
+          "rightSenseIds": [
+            "v116-bacan-wealthy"
+          ]
+        },
+        {
+          "left": "es-BO",
+          "right": "es-PE",
+          "leftSenseIds": [
+            "v116-bacan-wealthy"
+          ],
+          "rightSenseIds": [
+            "v116-bacan-excellent"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of bacán",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-chimbo",
+      "expression": "chimbo",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-CO",
+        "es-VE"
+      ],
+      "senses": [
+        {
+          "id": "v116-chimbo-fake",
+          "display": "chimbo / chimba (fake)",
+          "expression": "chimbo",
+          "gloss": "fake / counterfeit / not genuine",
+          "ukGloss": "fake / counterfeit / not genuine",
+          "register": "Informal / critical",
+          "regionLabels": [
+            "es-EC",
+            "es-CO"
+          ],
+          "scope": "Ecuador and Colombia: a thing that is false, adulterated or not original.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/chimbo",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Me vendieron un reloj chimbo.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-chimbo-poor",
+          "display": "chimbo / chimba (poor quality)",
+          "expression": "chimbo",
+          "gloss": "poor quality / lousy",
+          "ukGloss": "poor quality / rubbish",
+          "register": "Popular / critical",
+          "regionLabels": [
+            "es-EC",
+            "es-VE"
+          ],
+          "scope": "Ecuador and Venezuela: something of poor quality.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/chimbo",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Ese cargador salió chimbo.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-CO",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-chimbo-fake"
+          ],
+          "rightSenseIds": [
+            "v116-chimbo-poor"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of chimbo",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-dar-bola",
+      "expression": "dar bola",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-CU",
+        "es-PE"
+      ],
+      "senses": [
+        {
+          "id": "p201-dar-bola-attention",
+          "display": "dar bola (attention)",
+          "expression": "dar bola",
+          "gloss": "pay attention to someone",
+          "ukGloss": "pay attention to someone",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-EC",
+            "es-BO",
+            "es-PE"
+          ],
+          "scope": "Ecuador · Bolivia · Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/dar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Le expliqué el problema, pero no me dio bola.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "p201-dar-bola-ride",
+          "display": "dar bola (a ride)",
+          "expression": "dar bola",
+          "gloss": "give someone a free ride",
+          "ukGloss": "give someone a lift for free",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-CU"
+          ],
+          "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/dar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Mi vecina me dio bola hasta la estación.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "p201-dar-bola-romance",
+          "display": "dar bola (romantic interest)",
+          "expression": "dar bola",
+          "gloss": "accept someone’s romantic advances",
+          "ukGloss": "accept someone’s romantic advances",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-PE",
+            "es-BO"
+          ],
+          "scope": "Peru · Bolivia: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/dar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "La invitó a salir y ella le dio bola.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-CU",
+          "leftSenseIds": [
+            "p201-dar-bola-attention"
+          ],
+          "rightSenseIds": [
+            "p201-dar-bola-ride"
+          ]
+        },
+        {
+          "left": "es-BO",
+          "right": "es-CU",
+          "leftSenseIds": [
+            "p201-dar-bola-attention",
+            "p201-dar-bola-romance"
+          ],
+          "rightSenseIds": [
+            "p201-dar-bola-ride"
+          ]
+        },
+        {
+          "left": "es-CU",
+          "right": "es-PE",
+          "leftSenseIds": [
+            "p201-dar-bola-ride"
+          ],
+          "rightSenseIds": [
+            "p201-dar-bola-attention",
+            "p201-dar-bola-romance"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of dar bola",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-llucho",
+      "expression": "llucho",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO"
+      ],
+      "senses": [
+        {
+          "id": "v116-llucho-hat",
+          "display": "llucho (Andean hat)",
+          "expression": "llucho",
+          "gloss": "wool hat with earflaps",
+          "ukGloss": "wool hat with earflaps",
+          "register": "Regional / everyday noun",
+          "regionLabels": [
+            "es-BO"
+          ],
+          "scope": "Bolivia: an Andean wool hat with earflaps, used against the cold.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/llucho",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Me puse el llucho para salir.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-llucho-naked",
+          "display": "llucho / llucha (naked)",
+          "expression": "llucho",
+          "gloss": "naked / without clothes",
+          "ukGloss": "naked / without clothes",
+          "register": "Popular / informal",
+          "regionLabels": [
+            "es-EC"
+          ],
+          "scope": "Ecuador: a person without clothes.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/llucho",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Salí llucho del baño.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-BO",
+          "leftSenseIds": [
+            "v116-llucho-naked"
+          ],
+          "rightSenseIds": [
+            "v116-llucho-hat"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of llucho",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-vaina",
+      "expression": "vaina",
+      "kind": "regional-sense-candidate",
+      "priority": 90,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-CO",
+        "es-PE",
+        "es-VE"
+      ],
+      "senses": [
+        {
+          "id": "v116-vaina-informal",
+          "display": "vaina (thing; informal)",
+          "expression": "vaina",
+          "gloss": "thing / stuff / matter",
+          "ukGloss": "thing / stuff / matter",
+          "register": "Informal / popular",
+          "regionLabels": [
+            "es-EC",
+            "es-BO",
+            "es-PE",
+            "es-CO"
+          ],
+          "scope": "Ecuador, Bolivia, Peru and Colombia: an unnamed or unspecified thing or matter.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/vaina",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "No encuentro esa vaina.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-vaina-vulgar",
+          "display": "vaina (thing; Venezuelan vulgar register)",
+          "expression": "vaina",
+          "gloss": "thing / stuff (vulgar Spanish source)",
+          "ukGloss": "thing / stuff (vulgar Spanish source)",
+          "register": "Vulgar / context-sensitive",
+          "regionLabels": [
+            "es-VE"
+          ],
+          "scope": "Venezuela: an unnamed thing or matter, explicitly marked vulgar by ASALE.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/vaina",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Quita esa vaina de la mesa.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [
+        {
+          "left": "es-EC",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-vaina-informal"
+          ],
+          "rightSenseIds": [
+            "v116-vaina-vulgar"
+          ]
+        },
+        {
+          "left": "es-BO",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-vaina-informal"
+          ],
+          "rightSenseIds": [
+            "v116-vaina-vulgar"
+          ]
+        },
+        {
+          "left": "es-CO",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-vaina-informal"
+          ],
+          "rightSenseIds": [
+            "v116-vaina-vulgar"
+          ]
+        },
+        {
+          "left": "es-PE",
+          "right": "es-VE",
+          "leftSenseIds": [
+            "v116-vaina-informal"
+          ],
+          "rightSenseIds": [
+            "v116-vaina-vulgar"
+          ]
+        }
+      ],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of vaina",
+        "objective": "Check the region-labeled meanings and teach the contextual difference without an exclusivity claim.",
+        "type": "regional-meaning-comparison"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-chingón",
+      "expression": "chingón",
+      "kind": "multi-sense-overlap",
+      "priority": 40,
+      "regions": [
+        "es-MX"
+      ],
+      "senses": [
+        {
+          "id": "v116-chingon-quality",
+          "display": "chingón / chingona (excellent quality)",
+          "expression": "chingón",
+          "gloss": "awesome / excellent / really good",
+          "ukGloss": "brilliant / excellent / really good",
+          "register": "Popular / potentially vulgar",
+          "regionLabels": [
+            "es-MX"
+          ],
+          "scope": "Mexico: an object or product of excellent quality; ASALE labels this sense popular, and DEM labels its entry popular.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/ching%C3%B3n",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "El resultado quedó chingón.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-chingon-skilled",
+          "display": "chingón / chingona (skilled person)",
+          "expression": "chingón",
+          "gloss": "badass / highly skilled person",
+          "ukGloss": "highly skilled person / damn good at something",
+          "register": "Vulgar / admiring",
+          "regionLabels": [
+            "es-MX"
+          ],
+          "scope": "Mexico: someone highly skilled in an activity; ASALE marks this person sense vulgar.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/ching%C3%B3n",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Ese técnico es un chingón.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of chingón",
+        "objective": "Explain multiple documented senses without assigning an unproven country contrast.",
+        "type": "polysemy-check"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-dar-muela",
+      "expression": "dar muela",
+      "kind": "multi-sense-overlap",
+      "priority": 40,
+      "regions": [
+        "es-CU"
+      ],
+      "senses": [
+        {
+          "id": "p201-dar-muela-persuade",
+          "display": "dar muela (persuading)",
+          "expression": "dar muela",
+          "gloss": "try to talk someone into something",
+          "ukGloss": "try to talk someone into something",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-CU"
+          ],
+          "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/dar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Me dio muela para que me quedara un rato más.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "p201-dar-muela-talk",
+          "display": "dar muela (talking a lot)",
+          "expression": "dar muela",
+          "gloss": "talk a lot / go on and on",
+          "ukGloss": "talk a lot / go on and on",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-CU"
+          ],
+          "scope": "Cuba: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/dar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Nos dio muela toda la tarde.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of dar muela",
+        "objective": "Explain multiple documented senses without assigning an unproven country contrast.",
+        "type": "polysemy-check"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-mamar-gallo",
+      "expression": "mamar gallo",
+      "kind": "multi-sense-overlap",
+      "priority": 40,
+      "regions": [
+        "es-CO",
+        "es-VE"
+      ],
+      "senses": [
+        {
+          "id": "p201-mamar-gallo-evade",
+          "display": "mamar gallo (false promises)",
+          "expression": "mamar gallo",
+          "gloss": "fob someone off / string someone along",
+          "ukGloss": "fob someone off / string someone along",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-CO"
+          ],
+          "scope": "Colombia: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/mamar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Me promete pagar cada semana, pero me está mamando gallo.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "p201-mamar-gallo-tease",
+          "display": "mamar gallo (teasing)",
+          "expression": "mamar gallo",
+          "gloss": "pull someone’s leg / tease someone",
+          "ukGloss": "pull someone’s leg / tease someone",
+          "register": "Colloquial",
+          "regionLabels": [
+            "es-CO",
+            "es-VE"
+          ],
+          "scope": "Colombia · Venezuela: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/mamar",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "No te enojes, solo te estoy mamando gallo.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of mamar gallo",
+        "objective": "Explain multiple documented senses without assigning an unproven country contrast.",
+        "type": "polysemy-check"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-palta",
+      "expression": "palta",
+      "kind": "multi-sense-overlap",
+      "priority": 40,
+      "regions": [
+        "es-EC",
+        "es-BO",
+        "es-PE"
+      ],
+      "senses": [
+        {
+          "id": "v116-palta-avocado",
+          "display": "palta (avocado)",
+          "expression": "palta",
+          "gloss": "avocado",
+          "ukGloss": "avocado",
+          "register": "Neutral / food vocabulary",
+          "regionLabels": [
+            "es-EC",
+            "es-BO",
+            "es-PE"
+          ],
+          "scope": "Ecuador, Bolivia and Peru: the edible avocado fruit.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/palta",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Compré una palta para la ensalada.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "v116-palta-embarrassment",
+          "display": "palta (embarrassment)",
+          "expression": "palta",
+          "gloss": "embarrassment / feeling embarrassed",
+          "ukGloss": "embarrassment / feeling embarrassed",
+          "register": "Popular / informal",
+          "regionLabels": [
+            "es-PE"
+          ],
+          "scope": "Peru: embarrassment or social unease.",
+          "source": {
+            "name": "ASALE · Americanisms",
+            "url": "https://www.asale.org/damer/palta",
+            "sourceChecked": "2026-10-24",
+            "referenceOnly": true
+          },
+          "exampleEs": "Me dio palta llegar tarde.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of palta",
+        "objective": "Explain multiple documented senses without assigning an unproven country contrast.",
+        "type": "polysemy-check"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    },
+    {
+      "id": "sense-por-las-huevas",
+      "expression": "por las huevas",
+      "kind": "multi-sense-overlap",
+      "priority": 40,
+      "regions": [
+        "es-EC",
+        "es-PE"
+      ],
+      "senses": [
+        {
+          "id": "p201-por-huevas-reason",
+          "display": "por las huevas (without reason)",
+          "expression": "por las huevas",
+          "gloss": "for no good reason / without justification",
+          "ukGloss": "for no good reason / without justification",
+          "register": "Colloquial · may sound coarse",
+          "regionLabels": [
+            "es-EC",
+            "es-PE"
+          ],
+          "scope": "Ecuador · Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/hueva",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "No discutan por las huevas.",
+          "editorialStatus": "review-needed"
+        },
+        {
+          "id": "p201-por-huevas-vain",
+          "display": "por las huevas (in vain)",
+          "expression": "por las huevas",
+          "gloss": "in vain / for nothing",
+          "ukGloss": "in vain / for nothing",
+          "register": "Popular · may sound coarse",
+          "regionLabels": [
+            "es-PE"
+          ],
+          "scope": "Peru: this sense is dictionary-attested; not an exclusivity or city claim.",
+          "source": {
+            "name": "ASALE · Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/hueva",
+            "sourceChecked": "2026-11-02",
+            "referenceOnly": true
+          },
+          "exampleEs": "Fuimos por las huevas: la oficina estaba cerrada.",
+          "editorialStatus": "review-needed"
+        }
+      ],
+      "differingPairs": [],
+      "sourceStatus": "curated-dictionary-records-needing-independent-review",
+      "evidenceLevel": "source-cited-not-freshly-verified",
+      "lessonProposal": {
+        "title": "Compare meanings of por las huevas",
+        "objective": "Explain multiple documented senses without assigning an unproven country contrast.",
+        "type": "polysemy-check"
+      },
+      "publishable": false,
+      "automaticallyApproved": false,
+      "warnings": [
+        "Region labels are scoped to individual dictionary senses, not frequency or exclusivity.",
+        "Overlapping senses can coexist in the same country.",
+        "Source pages, registers and example sentences require editorial verification before lessons.",
+        "No audio pronunciation or city-level claim is verified."
+      ]
+    }
+  ],
+  "issues": []
+}
