@@ -46,7 +46,7 @@ test("both app screens expose hands-free dialogue, not a microphone repeat drill
       assert.ok(fragment.includes('value="'+item.locale+'"'),path+": missing "+item.locale);
     assert.doesNotMatch(fragment,/data-practice-text|voice-lab-mic|Hold to speak|Tap to speak/i);
     assert.ok(html.includes("english-voice-lab.js?v=237"),path+": missing cache-busted script");
-    assert.ok(html.includes("app.js?v=237"),path+": missing updated app");
+    assert.ok(html.includes("app.js?v=238"),path+": missing updated app");
   }
 });
 
@@ -58,8 +58,8 @@ test("voice exchange keeps exact locale voice and release wiring",()=>{
   assert.match(app,/passage\.requireExactVoice/);
   assert.match(app,/speak:passages => say\(passages\)/);
   assert.match(sw,/english-voice-lab\.js\?v=237/);
-  assert.match(sw,/habla-ecuador-v237/);
-  assert.equal(release.build,237);
-  assert.equal(release.version,"0.27.27");
+  assert.match(sw,/habla-ecuador-v238/);
+  assert.equal(release.build,238);
+  assert.equal(release.version,"0.27.28");
   assert.doesNotMatch(fs.readFileSync("english-voice-lab.js","utf8"),/SpeechRecognition|mediaDevices\.getUserMedia|new Audio\(/);
 });
