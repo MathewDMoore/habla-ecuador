@@ -136,7 +136,7 @@ const HablaOffline = (() => {
       ready=false;
       status('Offline pack not ready. ' + (error.message || "Download interrupted; retry to continue."));
       return false;
-    } finally { button.disabled = Boolean(supportProblem()); button.textContent = ready ? "Validate offline pack" : "Download / validate offline pack"; }
+    } finally { button.disabled = false; button.textContent = supportProblem() ? "Check offline support" : ready ? "Validate offline pack" : "Download / validate offline pack"; }
   }
   async function prepare() {
     if (startup) await startup;
@@ -170,10 +170,11 @@ const HablaOffline = (() => {
     checkbox.addEventListener("change", () => {
       enabled = checkbox.checked;
       try { localStorage.setItem("habla-ecuador-offline-only-v2", enabled ? "yes" : "no"); } catch {}
-      status(enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
+      const problem = supportProblem();
+      status(problem ? `${problem} On-device only will not send your text online.` : enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
     });
     const problem=supportProblem();
-    if (problem) {button.disabled=true;status(problem);return;}
+    if (problem) {button.disabled=false;button.textContent="Check offline support";status(`${problem} Tap Check offline support for details. No text is sent online while On-device only is checked.`);return;}
     let downloaded=false;
     try {downloaded=await checkPack();} catch {}
     if (downloaded) {
