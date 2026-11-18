@@ -20,7 +20,15 @@ if(!report.candidates.length || report.issues.length){
   process.exitCode=1;
 }
 const destination=process.argv.find(a=>a.startsWith("--output="))?.slice("--output=".length);
-if(destination){
+if(process.argv.includes("--check")){
+  const snapshot=path.join(root,"data","regional-lesson-proposals-v1.json");
+  const actual=fs.readFileSync(snapshot,"utf8");
+  const expected=JSON.stringify(report,null,2)+"\n";
+  if(actual!==expected){
+    console.error("Regional lesson proposal snapshot is out of date. Regenerate with --output=data/regional-lesson-proposals-v1.json");
+    process.exitCode=1;
+  } else console.log("Regional lesson proposals match the reviewed source files.");
+} else if(destination){
   const target=path.resolve(process.cwd(),destination);
   fs.mkdirSync(path.dirname(target),{recursive:true});
   fs.writeFileSync(target,JSON.stringify(report,null,2)+"\n");
