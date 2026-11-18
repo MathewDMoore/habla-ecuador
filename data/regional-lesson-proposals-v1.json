@@ -1,0 +1,484 @@
+{
+  "schemaVersion": 1,
+  "scope": "Ecuador–Bolivia lexical/sense comparisons",
+  "method": "deterministic-curated-evidence-evaluation",
+  "automaticPublication": false,
+  "counts": {
+    "candidates": 7,
+    "reviewedSources": 3,
+    "evidenceGaps": 1,
+    "issues": 0
+  },
+  "candidates": [
+    {
+      "id": "ec-bo-atatay",
+      "entryId": "atatay",
+      "headword": "¡atatay!",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "different-meanings",
+      "relationship": "meaning-contrast",
+      "priority": 95,
+      "sourceStatus": "source-page-reviewed",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "meaning-contrast",
+        "level": "A1",
+        "objective": "Compare the documented Ecuadorian and Bolivian senses without generalizing beyond cited regions.",
+        "ecuadorMeaning": "Disgust or revulsion.",
+        "boliviaMeaning": "Pain, especially from a burn, in the ASALE entry.",
+        "learnerAlert": "High-value contrast: the same-looking interjection can cue a different reaction.",
+        "exampleEs": "¡Atatay! Ese olor está horrible.",
+        "exampleUs": "Ew! That smell is awful.",
+        "exampleUk": "Ugh! That smell is horrible.",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/%C2%A1atatay%21",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "source-page-reviewed",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": {
+          "reviewedOn": "2026-11-18",
+          "note": "ASALE differentiates Ec/Pe disgust and Bo pain especially burns; not a frequency claim."
+        }
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing."
+      ]
+    },
+    {
+      "id": "ec-bo-guagua",
+      "entryId": "guagua",
+      "headword": "guagua",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "shared-with-extensions",
+      "relationship": "shared-core-different-extensions",
+      "priority": 80,
+      "sourceStatus": "source-page-reviewed",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "semantic-range",
+        "level": "A1",
+        "objective": "Compare the documented Ecuadorian and Bolivian senses without generalizing beyond cited regions.",
+        "ecuadorMeaning": "Baby, young child, and especially one's child while young are documented senses.",
+        "boliviaMeaning": "Young child is shared; ASALE also documents Bolivia-specific senses and expressions.",
+        "learnerAlert": "Safe shared core meaning, but do not assume every extended sense transfers.",
+        "exampleEs": "¿Cómo está tu guagua?",
+        "exampleUs": "How's your little one?",
+        "exampleUk": "How's your little one?",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/guagua",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "source-page-reviewed",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": {
+          "reviewedOn": "2026-11-18",
+          "note": "ASALE child senses overlap and region-labeled extensions differ; other countries have separate meanings."
+        }
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing."
+      ]
+    },
+    {
+      "id": "ec-bo-yapa",
+      "entryId": "yapa",
+      "headword": "yapa",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "shared-with-extensions",
+      "relationship": "shared-core-different-extensions",
+      "priority": 80,
+      "sourceStatus": "reference-link-awaits-review",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "semantic-range",
+        "level": "A2",
+        "objective": "Compare the documented Ecuadorian and Bolivian senses without generalizing beyond cited regions.",
+        "ecuadorMeaning": "A small extra gift with a purchase; also a humorous sense for the last child in a large family.",
+        "boliviaMeaning": "The purchase-extra sense is shared; ASALE also records additional Bolivia uses and expressions.",
+        "learnerAlert": "Excellent shared-Andean comparison with country-specific extensions.",
+        "exampleEs": "¿Me da una yapita, por favor?",
+        "exampleUs": "Could you give me a little extra, please?",
+        "exampleUk": "Could you give me a little extra, please?",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/yapa",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "reference-link-awaits-review",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": null
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing.",
+        "The source link must be independently rechecked."
+      ]
+    },
+    {
+      "id": "ec-bo-yunta-friend",
+      "entryId": "yunta-friend",
+      "headword": "yunta",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "register-or-range",
+      "relationship": "shared-with-frequency-range-difference",
+      "priority": 70,
+      "sourceStatus": "reference-link-awaits-review",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "semantic-range",
+        "level": "A2",
+        "objective": "Compare the documented Ecuadorian and Bolivian senses without generalizing beyond cited regions.",
+        "ecuadorMeaning": "Close friend is documented, but ASALE marks the Ecuadorian sense as infrequent.",
+        "boliviaMeaning": "Close friend and a closely bonded pair are documented senses.",
+        "learnerAlert": "Teach as a friendship term with a frequency note rather than as uniquely Ecuadorian.",
+        "exampleEs": "Él es mi yunta desde hace años.",
+        "exampleUs": "He's been one of my closest buddies for years.",
+        "exampleUk": "He's been one of my closest mates for years.",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/yunta",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "reference-link-awaits-review",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": null
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing.",
+        "The source link must be independently rechecked."
+      ]
+    },
+    {
+      "id": "ec-bo-yapar",
+      "entryId": "yapar",
+      "headword": "yapar",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "related-different-senses",
+      "relationship": "related-senses",
+      "priority": 65,
+      "sourceStatus": "reference-link-awaits-review",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "semantic-range",
+        "level": "B1",
+        "objective": "Compare the documented Ecuadorian and Bolivian senses without generalizing beyond cited regions.",
+        "ecuadorMeaning": "To give a yapa or small extra gift.",
+        "boliviaMeaning": "Related add/increase senses are documented, especially in eastern Bolivia.",
+        "learnerAlert": "Show the shared word family while keeping the documented verb senses separate.",
+        "exampleEs": "La vendedora me yapó un poquito más de fruta.",
+        "exampleUs": "The vendor threw in a little extra fruit.",
+        "exampleUk": "The seller added a little extra fruit for free.",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/yapar",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "reference-link-awaits-review",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": null
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing.",
+        "The source link must be independently rechecked."
+      ]
+    },
+    {
+      "id": "ec-bo-pana",
+      "entryId": "pana",
+      "headword": "pana",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "shared-not-exclusive",
+      "relationship": "shared",
+      "priority": 55,
+      "sourceStatus": "source-page-reviewed",
+      "status": "editorial-review-required",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "shared-vocabulary",
+        "level": "A1",
+        "objective": "Explain documented overlapping meanings without claiming Ecuadorian exclusivity.",
+        "ecuadorMeaning": "Close friend; familiar address among close friends.",
+        "boliviaMeaning": "Close friend is also documented by ASALE.",
+        "learnerAlert": "Useful in both comparison columns; not an Ecuador-exclusive badge candidate.",
+        "exampleEs": "Voy al partido con un pana del trabajo.",
+        "exampleUs": "I'm going to the game with a buddy from work.",
+        "exampleUk": "I'm going to the match with a mate from work.",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/pana",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "source-page-reviewed",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": {
+          "reviewedOn": "2026-11-18",
+          "note": "ASALE lists intimate-friend sense across multiple countries including Ecuador and eastern Bolivia; not Ecuador-exclusive."
+        }
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing."
+      ]
+    },
+    {
+      "id": "ec-bo-acolitar",
+      "entryId": "acolitar",
+      "headword": "acolitar",
+      "locales": [
+        "es-EC",
+        "es-BO"
+      ],
+      "differenceKind": "evidence-gap",
+      "relationship": "comparison-pending",
+      "priority": 20,
+      "sourceStatus": "reference-link-awaits-review",
+      "status": "needs-evidence",
+      "publishable": false,
+      "automaticallyApproved": false,
+      "lesson": {
+        "type": "research-queue",
+        "level": "B1",
+        "objective": "Find a documented Bolivian sense before teaching a country comparison.",
+        "ecuadorMeaning": "To support someone in an activity or idea; Ecuador's DAE also documents a complicity sense.",
+        "boliviaMeaning": "No Bolivia sense is established by the attached ASALE acolitar entry.",
+        "learnerAlert": "Do not display 'not used in Bolivia'; display 'Bolivia evidence pending.'",
+        "exampleEs": "¿Me acolitas con esta idea?",
+        "exampleUs": "Will you back me up on this idea?",
+        "exampleUk": "Will you back me up on this idea?",
+        "exampleScope": "Existing Ecuador example; never re-label as Bolivian."
+      },
+      "evidence": {
+        "primary": {
+          "url": "https://www.asale.org/damer/acolitar",
+          "source": "ASALE (link supplied by curated comparison table)",
+          "verification": "reference-link-awaits-review",
+          "regions": [
+            "es-EC",
+            "es-BO"
+          ]
+        },
+        "bibliography": [
+          {
+            "id": "minedu_dae",
+            "name": "Ministerio de Educación — Diccionario académico de ecuatorianismos",
+            "url": "https://recursos.educacion.gob.ec/diccionario/",
+            "referenceOnly": true
+          },
+          {
+            "id": "asale_damer",
+            "name": "ASALE — Diccionario de americanismos",
+            "url": "https://www.asale.org/damer/",
+            "referenceOnly": true
+          },
+          {
+            "id": "corpha",
+            "name": "AEL — Corpus del Habla del Ecuador (CORPHA)",
+            "url": "https://www.academiaecuatorianadelalengua.org/corpha-ec-2/",
+            "referenceOnly": true
+          }
+        ],
+        "review": null
+      },
+      "warnings": [
+        "Dictionary attestation does not establish usage frequency or exclusivity.",
+        "No phoneme, audio or native-speaker verification was performed.",
+        "Human editorial approval is required before publishing.",
+        "Lack of evidence is not evidence of non-use in Bolivia.",
+        "The source link must be independently rechecked."
+      ]
+    }
+  ],
+  "issues": []
+}
