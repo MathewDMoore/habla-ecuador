@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.27 · build 237";
+const APP_VERSION = "0.27.28 · build 238";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -330,8 +330,11 @@ let selectedChoice = "";
 let lessonLanguagePreference = "";
 try { lessonLanguagePreference = localStorage.getItem("habla-lesson-language-v1") || ""; } catch {}
 
+const ENGLISH_PRACTICE_LOCALES = Object.freeze(["en-US","en-GB","en-CA","en-AU","en-NZ","en-IE","en-JM","en-BS","en-BB","en-GY","en-TT","en-AG","en-KN","en-LC","en-VC","en-GD","en-ZA","en-SG"]);
+const ENGLISH_PRACTICE_PREVIEW = new Set(ENGLISH_PRACTICE_LOCALES.slice(2));
 function lessonTargetLocale(preference=lessonLanguagePreference, ui=window.HablaUI?.language || "en") {
-  return ["es-EC","en-US","en-GB"].includes(preference) ? preference : ui === "es" ? "en-US" : "es-EC";
+  return preference === "es-EC" || ENGLISH_PRACTICE_LOCALES.includes(preference)
+    ? preference : ui === "es" ? "en-US" : "es-EC";
 }
 let turns = [];
 let liveConversationTurn = null;
@@ -2076,8 +2079,10 @@ function say(text, lang="es-EC", button=null) {
   for (const passage of passages) {
     if (!passage.text.trim()) continue;
     const voice = passage.voice || voiceForLanguage(passage.lang);
-    if (passage.requireExactVoice && (!passage.voice || normalizedLocale(voice?.lang) !== normalizedLocale(passage.lang))) {
-      return unavailable("The requested regional voice is unavailable. No substitute was played.");
+    const requestedLocale = normalizedLocale(passage.lang);
+    const needsExactVoice = passage.requireExactVoice || ENGLISH_PRACTICE_PREVIEW.has(passage.lang);
+    if (needsExactVoice && (!voice || normalizedLocale(voice.lang) !== requestedLocale)) {
+      return unavailable("No matching regional voice is available on this device. The text lesson remains usable; no substitute accent was played.");
     }
     if (speechVoices.length && !voice) {
       const label = normalizedLocale(passage.lang).startsWith("es") ? "Spanish" : "English";
@@ -6098,9 +6103,11 @@ function renderLesson() {
   const content = $("#lesson-content");
   const locale = lessonTargetLocale(), english = locale !== "es-EC";
   content.dataset.targetLanguage = locale;
-  if ($("#lesson-language")) $("#lesson-language").value = ["es-EC","en-US","en-GB"].includes(lessonLanguagePreference) ? lessonLanguagePreference : "";
+  if ($("#lesson-language")) $("#lesson-language").value = lessonLanguagePreference === "es-EC" || ENGLISH_PRACTICE_LOCALES.includes(lessonLanguagePreference) ? lessonLanguagePreference : "";
   $$(".lesson-card .card-kicker").forEach(el => { el.textContent = english ? "A1 English speaking lesson" : "A1 speaking lesson"; });
-  if ($("#lesson-learning-goal")) $("#lesson-learning-goal").textContent = english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
+  if ($("#lesson-learning-goal")) $("#lesson-learning-goal").textContent = ENGLISH_PRACTICE_PREVIEW.has(locale)
+    ? "General English lessons only. Region-specific vocabulary, pronunciation and lesson audio are not yet validated for this country."
+    : english ? "Learn English with Spanish meanings." : "Learn Ecuadorian Spanish with English meanings.";
   if (typeof HablaQuickLessons !== "undefined") HablaQuickLessons.setLearningLanguage(locale);
   const recorded = $("#recorded-practice");
   if (recorded && typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.setLearningLanguage(locale);
@@ -6615,7 +6622,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=237", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=238", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
