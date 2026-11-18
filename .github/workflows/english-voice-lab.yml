@@ -27,7 +27,8 @@ on:
       - 'data/regional-evidence-reviews-v1.json'
       - 'data/regional-lesson-proposals-v1.json'
       - 'scripts/evaluate-regional-lessons.cjs'
-      - 'tests/regional-lesson-evaluator.test.cjs tests/regional-sense-discovery.test.cjs'
+      - 'tests/regional-lesson-evaluator.test.cjs'
+      - 'tests/regional-sense-discovery.test.cjs'
       - '.github/workflows/english-voice-lab.yml'
   workflow_dispatch:
 
@@ -44,7 +45,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --check english-voice-lab.js && node --check app.js && node --check quick-lessons.js && node --check recorded-practice.js && node --check sw.js && node --check regional-lesson-evaluator.js && node --check regional-sense-discovery.js && node --check regional-evaluation-review.js
-      - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/english-practice-regions.test.cjs tests/dictionary-practice.test.cjs tests/regional-lesson-evaluator.test.cjs
+      - run: node --test tests/english-voice-lab.test.cjs tests/english-country-flags.test.cjs tests/english-practice-regions.test.cjs tests/dictionary-practice.test.cjs tests/regional-lesson-evaluator.test.cjs tests/regional-sense-discovery.test.cjs
       - run: node scripts/evaluate-regional-lessons.cjs --check
       - run: node scripts/evaluate-regional-lessons.cjs --output=regional-lesson-review-artifact.json
       - uses: actions/upload-artifact@v4
