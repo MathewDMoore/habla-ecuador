@@ -1,0 +1,26 @@
+[
+  {
+    "entryId": "atatay",
+    "sourceUrl": "https://www.asale.org/damer/%C2%A1atatay%21",
+    "evidenceKind": "dictionary-entry",
+    "reviewDate": "2026-11-18",
+    "reviewed": true,
+    "note": "ASALE differentiates Ec/Pe disgust and Bo pain especially burns; not a frequency claim."
+  },
+  {
+    "entryId": "guagua",
+    "sourceUrl": "https://www.asale.org/damer/guagua",
+    "evidenceKind": "dictionary-entry",
+    "reviewDate": "2026-11-18",
+    "reviewed": true,
+    "note": "ASALE child senses overlap and region-labeled extensions differ; other countries have separate meanings."
+  },
+  {
+    "entryId": "pana",
+    "sourceUrl": "https://www.asale.org/damer/pana",
+    "evidenceKind": "dictionary-entry",
+    "reviewDate": "2026-11-18",
+    "reviewed": true,
+    "note": "ASALE lists intimate-friend sense across multiple countries including Ecuador and eastern Bolivia; not Ecuador-exclusive."
+  }
+]
