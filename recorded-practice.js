@@ -89,7 +89,7 @@
     "task": "Tu amistad propone parar para almorzar. Di que tienes hambre."
   }
 ];
-  const englishCatalog = {'en-US':originalEnglishLessons,'en-GB':originalEnglishLessons};
+  const englishCatalog = {'en-US':originalEnglishLessons,'en-GB':originalEnglishLessons,'en-CA':originalEnglishLessons,'en-AU':originalEnglishLessons,'en-NZ':originalEnglishLessons,'en-IE':originalEnglishLessons,'en-JM':originalEnglishLessons,'en-BS':originalEnglishLessons,'en-BB':originalEnglishLessons,'en-GY':originalEnglishLessons,'en-TT':originalEnglishLessons,'en-AG':originalEnglishLessons,'en-KN':originalEnglishLessons,'en-LC':originalEnglishLessons,'en-VC':originalEnglishLessons,'en-GD':originalEnglishLessons,'en-ZA':originalEnglishLessons,'en-SG':originalEnglishLessons};
   let learningLocale = 'es-EC', englishStage = 1;
   const selectedEnglish = {};
   let selected = catalog.items[0].id, player = null, generation = 0, spanishSubtitles = true;
@@ -119,6 +119,7 @@
     content.innerHTML=`
       <label>Choose a speaking lesson<select id="english-lesson-select">${items.map(i=>`<option value="${i.id}" ${i.id===item.id?'selected':''}>${escape(i.title)}</option>`).join('')}</select></label>
       <h3 lang="es" data-ui-content>${escape(item.title)}</h3>
+      ${!["en-US","en-GB"].includes(locale) ? `<p role="note">General English lessons shared across countries; no validated regional accent or local phrase claims. The requested local device voice may be unavailable.</p>` : ""}
       <p>Understand, listen, then speak.</p>
       <div class="english-mini-steps" role="group" aria-label="Mini lesson steps"><button type="button" data-mini-step="1">1 · Understand</button><button type="button" data-mini-step="2">2 · Listen</button><button type="button" data-mini-step="3">3 · Speak</button></div>
       <section id="english-mini-understand" data-mini-panel="1">
