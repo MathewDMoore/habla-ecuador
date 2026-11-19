@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.33 · build 243";
+const APP_VERSION = "0.27.34 · build 244";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2121,7 +2121,24 @@ function correctSpeechRecognitionTranscript(text, lang="") {
   };
 }
 
-function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true, minConfidence=0, warnOnProvisional=true}={}) {
+function faceRecognitionCandidate(result) {
+  const best = result[0];
+  const joinName = text => text.replace(/\bta\s*ma\s*u\s*li\s*pas\b/gi, "Tamaulipas");
+  const transcript = joinName(best.transcript);
+  // Only use a lower-ranked candidate when it corroborates the place name
+  // and leaves the rest of the utterance intact.
+  const nearName = /\btama\s*li\s*pas\b/i;
+  if (nearName.test(transcript)) {
+    const expected = normalize(transcript.replace(nearName, "Tamaulipas"));
+    for (const alternative of Array.from(result).slice(1)) {
+      const candidate = joinName(alternative.transcript);
+      if (normalize(candidate) === expected) return {transcript:candidate, confidence:alternative.confidence};
+    }
+  }
+  return {transcript, confidence:best.confidence};
+}
+
+function startListening({way=direction, lang, button, onText, onEnd, onCancel, onStart, onAudioStart, onSpeechStart, onError, formatError=recognitionErrorMessage, continuous=false, commitOnEnd=false, correctTranscript=true, faceNames=false, minConfidence=0, warnOnProvisional=true}={}) {
   if (typeof HablaRecordedPractice !== "undefined") HablaRecordedPractice.pause();
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Recognition) return showToast("Live speech recognition is unavailable here. Typing and audio playback still work.");
@@ -2140,7 +2157,7 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.lang = lang || (way === "en-ec" ? "en-US" : "es-EC");
   instance.interimResults = true;
   instance.continuous = continuous;
-  instance.maxAlternatives = 1;
+  instance.maxAlternatives = faceNames ? 3 : 1;
   let latestText = "";
   let latestFinal = false;
   let lowConfidence = false;
@@ -2200,11 +2217,12 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
   instance.onresult = event => {
     if (recognition !== instance || committed || !event.results.length) return;
     const results = Array.from(event.results);
-    const rawText = results.map(result => result[0].transcript).join(" ").trim();
+    const candidates = results.map(result => faceNames ? faceRecognitionCandidate(result) : result[0]);
+    const rawText = candidates.map(candidate => candidate.transcript).join(" ").trim();
     const isFinal = results.every(result => result.isFinal);
     latestFinal = isFinal;
-    lowConfidence = minConfidence > 0 && results.some(result => {
-      const confidence = result[0].confidence;
+    lowConfidence = minConfidence > 0 && candidates.some(candidate => {
+      const confidence = candidate.confidence;
       return confidence > 0 && confidence < minConfidence;
     });
     const correction = correctTranscript ? correctSpeechRecognitionTranscript(rawText, instance.lang) : {text:rawText};
@@ -4734,6 +4752,7 @@ function conversationGreeting(text, way) {
 
 async function translateFaceTurn(turn, isCurrent) {
   const way = turn.role === "spanish" ? "ec-en" : "en-ec";
+  if (/^Tamaulipas[.!?]?$/i.test(turn.source.trim())) return turn.source.trim().replace(/tamaulipas/i, "Tamaulipas");
   const options = {purpose:"everyday", source:turn.sourceLocale, target:turn.target, isCurrent};
   const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
   try {
@@ -4765,7 +4784,7 @@ async function retryFaceTurn(index) {
   }
 }
 
-async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false,spoken=false}={}) {
+async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false,spoken=false,replaceTurn}={}) {
   const generation = conversationGeneration;
   const manual=forcedRole === "spanish" || forcedRole === "english";
   const evidence=manual ? {family:forcedRole === "spanish" ? "es" : "en",confident:true} : conversationLanguageEvidence(text,expectedRole,locales[expectedRole]);
@@ -4787,7 +4806,11 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     turn.showVerbatim = swears.test(normalize(text));
   }
   liveConversationTurn = null;
-  turns.push(turn);
+  if (replaceTurn) {
+    const index = turns.indexOf(replaceTurn);
+    if (index < 0) return;
+    turns[index] = turn;
+  } else turns.push(turn);
   renderTurns();
   const spanishLocale=detectedFamily==="es" ? sourceLocale : target;
   const englishLocale=detectedFamily==="en" ? sourceLocale : target;
@@ -4876,6 +4899,9 @@ function renderFaceToFace() {
         ${languageHint}${!turn.showVerbatim || note ? `<details ${detailsOpen ? "open" : ""}><summary>${turn.showVerbatim ? "Usage notes / Notas de uso" : "Original / Original"}</summary>
         ${turn.showVerbatim ? "" : `<p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`}${note}</details>` : ""}
         <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
+    }
+    if (turn && !turn.pending) {
+      box.insertAdjacentHTML("beforeend", `<button type="button" class="text-button" data-face-edit="${index}">Correct original / Corregir original</button>`);
     }
     if (turn?.showVerbatim && !turn.failed && turn.slot !== role) {
       box.insertAdjacentHTML("beforeend", `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>`);
@@ -4968,7 +4994,7 @@ function startFaceCapture(button, handsFree=null) {
   }, 8000);
   startListening({
     formatError: error => handsFree && error === "no-speech" ? "" : recognitionErrorMessage(error),
-    button, lang:micLocale, continuous:!handsFree, commitOnEnd:true, correctTranscript:false, minConfidence:0.45, warnOnProvisional:false,
+    button, lang:micLocale, continuous:!handsFree, commitOnEnd:true, correctTranscript:false, faceNames:true, minConfidence:0.45, warnOnProvisional:false,
     onStart() { if (!browser) ready(); },
     onAudioStart:ready,
     onSpeechStart:ready,
@@ -5072,7 +5098,37 @@ function bindFaceToFace() {
     event.preventDefault();
     closeFaceToFace();
   });
+  const editor = $("#face-edit-dialog");
+  const original = $("#face-edit-original");
+  let editing = null;
+  let resumeListening = false;
+  editor.addEventListener("close", () => {
+    const turn = editing;
+    editing = null;
+    const text = original.value.trim();
+    original.value = "";
+    if (resumeListening && dialog.open && !document.hidden) toggleFaceHandsFree();
+    resumeListening = false;
+    if (editor.returnValue !== "save" || !text || text === turn?.source || !turns.includes(turn)) return;
+    const locales = turn.slot === turn.role
+      ? {[turn.slot]:turn.sourceLocale, [turn.slot === "english" ? "spanish" : "english"]:turn.target}
+      : faceLocales();
+    handleConversationText(turn.slot, turn.speaker, text, true, {locales,faceToFace:true,replaceTurn:turn});
+  });
   dialog.addEventListener("click", event => {
+    const edit = event.target.closest("[data-face-edit]");
+    if (edit) {
+      const turn = turns[Number(edit.dataset.faceEdit)];
+      if (!turn?.faceToFace || turn.pending) return;
+      resumeListening = Boolean(faceHandsFree);
+      if (faceHandsFree) stopFaceHandsFree();
+      else if (faceCapture) cancelFaceCapture();
+      editing = turn;
+      original.value = turn.source;
+      editor.returnValue = "";
+      editor.showModal();
+      return;
+    }
     const download = event.target.closest("[data-face-pack]");
     if (download) {
       const index = Number(download.dataset.facePack), turn = turns[index];
@@ -6727,7 +6783,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=243", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=244", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

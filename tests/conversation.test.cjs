@@ -477,6 +477,16 @@ async function main() {
     assert.equal(run("speakerName('english')"),names.english);
   }
 
+  assert.equal(run('faceRecognitionCandidate([{transcript:"Soy de Tama ulipas."}]).transcript'), "Soy de Tamaulipas.");
+  assert.equal(run('faceRecognitionCandidate([{transcript:"From Tamalipas"}, {transcript:"From Tamaulipas"}]).transcript'), "From Tamaulipas");
+  assert.equal(run('faceRecognitionCandidate([{transcript:"Sí, como los taplados."}, {transcript:"Tamaulipas"}]).transcript'), "Sí, como los taplados.");
+  run('clearConversation()');
+  await run('handleConversationText("spanish","Antonio","No.",true,{faceToFace:true,locales:faceLocales()})');
+  await run('handleConversationText("spanish","Antonio","Tamaulipas",true,{faceToFace:true,locales:faceLocales(),replaceTurn:turns[0]})');
+  assert.equal(run("turns.length"),1);
+  assert.equal(run("turns[0].translation"),"Tamaulipas");
+  assert.equal(run("turns[0].source"),"Tamaulipas");
+
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
     assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');
