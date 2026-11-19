@@ -11,7 +11,7 @@ async function main(){
   await run('HablaOffline.bind()');
   node('#offline-use').checked=true;node('#offline-use').events.change();
   assert.equal(run('HablaOffline.shouldUse()'),true);
-  await assert.rejects(run('HablaOffline.translate("New text", "en-ec")'),e=>e.code==='offline_pack');
+  await assert.rejects(run('HablaOffline.translate("New text", "en-ec")'),e=>e.code==='offline_unsupported');
   assert.equal(networkCalls,0,'missing pack never silently sends text online');
   const urls=run('[...HablaOffline.RUNTIME,...Object.values(HablaOffline.MODELS).flatMap(m=>HablaOffline.FILES.map(f=>`https://huggingface.co/${m.id}/resolve/${m.revision}/${f}`))]');
   for(const url of urls)stored.set(url,{ok:true});
@@ -48,8 +48,8 @@ async function main(){
     engine.tokenizer=async()=>({input_ids:{dims:[1,12]}});engine.dispose=async()=>{disposals++;};return engine;
   }};
   const waiting=new Map();let id=0;
-  const worker=vm.createContext({console,Response,caches:{open:async()=>({match:async url=>url==='https://huggingface.co/cached'?{ok:true}:undefined,put:async()=>{}})},getRuntime:async()=>runtime,self:{fetch:async()=>{throw new Error('Unexpected network request');},postMessage:message=>waiting.get(message.id)?.(message)}});
-  vm.runInContext(fs.readFileSync('offline-worker.js','utf8').replace('await import(BASE + "transformers.min.js")','await getRuntime()'),worker);
+  const worker=vm.createContext({console,Response,Blob,URL,caches:{open:async()=>({match:async url=>url==='https://huggingface.co/cached'?{ok:true}:String(url).endsWith('transformers.min.js')?new Response('export const env = {};'):undefined,put:async()=>{}})},getRuntime:async()=>runtime,self:{fetch:async()=>{throw new Error('Unexpected network request');},postMessage:message=>waiting.get(message.id)?.(message)}});
+  vm.runInContext(fs.readFileSync('offline-worker.js','utf8').replace('await import(moduleURL)','await getRuntime()'),worker);
   const send=(type,way,text)=>new Promise(resolve=>{const request=++id;waiting.set(request,resolve);worker.self.onmessage({data:{id:request,type,way,text}});});
   assert.equal((await send('translate','en-ec','brand-new English text')).result,'brand-new English text');
   assert.equal((await send('translate','ec-en','texto nuevo')).result,'texto nuevo');
