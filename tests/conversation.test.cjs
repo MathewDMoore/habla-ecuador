@@ -394,6 +394,27 @@ async function main() {
   canceled.onend();await flush();
   assert.equal(run('turns.length'),1,'late callbacks cannot publish canceled audio');
 
+  element("#face-to-face").open = true;
+  for (const role of ["english","spanish"]) {
+    elements.set('[data-face-mic="'+role+'"]',Object.assign(button(),{dataset:{faceMic:role}}));
+  }
+  run('conversationLocaleOverrides={english:"en-US", spanish:"es-EC"};toggleFaceHandsFree()');
+  for (const text of ["¿Dónde está la parada?", "¿Cuándo sale el autobús?"]) {
+    const mic = recordings.at(-1);
+    assert.equal(mic.lang,"en-US");
+    mic.emit(text,true,0.9);
+    mic.onend();
+    await flush();
+    assert.equal(run('turns.at(-1).slot'),"spanish");
+    assert.equal(run('turns.at(-1).target'),"en-US");
+  }
+  recordings.at(-1).onend();
+  assert.ok(run("faceHandsFree"));
+  timers.get(run("faceHandsFree.retryTimer"))();
+  assert.equal(run("recognition !== null"),true);
+  run("stopFaceHandsFree()");
+  assert.equal(recordings.at(-1).aborted,true);
+
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
     assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');

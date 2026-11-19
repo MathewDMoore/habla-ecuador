@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.27 · build 237";
+const APP_VERSION = "0.27.28 · build 238";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -2219,7 +2219,8 @@ function startListening({way=direction, lang, button, onText, onEnd, onCancel, o
     if (recognition !== instance) return;
     onError?.(event.error);
     if (event.error !== "aborted") {
-      showToast(formatError(event.error));
+      const message = formatError(event.error);
+      if (message) showToast(message);
       instance._hablaArmFinishDeadline(1600, false);
     }
   };
@@ -4788,7 +4789,9 @@ function renderFaceToFace() {
     const box = side.querySelector(".face-to-face-turn");
     side.querySelector("h2").textContent = speakerName(role);
     const otherMicBusy = faceCapture && faceCapture.button.dataset.faceMic !== role;
-    side.querySelector("[data-face-mic]").disabled = Boolean(faceHandsFree || otherMicBusy);
+    const mic = side.querySelector("[data-face-mic]");
+    mic.disabled = Boolean(faceHandsFree || otherMicBusy);
+    mic.hidden = Boolean(faceHandsFree);
     const detailsOpen = Boolean(box.querySelector("details[open]"));
     if (!turn) {
       box.textContent = faceStatus ? "" : "Start hands-free or tap your mic to talk. / Inicia manos libres o toca tu micrófono para hablar.";
@@ -4815,6 +4818,7 @@ function renderFaceToFace() {
 }
 
 function stopFaceHandsFree() {
+  clearTimeout(faceHandsFree?.retryTimer);
   faceHandsFree = null;
   cancelFaceCapture();
   faceStatus = "";
@@ -4868,20 +4872,16 @@ function startFaceCapture(button, handsFree=null) {
     clearTimeout(turnTimer);
   };
   faceCapture = capture;
-  const speaker = speakerName(role);
-  faceStatus = handsFree ? `Listening to ${speaker}… / Escuchando a ${speaker}…` : "Listening… / Escuchando…";
+  faceStatus = "Listening… / Escuchando…";
   renderFaceToFace();
-  if (handsFree) turnTimer = setTimeout(() => {
-    if (faceCapture !== capture) return;
-    if (capture.draft) stopFaceCapture();
-    else {
-      cancelFaceCapture();
-      faceStatus = "Paused. No speech heard. / En pausa. No se detectó voz.";
-      renderFaceToFace();
-    }
-  }, 25000);
   startListening({
+    formatError: error => handsFree && error === "no-speech" ? "" : recognitionErrorMessage(error),
     button, lang:locales[role], continuous:!handsFree, commitOnEnd:true, correctTranscript:false, minConfidence:0.45, warnOnProvisional:false,
+    onStart() {
+      if (handsFree) turnTimer = setTimeout(() => {
+        if (faceCapture === capture) stopFaceCapture();
+      }, 25000);
+    },
     onText(text, final, {provisional}={}) {
       if (!final) {
         if (capture.draft === text) return;
@@ -4896,13 +4896,22 @@ function startFaceCapture(button, handsFree=null) {
       } else if (!provisional && !capture.error) {
         faceStatus = "";
         capture.accepted = true;
-        handleConversationText(role,speaker,text,true,{locales,faceToFace:true,spoken:true});
+        let slot = role;
+        if (handsFree) {
+          const evidence = conversationLanguageEvidence(text,role,locales[role]);
+          const other = role === "english" ? "spanish" : "english";
+          if (evidence.confident && languageFamily(locales[role]) !== evidence.family &&
+              languageFamily(locales[other]) === evidence.family) slot = other;
+          handsFree.role = slot === "english" ? "spanish" : "english";
+        }
+        handleConversationText(slot,speakerName(slot),text,true,{locales,faceToFace:true,spoken:true});
       }
     },
     onError(error) {
       if (error === "aborted") return;
+      capture.fatal = !["no-speech","nomatch","session-timeout"].includes(error);
       if (error === "not-allowed") capture.error = "Allow microphone access. / Permite el acceso al micrófono.";
-      else if (error === "audio-capture" || error === "service-not-allowed" || error === "network") {
+      else if (capture.fatal) {
         capture.error = "Microphone unavailable. / Micrófono no disponible.";
       } else capture.error = "Please repeat, one at a time. / Repitan, de uno en uno.";
     },
@@ -4917,12 +4926,13 @@ function startFaceCapture(button, handsFree=null) {
       clearTimers();
       faceCapture = null;
       if (!capture.accepted) {
-        if (handsFree && faceHandsFree === handsFree) faceHandsFree = null;
-        faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
-      } else if (handsFree && faceHandsFree === handsFree) {
-        // The previous translation can finish while the other person speaks.
-        handsFree.role = role === "english" ? "spanish" : "english";
-        startFaceHandsFreeTurn(handsFree);
+        faceStatus = capture.error || "Listening… / Escuchando…";
+        if (!handsFree) faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
+      }
+      if (handsFree && faceHandsFree === handsFree) {
+        if (capture.fatal) faceHandsFree = null;
+        else if (capture.accepted) startFaceHandsFreeTurn(handsFree);
+        else handsFree.retryTimer = setTimeout(() => startFaceHandsFreeTurn(handsFree), 400);
       }
       renderFaceToFace();
     }
@@ -6594,7 +6604,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=237", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=238", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

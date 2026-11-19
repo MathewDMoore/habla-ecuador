@@ -129,6 +129,25 @@ async function main() {
       });
       await near.getByText(/es-EC → en-US/).waitFor();
       await page.waitForFunction(() => faceRecordings.at(-1).lang === "en-US");
+      // Spanish speaker continues while the recognizer expects an English reply.
+      await page.evaluate(() => {
+        const mic = faceRecordings.at(-1);
+        mic.emit("¿Cuándo sale el próximo autobús?",true,0.9);
+        mic.onend();
+      });
+      await near.getByText(/es-EC → en-US · ¿Cuándo/).waitFor();
+      assert.equal(await page.evaluate(() => faceRecordings.at(-1).lang),"en-US");
+      const beforeEmpty = await page.evaluate(() => faceRecordings.length);
+      await page.evaluate(() => faceRecordings.at(-1).onend());
+      await page.waitForFunction(count => faceRecordings.length > count,beforeEmpty);
+      const beforeUnclear = await page.evaluate(() => [turns.length,faceRecordings.length]);
+      await page.evaluate(() => {
+        const mic = faceRecordings.at(-1);
+        mic.emit("unclear speech",true,0.2);
+        mic.onend();
+      });
+      await page.waitForFunction(count => faceRecordings.length > count,beforeUnclear[1]);
+      assert.equal(await page.evaluate(() => turns.length),beforeUnclear[0]);
       await page.evaluate(() => window.finishFirstTranslation());
       await far.getByText("¿Dónde está el autobús azul?",{exact:true}).waitFor();
       await near.getByText(/es-EC → en-US/).waitFor();
