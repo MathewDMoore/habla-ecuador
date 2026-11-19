@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "category": {
+    "id": "literature-poetry",
+    "labelEs": "Literatura y poesía",
+    "labelEn": "Literature & poetry",
+    "scope": "Overlapping learning category; never automatically assigns Ecuadorian provenance."
+  },
+  "entries": [
+    {
+      "id": "lit-ojos-luceros",
+      "spanish": "Tus ojos son dos luceros.",
+      "usEnglish": "Your eyes sparkle like stars.",
+      "ukEnglish": "Your eyes shine like stars.",
+      "literalUs": "Your eyes are two bright celestial lights.",
+      "literalUk": "Your eyes are two bright celestial lights.",
+      "category": "literature-poetry",
+      "tags": [
+        "metaphor",
+        "romantic",
+        "figurative"
+      ],
+      "level": "A2",
+      "regionStatus": "General Spanish used in Ecuador",
+      "regionalEvidence": "No Ecuador-specific attribution claimed.",
+      "register": "Poetic, affectionate.",
+      "figurativeMeaning": "The person's eyes are radiant or captivating.",
+      "conversationalEs": "Tienes unos ojos preciosos.",
+      "conversationalUs": "You have beautiful eyes.",
+      "conversationalUk": "You've got beautiful eyes.",
+      "exampleEs": "En mi poema escribí: «Tus ojos son dos luceros».",
+      "exampleUs": "In my poem I wrote that your eyes shine like stars.",
+      "exampleUk": "In my poem I wrote that your eyes shine like stars.",
+      "rights": "Original educational example; not attributed to a third-party author.",
+      "sources": [
+        "habla-original-editorial"
+      ],
+      "evidence": "Original illustrative expression. No claim of specific country, corpus frequency, or quotation.",
+      "verification": {
+        "dictionaryAttested": false,
+        "corpusChecked": false,
+        "nativeSpeakerReviewed": false,
+        "lastReviewed": null,
+        "confidence": "research-lead"
+      }
+    },
+    {
+      "id": "lit-corazon-piedra",
+      "spanish": "Tiene el corazón de piedra.",
+      "usEnglish": "They're cold-hearted.",
+      "ukEnglish": "They're hard-hearted.",
+      "literalUs": "They have a heart of stone.",
+      "literalUk": "They have a heart of stone.",
+      "category": "literature-poetry",
+      "tags": [
+        "metaphor",
+        "figurative",
+        "everyday-idiom"
+      ],
+      "level": "B1",
+      "regionStatus": "General Spanish used in Ecuador",
+      "regionalEvidence": "Broadly understandable Spanish. No regional exclusivity asserted.",
+      "register": "Figurative; also used in ordinary conversation.",
+      "figurativeMeaning": "Someone is emotionally unresponsive or lacks compassion.",
+      "conversationalEs": "Es una persona muy insensible.",
+      "conversationalUs": "They're very insensitive.",
+      "conversationalUk": "They're very insensitive.",
+      "exampleEs": "En la historia, el personaje parece tener el corazón de piedra.",
+      "exampleUs": "In the story, the character seems cold-hearted.",
+      "exampleUk": "In the story, the character seems hard-hearted.",
+      "rights": "Original illustrative contextual sentence; idiomatic expression is not claimed as exclusive original authorship.",
+      "sources": [
+        "habla-original-editorial"
+      ],
+      "evidence": "Editorial example, awaiting reference-level verification for regional and usage frequency claims.",
+      "verification": {
+        "dictionaryAttested": false,
+        "corpusChecked": false,
+        "nativeSpeakerReviewed": false,
+        "lastReviewed": null,
+        "confidence": "research-lead"
+      }
+    },
+    {
+      "id": "lit-mar-recuerdos",
+      "spanish": "Un mar de recuerdos.",
+      "usEnglish": "A flood of memories.",
+      "ukEnglish": "A flood of memories.",
+      "literalUs": "A sea of memories.",
+      "literalUk": "A sea of memories.",
+      "category": "literature-poetry",
+      "tags": [
+        "metaphor",
+        "imagery",
+        "figurative"
+      ],
+      "level": "B1",
+      "regionStatus": "General Spanish used in Ecuador",
+      "regionalEvidence": "Not presented as Ecuador-specific.",
+      "register": "Literary or reflective.",
+      "figurativeMeaning": "An overwhelming number of memories.",
+      "conversationalEs": "Me vinieron muchísimos recuerdos.",
+      "conversationalUs": "So many memories came rushing back.",
+      "conversationalUk": "So many memories came flooding back.",
+      "exampleEs": "Al abrir la caja encontré un mar de recuerdos.",
+      "exampleUs": "Opening the box brought back a flood of memories.",
+      "exampleUk": "Opening the box brought back a flood of memories.",
+      "rights": "Original educational example.",
+      "sources": [
+        "habla-original-editorial"
+      ],
+      "evidence": "Editorial teaching record, no region-specific or corpus validation asserted.",
+      "verification": {
+        "dictionaryAttested": false,
+        "corpusChecked": false,
+        "nativeSpeakerReviewed": false,
+        "lastReviewed": null,
+        "confidence": "research-lead"
+      }
+    }
+  ]
+}
