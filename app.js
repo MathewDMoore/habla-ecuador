@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.29 · build 239";
+const APP_VERSION = "0.27.30 · build 240";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4715,6 +4715,55 @@ function finishConversationTurn(turn) {
     : `${turn.languageLabel}${turn.switched ? " · translation direction switched" : ""} · translation complete${turn.languageUncertain ? "; check the language before using it" : ""}.`;
 }
 
+function conversationGreeting(text, way) {
+  if (way === "en-ec") {
+    // A comma marks direct address. Without one, accept a capitalized or configured name.
+    const greeting = /^how are you( today)?(?:(,? )([\p{L}][\p{L}'’-]*))?[?.!]*$/iu.exec(text.trim());
+    if (!greeting) return null;
+    const [,today,separator,name] = greeting;
+    if (name && !separator.includes(",") && !/^\p{Lu}/u.test(name) && !["english","spanish"].some(role => normalize(speakerName(role)) === normalize(name))) return null;
+    return `¿Cómo estás${today ? " hoy" : ""}${name ? ", " + name : ""}?`;
+  }
+  const reply = /^(estoy (?:muy )?bien|(?:muy )?bien|está bien)(?:[, .!]+(gracias))?(?:[, .!¿]+y (tú|usted))?[?!.]*$/iu.exec(text.trim());
+  if (!reply) return null;
+  const first = reply[1].toLowerCase();
+  const english = first === "está bien" ? "Okay" : first.startsWith("estoy") ? (first.includes("muy") ? "I’m doing very well" : "I’m fine") : first.includes("muy") ? "Very well" : "Good";
+  return english + (reply[2] ? ", thanks" : "") + (reply[3] ? ". And you?" : ".");
+}
+
+async function translateFaceTurn(turn, isCurrent) {
+  const way = turn.role === "spanish" ? "ec-en" : "en-ec";
+  const options = {purpose:"everyday", source:turn.sourceLocale, target:turn.target, isCurrent};
+  const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+  try {
+    return await requestGeneralTranslation(turn.source,way,{...options,onDevice});
+  } catch (error) {
+    if (onDevice || !isCurrent() || typeof HablaOffline === "undefined" || !HablaOffline.ready) throw error;
+    return await requestGeneralTranslation(turn.source,way,{...options,onDevice:true});
+  }
+}
+
+async function retryFaceTurn(index) {
+  const turn = turns[index];
+  if (!turn?.faceToFace || !turn.failed || turn.pending) return;
+  const current = () => turns[index] === turn;
+  turn.pending = true;
+  renderTurns();
+  try {
+    const result = await translateFaceTurn(turn,current);
+    if (!current()) return;
+    turn.translation = result;
+    turn.failed = false;
+  } catch (error) {
+    if (current()) turn.translation = translationErrorMessage(error).title;
+  } finally {
+    if (current()) {
+      turn.pending = false;
+      renderTurns();
+    }
+  }
+}
+
 async function handleConversationText(expectedRole, speaker, text, final, {provisional=false, locales=conversationLocales(),forcedRole,faceToFace=false,spoken=false}={}) {
   const generation = conversationGeneration;
   const manual=forcedRole === "spanish" || forcedRole === "english";
@@ -4752,8 +4801,9 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     ? detectedFamily === "en" ? "¡Mierda!" : "Shit!"
     : null;
   try {
-    turn.translation = spokenExclamation ?? (phrase
+    turn.translation = spokenExclamation ?? (faceToFace ? conversationGreeting(text,way) : null) ?? (phrase
       ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
+      : faceToFace ? await translateFaceTurn(turn,()=>generation===conversationGeneration&&turns.includes(turn))
       : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)}));
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.pending = false;
@@ -4761,9 +4811,9 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     // Earlier turns may finish out of order. Keep their text without interrupting
     // a newer speaker or replacing the current turn's status.
     finishConversationTurn(turn);
-  } catch {
+  } catch (error) {
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
-    turn.translation = "Translation is temporarily unavailable. Your dictated text was preserved.";
+    turn.translation = translationErrorMessage(error).title;
     turn.pending = false;
     turn.failed = true;
     renderTurns();
@@ -4797,8 +4847,11 @@ function renderFaceToFace() {
       box.textContent = faceStatus ? "" : "Start hands-free or tap your mic to talk. / Inicia manos libres o toca tu micrófono para hablar.";
     } else if (turn.slot === role) {
       box.innerHTML = `<small>${escapeHtml(turn.languageLabel)}</small><p class="face-to-face-text" lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`;
-    } else if (turn.pending || turn.failed) {
-      box.textContent = turn.pending ? "Translating… / Traduciendo…" : "Translation unavailable. / Traducción no disponible.";
+    } else if (turn.pending) {
+      box.textContent = "Translating… / Traduciendo…";
+    } else if (turn.failed) {
+      box.innerHTML = `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>
+        <p>${escapeHtml(turn.translation)}</p><button type="button" data-face-retry="${index}">Retry translation / Reintentar traducción</button>`;
     } else {
       const note = turn.expressionNote ? `<p>${escapeHtml(turn.expressionNote)}</p>` : "";
       const languageHint = turn.languageUncertain ? "<p>Check the language. / Revisa el idioma.</p>" : "";
@@ -4807,7 +4860,7 @@ function renderFaceToFace() {
         ${turn.showVerbatim ? "" : `<p lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</p>`}${note}</details>` : ""}
         <button class="text-button" type="button" data-face-hear="${index}" aria-label="Hear translation / Oír traducción">🔊</button>`;
     }
-    if (turn?.showVerbatim && turn.slot !== role) {
+    if (turn?.showVerbatim && !turn.failed && turn.slot !== role) {
       box.insertAdjacentHTML("beforeend", `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>`);
     }
     if (faceStatus) {
@@ -4995,6 +5048,8 @@ function bindFaceToFace() {
     closeFaceToFace();
   });
   dialog.addEventListener("click", event => {
+    const retry = event.target.closest("[data-face-retry]");
+    if (retry) return retryFaceTurn(Number(retry.dataset.faceRetry));
     const button = event.target.closest("[data-face-hear]");
     if (button) {
       if (faceHandsFree) stopFaceHandsFree();
@@ -6632,7 +6687,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=239", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=240", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
