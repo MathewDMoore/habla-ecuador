@@ -12,11 +12,10 @@ const HablaOffline = (() => {
   let onlineConfirmed = false;
   let ready = false, enabled = false, worker, serial = 0, installing = null, validating = null, startup = null;
   // Match the cached app release instead of leaving the worker on an older build.
-  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=218";
+  const workerVersion = document.currentScript?.src?.match(/\?[^#]*/)?.[0] || "?v=242";
   const pending = new Map();
   const fail = (code, message) => Object.assign(new Error(message), {code});
   function supportProblem() {
-    if (!navigator.serviceWorker) return "This installed app or browser needs an offline-support update. Offline mode is unavailable here; your text will not be sent online while on-device mode is selected.";
     if (!globalThis.caches || typeof Worker === "undefined" || typeof WebAssembly === "undefined") return "This device does not provide the storage or engine needed for this offline pack.";
     return "";
   }
@@ -96,11 +95,11 @@ const HablaOffline = (() => {
     validating=(async()=> {
       status("Validating downloaded files, app cache and both translation directions… No user text is used.");
       if (!await checkPack()) throw new Error("The pack is incomplete. Connect and tap Download offline pack.");
-      await checkShell(controller || await controllingWorker());
+      if (navigator.serviceWorker) await checkShell(controller || await controllingWorker());
       const result=await call("validate");
       if (result?.directions !== 2) throw new Error("Both translation directions could not be validated.");
       ready=true;
-      status("Offline pack validated in both directions. App and dictionary files are cached. New typed text can stay on this device. Confirm offline reopening once in airplane mode.");
+      status(navigator.serviceWorker ? "Offline pack validated in both directions. App and dictionary files are cached. Confirm offline reopening once in airplane mode." : "Offline pack validated in both directions. Translation works on this device while Habla is open. Reopening Habla may require a connection.");
     })().finally(()=> {validating=null;});
     updateModeBadge();
     return validating;
@@ -115,7 +114,7 @@ const HablaOffline = (() => {
     try {
       const problem=supportProblem();
       if (problem) throw new Error(problem);
-      const controller=await controllingWorker();
+      const controller=navigator.serviceWorker ? await controllingWorker() : null;
       if (!await checkPack()) {
         if (navigator.onLine === false) throw new Error("Connect to download the pack first.");
         const cache = await caches.open(RUNTIME_CACHE);
@@ -150,6 +149,7 @@ const HablaOffline = (() => {
       try { await validate(); }
       catch (error) { throw fail("offline_engine", "The downloaded pack could not start: " + error.message); }
     }
+    if (supportProblem()) throw fail("offline_unsupported", supportProblem());
     if (!ready) throw fail("offline_pack", "The offline pack is incomplete or unavailable in this app. Your text is kept.");
     return call("translate", {text, way});
   }
@@ -171,10 +171,10 @@ const HablaOffline = (() => {
       enabled = checkbox.checked;
       try { localStorage.setItem("habla-ecuador-offline-only-v2", enabled ? "yes" : "no"); } catch {}
       const problem = supportProblem();
-      status(problem ? `${problem} On-device only will not send your text online.` : enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
+      status(problem ? (enabled ? problem + " On-device only is active." : "Online translation selected. " + problem) : enabled ? (ready ? "On-device translation selected. New text stays on this device." : "Download the pack first. No text will be sent to the online service in this mode.") : "Online service selected. Downloaded models remain available offline.");
     });
     const problem=supportProblem();
-    if (problem) {button.disabled=false;button.textContent="Check offline support";status(`${problem} Tap Check offline support for details. No text is sent online while On-device only is checked.`);return;}
+    if (problem) {button.disabled=true;button.textContent="Offline pack unavailable here";status(problem);return;}
     let downloaded=false;
     try {downloaded=await checkPack();} catch {}
     if (downloaded) {

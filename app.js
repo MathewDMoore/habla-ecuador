@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.31 · build 241";
+const APP_VERSION = "0.27.32 · build 242";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3139,6 +3139,7 @@ function translationErrorMessage(error) {
     rate_limit:["The service is limiting requests.", "Wait a little, then tap Retry translation. This is a service limit, not a problem with your document."],
     timeout:["The translation service took too long.", "Tap Retry translation. Completed segments will be reused while this page is open."],
     offline:["You appear to be offline.", "New text can be translated offline after downloading the pack. Your source text is preserved."],
+    offline_unsupported:["This browser cannot store or run the offline pack.", "Open Habla in Safari to download the pack. On-device only keeps your text off the online service."],
     offline_pack:["Download the offline pack first.", "Connect, tap Download offline pack, and keep the page open until it is ready. On-device mode never sends your text to the online service."],
     offline_engine:["On-device translation could not finish.", "Your source text is preserved. Retry with a shorter section; reload if the device ran out of memory. No online service was used."],
     network:["The translation service could not be reached.", "The browser did not receive a response. This may be a connection or access problem; a daily quota has not been confirmed. Tap Retry translation when connected."],
@@ -4718,7 +4719,7 @@ function finishConversationTurn(turn) {
 function conversationGreeting(text, way) {
   if (way === "en-ec") {
     // A comma marks direct address. Without one, accept a capitalized or configured name.
-    const greeting = /^how are you( today)?(?:(,? )([\p{L}][\p{L}'’-]*))?[?.!]*$/iu.exec(text.trim());
+    const greeting = /^how are you(?: doing)?( today)?(?:(,? )([\p{L}][\p{L}'’-]*))?[?.!]*$/iu.exec(text.trim());
     if (!greeting) return null;
     const [,today,separator,name] = greeting;
     if (name && !separator.includes(",") && !/^\p{Lu}/u.test(name) && !["english","spanish"].some(role => normalize(speakerName(role)) === normalize(name))) return null;
@@ -4755,7 +4756,7 @@ async function retryFaceTurn(index) {
     turn.translation = result;
     turn.failed = false;
   } catch (error) {
-    if (current()) turn.translation = translationErrorMessage(error).title;
+    if (current()) { turn.translation = translationErrorMessage(error).title; turn.errorCode = error.code; }
   } finally {
     if (current()) {
       turn.pending = false;
@@ -4814,6 +4815,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
   } catch (error) {
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
     turn.translation = translationErrorMessage(error).title;
+    turn.errorCode = error.code;
     turn.pending = false;
     turn.failed = true;
     renderTurns();
@@ -4863,7 +4865,9 @@ function renderFaceToFace() {
       box.textContent = "Translating… / Traduciendo…";
     } else if (turn.failed) {
       box.innerHTML = `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>
-        <p>${escapeHtml(turn.translation)}</p><button type="button" data-face-retry="${index}">Retry translation / Reintentar traducción</button>`;
+        <p>${escapeHtml(turn.translation)}</p>${turn.errorCode === "offline_pack" && typeof HablaOffline !== "undefined" && HablaOffline.canPrepare()
+          ? `<button type="button" data-face-pack="${index}" ${turn.preparing ? "disabled" : ""}>Download and validate pack (≈250 MB) / Descargar y validar</button>`
+          : `<button type="button" data-face-retry="${index}">Retry translation / Reintentar traducción</button>`}${turn.packStatus ? `<p>${escapeHtml(turn.packStatus)}</p>` : ""}`;
     } else {
       const note = turn.expressionNote ? `<p>${escapeHtml(turn.expressionNote)}</p>` : "";
       const languageHint = turn.languageUncertain ? "<p>Check the language. / Revisa el idioma.</p>" : "";
@@ -5060,6 +5064,20 @@ function bindFaceToFace() {
     closeFaceToFace();
   });
   dialog.addEventListener("click", event => {
+    const download = event.target.closest("[data-face-pack]");
+    if (download) {
+      const index = Number(download.dataset.facePack), turn = turns[index];
+      if (!turn || turn.preparing) return;
+      turn.preparing = true;
+      turn.packStatus = "Preparing offline pack… / Preparando paquete…";
+      renderFaceToFace();
+      HablaOffline.prepare().then(async ready => {
+        if (turns[index] !== turn) return;
+        turn.packStatus = ready ? "" : $("#offline-status").textContent;
+        if (ready) await retryFaceTurn(index);
+      }).finally(() => { turn.preparing = false; renderFaceToFace(); });
+      return;
+    }
     const retry = event.target.closest("[data-face-retry]");
     if (retry) return retryFaceTurn(Number(retry.dataset.faceRetry));
     const button = event.target.closest("[data-face-hear]");
@@ -6699,7 +6717,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=241", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=242", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

@@ -19,7 +19,11 @@ async function load(way, installing = false) {
   downloadsAllowed = installing;
   if (!MODELS[way]) throw new Error("Unsupported translation direction.");
   if (!runtime) {
-    runtime = await import(BASE + "transformers.min.js");
+    const cached = await (await caches.open("habla-ecuador-offline-runtime-v1")).match(BASE + "transformers.min.js");
+    if (!cached?.ok) throw new Error("Download the offline engine before translating.");
+    const moduleURL = URL.createObjectURL(new Blob([await cached.arrayBuffer()], {type:"text/javascript"}));
+    try { runtime = await import(moduleURL); }
+    finally { URL.revokeObjectURL(moduleURL); }
     runtime.env.allowLocalModels = false;
     runtime.env.useBrowserCache = false;
     runtime.env.useCustomCache = true;

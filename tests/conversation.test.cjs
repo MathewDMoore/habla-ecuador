@@ -434,6 +434,7 @@ async function main() {
   assert.equal(recordings.at(-1).aborted,true);
 
   run('clearConversation(); requestGeneralTranslation=async()=>{throw translationFailure("network")}');
+  assert.equal(run('conversationGreeting("How are you doing today?", "en-ec")'),"¿Cómo estás hoy?");
   await run('handleConversationText("english","Mathew","How are you today, Sid?",true,{faceToFace:true})');
   assert.equal(run("turns[0].translation"),"¿Cómo estás hoy, Sid?");
   await run('handleConversationText("spanish","Ayssel","Está bien, ¿y tú?",true,{faceToFace:true})');
