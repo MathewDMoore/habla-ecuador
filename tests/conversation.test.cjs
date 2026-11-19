@@ -450,6 +450,20 @@ async function main() {
   await run('handleConversationText("english","Mathew","When does the next bus leave?",true,{faceToFace:true})');
   assert.match(run("turns[3].translation"),/offline pack/);
 
+  for (const [names,overrides] of [
+    [{english:"Mathew",spanish:"Me"},{english:"en-US",spanish:"en-GB"}],
+    [{english:"Grayson",spanish:"Antonio"},{english:"es-VE",spanish:"es-EC"}],
+    [{english:"Grayson",spanish:"Antonio"},{english:"es-VE",spanish:"en-GB"}]
+  ]) {
+    run('speakerNames='+JSON.stringify(names)+'; conversationLocaleOverrides='+JSON.stringify(overrides));
+    const pair=run("faceLocales()");
+    assert.match(pair.english,/^en-/);
+    assert.match(pair.spanish,/^es-/);
+    assert.equal(run("facePanelNames.english"),"English");
+    assert.equal(run("facePanelNames.spanish"),"Español");
+    assert.equal(run("speakerName('english')"),names.english);
+  }
+
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
     assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');
