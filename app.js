@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.30 · build 240";
+const APP_VERSION = "0.27.31 · build 241";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4826,6 +4826,18 @@ let faceHandsFree = null;
 let faceStatus = "";
 let faceTurnOffset = 0;
 
+// Face-to-face panels describe the language each person reads and speaks.
+const facePanelNames = {english:"English", spanish:"Español"};
+
+function faceLocales() {
+  const saved = conversationLocales();
+  const candidates = [saved.english,saved.spanish,sourceLanguage,targetLanguage];
+  return {
+    english:candidates.find(code => TRANSLATOR_LANGUAGES[code]?.family === "en") || (englishVariant === "uk" ? "en-GB" : "en-US"),
+    spanish:[saved.spanish,...candidates].find(code => TRANSLATOR_LANGUAGES[code]?.family === "es") || "es-EC"
+  };
+}
+
 function renderFaceToFace() {
   const isFaceTurn = (turn,index) => index >= faceTurnOffset && turn.faceToFace;
   const latest = turns.findLastIndex(isFaceTurn);
@@ -4837,7 +4849,7 @@ function renderFaceToFace() {
     const index = incoming >= 0 ? incoming : latest;
     const turn = turns[index];
     const box = side.querySelector(".face-to-face-turn");
-    side.querySelector("h2").textContent = speakerName(role);
+    side.querySelector("h2").textContent = facePanelNames[role];
     const otherMicBusy = faceCapture && faceCapture.button.dataset.faceMic !== role;
     const mic = side.querySelector("[data-face-mic]");
     mic.disabled = Boolean(faceHandsFree || otherMicBusy);
@@ -4863,8 +4875,8 @@ function renderFaceToFace() {
     if (turn?.showVerbatim && !turn.failed && turn.slot !== role) {
       box.insertAdjacentHTML("beforeend", `<p><small>Heard / Se oyó</small> <span lang="${escapeHtml(turn.sourceLocale)}">${escapeHtml(turn.source)}</span></p>`);
     }
-    if (faceStatus) {
-      const draft = faceCapture?.button.dataset.faceMic === role ? faceCapture.draft : "";
+    if (faceStatus && (!faceCapture || faceCapture.button.dataset.faceMic === role)) {
+      const draft = faceCapture?.draft || "";
       box.insertAdjacentHTML("afterbegin", `<p class="face-to-face-listening">${escapeHtml(faceStatus)}</p>${draft ? `<p>${escapeHtml(draft)}</p>` : ""}`);
     }
   }
@@ -4917,7 +4929,7 @@ function startFaceCapture(button, handsFree=null) {
   }
 
   const role = button.dataset.faceMic;
-  const locales = conversationLocales();
+  const locales = faceLocales();
   const capture = {button, draft:"", accepted:false, error:""};
   let silenceTimer, turnTimer;
   const clearTimers = () => {
@@ -4975,7 +4987,7 @@ function startFaceCapture(button, handsFree=null) {
               languageFamily(locales[other]) === evidence.family) slot = other;
           handsFree.role = slot === "english" ? "spanish" : "english";
         }
-        handleConversationText(slot,speakerName(slot),text,true,{locales,faceToFace:true,spoken:true});
+        handleConversationText(slot,facePanelNames[slot],text,true,{locales,faceToFace:true,spoken:true});
       }
     },
     onError(error) {
@@ -6687,7 +6699,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=240", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=241", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
