@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.32 · build 242";
+const APP_VERSION = "0.27.33 · build 243";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4827,6 +4827,7 @@ let faceCapture = null;
 let faceHandsFree = null;
 let faceStatus = "";
 let faceTurnOffset = 0;
+let faceReplyRole = "english";
 
 // Face-to-face panels describe the language each person reads and speaks.
 const facePanelNames = {english:"English", spanish:"Español"};
@@ -4902,7 +4903,7 @@ function startFaceHandsFreeTurn(session) {
 function toggleFaceHandsFree() {
   if (faceHandsFree) return stopFaceHandsFree();
   if (recognition || faceCapture) return;
-  const session = {role:"english"};
+  const session = {role:faceReplyRole};
   faceHandsFree = session;
   startFaceHandsFreeTurn(session);
 }
@@ -4954,8 +4955,11 @@ function startFaceCapture(button, handsFree=null) {
     faceStatus = spanish ? "Listening for Spanish / Escuchando español" : "Listening for English / Escuchando inglés";
     renderFaceToFace();
     if (handsFree) turnTimer = setTimeout(() => {
-      if (faceCapture === capture) stopFaceCapture();
-    }, 25000);
+      if (faceCapture === capture && !capture.draft) {
+        capture.noWords = true;
+        stopFaceCapture();
+      }
+    }, 8000);
   };
   faceStatus = opening;
   renderFaceToFace();
@@ -4990,6 +4994,7 @@ function startFaceCapture(button, handsFree=null) {
           if (evidence.confident && languageFamily(locales[role]) !== evidence.family &&
               languageFamily(locales[other]) === evidence.family) slot = other;
           handsFree.role = slot === "english" ? "spanish" : "english";
+          faceReplyRole = handsFree.role;
         }
         handleConversationText(slot,facePanelNames[slot],text,true,{locales,faceToFace:true,spoken:true});
       }
@@ -5024,6 +5029,9 @@ function startFaceCapture(button, handsFree=null) {
           handsFree.micLocales[role] = fallback;
           capture.fatal = false;
         }
+        if (capture.noWords && !capture.accepted && !capture.draft && !capture.fatal) {
+          handsFree.role = role === "english" ? "spanish" : "english";
+        }
         if (capture.fatal) faceHandsFree = null;
         else {
           faceStatus = "Switching microphone… / Cambiando micrófono…";
@@ -5042,6 +5050,7 @@ function openFaceToFace() {
   if (activeRecognitionButton?.dataset.speakerRole) cancelListening(true);
   stopSpeechPlayback();
   faceTurnOffset = turns.length;
+  faceReplyRole = "english";
   faceStatus = "";
   dialog.showModal();
   syncMainNavSelection("translator-view");
@@ -5097,6 +5106,7 @@ function bindFaceToFace() {
 }
 
 function clearConversation() {
+  faceReplyRole = "english";
   conversationGeneration += 1;
   cancelListening();
   stopSpeechPlayback();
@@ -6717,7 +6727,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=242", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=243", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
