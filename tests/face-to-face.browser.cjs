@@ -129,6 +129,7 @@ async function main() {
       });
       await near.getByText(/es-EC → en-US/).waitFor();
       await page.waitForFunction(() => faceRecordings.at(-1).lang === "en-US");
+      const beforeContinuation = await page.evaluate(() => faceRecordings.length);
       // Spanish speaker continues while the recognizer expects an English reply.
       await page.evaluate(() => {
         const mic = faceRecordings.at(-1);
@@ -137,6 +138,7 @@ async function main() {
       });
       await near.getByText(/es-EC → en-US · ¿Cuándo/).waitFor();
       assert.equal(await page.evaluate(() => faceRecordings.at(-1).lang),"en-US");
+      await page.waitForFunction(count => faceRecordings.length > count,beforeContinuation);
       const beforeEmpty = await page.evaluate(() => faceRecordings.length);
       await page.evaluate(() => faceRecordings.at(-1).onend());
       await page.waitForFunction(count => faceRecordings.length > count,beforeEmpty);

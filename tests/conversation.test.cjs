@@ -404,10 +404,28 @@ async function main() {
     assert.equal(mic.lang,"en-US");
     mic.emit(text,true,0.9);
     mic.onend();
+    timers.get(run("faceHandsFree.retryTimer"))();
     await flush();
     assert.equal(run('turns.at(-1).slot'),"spanish");
     assert.equal(run('turns.at(-1).target'),"en-US");
   }
+  const english = recordings.at(-1);
+  english.onaudiostart();
+  assert.match(run("faceStatus"), /Listening for English/);
+  english.emit("How are you today Antonio",true,0.9);
+  english.onend();
+  timers.get(run("faceHandsFree.retryTimer"))();
+  assert.equal(recordings.at(-1).lang,"es-EC");
+  assert.match(run("faceStatus"), /Opening Spanish/);
+  recordings.at(-1).onend();
+  timers.get(run("faceHandsFree.retryTimer"))();
+  assert.equal(recordings.at(-1).lang,"es-MX");
+  recordings.at(-1).onaudiostart();
+  assert.match(run("faceStatus"), /Listening for Spanish/);
+  recordings.at(-1).emit("Estoy muy bien, gracias",true,0.9);
+  recordings.at(-1).onend();
+  assert.equal(run("turns.at(-1).target"),"en-US");
+  timers.get(run("faceHandsFree.retryTimer"))();
   recordings.at(-1).onend();
   assert.ok(run("faceHandsFree"));
   timers.get(run("faceHandsFree.retryTimer"))();
