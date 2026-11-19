@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.28 · build 238";
+const APP_VERSION = "0.27.29 · build 239";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4872,17 +4872,35 @@ function startFaceCapture(button, handsFree=null) {
     clearTimeout(turnTimer);
   };
   faceCapture = capture;
-  faceStatus = "Listening… / Escuchando…";
+  const locale = locales[role];
+  const spanish = languageFamily(locale) === "es";
+  const browser = typeof window.__hablaNativeSpeech !== "function";
+  const micLocale = handsFree?.micLocales?.[role] || locale;
+  const opening = spanish ? "Opening Spanish microphone… / Abriendo micrófono en español…"
+    : "Opening English microphone… / Abriendo micrófono en inglés…";
+  const ready = () => {
+    if (capture.ready || faceCapture !== capture) return;
+    capture.ready = true;
+    clearTimeout(turnTimer);
+    faceStatus = spanish ? "Listening for Spanish / Escuchando español" : "Listening for English / Escuchando inglés";
+    renderFaceToFace();
+    if (handsFree) turnTimer = setTimeout(() => {
+      if (faceCapture === capture) stopFaceCapture();
+    }, 25000);
+  };
+  faceStatus = opening;
   renderFaceToFace();
+  if (handsFree && browser) turnTimer = setTimeout(() => {
+    if (faceCapture === capture && !capture.ready) stopFaceCapture();
+  }, 8000);
   startListening({
     formatError: error => handsFree && error === "no-speech" ? "" : recognitionErrorMessage(error),
-    button, lang:locales[role], continuous:!handsFree, commitOnEnd:true, correctTranscript:false, minConfidence:0.45, warnOnProvisional:false,
-    onStart() {
-      if (handsFree) turnTimer = setTimeout(() => {
-        if (faceCapture === capture) stopFaceCapture();
-      }, 25000);
-    },
+    button, lang:micLocale, continuous:!handsFree, commitOnEnd:true, correctTranscript:false, minConfidence:0.45, warnOnProvisional:false,
+    onStart() { if (!browser) ready(); },
+    onAudioStart:ready,
+    onSpeechStart:ready,
     onText(text, final, {provisional}={}) {
+      if (text) ready();
       if (!final) {
         if (capture.draft === text) return;
         capture.draft = text;
@@ -4909,6 +4927,7 @@ function startFaceCapture(button, handsFree=null) {
     },
     onError(error) {
       if (error === "aborted") return;
+      capture.unsupported = error === "language-not-supported";
       capture.fatal = !["no-speech","nomatch","session-timeout"].includes(error);
       if (error === "not-allowed") capture.error = "Allow microphone access. / Permite el acceso al micrófono.";
       else if (capture.fatal) {
@@ -4930,9 +4949,18 @@ function startFaceCapture(button, handsFree=null) {
         if (!handsFree) faceStatus = capture.error || "Please repeat, one at a time. / Repitan, de uno en uno.";
       }
       if (handsFree && faceHandsFree === handsFree) {
+        const fallback = spanish ? "es-MX" : "en-US";
+        if (browser && (capture.unsupported || (!capture.ready && !capture.fatal)) && micLocale !== fallback) {
+          handsFree.micLocales ||= {};
+          handsFree.micLocales[role] = fallback;
+          capture.fatal = false;
+        }
         if (capture.fatal) faceHandsFree = null;
-        else if (capture.accepted) startFaceHandsFreeTurn(handsFree);
-        else handsFree.retryTimer = setTimeout(() => startFaceHandsFreeTurn(handsFree), 400);
+        else {
+          faceStatus = "Switching microphone… / Cambiando micrófono…";
+          // Let WebKit release the finished input before opening the reply language.
+          handsFree.retryTimer = setTimeout(() => startFaceHandsFreeTurn(handsFree), capture.accepted ? 150 : 400);
+        }
       }
       renderFaceToFace();
     }
@@ -6604,7 +6632,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=238", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=239", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
