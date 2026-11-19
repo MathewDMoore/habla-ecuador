@@ -433,6 +433,18 @@ async function main() {
   run("stopFaceHandsFree()");
   assert.equal(recordings.at(-1).aborted,true);
 
+  run('clearConversation();faceTurnOffset=0;conversationLocaleOverrides={english:"en-US",spanish:"es-EC"};toggleFaceHandsFree()');
+  const question = recordings.at(-1);
+  question.emit("How are you today?",true,0.9);
+  question.onend();
+  run("stopFaceHandsFree();toggleFaceHandsFree()");
+  assert.equal(recordings.at(-1).lang,"es-EC","resume listens for the pending Spanish reply");
+  recordings.at(-1).onaudiostart();
+  timers.get(nextTimer)();
+  recordings.at(-1).onend();
+  timers.get(run("faceHandsFree.retryTimer"))();
+  assert.equal(recordings.at(-1).lang,"en-US","an open mic with no words can recover in the other language");
+  run("stopFaceHandsFree()");
   run('clearConversation(); requestGeneralTranslation=async()=>{throw translationFailure("network")}');
   assert.equal(run('conversationGreeting("How are you doing today?", "en-ec")'),"¿Cómo estás hoy?");
   await run('handleConversationText("english","Mathew","How are you today, Sid?",true,{faceToFace:true})');
