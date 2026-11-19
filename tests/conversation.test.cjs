@@ -433,6 +433,23 @@ async function main() {
   run("stopFaceHandsFree()");
   assert.equal(recordings.at(-1).aborted,true);
 
+  run('clearConversation(); requestGeneralTranslation=async()=>{throw translationFailure("network")}');
+  await run('handleConversationText("english","Mathew","How are you today, Sid?",true,{faceToFace:true})');
+  assert.equal(run("turns[0].translation"),"¿Cómo estás hoy, Sid?");
+  await run('handleConversationText("spanish","Ayssel","Está bien, ¿y tú?",true,{faceToFace:true})');
+  assert.equal(run("turns[1].translation"),"Okay. And you?");
+  await run('handleConversationText("english","Mathew","Can you show me the bus timetable?",true,{faceToFace:true})');
+  assert.equal(run("turns[2].failed"),true);
+  assert.match(run("turns[2].translation"),/could not be reached/);
+  run('HablaOffline={ready:true,shouldUse:()=>false}; requestGeneralTranslation=async(text,way,opts)=>{if(!opts.onDevice)throw translationFailure("network");return "¿Puedes mostrarme el horario del autobús?"}');
+  await run('retryFaceTurn(2)');
+  assert.equal(run("turns.length"),3);
+  assert.equal(run("turns[2].failed"),false);
+  assert.equal(run("turns[2].translation"),"¿Puedes mostrarme el horario del autobús?");
+  run('HablaOffline.shouldUse=()=>true; requestGeneralTranslation=async(text,way,opts)=>{if(!opts.onDevice)throw Error("Unexpected online request");throw translationFailure("offline_pack")}');
+  await run('handleConversationText("english","Mathew","When does the next bus leave?",true,{faceToFace:true})');
+  assert.match(run("turns[3].translation"),/offline pack/);
+
   for(const name of ['index.html','translator.html']) {
     const html=fs.readFileSync(path.join(root,name),'utf8');
     assert.equal((html.match(/data-profile-name="Ayssel"/g)||[]).length,2,'Ayssel quick choice for both roles');
