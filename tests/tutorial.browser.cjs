@@ -108,7 +108,7 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
  assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
- const expected=file==='index.html'?10:9;
+ const expected=file==='index.html'?11:10;
  assert.equal(await page.evaluate(()=>HablaTutorial.count),expected);
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -160,6 +160,9 @@ async function run(browser,file,width,height=844){
  await tap(page,'#tutorial-next');
  await highlightFits(page,'#input-mic');
  assert.equal(await page.locator('#input-mic').evaluate(el=>el.classList.contains('listening')),false,'tour never activates microphone');
+ await tap(page,'#tutorial-next');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Translate a research paper');
+ await highlightFits(page,'#research-document-workspace > summary');
  await tap(page,'#tutorial-next');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Explore regional meanings');
  assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
