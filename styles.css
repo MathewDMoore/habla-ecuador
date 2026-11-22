@@ -1662,3 +1662,10 @@ body.ve-theater-open {overflow:hidden !important;}
 .camera-overlay-control{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:8px 0}
 .camera-overlay-control input{flex:1;min-width:65px;width:90px}
 .camera-overlay-control output{min-width:3em;text-align:right}
+
+/* Selection playback stays above navigation and inside an expanded reader. */
+.selected-passage-tools:not([hidden]) { position:fixed; bottom:calc(90px + env(safe-area-inset-bottom)); left:12px; right:12px; z-index:10000; display:flex; flex-wrap:wrap; gap:6px; padding:10px; background:var(--panel, #fff); color:var(--ink, #172b26); border:1px solid #76978a; border-radius:12px; box-shadow:0 3px 16px #0003; }
+.selected-passage-tools button { min-height:44px; }
+.selected-passage-tools .speech-action-status { flex-basis:100%; margin:0; }
+dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
+@media print { .selected-passage-tools { display:none !important; } }

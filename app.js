@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.35 · build 245";
+const APP_VERSION = "0.27.36 · build 246";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -1873,7 +1873,7 @@ function speechProfile(text, lang="es-EC") {
 function updateSpeechPauseControls() {
   const supported = "speechSynthesis" in window
     && typeof speechSynthesis.speak === "function" && typeof speechSynthesis.cancel === "function";
-  for (const selector of ["#pause-result", "#pause-conversation", "#pause-paper"]) {
+  for (const selector of ["#pause-result", "#pause-conversation", "#pause-paper", "#pause-selected-passage"]) {
     const button = $(selector);
     if (!button) continue;
     const paused = !!activeSpeechPlayback?.paused;
@@ -5997,6 +5997,59 @@ function buildTranslationExport({scope="translation",source="",translation="",so
   return {text:`Original (${sourceLabel}):\n${source}\n\nTranslation (${targetLabel}):\n${translation}`,scope};
 }
 
+// Keep the selected words separate from the live editable document. Speech must
+// start from a deliberate tap, while selection/IME remains available for editing.
+function bindSelectedPassagePlayback() {
+  const tools=document.createElement("div");
+  tools.id="selected-passage-tools";tools.className="selected-passage-tools";
+  tools.hidden=true;tools.setAttribute("role","group");
+  tools.setAttribute("aria-label","Selected passage audio / Audio del pasaje seleccionado");
+  tools.innerHTML='<button type="button" id="hear-selected-passage">🔊 Read selection / Escuchar selección</button><button type="button" id="pause-selected-passage" disabled>⏸ Pause</button><button type="button" id="stop-selected-passage">Stop / Detener</button>';
+  document.body.append(tools);
+  let selected=null;
+  function capture() {
+    if(tools.contains(document.activeElement))return;
+    const field=document.activeElement;
+    let owner=null,text="";
+    if(field?.matches('textarea, input[type="text"], input:not([type])') && !field.readOnly) {
+      owner=field;text=field.value.slice(field.selectionStart,field.selectionEnd);
+    } else {
+      const range=window.getSelection?.();
+      if(range && !range.isCollapsed && range.rangeCount) {
+        owner=range.getRangeAt(0).commonAncestorContainer;
+        if(owner.nodeType!==1)owner=owner.parentElement;
+        text=range.toString();
+      }
+    }
+    if(!text.trim() || !owner || tools.contains(owner)) {
+      selected=null;tools.hidden=true;return;
+    }
+    const source=owner.closest('#translator-input, #full-reader-source, #music-review-source');
+    const target=owner.closest('#natural-result, #full-reader-result, #music-review-draft, #music-live-draft');
+    const lang=source ? (source.id==='music-review-source' ? source.lang || sourceLanguage : sourceLanguage)
+      : target ? (target.lang || targetSpeechLocale())
+      : owner.closest('[lang]')?.getAttribute('lang') || document.documentElement.lang || 'en-US';
+    selected={text,lang,owner};
+    // A modal must own its controls so they remain tappable in the top layer.
+    const host=owner.closest('dialog[open]') || document.body;
+    if(tools.parentElement!==host)host.append(tools);
+    tools.hidden=false;
+  }
+  // Preserve the highlighted range when tapping a playback control on iOS.
+  tools.addEventListener('pointerdown',event=>event.preventDefault());
+  $('#hear-selected-passage').addEventListener('click',event=>{
+    if(selected?.owner.isConnected)say(selected.text,selected.lang,event.currentTarget);
+  });
+  $('#pause-selected-passage').addEventListener('click',toggleSpeechPause);
+  $('#stop-selected-passage').addEventListener('click',stopSpeechPlayback);
+  document.addEventListener('selectionchange',capture);
+  document.addEventListener('select',capture,true);
+  document.addEventListener('pointerup',capture);
+  document.addEventListener('keyup',capture);
+  document.addEventListener('input',()=>{selected=null;tools.hidden=true;},true);
+  document.addEventListener('close',()=>{selected=null;tools.hidden=true;},true);
+}
+
 function bindTranslationExport() {
   const select=$("#translation-export-scope"),status=$("#translation-export-status"),fallback=$("#translation-export-fallback");
   if (!select || !status || !fallback) return;
@@ -6424,6 +6477,7 @@ function init() {
   });
   $$('[data-app-version]').forEach(element => { element.textContent = `v${APP_VERSION}`; });
   initializeOptionalFeature("translation text export",bindTranslationExport);
+  initializeOptionalFeature("selected passage audio",bindSelectedPassagePlayback);
   initializeOptionalFeature("translation speaking practice",bindTranslationPractice);
   initializeOptionalFeature("document import",bindDocumentTools);
   initializeOptionalFeature("document translation",bindWholeDocumentTools);
