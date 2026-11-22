@@ -43,4 +43,4 @@ async function run(browser,file){
  assert.equal(await page.locator('#selected-passage-tools').isVisible(),false);
  assert.deepEqual(errors,[]);await context.close();console.log(file+': selected source/draft speech, correct languages, pause/resume/stop, modal and replacement editing passed');
 }
-(async()=>{const b=await engine.launch({headless:true,executablePath:process.env.HABLA_CHROMIUM_EXECUTABLE,args:['--no-sandbox']});try{await run(b,'index.html');await run(b,'translator.html');}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const b=await engine.launch({headless:true,executablePath:process.env.HABLA_CHROMIUM_EXECUTABLE,args:process.env.HABLA_BROWSER_ENGINE==='webkit'?[]:['--no-sandbox']});try{await run(b,'index.html');await run(b,'translator.html');}finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
