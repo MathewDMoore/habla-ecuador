@@ -25,7 +25,7 @@ async function run(browser,file){
   else{const r=document.createRange();r.setStart(el.firstChild,start);r.setEnd(el.firstChild,end);getSelection().removeAllRanges();getSelection().addRange(r);}
   document.dispatchEvent(new Event('selectionchange'));
  },{start,end});}
- await select('#translator-input',7,18);
+ await select('#translator-input',7,19);
  await page.locator('#hear-selected-passage').click();
  assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:'Buenos días.',lang:'es-MX'});
  await page.locator('#pause-selected-passage').click();assert.match(await page.locator('#pause-selected-passage').textContent(),/Resume/);
@@ -34,11 +34,11 @@ async function run(browser,file){
  await select('#natural-result',8,21);await page.locator('#hear-selected-passage').click();
  assert.deepEqual(await page.evaluate(()=>spoken.at(-1)),{text:'Good morning.',lang:'en-US'});
  await page.locator('#translation-full-text').click();
- await select('#full-reader-source',7,18);
+ await select('#full-reader-source',7,19);
  assert.equal(await page.locator('dialog #selected-passage-tools').count(),1);
  await page.locator('#hear-selected-passage').click();assert.equal(await page.evaluate(()=>spoken.at(-1).text),'Buenos días.');
  await page.locator('#full-reader-close').click();assert.equal(await page.locator('#selected-passage-tools').isVisible(),false);
- await select('#translator-input',7,18);await page.keyboard.insertText('Hola.');
+ await select('#translator-input',7,19);await page.keyboard.insertText('Hola.');
  assert.equal(await page.locator('#translator-input').inputValue(),'Antes. Hola. Después.');
  assert.equal(await page.locator('#selected-passage-tools').isVisible(),false);
  assert.deepEqual(errors,[]);await context.close();console.log(file+': selected source/draft speech, correct languages, pause/resume/stop, modal and replacement editing passed');
