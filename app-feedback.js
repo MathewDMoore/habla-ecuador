@@ -5,6 +5,16 @@
  const PENDING_KEY='habla-feedback-pending-review-v1';
  const MAX_PENDING=40;
  const speakerRoles={unspecified:'Not specified',native:'Native speaker (self-reported)',other:'Other speaker or learner'};
+ // Curated lookup pointers only. No scraping, copied dictionary contents, or
+ // automatic endorsement of a user's proposed meaning by any institution.
+ const referenceSources={
+  none:{name:'Not selected',url:'',scope:'No outside reference selected'},
+  dae:{name:'Academia Ecuatoriana de la Lengua · Diccionario académico de ecuatorianismos',url:'https://www.academiaecuatorianadelalengua.org/diccionario-academico-de-ecuatorianismos/',scope:'Descriptive Ecuadorian vocabulary and senses'},
+  corpha:{name:'Academia Ecuatoriana de la Lengua · CORPHA',url:'https://www.academiaecuatorianadelalengua.org/corpha-ec-2/',scope:'Ecuadorian corpus background and usage examples'},
+  asale:{name:'ASALE · Diccionario de americanismos',url:'https://www.asale.org/damer/',scope:'Cross-country lexical senses and labels'},
+  puce:{name:'PUCE · Diccionario Accesible Ecuatoriano',url:'https://diccionarioaccesible.puce.edu.ec/instrucciones-de-uso/',scope:'Ecuadorian dictionary citations and selected sign-language explanations'},
+  mitad:{name:'Mitad · Ecuadorian Dictionary (independent comparison)',url:'https://apps.apple.com/br/app/mitad-ecuadorian-dictionary/id6757779794',scope:'Independent comparison only, not institutional validation'}
+ };
  const topics={translation:'Translation',regional:'Regional meaning or usage',dictionary:'Dictionary entry',pronunciation:'Pronunciation or speaking practice',lesson:'Lesson or subtitles',interface:'App behavior or layout',other:'Something else'};
  const regions={'es-EC':'Ecuador','es-MX':'Mexico','es-VE':'Venezuela','es-BO':'Bolivia','es-PE':'Peru','es-CO':'Colombia','en-US':'U.S. English','en-GB':'U.K. English','en-CA':'Canadian English','en-AU':'Australian English','en-NZ':'New Zealand English','en-IE':'Irish English',"es-CU":"Cuban Spanish","es-AR":"Argentina \\u00b7 Spanish","es-CL":"Chile \\u00b7 Spanish","es-CR":"Costa Rica \\u00b7 Spanish","es-DO":"Dominican Republic / Rep\\u00fablica Dominicana \\u00b7 Spanish","es-SV":"El Salvador \\u00b7 Spanish","es-GT":"Guatemala \\u00b7 Spanish","es-HN":"Honduras \\u00b7 Spanish","es-NI":"Nicaragua \\u00b7 Spanish","es-PA":"Panama / Panam\\u00e1 \\u00b7 Spanish","es-PY":"Paraguay \\u00b7 Spanish","es-PR":"Puerto Rico \\u00b7 Spanish","es-ES":"Spain / Espa\\u00f1a \\u00b7 Spanish","es-UY":"Uruguay \\u00b7 Spanish","es-GQ":"Equatorial Guinea / Guinea Ecuatorial \\u00b7 Spanish",other:'Other / uncertain'};
  const languages={'es-EC':'Ecuadorian Spanish','es-MX':'Mexican Spanish','es-VE':'Venezuelan Spanish','es-BO':'Bolivian Spanish','es-PE':'Peruvian Spanish','es-CO':'Colombian Spanish','en-US':'U.S. English','en-GB':'U.K. English',"es-CU":"Cuban Spanish","es-AR":"Argentina \\u00b7 Spanish","es-CL":"Chile \\u00b7 Spanish","es-CR":"Costa Rica \\u00b7 Spanish","es-DO":"Dominican Republic / Rep\\u00fablica Dominicana \\u00b7 Spanish","es-SV":"El Salvador \\u00b7 Spanish","es-GT":"Guatemala \\u00b7 Spanish","es-HN":"Honduras \\u00b7 Spanish","es-NI":"Nicaragua \\u00b7 Spanish","es-PA":"Panama / Panam\\u00e1 \\u00b7 Spanish","es-PY":"Paraguay \\u00b7 Spanish","es-PR":"Puerto Rico \\u00b7 Spanish","es-ES":"Spain / Espa\\u00f1a \\u00b7 Spanish","es-UY":"Uruguay \\u00b7 Spanish","es-GQ":"Equatorial Guinea / Guinea Ecuatorial \\u00b7 Spanish"};
@@ -17,6 +27,7 @@
   for(const [k,n]of Object.entries(limits))out[k]=clip(v[k],n);
   const c=v.context&&typeof v.context==='object'?v.context:{};
   out.context={screen:Object.hasOwn(screens,c.screen)?c.screen:'home-view',version:clip(c.version,80),sourceLocale:Object.hasOwn(regions,c.sourceLocale)?c.sourceLocale:'',targetLocale:Object.hasOwn(regions,c.targetLocale)?c.targetLocale:''};
+  out.referenceSource=Object.hasOwn(referenceSources,v.referenceSource)?v.referenceSource:'none';
   out.includeText=v.includeText===true;
   out.source=out.includeText?clip(v.source,3000):'';out.translation=out.includeText?clip(v.translation,3000):'';
   return out;
@@ -26,13 +37,15 @@
   return [t('Habla Ecuador — feedback report'),t('USER REPORT · not verified; no dictionary change'),
    t('PENDING RESEARCH REVIEW · self-report only; not added to lessons, translations or dictionary'),
    line('Topic',t(topics[d.topic])),line('Country / variety',t(regions[d.region])),line('City / area',d.city),line('Word, sentence or feature',d.reference),
-   line('What seems wrong?',d.problem),line('Suggested correction',d.correction),line('Example or evidence',d.example),line('Speaker background',t(speakerRoles[d.speakerRole])),line('Name / initials',d.reviewer),
+   line('What seems wrong?',d.problem),line('Suggested correction',d.correction),line('Example or evidence',d.example),
+   d.referenceSource!=='none'?line('Reference to consult (not validation)',referenceSources[d.referenceSource].name+' · '+referenceSources[d.referenceSource].url):null,
+   line('Speaker background',t(speakerRoles[d.speakerRole])),line('Name / initials',d.reviewer),
    line('Screen',t(screens[d.context.screen])),line('App version',d.context.version),line('From',t(languages[d.context.sourceLocale]||'')),line('To',t(languages[d.context.targetLocale]||'')),
    d.includeText?t('Text included with permission · up to 3000 characters per box'):t('Source and translation text not included.'),
    d.includeText?line('Source text',d.source):null,d.includeText?line('Translation draft',d.translation):null
   ].filter(Boolean).join('\n\n');
  }
- if(typeof module==='object'&&module.exports){module.exports={clean,format,topics,regions,speakerRoles};return;}
+ if(typeof module==='object'&&module.exports){module.exports={clean,format,topics,regions,speakerRoles,referenceSources};return;}
  function bind(){
   const dialog=document.getElementById('app-feedback'),form=document.getElementById('app-feedback-form');if(!dialog||!form)return;
   const el=id=>document.getElementById('feedback-'+id),ui=s=>root.HablaUI?root.HablaUI.t(s):s;
@@ -77,9 +90,9 @@
    }
   }
   const status=s=>{el('status').textContent=s;};
-  const read=()=>clean(Object.assign(Object.fromEntries(Object.keys(limits).concat(['topic','region','speakerRole']).map(k=>[k,form.elements[k].value])),{context,source,translation,includeText:el('include-text').checked}));
+  const read=()=>clean(Object.assign(Object.fromEntries(Object.keys(limits).concat(['topic','region','speakerRole','referenceSource']).map(k=>[k,form.elements[k].value])),{context,source,translation,includeText:el('include-text').checked}));
   const preview=()=>{el('preview').value=format(read(),ui);};
-  function restore(d){for(const k of Object.keys(limits).concat(['topic','region','speakerRole']))form.elements[k].value=d[k];context=d.context;source=d.source;translation=d.translation;el('include-text').checked=d.includeText;preview();}
+  function restore(d){for(const k of Object.keys(limits).concat(['topic','region','speakerRole','referenceSource']))form.elements[k].value=d[k];context=d.context;source=d.source;translation=d.translation;el('include-text').checked=d.includeText;preview();}
   let loadError=false;
   try{const raw=localStorage.getItem(KEY);if(raw){const d=clean(JSON.parse(raw));restore(d);dirty=true;}}
   catch{loadError=true;}
