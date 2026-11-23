@@ -92,7 +92,11 @@
    const reference=button.dataset.feedbackReference||'';
    if(!dirty){
     captureContext();
-    const current=context.screen==='dictionary-view'?document.getElementById('regional-slang-region')?.value:context.targetLocale.startsWith('es-')?context.targetLocale:context.sourceLocale;
+    const routeRegion=new URLSearchParams(location.search).get('region');
+    // Preserve the variety named by the regional deep link.
+    const current=button.dataset.feedbackRegion || routeRegion ||
+      (context.screen==='dictionary-view'?document.getElementById('regional-slang-region')?.value:
+        context.targetLocale.startsWith('es-')?context.targetLocale:context.sourceLocale);
     let city={monterrey:['es-MX','Monterrey, Nuevo León'],quito:['es-EC','Quito'],'mexico-city':['es-MX','Ciudad de México'],bogota:['es-CO','Bogotá']}[current];
     if(current==='es-VE'&&new URLSearchParams(location.search).get('city')==='caracas')city=['es-VE','Caracas'];
     form.elements.region.value=city?.[0]||(Object.hasOwn(regions,current)?current:'other');form.elements.city.value=city?.[1]||'';
