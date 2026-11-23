@@ -169,7 +169,7 @@ const english=[
   explanation:'Para indicar quién recibe algo, usa |for.| Por ejemplo, |this is for Ana.| Para expresar un propósito con una acción, usa |to| y el verbo. Por ejemplo, |to learn.| No traduzcas cada por o para con la misma palabra. Fíjate en lo que quieres comunicar.',
   examples:[['This coffee is for Ana.','Este café es para Ana.'],['I study to learn English.','Estudio para aprender inglés.'],['Thank you for your help.','Gracias por tu ayuda.']],
   situations:[{scene:'Compraste un café para Ana. Indica quién lo recibirá.',phrase:'This coffee is for Ana.',meaning:'Este café es para Ana.'},{scene:'Explica tu propósito al estudiar: aprender inglés.',phrase:'I study to learn English.',meaning:'Estudio para aprender inglés.'},{scene:'Una amistad te ayudó. Dale las gracias por su ayuda.',phrase:'Thank you for your help.',meaning:'Gracias por tu ayuda.'}]},
- {id:'future',title:'Planes: going to · will',
+ {id:'future',title:'Plans: going to · will',
   explanation:'Para comunicar un plan, practica |I am going to| y un verbo. |Will| también sirve para hablar del futuro, por ejemplo al tomar una decisión en ese momento. Estas formas tienen más usos. Practica el contexto además de la estructura.',
   examples:[["I'm going to eat.",'Voy a comer.'],["I'm going to drink some water.",'Voy a beber agua.'],["I'll have tea, please.",'Tomaré té, por favor.']],
   situations:[{scene:'Ya tienes un plan para comer pronto. Cuenta qué vas a hacer.',phrase:"I'm going to eat.",meaning:'Voy a comer.'},{scene:'Tienes tu botella lista. Di que vas a beber agua.',phrase:"I'm going to drink some water.",meaning:'Voy a beber agua.'},{scene:'Te ofrecen café o té. Decides pedir té en ese momento.',phrase:"I'll have tea, please.",meaning:'Tomaré té, por favor.'}]}
