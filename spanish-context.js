@@ -174,7 +174,7 @@ const HablaSpanishContext = (() => {
     // Never overwrite source text or choose a sense based on a country alone.
     if(source==='es-BO'){
       const normalized=plain(value).replace(/[’‘`]/g,"'");
-      if(/(?<![a-zñ])caserit?[oa]s?(?![a-zñ])/u.test(normalized)){
+      if(/(?<![a-zñ])(?:caser[oa]|caserit[oa])s?(?![a-zñ])/u.test(normalized)){
         findings.push({term:'casero / casera',kind:'regional-ambiguity',
           detail:'In a familiar market relationship this can refer to a regular customer OR the regular seller. Shared with Ecuador, Peru and Chile, not exclusively Bolivian. Use the surrounding conversation to choose.',
           url:'https://es.wiktionary.org/wiki/casero',
