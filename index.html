@@ -1070,6 +1070,20 @@
         <label>Word, sentence or feature<input name="reference" maxlength="500"></label>
         <label>Suggested correction<textarea name="correction" maxlength="2000" rows="2"></textarea></label>
         <label>Example or evidence<textarea name="example" maxlength="2000" rows="2" placeholder="A full sentence, where you hear it or a source link. It is OK to be unsure."></textarea></label>
+        <details class="compact-info feedback-research-resources" id="feedback-research-resources">
+          <summary>Research &amp; verification sources / Fuentes</summary>
+          <p>Choose a source to consult, then document what you actually found in Example or evidence. Selecting a reference alone does not verify a claim. Source websites may require internet; no content is copied into Habla.</p>
+          <label>Reference to consult (not verification)<select name="referenceSource">
+            <option value="none">No reference selected / Sin fuente</option>
+            <option value="dae">🇪🇨 Academia Ecuatoriana · DAE</option>
+            <option value="corpha">🇪🇨 CORPHA · Ecuadorian corpus</option>
+            <option value="asale">🌎 ASALE · Americanisms</option>
+            <option value="puce">🇪🇨 PUCE · Accessible Dictionary</option>
+            <option value="mitad">🇪🇨 Mitad · Independent comparison</option>
+          </select></label>
+          <div class="feedback-resource-links" aria-label="Verified reference websites"><a href="https://www.academiaecuatorianadelalengua.org/diccionario-academico-de-ecuatorianismos/" target="_blank" rel="noopener noreferrer">Academia Ecuatoriana · DAE</a><a href="https://www.academiaecuatorianadelalengua.org/corpha-ec-2/" target="_blank" rel="noopener noreferrer">CORPHA · Ecuadorian corpus</a><a href="https://www.asale.org/damer/" target="_blank" rel="noopener noreferrer">ASALE · Diccionario de americanismos</a><a href="https://diccionarioaccesible.puce.edu.ec/instrucciones-de-uso/" target="_blank" rel="noopener noreferrer">PUCE · Diccionario Accesible</a><a href="https://apps.apple.com/br/app/mitad-ecuadorian-dictionary/id6757779794" target="_blank" rel="noopener noreferrer">Mitad · Independent comparison</a></div>
+          <small>Research guidance: check the exact sense, register, country or city evidence, and date. Speaker corrections remain pending until independent validation. Mitad is a comparison aid, not official confirmation.</small>
+        </details>
         <label>Speaker background (optional)<select name="speakerRole"><option value="unspecified">Prefer not to say</option><option value="native">Native speaker (self-reported)</option><option value="other">Other speaker or learner</option></select></label>
         <small>Native-speaker status is self-reported. Regional accuracy and pronunciation still require independent evidence.</small>
         <label>Name / initials <span>(optional)</span><input name="reviewer" maxlength="80" autocomplete="off"></label>
