@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.41 · build 251";
+const APP_VERSION = "0.27.42 · build 252";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -6449,6 +6449,10 @@ function init() {
   if (standaloneTranslator) {
     const fullApp = new URL("index.html", location.href);
     fullApp.searchParams.set("start", faceToFaceLaunch ? "face-to-face" : "translate");
+    // A link to a specific tutorial must survive the standalone-to-full
+    // interface redirect, including iPhone Home Screen entrypoints.
+    const tutorialRoute=launchQuery.get("tour");
+    if(["1","lessons","home-screen"].includes(tutorialRoute))fullApp.searchParams.set("tour",tutorialRoute);
     const interfaceChoice=new URLSearchParams(location.search).get("ui");
     if(["en","es"].includes(interfaceChoice)) fullApp.searchParams.set("ui",interfaceChoice);
     location.replace(fullApp.href);
@@ -6868,7 +6872,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=251", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=252", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
