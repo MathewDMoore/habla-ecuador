@@ -7,11 +7,47 @@ const context=vm.createContext({console,setTimeout,clearTimeout,AbortController,
  localStorage:{getItem:()=>null,setItem(){}},navigator:{onLine:true},
  fetch:async(url,options)=>{const text=new URL(url).searchParams.get('q');requests.push(text);assert.ok(Buffer.byteLength(text)<=500);return handler(text,options);}
 });
-for(const file of ['research-reference.js','spanish-context.js','language-community-terms.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['research-reference.js','regional-vocabulary.js','spanish-context.js','language-community-terms.js','app.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ for (const locale of ['es-BO','es-MX','es-EC']) {
+  run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-US";direction="ec-en";translationPurpose="everyday"');
+  element('#translator-input').value='Acostarse';
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,'to go to bed');
+  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['to lie down']);
+ }
+ run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec"');
+ for(const [input,primary,alternatives] of [
+  ['Lying','mintiendo',['acostado','acostada','acostándose']],
+  ['Lying down','acostado',['acostada','acostándose']]
+ ]){
+  element('#translator-input').value=input;
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,primary);
+  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),alternatives);
+ }
+ assert.equal(requests.length,0,'dictionary meanings work without a translation provider');
+ for (const [locale,word,meaning] of [
+  ['es-EC','Guagua','young child'],['es-BO','guaguas','young children'],
+  ['es-PE','Guagua','nursing baby'],['es-CU','Guagua','bus'],['es-MX','Guagua','bus'],
+  ['es-ES','guagua','bus'],['es-BO','huahua','nursing baby'],['es-PE','huahua','child-shaped sweet bread'],
+  ['es-CU','acere','close friend'],['es-VE','arrecha','pissed off']
+ ]){
+  run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-US";direction="ec-en"');
+  element('#translator-input').value=word;
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,meaning,locale+' '+word);
+  assert.match(run('lastCompletedTranslation.reviewedAlternatives[0].url'),/^https:/);
+ }
+ assert.equal(requests.length,0);
+ assert.equal(run('matchPhrase("Guagua","ec-en")'),null);
+ assert.ok(run('matchPhrase("La guagua está durmiendo.","ec-en")'));
+ assert.ok(run('HablaSpanishContext.dictionaryMeanings("guagua",{source:"es-BO",target:"en-US"}).some(choice=>choice.text==="bus" && choice.local===false)'));
+ assert.ok(run('HablaSpanishContext.dictionaryMeanings("guagua",{source:"es-MX",target:"en-US"})[0].note.includes("northwestern Mexico")'));
+ assert.equal(run('HablaSpanishContext.dictionaryMeanings("perdí la guagua",{source:"es-CU",target:"en-US"}).length'),0);
  const source='The keys are on the table.';
  handler=async()=>({ok:true,status:200,json:async()=>({
   responseStatus:200,responseData:{translatedText:'Las llaves están sobre la mesa.'},

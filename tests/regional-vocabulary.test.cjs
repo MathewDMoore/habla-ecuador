@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const batch=require('../regional-vocabulary.js').filter(e=>e.batch==='regional-vocabulary-116'),context=require('../spanish-context.js');
 assert.equal(batch.length,30);assert.equal(new Set(batch.map(e=>e.id)).size,30);assert.equal(new Set(batch.map(e=>e.headword)).size,22);
-const all=context.dictionary({region:'all'});assert.equal(all.length,175);
+const all=context.dictionary({region:'all'});assert.equal(all.filter(e=>e.batch!=='scoped-dictionary').length,175);assert.equal(all.filter(e=>e.batch==='scoped-dictionary').length,10);
 const byId=id=>all.find(e=>e.id==='v116-'+id), ids=options=>context.dictionary(options).filter(e=>e.batch==='regional-vocabulary-116').map(e=>e.id.replace('v116-',''));
 const types=new Set(['familiar','culture','vocabulary','idiom','exclamation','literal']);
 for(const entry of batch){
@@ -31,6 +31,6 @@ for(const page of ['index.html','translator.html'])assert.match(fs.readFileSync(
 console.log('Regional vocabulary: 30 senses/22 headwords; 175 total including clinical anatomy; every entry/source/example/region/type/tone, English counterparts, cross-country false friends, contrast-note exclusion, negatives and offline asset passed');
 
 const crypto=require('node:crypto'),preserved=[];
-for(const region of ['all','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','en-US','en-GB','quito','monterrey','mexico-city','bogota'])for(const category of ['all','slang','literal','clinical'])for(const tone of ['all','mild','caution'])preserved.push(context.dictionary({region,category,tone}).filter(e=>e.term!=='mamagüevo / mamahuevo'&&e.id!=='guayaquil-hunger-leona'&&!e.id?.startsWith('attraction-')&&e.batch!=='regional-vocabulary-116'&&e.batch!=='cuba-154'&&e.batch!=='regional-phraseology-201'&&e.batch!=='clinical-anatomy'&&e.batch!=='bolivia-reference-252'&&!e.contributionId));
+for(const region of ['all','es-EC','es-BO','es-MX','es-VE','es-PE','es-CO','en-US','en-GB','quito','monterrey','mexico-city','bogota'])for(const category of ['all','slang','literal','clinical'])for(const tone of ['all','mild','caution'])preserved.push(context.dictionary({region,category,tone}).filter(e=>e.batch!=='scoped-dictionary'&&e.term!=='mamagüevo / mamahuevo'&&e.id!=='guayaquil-hunger-leona'&&!e.id?.startsWith('attraction-')&&e.batch!=='regional-vocabulary-116'&&e.batch!=='cuba-154'&&e.batch!=='regional-phraseology-201'&&e.batch!=='clinical-anatomy'&&e.batch!=='bolivia-reference-252'&&!e.contributionId));
 assert.equal(crypto.createHash('sha256').update(JSON.stringify(preserved)).digest('hex'),'c629db51402ba8747dce5d58b76ea897bd48274d519e2289bfd071d1d30a0f6e','all 49 pre-build-116 entries, metadata and ordering preserved in 168 views');
 

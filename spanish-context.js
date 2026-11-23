@@ -129,6 +129,41 @@ const HablaSpanishContext = (() => {
       scope,note,literal:'The words evoke a vulgar sexual image, not edible eggs.',alternatives,
       url:asale('mamagüevo')};
   }
+  // Standalone dictionary forms. Keep whole sentences available to the translator.
+  const sense = (text, label, note) => ({text, label, note});
+  const bedtime = sense("to go to bed", "Verb · bedtime / Hora de dormir", "Me acuesto a las diez. → I go to bed at ten.");
+  const lieDown = sense("to lie down", "Verb · change of posture / Cambio de postura", "Me voy a acostar en el sofá. → I'm going to lie down on the couch.");
+  const lyingDown = sense("lying down", "Position / Postura", "Ya estoy acostada. → I'm already lying down.");
+  const reclining = sense("reclining", "Position · leaning back / Postura reclinada", "Use for someone resting in a leaned-back position. / Para alguien que descansa con el cuerpo inclinado hacia atrás.");
+  const lying = sense("mintiendo", "Verb · telling a falsehood / Decir una mentira", "She's lying about her age. → Está mintiendo sobre su edad.");
+  const lyingMale = sense("acostado", "Position · masculine / Postura · masculino", "Él está acostado. → He is lying down.");
+  const lyingFemale = sense("acostada", "Position · feminine / Postura · femenino", "Ella está acostada. → She is lying down.");
+  const gettingDown = sense("acostándose", "Action in progress / Acción en curso", "She's lying down on the bed now. → Ahora está acostándose en la cama.");
+  const toBed = sense("acostarse", "Verb · going to bed or lying down / Ir a la cama o tenderse", "I want to go to bed. → Quiero acostarme.");
+  const stretchOut = sense("tumbarse", "Verb · lying down / Tenderse", "He lay down on the grass. → Se tumbó en el césped.");
+  const dictionaryForms = {
+    es: new Map([
+      ["acostarse", [bedtime, lieDown]],
+      ...["acostado", "acostada", "acostados", "acostadas"].map(form => [form, [lyingDown, reclining]]),
+      ["mentir", [sense("to lie", "Verb · deception / Engaño", "Deja de mentir. → Stop lying."), sense("to tell a lie", "Verb phrase / Locución verbal", "No quiero mentir. → I don't want to tell a lie.")]]
+    ]),
+    en: new Map([
+      ["lying", [lying, lyingMale, lyingFemale, gettingDown]],
+      ["lying down", [lyingMale, lyingFemale, gettingDown]],
+      ...["lie down", "to lie down"].map(form => [form, [toBed, stretchOut]]),
+      ...["go to bed", "to go to bed"].map(form => [form, [toBed, sense("irse a la cama", "Verb · bedtime / Hora de dormir", "It's time to go to bed. → Es hora de irse a la cama.")]]),
+      ["recumbent", [lyingMale, lyingFemale, sense("reclinado", "Adjective · leaning back / Inclinado hacia atrás", "A recumbent figure. → Una figura reclinada.")]]
+    ])
+  };
+  function dictionaryMeanings(text, {source, target, purpose}) {
+    const from = source.split("-")[0], to = target.split("-")[0];
+    if (purpose === "academic" || !dictionaryForms[to] || from === to) return [];
+    const key = text.trim().toLowerCase().replace(/[.,!?]+$/u, "").trimEnd();
+    const forms = dictionaryForms[from]?.get(key);
+    if (forms) return forms.map(option => ({...option, url:key === "acostarse"
+      ? "https://dictionary.cambridge.org/dictionary/spanish-english/acostarse" : undefined}));
+    return regionalMeanings(text, source, target);
+  }
   function wordMeanings(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
     if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return [];
     const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
@@ -706,13 +741,78 @@ const HablaSpanishContext = (() => {
       : ['chuta','pucha','¡puta!','¡verga!'].includes(entry.term) ? 'exclamation'
       : entry.register === 'Familiar' ? 'familiar' : entry.term === 'chulla' ? 'culture'
       : entry.term.replace(/\s*\([^)]*\)/g,'').split(' / ').every(word=>!word.trim().includes(' ')) ? 'vocabulary' : 'usage');
-    return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code] || (entry.batch === "clinical-anatomy" ? clinicalCountryNames.of(code.slice(3)) : undefined)),
+    return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code] || (['clinical-anatomy','scoped-dictionary'].includes(entry.batch) ? clinicalCountryNames.of(code.slice(3)) : undefined)),
       cities:Object.entries(cityEvidence).filter(([,terms])=>terms.includes(entry.term)).map(([city])=>({quito:'Quito',monterrey:'Monterrey, Nuevo León','mexico-city':'Mexico City',bogota:'Bogotá'}[city]))};
+  }
+  // Exact written forms only. Preserve accents, ñ, and distinctions such as
+  // papa/papá. Search suggestions and example sentences are separate data.
+  const lookupKey = value => value.normalize('NFC').toLowerCase().trim()
+    .replace(/^[¡¿]+|[.!?,]+$/gu,'').replace(/\s+/gu,' ').replace(/’/gu,"'").trim();
+  const entryForms = value => value.replace(/\s*\([^()]*\)\s*$/u,'').split(' / ');
+  const lookupIndex = new Map();
+  function indexSense(forms, glosses, entry) {
+    for (const [language,keys,outputs] of [['es',forms,glosses],['en',glosses,forms]]) {
+      for (const key of keys) {
+        const indexKey = language+'|'+lookupKey(key);
+        if (!lookupIndex.has(indexKey)) lookupIndex.set(indexKey,[]);
+        lookupIndex.get(indexKey).push({outputs,entry});
+      }
+    }
+  }
+  // ASALE, Diccionario de americanismos, guagua I.1–4, II.1,
+  // III.3 and IV.1; huahua I.1 and II.1. Each row has its own geography.
+  const scopedEntries=[];
+  for (const [word,gloss,plural,regions,scope,url] of [
+    ['guagua','young child','young children',['es-EC','es-BO','es-CL'],'Ecuador, Bolivia and Chile'],
+    ['guagua','nursing baby','nursing babies',['es-EC','es-CO','es-AR','es-PE','es-CL'],'Ecuador, southwestern Colombia, northwestern/western Argentina, rural Peru and Chile'],
+    ['guagua','bus','buses',['es-CU','es-DO','es-PR','es-MX','es-GT'],'Cuba, Dominican Republic, Puerto Rico, northwestern Mexico and western Guatemala'],
+    ['guagua','bus','buses',['es-ES'],'Spain · Canary Islands','https://www.academiacanarialengua.org/diccionario/entrada/guagua/'],
+    ['guagua','person acting like a child','people acting like children',['es-BO','es-CL'],'Bolivia and Chile · joking description'],
+    ['guagua','young animal','young animals',['es-EC','es-CL'],'Ecuador and Chile · animal offspring'],
+    ['guagua','crescent-shaped grinding stone','crescent-shaped grinding stones',['es-BO'],'Bolivia · used with a batán'],
+    ['guagua','child-shaped sweet bread','child-shaped sweet breads',['es-PE'],'Peru · food'],
+    ['huahua','nursing baby','nursing babies',['es-EC','es-BO'],'Ecuador and Bolivia · infant'],
+    ['huahua','child-shaped sweet bread','child-shaped sweet breads',['es-PE'],'Peru · food']
+  ]) {
+    const entry={term:word,us:gloss,uk:gloss,regions,scope,register:'Noun / Sustantivo',
+      batch:'scoped-dictionary',usageType:'familiar',searchAliases:[word+'s'],searchNotes:false,
+      note:scope,sourceName:url ? 'Academia Canaria de la Lengua' : 'ASALE · Diccionario de americanismos',url:url || asale(word)};
+    scopedEntries.push(entry);
+    indexSense([word],[gloss],entry);
+    indexSense([word+'s'],[plural],entry);
+  }
+  const dictionaryEntries = [hungerIdiom,...attractionEntries,...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch];
+  for (const entry of dictionaryEntries) {
+    if (!entry.url || entry.term.startsWith('guagua') || entry.requireExclamation) continue;
+    const forms = entryForms(entry.term);
+    for (const [variety,gloss] of [['us',entry.us],['uk',entry.uk]]) {
+      // A combined gloss may describe different places or grammatical forms.
+      // Admit only unqualified equivalents until its senses are individually scoped.
+      if (!gloss || /[();:]/u.test(gloss)) continue;
+      indexSense(forms,gloss.split(' / '),{...entry,variety});
+    }
+  }
+  function regionalMeanings(text,source,target) {
+    const spanishSource=source.startsWith('es-');
+    const region=spanishSource ? source : target;
+    const english=spanishSource ? target : source;
+    const variety=english==='en-GB' ? 'uk' : 'us';
+    const rows=lookupIndex.get((spanishSource ? 'es|' : 'en|')+lookupKey(text)) || [];
+    const results=[];
+    for (const {entry,outputs} of rows) {
+      if (entry.variety && entry.variety!==variety) continue;
+      const local=entry.regions.includes(region);
+      if (!spanishSource && !local) continue;
+      for (const output of outputs) results.push({text:output,local,url:entry.url,
+        label:(local ? '' : 'Other region / Otra región · ')+entry.register,
+        note:[entry.scope,entry.note].filter(Boolean).join(' ')});
+    }
+    return results.sort((a,b)=>Number(b.local)-Number(a.local));
   }
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {
     const search=plain(query.trim());
     const english=region==='en-US'?'us':region==='en-GB'?'uk':null;
-    return [hungerIdiom,...attractionEntries,...slangEntries,...dictionaryExtras,...englishVulgarityPairs,...recordingEntries,...contributedEntries.filter(entry=>entry.term!=='verga (vulgar anatomy)'),...vocabularyBatch].filter(entry => {
+    return [...dictionaryEntries,...scopedEntries].filter(entry => {
       const caution=/vulgar|offensive|insult/i.test(entry.register);
       const regionMatches=english ? target==='all'||entry.regions.includes(target) : region==='all'||entry.regions.includes(region)||cityEvidence[region]?.includes(entry.term);
       // Contrast notes and literal learning aids must not become English equivalents.
@@ -727,7 +827,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult};
+  return {dictionaryMeanings,analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 
