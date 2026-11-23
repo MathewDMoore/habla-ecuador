@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.43 · build 253";
+const APP_VERSION = "0.27.44 · build 254";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -5467,7 +5467,7 @@ function renderRegionalSlang() {
         ${entry.sourceSense ? `<p class="regional-search-help">Source sense: ${escapeHtml(entry.sourceSense)} · checked ${escapeHtml(entry.sourceChecked)}</p>` : ""}
         ${sources.map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
       </details>
-      <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">Report this entry</button>
+      <button type="button" class="feedback-link" data-feedback-open data-feedback-flag="true" data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">⚑ Flag regional usage for review</button>
     </article>`;
   };
   root.innerHTML = (entries.length ? entries : alternatives).map(entry => renderCard(entry)).join("");
@@ -5708,6 +5708,7 @@ function renderEvidenceCard(entry) {
     ${comparisonHtml ? `<div class="evidence-section"><h3>Regional comparison</h3>${comparisonHtml}</div>` : ""}
     ${reviewText ? `<div class="evidence-section"><h3>Still to verify</h3><p>${escapeHtml(reviewText)}</p></div>` : ""}
     <div class="evidence-section"><h3>Sources</h3><div class="source-links">${sourceLinks || "<span>No named source linked yet</span>"}</div></div>
+    <button type="button" class="feedback-link" data-feedback-open data-feedback-flag="true" data-feedback-topic="dictionary" data-feedback-reference="${escapeHtml((entry.spanish || '') + ' — ' + gloss)}">⚑ Flag dictionary entry for review</button>
   </article>`;
 }
 
@@ -6449,6 +6450,9 @@ function init() {
   if (standaloneTranslator) {
     const fullApp = new URL("index.html", location.href);
     fullApp.searchParams.set("start", faceToFaceLaunch ? "face-to-face" : "translate");
+    // Preserve a chosen guide when the iPhone uses the complete five-tab app.
+    const tutorialRoute=launchQuery.get("tour");
+    if(["1","lessons","home-screen"].includes(tutorialRoute))fullApp.searchParams.set("tour",tutorialRoute);
     const interfaceChoice=new URLSearchParams(location.search).get("ui");
     if(["en","es"].includes(interfaceChoice)) fullApp.searchParams.set("ui",interfaceChoice);
     location.replace(fullApp.href);
@@ -6868,7 +6872,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=253", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=254", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
