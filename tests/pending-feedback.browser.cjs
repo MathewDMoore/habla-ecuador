@@ -54,6 +54,7 @@ const root=path.resolve(__dirname,'..');
   await page.reload();
   await page.locator('.feedback-open').click();
   assert.equal(await page.locator('.feedback-pending-row').count(),1,'flag survives reload on the same device');
+  await page.locator('#feedback-pending > summary').click();
   await page.locator('.feedback-pending-row button').first().click();
   assert.equal(await page.locator('#app-feedback-form [name="speakerRole"]').inputValue(),'native');
   await page.locator('#app-feedback-form [name="correction"]').fill('Revised proposal still unverified');
