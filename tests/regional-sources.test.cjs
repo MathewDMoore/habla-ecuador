@@ -90,4 +90,12 @@ for(const page of ['index.html','translator.html']){
  assert.match(html,/Native-speaker suggestions remain pending independent review/);
  assert.match(html,/no content|does not scrape, bulk-copy or automatically adopt/i);
 }
-assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v256/);
+assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v257/);
+
+for (const page of ['index.html', 'translator.html']) {
+  const menu = fs.readFileSync(page, 'utf8').match(/id="regional-usage-type">([^]*?)<\/select>/)[1];
+  assert.match(menu, /<option value="vulgar">Vulgar<\/option>/);
+}
+const vulgar = dictionary.dictionary({region:'es-BO', usage:'vulgar'});
+assert.ok(vulgar.some(entry => entry.term === '¡verga!' && entry.usage.type === 'exclamation'));
+assert.ok(vulgar.every(entry => /vulgar/i.test(entry.register)));
