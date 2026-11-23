@@ -27,7 +27,14 @@ const root=path.resolve(__dirname,'..'), origin='https://mathewdmoore.github.io'
     assert.equal(await page.locator('.bottom-nav button[data-open="'+id+'"]').count(),1,entry+' missing '+id);
     assert.equal(await page.locator('#'+id).count(),1,entry+' missing view '+id);
    }
-   // Use a real nav tap before dispatching WebKit touch events.
+   // Every bottom button must really switch its corresponding screen.
+   for(const id of ['translator-view','dictionary-view','music-view','lesson-view','home-view']){
+    await page.locator('.bottom-nav button[data-open="'+id+'"]').click();
+    await page.waitForFunction(expected=>document.querySelector('.view.active')?.id===expected,id,{timeout:3000});
+    assert.equal(await page.locator('.bottom-nav button.active').getAttribute('data-open'),id,
+      entry+' did not highlight clicked tab '+id);
+   }
+   // Return to the first tab before testing WebKit touch navigation.
    await page.locator('.bottom-nav button[data-open="home-view"]').click();
    await page.waitForFunction(()=>document.querySelector('.view.active')?.id==='home-view');
    for(const id of ['translator-view','dictionary-view','music-view','lesson-view']){
