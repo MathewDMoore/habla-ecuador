@@ -27,3 +27,17 @@ for(const page of ['index.html','translator.html']){
 }
 assert.match(fs.readFileSync('app-feedback.js','utf8'),/habla-feedback-pending-review-v1/);
 assert.match(fs.readFileSync('app.js','utf8'),/Flag dictionary entry for review/);
+
+assert.equal(api.clean({referenceSource:'asale'}).referenceSource,'asale','approved source identifier is retained');
+assert.equal(api.clean({referenceSource:'https://example.com/malicious'}).referenceSource,'none','arbitrary reference identifiers are rejected');
+assert.ok(api.format({...source,referenceSource:'corpha'}).includes(api.referenceSources.corpha.url),'report contains direct institutional reference');
+assert.ok(api.format({...source,referenceSource:'corpha'}).includes('not validation'),'reference selection cannot imply verified meaning');
+assert.equal(Object.keys(api.referenceSources).length,6,'exactly five approved references plus none');
+for(const page of ['index.html','translator.html']){
+ const html=fs.readFileSync(page,'utf8');
+ assert.equal(html.split('id="feedback-research-resources"').length-1,1,'only one research reference section');
+ for(const id of ['dae','corpha','asale','puce','mitad'])assert.match(html,new RegExp('<option value="'+id+'">'),'reference '+id+' must be selectable');
+ for(const source of Object.values(api.referenceSources).filter(src=>src.url)){
+  assert.ok(html.includes('href="'+source.url+'"'),'trusted reference must be linked directly');
+ }
+}
