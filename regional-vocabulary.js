@@ -1785,6 +1785,135 @@ const HablaRegionalVocabulary = [
       "cityValidated": false
     },
     "figurative": true
+  },
+  {
+    "id": "bo252-casero-customer",
+    "batch": "bolivia-reference-252",
+    "term": "casero / casera (regular customer)",
+    "headword": "casero",
+    "speech": "casero",
+    "regions": [
+      "es-BO",
+      "es-EC",
+      "es-PE",
+      "es-CL"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Familiar / market address",
+    "us": "regular customer at a market",
+    "uk": "regular customer at a market",
+    "url": "https://es.wiktionary.org/wiki/casero",
+    "sourceName": "Wikcionario · casero",
+    "sourceIds": [
+      "wikcionario_bo"
+    ],
+    "references": [
+      {
+        "name": "Los Tiempos · Bolivian market address",
+        "url": "https://www.lostiempos.com/node/608243/devel"
+      }
+    ],
+    "scope": "Bolivia, Ecuador, Peru and Chile: a regular customer, especially in a market relationship.",
+    "note": "The related seller sense appears in a separate entry. Caserita/caserito is a familiar form of address; it does not necessarily imply a personal friendship.",
+    "exampleEs": "Mi casera viene todos los sábados.",
+    "exampleUs": "My regular customer comes every Saturday.",
+    "exampleUk": "My regular customer comes every Saturday.",
+    "searchAliases": ["caserita", "caserito", "caseros", "caseras"],
+    "sourceChecked": "2026-11-22",
+    "regionalSenseAttested": true,
+    "sourceSense": "Wikcionario · casero noun 13",
+    "uncertainty": "Meaning and countries are documented; this English gloss and example are original editorial wording. Native speaker, city distribution and contemporary usage verification remain pending.",
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "searchNotes": false
+  },
+  {
+    "id": "bo252-casero-vendor",
+    "batch": "bolivia-reference-252",
+    "term": "casero / casera (regular vendor)",
+    "headword": "casero",
+    "speech": "casera",
+    "regions": [
+      "es-BO",
+      "es-EC",
+      "es-PE",
+      "es-CL"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Familiar / market address",
+    "us": "regular market seller / vendor",
+    "uk": "regular market seller / trader",
+    "url": "https://es.wiktionary.org/wiki/casero",
+    "sourceName": "Wikcionario · casero",
+    "sourceIds": [
+      "wikcionario_bo"
+    ],
+    "references": [
+      {
+        "name": "Los Tiempos · caserita",
+        "url": "https://www.lostiempos.com/node/608243/devel"
+      }
+    ],
+    "scope": "Bolivia, Ecuador, Peru and Chile: the familiar vendor in an ongoing market customer relationship.",
+    "note": "The related customer sense appears separately. Without the surrounding dialogue, do not automatically pick buyer versus seller.",
+    "exampleEs": "La casera me guardó unas papas.",
+    "exampleUs": "My usual market seller saved some potatoes for me.",
+    "exampleUk": "My usual market trader saved some potatoes for me.",
+    "searchAliases": ["caserita", "caserito", "caseros", "caseras"],
+    "sourceChecked": "2026-11-22",
+    "regionalSenseAttested": true,
+    "sourceSense": "Wikcionario · casero noun 14",
+    "uncertainty": "Dictionary-attested but not geographically exclusive to Bolivia. English gloss and example are original. Native speaker and local context review pending.",
+    "verification": {
+      "dictionaryAttested": true,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "searchNotes": false
+  },
+  {
+    "id": "bo252-chaki-hangover",
+    "batch": "bolivia-reference-252",
+    "term": "ch’aki / ch'aki (hangover)",
+    "headword": "ch’aki",
+    "speech": "ch’aki",
+    "regions": [
+      "es-BO"
+    ],
+    "usageType": "vocabulary",
+    "category": "slang",
+    "register": "Informal / colloquial",
+    "us": "hangover",
+    "uk": "hangover",
+    "url": "https://www.lostiempos.com/node/608243/devel",
+    "sourceName": "Los Tiempos · Bolivian expressions",
+    "sourceIds": [
+      "lostiempos_bo"
+    ],
+    "scope": "La Paz, Bolivia: documented colloquial use describing a hangover after drinking. It may also occur elsewhere, but that is not established here.",
+    "note": "A Bolivian Spanish borrowing from Quechua. Wikcionario's page for ch’aki describes Quechua 'dry', not an independent source for this Bolivian Spanish hangover sense. Avoid using that page as proof of the Spanish sense.",
+    "exampleEs": "Hoy estoy de ch’aki.",
+    "exampleUs": "I've got a hangover today.",
+    "exampleUk": "I've got a hangover today.",
+    "searchAliases": ["chaki", "ch\u0027aki", "ch’aki", "chaqui"],
+    "sourceChecked": "2026-11-22",
+    "regionalSenseAttested": true,
+    "sourceSense": "Los Tiempos 2023 · cited La Paz expression",
+    "uncertainty": "A regional newspaper documents this use; broader geographic spread, pronunciation and native-speaker review remain pending. Example and translation are editorial.",
+    "verification": {
+      "dictionaryAttested": false,
+      "corpusChecked": false,
+      "nativeSpeakerReviewed": false,
+      "cityValidated": false
+    },
+    "searchNotes": false
   }
 ];
 if (typeof module !== "undefined" && module.exports) module.exports = HablaRegionalVocabulary;

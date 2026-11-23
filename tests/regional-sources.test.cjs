@@ -7,7 +7,7 @@ const sourceIds = new Set(sources.map(s => s.id));
 assert.equal(batch.length,24);
 assert.equal(new Set(batch.map(e => e.id)).size,24);
 assert.equal(sourceIds.size,sources.length);
-assert.equal(sources.length,26);
+assert.equal(sources.length,29);
 const ids = options => dictionary.dictionary(options).filter(e => e.batch === 'regional-phraseology-201').map(e => e.id.replace('p201-',''));
 for (const e of batch) {
   for (const key of ['id','term','headword','speech','us','uk','scope','note','exampleEs','exampleUs','exampleUk','sourceSense','sourceChecked','uncertainty']) assert.ok(e[key],e.id+' '+key);

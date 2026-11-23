@@ -170,6 +170,28 @@ const HablaSpanishContext = (() => {
     if(!source.startsWith('es') || purpose==='academic')return findings;
     const value=unquoted(text);
     const add=(term,detail,url)=>findings.push({term,detail,url});
+    // Bolivia: explain ambiguity and provenance next to the translated draft.
+    // Never overwrite source text or choose a sense based on a country alone.
+    if(source==='es-BO'){
+      const normalized=plain(value).replace(/[’‘`]/g,"'");
+      if(/(?<![a-zñ])(?:caser[oa]|caserit[oa])s?(?![a-zñ])/u.test(normalized)){
+        findings.push({term:'casero / casera',kind:'regional-ambiguity',
+          detail:'In a familiar market relationship this can refer to a regular customer OR the regular seller. Shared with Ecuador, Peru and Chile, not exclusively Bolivian. Use the surrounding conversation to choose.',
+          url:'https://es.wiktionary.org/wiki/casero',
+          references:[{name:'Los Tiempos · Bolivian market address',url:'https://www.lostiempos.com/node/608243/devel'}]});
+      }
+      if(/(?<![a-zñ])ch['’]?aki(?![a-zñ])/u.test(normalized)){
+        findings.push({term:'ch’aki',kind:'regional-ambiguity',
+          detail:'A hangover after drinking. A 2023 Bolivian report documents this expression in La Paz; it is not proof of usage in every Bolivian city. Do not confuse the Spanish usage with a Quechua dictionary entry.',
+          url:'https://www.lostiempos.com/node/608243/devel'});
+      }
+      if(/(?<![a-zñ])yapas?(?![a-zñ])/u.test(normalized)){
+        findings.push({term:'yapa',kind:'regional-ambiguity',
+          detail:'Often a small extra included by a seller; ASALE also records additional Bolivian senses, including added quantity. Also documented outside Bolivia. Choose the sense from the sentence.',
+          url:'https://www.asale.org/damer/yapa',
+          references:[{name:'Wikcionario · yapa',url:'https://es.wiktionary.org/wiki/yapa'}]});
+      }
+    }
     const documentedInsult=documentedVulgarInsult(text,{source,target,purpose});
     if(documentedInsult) {
       findings.push({term:documentedInsult.term,kind:'context-sensitive-slang',

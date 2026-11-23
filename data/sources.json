@@ -431,6 +431,55 @@
     "use": "Compare proverbial meanings, variants, pragmatic intent, source contexts and English equivalents.",
     "limits": "Shared proverb reference; does not establish that a saying is specific to, or common in, any particular country.",
     "importStatus": "Reference registered; no complete dictionary or corpus imported."
+  },
+  {
+    "id": "wikcionario_bo",
+    "name": "Wikcionario · Bolivian Spanish entry references",
+    "kind": "Openly licensed dictionary · individual entries",
+    "url": "https://es.wiktionary.org/wiki/Categor%C3%ADa:ES:Bolivia",
+    "documentationUrl": "https://es.wiktionary.org/wiki/Wikcionario:Portada",
+    "use": "Check Bolivian senses in individual entries and provide attribution links. Editorial English glosses/examples are original, not copied dictionary definitions. A Wikcionario country label is not proof of usage in every Bolivian region.",
+    "regions": [
+      "es-BO"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "lexical",
+    "accessStatus": "reference",
+    "checked": "2026-11-22",
+    "limits": "CC BY-SA 4.0 attribution and ShareAlike apply to copied/adapted content. No bulk Wikcionario dump is bundled or automatically translated; check meaning and regional markers against independent sources.",
+    "importStatus": "Reference linked; selected original editorial entries indexed; full dictionary not imported."
+  },
+  {
+    "id": "rla_es_bo",
+    "name": "RLA-ES · Hunspell Spanish (Bolivia, es_BO)",
+    "kind": "Open-source orthographic reference · no semantic translations",
+    "url": "https://github.com/sbosio/rla-es",
+    "documentationUrl": "https://github.com/sbosio/rla-es/blob/master/README.md",
+    "use": "Consult the es_BO word forms and spelling resources in future spell-check integration; do not infer meaning, pronunciation, slang or geography from a spell-check word list.",
+    "regions": [
+      "es-BO"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "orthography",
+    "accessStatus": "reference",
+    "checked": "2026-11-22",
+    "limits": "Open-source dictionary files have license and runtime requirements. No Hunspell engine or es_BO .dic/.aff downloaded or bundled yet; this is not an installed offline translator.",
+    "importStatus": "Reference and license documented; no dictionary binaries installed."
+  },
+  {
+    "id": "lostiempos_bo",
+    "name": "Los Tiempos · Bolivian expressions by region (2023)",
+    "kind": "Bolivian journalistic report with linguist commentary",
+    "url": "https://www.lostiempos.com/node/608243/devel",
+    "use": "Evidence for attested speech in Cochabamba and La Paz, including the hangover expression ch’aki. Does not establish every Bolivian community uses the expression.",
+    "regions": [
+      "es-BO"
+    ],
+    "dictionaryReference": true,
+    "coverageRole": "regional-research",
+    "accessStatus": "reference",
+    "checked": "2026-11-22",
+    "limits": "Copyrighted journalism. Only original, short editorial glosses and links appear in Habla; no article text or audio copied.",
+    "importStatus": "Reference linked; original editorial sense notes only."
   }
 ]
-
