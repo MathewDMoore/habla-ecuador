@@ -6,7 +6,8 @@ assert.equal(ui.t('Practice','es'),'Práctica');assert.equal(ui.t('Practice','en
 assert.equal(ui.t('Private synthetic phrase','es'),'Private synthetic phrase');
 assert.match(ui.t('Recognized-word score: 100% · 7 matched, 7 expected, 7 heard. This is not a pronunciation score.','es'),/No es una puntuación de pronunciación/);
 const entries=require('../spanish-context.js').dictionary({region:'all'});
-for(const entry of entries)for(const s of [entry.register,entry.scope,entry.note,entry.uncertainty,entry.usage?.label].filter(s=>typeof s==='string'&&s.trim()))assert.ok(Object.hasOwn(es,s)||ui.t(s,'es')!==s,'Missing metadata: '+s);
+const missing=entries.flatMap(entry=>[entry.register,entry.scope,entry.note,entry.uncertainty,entry.usage?.label].filter(value=>typeof value==='string'&&value.trim()&&!Object.hasOwn(es,value)&&ui.t(value,'es')===value));
+assert.deepEqual(missing,[],'Missing untranslated Spanish-interface metadata: '+missing.join(' | '));
 for(const name of ['index.html','translator.html','sw.js'])for(const [asset,version] of [['interface-es.js',252],['interface-language.js',218]])assert.ok(fs.readFileSync(name,'utf8').includes(asset+'?v='+version));
 console.log('Interface language: allowlisted preference, independent language, score qualification and dictionary metadata passed');
 
