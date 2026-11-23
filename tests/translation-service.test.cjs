@@ -12,6 +12,13 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ handler=async text=>ok(text);
+ run('sourceLanguage="es-BO";targetLanguage="en-US";direction="ec-en";translationPurpose="everyday"');
+ element('#translator-input').value='Acostarse';
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'to lie down; to go to bed');
+ assert.equal(requests.length,0,'standalone acostarse works without a translation provider');
+ assert.equal(run('HablaSpanishContext.wordMeanings("Quiere acostarse temprano.",{source:"es-BO",target:"en-US"}).length'),0);
  const source='The keys are on the table.';
  handler=async()=>({ok:true,status:200,json:async()=>({
   responseStatus:200,responseData:{translatedText:'Las llaves están sobre la mesa.'},
