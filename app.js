@@ -5467,7 +5467,7 @@ function renderRegionalSlang() {
         ${entry.sourceSense ? `<p class="regional-search-help">Source sense: ${escapeHtml(entry.sourceSense)} · checked ${escapeHtml(entry.sourceChecked)}</p>` : ""}
         ${sources.map(source => `<a class="expression-source" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.name)}</a>`).join("")}
       </details>
-      <button type="button" class="feedback-link" data-feedback-open data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">Report this entry</button>
+      <button type="button" class="feedback-link" data-feedback-open data-feedback-flag="true" data-feedback-topic="regional" data-feedback-reference="${escapeHtml(entry.term + ' — ' + entry.us)}">⚑ Flag regional usage for review</button>
     </article>`;
   };
   root.innerHTML = (entries.length ? entries : alternatives).map(entry => renderCard(entry)).join("");
@@ -5708,6 +5708,7 @@ function renderEvidenceCard(entry) {
     ${comparisonHtml ? `<div class="evidence-section"><h3>Regional comparison</h3>${comparisonHtml}</div>` : ""}
     ${reviewText ? `<div class="evidence-section"><h3>Still to verify</h3><p>${escapeHtml(reviewText)}</p></div>` : ""}
     <div class="evidence-section"><h3>Sources</h3><div class="source-links">${sourceLinks || "<span>No named source linked yet</span>"}</div></div>
+    <button type="button" class="feedback-link" data-feedback-open data-feedback-flag="true" data-feedback-topic="dictionary" data-feedback-reference="${escapeHtml((entry.spanish || '') + ' — ' + gloss)}">⚑ Flag dictionary entry for review</button>
   </article>`;
 }
 
