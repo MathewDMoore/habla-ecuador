@@ -76,3 +76,18 @@ for(const file of ['index.html','translator.html']) {
 assert.match(fs.readFileSync('sw.js','utf8'),/"data\/sources.json"/);
 console.log('PASS: 24 documented senses; seven-country source coverage; country false friends; figurative/idiom overlap; no city inference; honest reference/access states; English counterpart isolation; offline catalogue.');
 
+
+for(const page of ['index.html','translator.html']){
+ const html=fs.readFileSync(page,'utf8');
+ assert.equal(html.split('id="dictionary-reference-resources"').length-1,1,page+' must contain one source hub');
+ for(const url of [
+  'https://recursos.educacion.gob.ec/diccionario/',
+  'https://www.academiaecuatorianadelalengua.org/corpha-ec-2/',
+  'https://www.asale.org/damer/',
+  'https://diccionarioaccesible.puce.edu.ec/instrucciones-de-uso/',
+  'https://apps.apple.com/br/app/mitad-ecuadorian-dictionary/id6757779794'
+ ])assert.ok(html.includes('href="'+url+'"'),page+' missing reference '+url);
+ assert.match(html,/Native-speaker suggestions remain pending independent review/);
+ assert.match(html,/no content|does not scrape, bulk-copy or automatically adopt/i);
+}
+assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v254/);
