@@ -63,7 +63,7 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-invitation').count(),0,'old invitation card is replaced by automatic tutorial');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
- assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
+ assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'false');
  assert.equal(await page.locator('#tutorial-close').isVisible(),true,'Close is visible on launch');
  assert.equal(await page.locator('#tutorial-close').textContent(),'Close / Cerrar');
  assert.equal(await swipe(page,65,0),false);
@@ -107,8 +107,8 @@ async function run(browser,file,width,height=844){
  await page.locator('button[data-tutorial-open]').click();
  assert.equal(await page.locator('#tutorial-overlay').isVisible(),true);
  assert.equal(await page.locator('.tutorial-panel').getAttribute('role'),'dialog');
- assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'true');
- const expected=file==='index.html'?11:10;
+ assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'false');
+ const expected=11;
  assert.equal(await page.evaluate(()=>HablaTutorial.count),expected);
  assert.equal(await page.locator('#tutorial-title').textContent(),'Welcome to Habla Ecuador');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Bienvenido a Habla Ecuador');
@@ -116,6 +116,22 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-title').textContent(),'Choose your languages');
  assert.equal(await page.locator('#tutorial-title-es').textContent(),'Elige tus idiomas');
  await highlightFits(page,'.language-picker-row');
+ // The tutorial must be hands-on, not a modal that intercepts real selectors.
+ assert.equal(await page.locator('.tutorial-panel').getAttribute('aria-modal'),'false');
+ assert.equal(await page.locator('#tutorial-overlay').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
+ await page.locator('#source-language-select').click();
+ await page.locator('#source-language-select').selectOption('es-BO');
+ await page.locator('#target-language-select').selectOption('en-US');
+ assert.equal(await page.locator('#source-language-select').inputValue(),'es-BO');
+ assert.equal(await page.locator('#target-language-select').inputValue(),'en-US');
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),2,'Using the real controls does not advance the tutorial');
+ await page.locator('.bottom-nav button[data-open="dictionary-view"]').click();
+ assert.equal(await page.locator('.view.active').getAttribute('id'),'dictionary-view');
+ assert.equal(await page.locator('#tutorial-overlay').isVisible(),true,'bottom navigation leaves the walkthrough open');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Explore regional meanings');
+ await page.locator('.bottom-nav button[data-open="translator-view"]').click();
+ assert.equal(await page.locator('.view.active').getAttribute('id'),'translator-view');
+ assert.equal(await page.locator('#tutorial-title').textContent(),'Choose your languages');
  // Safari toolbar expansion/retraction changes the available height mid-step.
  await page.setViewportSize({width,height:Math.max(500,height-120)});
  await controlsFit(page);await highlightFits(page,'.language-picker-row');
@@ -176,7 +192,7 @@ async function run(browser,file,width,height=844){
  await tap(page,'#tutorial-next');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Listen, respond, and review');
  await highlightFits(page,'#lesson-title');
- if(file==='index.html'){
+ if(true){
   await tap(page,'#tutorial-next');
   assert.equal(await page.locator('#tutorial-title').textContent(),'Learn through music');
   assert.equal(await page.locator('#music-view').evaluate(el=>el.classList.contains('active')),true);
