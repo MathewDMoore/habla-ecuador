@@ -1,0 +1,53 @@
+name: Interactive tutorial and correction flags
+on:
+  pull_request:
+    paths:
+      - 'app-feedback.js'
+      - 'tutorial.js'
+      - 'styles.css'
+      - 'app.js'
+      - 'index.html'
+      - 'translator.html'
+      - 'tests/pending-feedback.browser.cjs'
+      - 'tests/tutorial.browser.cjs'
+      - 'tests/app-feedback.test.cjs'
+      - 'tests/tutorial.test.cjs'
+      - '.github/workflows/tutorial-flags.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify script syntax
+        run: |
+          node --check app.js
+          node --check tutorial.js
+          node --check app-feedback.js
+          node --check tests/pending-feedback.browser.cjs
+      - name: Run focused unit tests
+        run: node --test tests/app-feedback.test.cjs tests/tutorial.test.cjs tests/swipe-navigation.test.cjs
+      - name: Install WebKit
+        run: |
+          npm install --prefix "$RUNNER_TEMP/habla-playwright" --no-package-lock --no-save playwright@1.62.1
+          node "$RUNNER_TEMP/habla-playwright/node_modules/playwright/cli.js" install --with-deps webkit
+      - name: Verify pending speaker corrections in WebKit
+        run: node tests/pending-feedback.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-playwright/node_modules/playwright
+          HABLA_BROWSER_ENGINE: webkit
+      - name: Verify interactive tutorial in WebKit
+        run: node tests/tutorial.browser.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-playwright/node_modules/playwright
+          HABLA_BROWSER_ENGINE: webkit
+      - name: Verify full tab navigation
+        run: node tests/navigation-browser-smoke.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-playwright/node_modules/playwright
+          HABLA_BROWSER_ENGINE: webkit
