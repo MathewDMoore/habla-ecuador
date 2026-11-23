@@ -250,7 +250,11 @@ function layout(){
  // Reserve a readable instruction area after measuring wrapped controls.
  panel.style.maxHeight=(v.height-24)+"px";
  const chrome=panel.querySelector(".tutorial-panel-top").offsetHeight+panel.querySelector(".tutorial-controls").offsetHeight+32;
- panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+(v.width<300?240:140),Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
+ // Large controls (especially the text editor and microphone) must stay
+ // completely tappable above the explanation. Use a shorter, scrollable guide
+ // rather than covering the highlighted control with the guide itself.
+ const minBody=steps[index]?.groupTarget ? 70 : (v.width<300?240:140);
+ panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+minBody,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();
   const available=panel.getBoundingClientRect().top-origin.top-12;
