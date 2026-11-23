@@ -239,6 +239,9 @@ async function run(browser,file,width,height=844){
 (async()=>{
  const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
  const browser=await playwright[engine].launch(engine==='chromium'?{args:['--no-sandbox']}:{});
- try{for(const [width,height] of [[320,844],[390,844],[390,650],[512,720]])for(const file of ['index.html','translator.html'])await run(browser,file,width,height);}
+ try{
+  const sizes=process.env.HABLA_TUTORIAL_FOCUSED ? [[390,844]] : [[320,844],[390,844],[390,650],[512,720]];
+  for(const [width,height] of sizes)for(const file of ['index.html','translator.html'])await run(browser,file,width,height);
+ }
  finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
