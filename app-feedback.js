@@ -121,6 +121,12 @@
   el('mark-pending').addEventListener('click',()=>{
    if(pending||!form.reportValidity())return;
    const report=read();
+   if(!report.reference.trim()&&!report.includeText){
+    el('details').open=true;
+    status('Identify the word, sentence or feature, or explicitly check Include current source and translation text. Nothing is sent automatically.');
+    form.elements.reference.focus();
+    return;
+   }
    const item={id:editingPendingId||String(Date.now())+'-'+Math.random().toString(36).slice(2,8),
      createdAt:new Date().toISOString(),report};
    const updated=editingPendingId?items.map(entry=>entry.id===editingPendingId?item:entry):[item,...items];
