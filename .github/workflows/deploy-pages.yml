@@ -25,6 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify five-tab swipe gestures
+        run: node --test tests/swipe-navigation.test.cjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
