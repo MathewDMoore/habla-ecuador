@@ -2,7 +2,8 @@
 (function(root){
  'use strict';
  const TABS=['home-view','translator-view','dictionary-view','music-view','lesson-view'];
- const UNSAFE='input,textarea,select,[contenteditable],[role="slider"],[data-swipe-block],.push-to-talk,[data-face-mic],.face-to-face-actions,audio,video,iframe,.lyric-lines,.ve-caption-list,.translation-history-list,.subtitle-switch';
+ const UNSAFE='select,input[type="range"],input[type="file"],[role="slider"],[data-swipe-block],.push-to-talk,[data-face-mic],.face-to-face-actions,audio,video,iframe,.ve-caption-list,.subtitle-switch';
+ const EDITABLE='input,textarea,[contenteditable],[role="textbox"]';
  const SURFACE='.app-shell main, .bottom-nav, .topbar';
  const TUTORIAL="#tutorial-overlay:not([hidden])";
  const OVERLAY='dialog[open]:not(#face-to-face), :is([popover]:popover-open)';
@@ -13,7 +14,7 @@
  function scrollsHorizontally(target){
   let node=target;
   while(node&&node!==document.body){
-   if(node.scrollWidth>node.clientWidth+12){
+   if(!node.matches?.(EDITABLE) && node.scrollWidth>node.clientWidth+12){
     const style=typeof root.getComputedStyle==='function'?root.getComputedStyle(node):null;
     if(style&&/(auto|scroll)/.test(style.overflowX))return true;
    }
@@ -56,8 +57,8 @@
    const touch=event.touches[0];
    const width=root.innerWidth||document.documentElement.clientWidth;
    if(touch.clientX<24||touch.clientX>width-24)return; // respect OS back gestures
-   start={x:touch.clientX,y:touch.clientY,time:event.timeStamp,screen,tab,inTutorial,horizontal:false};
-  },{passive:true});
+   start={x:touch.clientX,y:touch.clientY,time:event.timeStamp,screen,tab,inTutorial,editable:Boolean(target?.closest?.(EDITABLE)),horizontal:false};
+  },{passive:true,capture:true});
   // Claim a sideways drag before WebKit takes it over or taps the start target.
   // Leave vertical scrolling, ordinary taps and pinch gestures to the browser.
   document.addEventListener('touchmove',event=>{
@@ -71,27 +72,29 @@
     start.horizontal=true;
    }
    if(event.cancelable)event.preventDefault();
-  },{passive:false});
-  document.addEventListener('touchend',event=>{
-   if(!start||event.changedTouches.length!==1){start=null;return;}
+  },{passive:false,capture:true});
+  // Treat an intentional horizontal swipe over a large, editable translator
+  // field as navigation. Require a longer gesture there to preserve caret taps
+  // and selection gestures; vertical text scrolling remains untouched.
+  function complete(event,cancelled=false){
+   if(!start||event.changedTouches?.length!==1){start=null;return;}
    const first=start;start=null;
    if(currentScreen()!==first.screen)return;
    const touch=event.changedTouches[0];
    const dx=touch.clientX-first.x,dy=touch.clientY-first.y;
    if(!isSwipe(dx,dy,event.timeStamp-first.time))return;
-   // A quick flick may emit only start/end in a WKWebView. Accept a clear
-   // horizontal end displacement even without an intermediate touchmove.
-   // Swipe left means next tab, swipe right previous tab.
+   if(first.editable && Math.abs(dx)<55)return;
    const delta=dx<0?1:-1;
    if(first.inTutorial){
-    if(event.cancelable)event.preventDefault();
+    if(!cancelled&&event.cancelable)event.preventDefault();
     tutorialSwipe(delta);
     return;
    }
    const to=nextTab(first.tab,delta);
-   if(to){if(event.cancelable)event.preventDefault();navigate(to);}
-  },{passive:false});
-  document.addEventListener('touchcancel',()=>{start=null;},{passive:true});
+   if(to){if(!cancelled&&event.cancelable)event.preventDefault();navigate(to);}
+  }
+  document.addEventListener('touchend',event=>complete(event),{passive:false,capture:true});
+  document.addEventListener('touchcancel',event=>complete(event,true),{passive:true,capture:true});
  }
  root.HablaSwipeNavigation={TABS,nextTab,isSwipe,bind};
  if(typeof module!=='undefined'&&module.exports)module.exports=root.HablaSwipeNavigation;
