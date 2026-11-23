@@ -177,7 +177,7 @@ function make(){
  const spanishTitle=document.createElement("h3");spanishTitle.id="tutorial-title-es";spanishTitle.lang="es";
  const spanish=document.createElement("p");spanish.id="tutorial-spanish";spanish.lang="es";
  const note=document.createElement("p");note.className="tutorial-step-note";
- note.textContent="Try the highlighted controls and bottom tabs while this guide is open. Swipe left for next or right for back. / Prueba los controles destacados y las pestañas inferiores sin cerrar esta guía. Desliza a la izquierda para avanzar o a la derecha para volver.";
+ note.textContent="Try the highlighted controls and tabs. Swipe to change steps. / Prueba los controles y las pestañas. Desliza para cambiar de paso.";
  const controls=document.createElement("div");controls.className="tutorial-controls";
  const skip=button("Skip / Omitir","tutorial-skip"),back=button("Back / Atrás","tutorial-back"),next=button("Next / Siguiente","tutorial-next");
  skip.addEventListener("click",finish);back.addEventListener("click",()=>move(-1));
