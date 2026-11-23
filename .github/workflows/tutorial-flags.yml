@@ -46,6 +46,7 @@ jobs:
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-playwright/node_modules/playwright
           HABLA_BROWSER_ENGINE: webkit
+          HABLA_TUTORIAL_FOCUSED: '1'
       - name: Verify full tab navigation
         run: node tests/navigation-browser-smoke.cjs
         env:
