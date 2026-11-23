@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.36 · build 246";
+const APP_VERSION = "0.27.37 · build 247";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3256,8 +3256,30 @@ function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}=
   return translation + (/[!！]/.test(text) ? "!" : ".");
 }
 
+// Only exact, reviewed sentences are replaced here. Never reinterpret an
+// arbitrary insult or label the wording as specific to Ecuador without evidence.
+function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) {
+  if(purpose==="academic" || languageFamily(source)!=="es" || languageFamily(target)!=="en")return null;
+  const clean=String(text).normalize("NFD").replace(/\\p{M}/gu,"").toLowerCase()
+    .replace(/[.!?¡¿]/g,"").replace(/\\s+/g," ").trim();
+  if(!/^no soy increiblemente inteligente,? pero no soy un imbecil$/.test(clean))return null;
+  return {
+    text:"I'm not incredibly intelligent, but I'm not an idiot.",
+    alternatives:[
+      {text:"I'm not incredibly smart, but I'm not a fool.",label:"Natural alternative",note:"Less literal, similar level of insult."},
+      {text:"I'm not exceptionally intelligent, but I'm not an imbecile.",label:"Closer to original wording",note:"Imbecile is more formal or old-fashioned in English."}
+    ],
+    note:"Imbécil refers to an idiot or fool in this sentence. “Asshole” changes the insult and should not be the default translation. This is not evidence of country-specific usage."
+  };
+}
+
 async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
+  const reviewedMeaning = reviewedMeaningTranslation(text,{source,target,purpose});
+  if (reviewedMeaning !== null) {
+    if (!isCurrent()) throw translationFailure("superseded");
+    return reviewedMeaning.text;
+  }
   const reviewedCourtesy = reviewedCourtesyTranslation(text,{source,target,purpose});
   if (reviewedCourtesy !== null) {
     if (!isCurrent()) throw translationFailure("superseded");
@@ -3947,6 +3969,16 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   // Reviewed single-word slang takes the display path directly. Do not let a
   // machine response, a cached draft or a broad phrase candidate override it.
   // Attach the very same reviewed alternatives to this completed translation.
+  const reviewedMeaning = !autoMusic ? reviewedMeaningTranslation(sourceText,requestContext) : null;
+  if (reviewedMeaning) {
+    if (!current()) return;
+    result.hidden=false; missing.hidden=true;
+    $("#translation-result .result-label").textContent=`${languageLabel(targetLanguage)} · meaning reviewed`;
+    setEditableTranslation(sourceText,reviewedMeaning.text,{reviewedAlternatives:reviewedMeaning.alternatives});
+    $("#literal-result").textContent="Idiot / fool, not asshole";
+    $("#usage-note").textContent=reviewedMeaning.note;
+    return;
+  }
   const reviewedInsult = !autoMusic && translationPurpose !== "academic"
     ? HablaSpanishContext.documentedVulgarInsult(sourceText,requestContext) : null;
   if (reviewedInsult) {
@@ -6837,7 +6869,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=246", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=247", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
