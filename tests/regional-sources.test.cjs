@@ -90,4 +90,4 @@ for(const page of ['index.html','translator.html']){
  assert.match(html,/Native-speaker suggestions remain pending independent review/);
  assert.match(html,/no content|does not scrape, bulk-copy or automatically adopt/i);
 }
-assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v255/);
+assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v256/);
