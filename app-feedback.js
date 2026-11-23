@@ -23,7 +23,8 @@
  }
  function format(value,t=s=>s){
   const d=clean(value),line=(label,text)=>text?t(label)+': '+text:null;
-  return [t('Habla Ecuador — feedback report'),t('PENDING RESEARCH REVIEW · not verified; self-report only; not added to lessons, translations or dictionary'),
+  return [t('Habla Ecuador — feedback report'),t('USER REPORT · not verified; no dictionary change'),
+   t('PENDING RESEARCH REVIEW · self-report only; not added to lessons, translations or dictionary'),
    line('Topic',t(topics[d.topic])),line('Country / variety',t(regions[d.region])),line('City / area',d.city),line('Word, sentence or feature',d.reference),
    line('What seems wrong?',d.problem),line('Suggested correction',d.correction),line('Example or evidence',d.example),line('Speaker background',t(speakerRoles[d.speakerRole])),line('Name / initials',d.reviewer),
    line('Screen',t(screens[d.context.screen])),line('App version',d.context.version),line('From',t(languages[d.context.sourceLocale]||'')),line('To',t(languages[d.context.targetLocale]||'')),
@@ -118,7 +119,7 @@
   });
   el('save').addEventListener('click',()=>{if(!form.reportValidity())return;try{localStorage.setItem(KEY,JSON.stringify(read()));status('Draft saved on this device. It has not been sent.');}catch{status('Not saved: device storage is unavailable. Your form is kept; you can still copy or share it.');}});
   el('mark-pending').addEventListener('click',()=>{
-   if(!form.reportValidity())return;
+   if(pending||!form.reportValidity())return;
    const report=read();
    const item={id:editingPendingId||String(Date.now())+'-'+Math.random().toString(36).slice(2,8),
      createdAt:new Date().toISOString(),report};
@@ -137,13 +138,13 @@
   async function send(share){
    if(pending||!form.reportValidity())return;
    preview();const text=el('preview').value;pending=true;el('fields').disabled=true;
-   for(const k of ['save','clear','copy','share'])el(k).disabled=true;
+   for(const k of ['save','clear','copy','share','mark-pending'])el(k).disabled=true;
    try{
     if(share&&typeof navigator.share==='function'){
      try{await navigator.share({title:ui('Habla Ecuador — feedback report'),text});status('Share action completed. Habla cannot confirm delivery to Mathew. Your draft is kept.');}
      catch(error){if(error?.name==='AbortError')status('Sharing cancelled. Your draft is kept.');else await copy(text);}
     }else await copy(text);
-   }finally{pending=false;el('fields').disabled=false;for(const k of ['save','clear','copy','share'])el(k).disabled=false;}
+   }finally{pending=false;el('fields').disabled=false;for(const k of ['save','clear','copy','share','mark-pending'])el(k).disabled=false;}
   }
   el('copy').addEventListener('click',()=>send(false));el('share').addEventListener('click',()=>send(true));
   document.addEventListener('habla-ui-language-change',preview);
