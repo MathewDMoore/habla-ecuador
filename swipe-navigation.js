@@ -39,9 +39,12 @@
   const currentScreen=()=>{
    const tutorial=document.querySelector(TUTORIAL);
    if(tutorial)return typeof tutorialSwipe==='function'?tutorial:null;
-   return enabled()&&!document.querySelector(OVERLAY)
-    ? document.querySelector('#face-to-face[open]')||document.querySelector('.view.active')
-    : null;
+   // Some embedded WebKit builds reject newer selector pseudo-classes.
+   // Check each overlay independently so an unsupported selector cannot
+   // permanently disable navigation.
+   if(!enabled() || document.querySelector('dialog[open]:not(#face-to-face)'))return null;
+   try { if(document.querySelector('[popover]:popover-open'))return null; } catch {}
+   return document.querySelector('#face-to-face[open]')||document.querySelector('.view.active');
   };
   document.addEventListener('touchstart',event=>{
    start=null;
