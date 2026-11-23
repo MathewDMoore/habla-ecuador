@@ -70,8 +70,9 @@ test('swipes between only the five main tabs in their visible order',()=>{
   assert.equal(swipes.isSwipe(90,-8),true);
   assert.equal(swipes.isSwipe(-44,18),true);
   assert.equal(swipes.isSwipe(44,-18),true);
-  assert.equal(swipes.isSwipe(27,0),false);
-  assert.equal(swipes.isSwipe(28,23),false);
+  assert.equal(swipes.isSwipe(27,0),true);
+  assert.equal(swipes.isSwipe(28,23),true);
+  assert.equal(swipes.isSwipe(28,30),false);
   assert.equal(swipes.isSwipe(28,12),true);
   assert.equal(swipes.isSwipe(-18,4,160),true);
   assert.equal(swipes.isSwipe(18,4,400),false);
@@ -86,7 +87,7 @@ test('gesture safety preserves keyboard typing, media, dialogs and iPhone back g
   assert.match(code,/audio,video,iframe/);
   assert.match(code,/\.lyric-lines/);
   assert.match(code,/scrollsHorizontally\(target\)/);
-  assert.match(code,/touch\.clientX<28\|\|touch\.clientX>width-28/);
+  assert.match(code,/touch\.clientX<24\|\|touch\.clientX>width-24/);
   assert.match(code,/event\.touches\.length!==1/);
   assert.match(code,/dialog\[open\]/);
   assert.match(code,/touchmove/);
@@ -96,7 +97,47 @@ test('gesture safety preserves keyboard typing, media, dialogs and iPhone back g
 test('script load and cached asset support offline swipe navigation',()=>{
   for(const path of ['index.html','sw.js']){
     const source=fs.readFileSync(path,'utf8');
-    assert.match(source,/swipe-navigation\.js\?v=232/,path);
+    assert.match(source,/swipe-navigation\.js\?v=248/,path);
   }
+  assert.match(app,/HablaSwipeNavigation\.bind\(/);
+});
+
+test('touch drag, fast flick and vertical scroll behave across main screens',()=>{
+  const listeners={};
+  const active={id:'translator-view'};
+  const body={};
+  const document={
+    body,
+    documentElement:{dataset:{},clientWidth:390},
+    addEventListener:(name,fn)=>{listeners[name]=fn;},
+    querySelector:selector=>selector==='.view.active'?active:null
+  };
+  const root={innerWidth:390,document};
+  vm.runInNewContext(fs.readFileSync('swipe-navigation.js','utf8'),{window:root,document});
+  const visited=[];
+  root.HablaSwipeNavigation.bind({
+    enabled:()=>true,
+    navigate:to=>{visited.push(to);active.id=to;}
+  });
+  const target={
+    scrollWidth:390,clientWidth:390,parentElement:body,
+    closest:selector=>selector.includes('.app-shell main')?{}:null
+  };
+  const touch=(x,y)=>({clientX:x,clientY:y});
+  const fire=(x,y,time,withMove=true)=>{
+    listeners.touchstart({touches:[touch(175,300)],target,timeStamp:time});
+    if(withMove)listeners.touchmove({touches:[touch(x+10,y)],cancelable:true,preventDefault(){}});
+    listeners.touchend({changedTouches:[touch(x,y)],timeStamp:time+130,cancelable:true,preventDefault(){}});
+  };
+  fire(90,306,0);
+  assert.deepEqual(visited,['dictionary-view']);
+  fire(270,306,200,false); // Fast flick without touchmove.
+  assert.deepEqual(visited,['dictionary-view','translator-view']);
+  fire(160,390,400);
+  assert.equal(visited.length,2,'vertical scrolling must not navigate');
+});
+
+test('standalone translator with visible five-tab navigation is not swipe-disabled',()=>{
+  assert.doesNotMatch(app,/enabled:\s*\(\)\s*=>\s*!standaloneTranslator/);
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
 });
