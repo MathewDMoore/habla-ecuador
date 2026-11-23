@@ -63,7 +63,7 @@ assert.deepEqual(launch("/habla-ecuador/translator.html?start=face-to-face&ui=es
   redirects:["https://mathewdmoore.github.io/habla-ecuador/index.html?start=face-to-face&ui=es"], bindings:0
 });
 assert.deepEqual(launch("/habla-ecuador/index.html?start=translate", true), {redirects:[], bindings:2});
-assert.deepEqual(launch("/habla-ecuador/translator.html", false), {redirects:[], bindings:2});
+assert.deepEqual(launch("/habla-ecuador/translator.html", false), {redirects:["https://mathewdmoore.github.io/habla-ecuador/index.html?start=translate"], bindings:0});
 assert.deepEqual(launch("/habla-ecuador/index.html?standalone=translator", true), {
   redirects:["https://mathewdmoore.github.io/habla-ecuador/index.html?start=translate"], bindings:0
 });
