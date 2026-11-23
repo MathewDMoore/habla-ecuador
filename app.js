@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.41 · build 251";
+const APP_VERSION = "0.27.43 · build 253";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3849,7 +3849,7 @@ function renderSpanishContext(sourceText,draft='') {
   const findings=typeof HablaSpanishContext==='undefined'?[]:HablaSpanishContext.analyse(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose,image:importedDocument?.kind==='image'});
   if(languageFamily(sourceLanguage)==='es'&&draft&&typeof HablaSpanishContext!=='undefined')findings.push(...HablaSpanishContext.residue(sourceText,draft,{purpose:translationPurpose,target:targetLanguage,region:sourceLanguage}));
   panel.hidden=!findings.length;
-  if(findings.some(item=>item.kind==='regional-idiom'||(item.kind==='word-senses'&&item.choices.length)))panel.open=true;
+  if(findings.some(item=>item.kind==='regional-idiom'||item.kind==='regional-ambiguity'||(item.kind==='word-senses'&&item.choices.length)))panel.open=true;
   const selectedMeaning=typeof HablaSpanishContext==='undefined'?null:HablaSpanishContext.wordMeanings(sourceText,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}).find(item=>item.text===draft)?.id;
   body.innerHTML=findings.length?`<p>Using your chosen source: ${escapeHtml(languageLabel(sourceLanguage))}. Usage clues do not establish a country. Change From if you know the source is different. English options are editorial suggestions; check tone before editing the draft.</p>`+findings.map(item=>`<p><strong>${escapeHtml(item.term)}</strong> — ${escapeHtml(item.detail)}${item.url?` <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Usage reference</a>`:''}${(item.references||[]).map(reference=>` · <a href="${escapeHtml(reference.url)}" target="_blank" rel="noopener">${escapeHtml(reference.name)}</a>`).join('')}</p>${item.choices?.length?`<div class="context-choice-actions">${item.choices.map(choice=>`<button type="button" data-slang-meaning="${escapeHtml(choice)}" aria-pressed="${selectedMeaning===choice}">${item.choiceLabels?.[choice] ? `Use ${escapeHtml(item.choiceLabels[choice])}` : `Use ${escapeHtml(choice)} meaning`}</button>`).join('')}</div>`:''}`).join(''):'';
   return findings;
@@ -6868,7 +6868,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=251", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=253", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
