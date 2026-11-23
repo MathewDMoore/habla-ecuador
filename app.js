@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.47 · build 257";
+const APP_VERSION = "0.27.48 · build 258";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -118,6 +118,7 @@ const TRANSLATOR_LANGUAGES = {
   "es-CL": {label:"Chile \u00b7 Spanish", family:"es", voice:"es-CL"},
   "es-CR": {label:"Costa Rica \u00b7 Spanish", family:"es", voice:"es-CR"},
   "es-DO": {label:"Dominican Republic / Rep\u00fablica Dominicana \u00b7 Spanish", family:"es", voice:"es-DO"},
+  "es-SV-x-capital": {label:"San Salvador · El Salvador", country:"es-SV", family:"es", voice:"es-SV"},
   "es-SV": {label:"El Salvador \u00b7 Spanish", family:"es", voice:"es-SV"},
   "es-GT": {label:"Guatemala \u00b7 Spanish", family:"es", voice:"es-GT"},
   "es-HN": {label:"Honduras \u00b7 Spanish", family:"es", voice:"es-HN"},
@@ -290,6 +291,7 @@ function syncLanguagePair({persist=true}={}) {
   const targetSelect = $("#target-language-select");
   if (sourceSelect) sourceSelect.value = sourceLanguage;
   if (targetSelect) targetSelect.value = targetLanguage;
+  renderSpanishPairSources();
   wholeDocumentTools?.refresh();
 }
 
@@ -3789,6 +3791,72 @@ function recordCurrentDocumentDraft() {
   wholeDocumentTools?.recordSection(importedDocument.index,draft.source,draft.target);
 }
 
+function regionalCountry(locale) {
+  return TRANSLATOR_LANGUAGES[locale]?.country || locale;
+}
+
+// Each pair represents one sense. Match complete noun phrases and bounded
+// sentence frames so an ambiguous expression such as "qué palta" stays intact.
+// Countries listed for the fruit sense by ASALE. Guatemala attests both
+// forms, so neither is selected as its automatic preference.
+const fruitForms = {};
+for (const code of ["es-EC","es-PE","es-BO","es-CL","es-AR","es-UY"]) {
+  fruitForms[code] = ["una palta","la palta"];
+}
+for (const code of ["es-MX","es-HN","es-SV","es-NI","es-CR","es-PA","es-CU","es-DO","es-PR","es-VE","es-PY"]) {
+  fruitForms[code] = ["un aguacate","el aguacate"];
+}
+const regionalSpanishPairs = [
+  {forms:fruitForms,
+   frame:/^(?:(?:quiero|compré|necesito|quisiera|voy a comprar) )?(?:una palta|la palta|un aguacate|el aguacate)$/iu,
+   sources:[["ASALE · palta","https://www.asale.org/damer/palta"],["ASALE · aguacate","https://www.asale.org/damer/aguacate"]]},
+  {forms:{"es-GT":["una computadora","la computadora","computadora portátil"],"es-ES":["un ordenador","el ordenador","ordenador portátil"]},
+   frame:/^(?:(?:quiero|compré|necesito|quisiera|voy a comprar) )?(?:una computadora|la computadora|un ordenador|el ordenador)(?: portátil)?$|^(?:computadora|ordenador) portátil$/iu,
+   sources:[["Guatemala · MAGA","https://apps.maga.gob.gt/compras/Insumos?currentFilter=computadora+portatil&sortOrder=codigoinsumo"],["RAE · computador","https://www.rae.es/dpd/computador"]]}
+];
+
+function attestedRegionalPhrase(text, from, to) {
+  const body = text.trim().replace(/[.!]$/u,"");
+  for (const pair of regionalSpanishPairs) {
+    const input = pair.forms[regionalCountry(from)];
+    const output = pair.forms[regionalCountry(to)];
+    if (!input || !output || input[0] === output[0] || !pair.frame.test(body)) continue;
+    for (const [index, form] of input.entries()) {
+      const pos = body.toLocaleLowerCase("es").indexOf(form);
+      if (pos < 0) continue;
+      const start = text.indexOf(body) + pos;
+      let replacement = output[index];
+      if (body[pos] !== body[pos].toLocaleLowerCase("es")) replacement = replacement[0].toUpperCase() + replacement.slice(1);
+      return {text:text.slice(0,start) + replacement + text.slice(start+form.length),
+        label:languageLabel(to),detail:"Country-level lexical evidence / Evidencia léxica nacional",sources:pair.sources};
+    }
+  }
+  return null;
+}
+
+function renderSpanishPairSources() {
+  const panel = $("#spanish-pair-sources");
+  if (!panel) return;
+  panel.hidden = translatorRoute() !== "regional-es";
+  if (panel.hidden) return;
+  const links = locale => {
+    const country = regionalCountry(locale);
+    const records = [...evidenceSources.values()].filter(s => s.dictionaryReference && s.regions?.includes(country));
+    const corpus = records.find(s => s.coverageRole === "corpus" && s.regions.length === 1) || records.find(s => s.id === "rae_corpes");
+    const dictionaries = records.filter(s => s.coverageRole === "national" && s.accessStatus === "reference");
+    const refs = [corpus,...dictionaries].filter(Boolean).map(s => [s.name,s.url]);
+    if (country === "es-GT") refs.push(["Academia Guatemalteca · Diccionarios","https://agl.org.gt/diccionarios/"]);
+    if (country === "es-GT") refs.unshift(["PRESEEA · Ciudad de Guatemala (habla urbana)","https://preseea.uah.es/corpus-preseea"]);
+    if (country === "es-SV") refs.push(["Centroamérica · recursos orales y cobertura","https://rodrick.uv.es/items/ace86dae-387c-4735-88dd-f2ea1acec729"]);
+    if (locale === "es-SV-x-capital") refs.push(["San Salvador · actitudes lingüísticas","https://www.bells.uib.no/index.php/bells/article/view/684"]);
+    const americanismos = records.find(s => s.id === "asale_damer");
+    if (americanismos) refs.push([americanismos.name,americanismos.url]);
+    refs.push(["RAE / ASALE · DLE","https://dle.rae.es/"],["Wikcionario · diccionario libre","https://es.wiktionary.org/"]);
+    return '<p><strong>'+escapeHtml(languageLabel(locale))+'</strong></p><ul>'+refs.map(([name,url])=>'<li><a target="_blank" rel="noreferrer" href="'+escapeHtml(url)+'">'+escapeHtml(name)+'</a></li>').join("")+'</ul>';
+  };
+  panel.querySelector("div").innerHTML = [...new Set([sourceLanguage,targetLanguage])].map(links).join("");
+}
+
 function regionalSpanishBridge(sourceText) {
   if (translationPurpose === "academic") return {
     text:sourceText,
@@ -3800,6 +3868,8 @@ function regionalSpanishBridge(sourceText) {
     label:`${languageLabel(targetLanguage)} · unchanged`,
     detail:"The source and target varieties are the same, so the wording is preserved."
   };
+  const attested = attestedRegionalPhrase(sourceText,sourceLanguage,targetLanguage);
+  if (attested) return attested;
   const phrase = matchPhrase(sourceText,"ec-en");
   if (sourceLanguage === "es-EC" && targetLanguage === "es-BO") {
     return {
@@ -3840,7 +3910,7 @@ function renderRegionalTranslation(sourceText,result,missing) {
   $("#translation-result .result-label").textContent = bridge.label;
   setEditableTranslation(sourceText,bridge.text,{regionalBridge:true});
   $("#literal-result").textContent = `${languageLabel(sourceLanguage)} → ${languageLabel(targetLanguage)} · editable regional draft`;
-  $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${bridge.detail}</span>`;
+  $("#usage-note").innerHTML = `<strong>Regional adaptation</strong><span>${escapeHtml(bridge.detail)}</span>${(bridge.sources || []).map(([name,url]) => `<a target="_blank" rel="noreferrer" href="${escapeHtml(url)}">${escapeHtml(name)}</a>`).join(" · ")}`;
 }
 
 function renderSpanishContext(sourceText,draft='') {
@@ -5223,6 +5293,7 @@ async function loadEvidence() {
     if (responses.some(response => !response.ok)) throw new Error("source file unavailable");
     const [learner, vocabulary, candidates, sources, queue, comparisons] = await Promise.all(responses.map(response => response.json()));
     evidenceSources = new Map(sources.map(source => [source.id, source]));
+    renderSpanishPairSources();
     renderRegionalSourceCoverage();
     reviewQueue = new Map(queue.map(item => [item.entryId, item]));
     comparisonIndex = new Map(comparisons.map(item => [item.entryId, item]));
@@ -6871,7 +6942,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=257", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=258", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

@@ -68,6 +68,15 @@ async function main() {
     assert.ok(referenceIndex >= 0 && appIndex > referenceIndex, 'reference loads before the app');
     assert.equal((html.match(/id="load-research-reference"/g)||[]).length,1);
   }
+  run('translationPurpose="everyday"; sourceLanguage="es-PE"; targetLanguage="es-SV-x-capital"');
+  assert.equal(run('regionalSpanishBridge("Compré una palta.").text'), 'Compré un aguacate.');
+  assert.equal(run('regionalSpanishBridge("¡Qué palta!").text'), '¡Qué palta!');
+  run('sourceLanguage="es-SV-x-capital"; targetLanguage="es-PE"');
+  assert.equal(run('regionalSpanishBridge("Compré el aguacate.").text'), 'Compré la palta.');
+  run('sourceLanguage="es-GT"; targetLanguage="es-ES"');
+  assert.equal(run('regionalSpanishBridge("Necesito una computadora portátil.").text'), 'Necesito un ordenador portátil.');
+  run('sourceLanguage="es-ES"; targetLanguage="es-GT"');
+  assert.equal(run('regionalSpanishBridge("El ordenador portátil").text'), 'La computadora portátil');
   const referenceUrl=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/research-reference\.js\?v=[^"']+/)[0];
   assert.ok(fs.readFileSync(path.join(root,'sw.js'),'utf8').includes(referenceUrl));
   console.log('Research reference checks passed: fidelity, variants, context isolation, fallback, citations, chunking, and input controls.');
