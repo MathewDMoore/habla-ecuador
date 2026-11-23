@@ -34,6 +34,16 @@ const root=path.resolve(__dirname,'..'), origin='https://mathewdmoore.github.io'
     assert.equal(await page.locator('.bottom-nav button.active').getAttribute('data-open'),id,
       entry+' did not highlight clicked tab '+id);
    }
+   await page.locator('.bottom-nav button[data-open="dictionary-view"]').click();
+   const results = page.locator('#regional-slang-results');
+   await results.locator('article').first().waitFor();
+   assert.equal(await results.locator('.slang-tone.caution:visible').count(),0,entry+' should open with everyday language');
+   const strong = results.locator(':scope > details');
+   assert.ok(await strong.locator('.caution').count()>0);
+   await strong.locator('summary').click();
+   assert.ok(await results.locator('.slang-tone.caution:visible').count()>0);
+   await page.locator('#regional-usage-type').selectOption('vulgar');
+   assert.ok(await results.locator(':scope > article .caution:visible').count()>0);
    // Return to the first tab before testing WebKit touch navigation.
    await page.locator('.bottom-nav button[data-open="home-view"]').click();
    await page.waitForFunction(()=>document.querySelector('.view.active')?.id==='home-view');
