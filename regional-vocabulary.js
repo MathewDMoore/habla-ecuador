@@ -1902,6 +1902,7 @@ const HablaRegionalVocabulary = [
     "exampleEs": "Hoy estoy de ch’aki.",
     "exampleUs": "I've got a hangover today.",
     "exampleUk": "I've got a hangover today.",
+    "searchAliases": ["chaki", "ch\u0027aki", "ch’aki", "chaqui"],
     "sourceChecked": "2026-11-22",
     "regionalSenseAttested": true,
     "sourceSense": "Los Tiempos 2023 · cited La Paz expression",
