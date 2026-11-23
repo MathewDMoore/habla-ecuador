@@ -163,7 +163,7 @@ function make(){
   const shade=document.createElement("div");shade.className="tutorial-shade";shade.dataset.edge=edge;overlay.append(shade);
  }
  const spot=document.createElement("div");spot.id="tutorial-spotlight";spot.setAttribute("aria-hidden","true");overlay.append(spot);
- panel=document.createElement("section");panel.className="tutorial-panel";panel.setAttribute("role","dialog");panel.setAttribute("aria-modal","true");
+ panel=document.createElement("section");panel.className="tutorial-panel";panel.setAttribute("role","dialog");panel.setAttribute("aria-modal","false");
  panel.setAttribute("aria-labelledby","tutorial-title");panel.setAttribute("aria-describedby","tutorial-english tutorial-spanish");
  panel.tabIndex=-1;
  const top=document.createElement("div");top.className="tutorial-panel-top";
@@ -177,7 +177,7 @@ function make(){
  const spanishTitle=document.createElement("h3");spanishTitle.id="tutorial-title-es";spanishTitle.lang="es";
  const spanish=document.createElement("p");spanish.id="tutorial-spanish";spanish.lang="es";
  const note=document.createElement("p");note.className="tutorial-step-note";
- note.textContent="Swipe left for next or right to go back. / Desliza a la izquierda para avanzar o a la derecha para volver.";
+ note.textContent="Try the highlighted controls and tabs. Swipe to change steps. / Prueba los controles y las pestañas. Desliza para cambiar de paso.";
  const controls=document.createElement("div");controls.className="tutorial-controls";
  const skip=button("Skip / Omitir","tutorial-skip"),back=button("Back / Atrás","tutorial-back"),next=button("Next / Siguiente","tutorial-next");
  skip.addEventListener("click",finish);back.addEventListener("click",()=>move(-1));
@@ -200,6 +200,19 @@ function viewport(){
 function placeViewport(){
  const v=viewport();
  Object.assign(overlay.style,{left:v.left+"px",top:v.top+"px",width:v.width+"px",height:v.height+"px"});
+ // Keep the five main tabs exposed: the tour teaches the live application,
+ // rather than trapping taps behind a modal pane. Read the visible bar in
+ // viewport coordinates (important when iOS Safari toolbars move).
+ if(panel){
+  const nav=document.querySelector(".bottom-nav");
+  const rect=nav?.getBoundingClientRect();
+  const style=rect&&typeof getComputedStyle==="function"?getComputedStyle(nav):null;
+  const bottom=v.top+v.height;
+  const visible=Boolean(rect&&rect.width>0&&rect.height>0&&
+    rect.top<bottom&&rect.bottom>v.top&&style?.display!=="none"&&style?.visibility!=="hidden");
+  const reserve=visible?Math.max(10,Math.min(v.height*.33,bottom-rect.top+10)):10;
+  panel.style.bottom=reserve+"px";
+ }
  return v;
 }
 function spotlight(){
@@ -237,7 +250,11 @@ function layout(){
  // Reserve a readable instruction area after measuring wrapped controls.
  panel.style.maxHeight=(v.height-24)+"px";
  const chrome=panel.querySelector(".tutorial-panel-top").offsetHeight+panel.querySelector(".tutorial-controls").offsetHeight+32;
- panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+(v.width<300?240:140),Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
+ // Large controls (especially the text editor and microphone) must stay
+ // completely tappable above the explanation. Use a shorter, scrollable guide
+ // rather than covering the highlighted control with the guide itself.
+ const minBody=steps[index]?.groupTarget ? 70 : (v.width<300?240:140);
+ panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+minBody,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();
   const available=panel.getBoundingClientRect().top-origin.top-12;
@@ -263,8 +280,8 @@ function render(){
  $("#tutorial-back").disabled=index===0;
  $("#tutorial-next").textContent=index===steps.length-1?"Finish / Terminar":"Next / Siguiente";
  panel.querySelector(".tutorial-content").scrollTop=0;
- // Keep focus on a permanently visible control; it must not scroll the card.
- $("#tutorial-next").focus({preventScroll:true});
+ // Do not steal focus from real controls as the learner changes a language
+ // or navigates through the app while the guide remains open.
  if(observer){observer.disconnect();observer.observe(panel);const el=targetFor(step);if(el)observer.observe(el);}
  scheduleLayout();
 }
@@ -291,12 +308,8 @@ function finish(){
 function keyboard(event){
  if(!active)return;
  if(event.key==="Escape"){event.preventDefault();finish();}
- else if(event.key==="Tab"){
-  const controls=[...panel.querySelectorAll("button:not([disabled]),[tabindex=\"0\"]")];if(!controls.length)return;
-  const first=controls[0],last=controls[controls.length-1];
-  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
-  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
- }
+ // This is a nonmodal guided tour. Tab and Shift+Tab must reach the
+ // highlighted native controls, not cycle inside the explanation panel.
 }
 function bind({navigate:route,launchQuery}={}){
  if(bound)return;bound=true;navigate=route;
@@ -305,6 +318,15 @@ function bind({navigate:route,launchQuery}={}){
  document.querySelectorAll("button[data-lesson-tutorial-open]").forEach(b=>b.addEventListener("click",()=>open(b,"lessons")));
  document.querySelectorAll("button[data-home-screen-help]").forEach(b=>b.addEventListener("click",()=>open(b,"home-screen")));
  document.addEventListener("keydown",keyboard);
+ // The learner can select any real bottom tab without dismissing the tour.
+ // Keep the explanation aligned to the destination they selected.
+ document.addEventListener("click",event=>{
+  if(!active||currentMode!=="full")return;
+  const button=event.target.closest?.(".bottom-nav button[data-open]");
+  if(!button)return;
+  const next=steps.findIndex(step=>step.view===button.dataset.open);
+  if(next>=0){index=next;render();}
+ });
  window.addEventListener("resize",scheduleLayout);
  window.visualViewport?.addEventListener("resize",scheduleLayout);
  window.visualViewport?.addEventListener("scroll",scheduleLayout);
