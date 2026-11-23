@@ -1,5 +1,8 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "A noun/adjective insult, not automatically the command “suck my balls.” The user may write “mamma huevos” phonetically after hearing unfamiliar speech. Offer mamagüevo/mamahuevo as a possible match, never label the user’s phonetic attempt incorrect, and verify against the audio. Tone and relationship determine force. English glosses are editorial; country labels are from ASALE.": "Insulto que funciona como sustantivo o adjetivo; no equivale automáticamente a una orden sexual. La persona puede escribir «mamma huevos» por su sonido tras oír una expresión desconocida. Considera mamagüevo/mamahuevo como posible coincidencia sin calificar de incorrecta la escritura fonética, y compruébala con el audio. La intensidad depende del tono y la relación. Las glosas inglesas son editoriales y las etiquetas de país proceden de ASALE.",
+  "ASALE supports Dominican and Venezuelan usage, not the meaning of the malformed spelling. No city attribution or native-speaker register validation is established.": "ASALE documenta usos de República Dominicana y Venezuela, no el sentido de esa escritura fonética. No se ha establecido atribución a una ciudad ni validación del registro por hablantes nativos.",
+
   "⚑ Flag translation for review": "⚑ Señalar traducción para revisión",
   "⚑ Flag regional usage for review": "⚑ Señalar uso regional para revisión",
   "⚑ Flag dictionary entry for review": "⚑ Señalar entrada del diccionario",
