@@ -12,8 +12,8 @@
   <link rel="manifest" href="translator.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
-  <link rel="stylesheet" href="styles.css?v=246">
-  <script src="interface-es.js?v=229" defer></script>
+  <link rel="stylesheet" href="styles.css?v=254">
+  <script src="interface-es.js?v=254" defer></script>
   <script src="interface-language.js?v=218" defer></script>
   <script src="research-reference.js?v=218" defer></script>
   <script src="document-import.js?v=218" defer></script>
@@ -36,16 +36,16 @@
   <script src="recorded-practice.js?v=218" defer></script>
   <script src="quick-lessons.js?v=222" defer></script>
   <script src="slang-contributions.js?v=218" defer></script>
-  <script src="app-feedback.js?v=229" defer></script>
+  <script src="app-feedback.js?v=254" defer></script>
   <script src="app-updates.js?v=235" defer></script>
   <script src="whatsapp-audio.js?v=218" defer></script>
-  <script src="tutorial.js?v=245" defer></script>
+  <script src="tutorial.js?v=254" defer></script>
   <script src="swipe-navigation.js?v=249" defer></script>
   <script src="full-text-reader.js?v=218" defer></script>
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
-  <script src="app.js?v=253" defer></script>
+  <script src="app.js?v=254" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -54,7 +54,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.43 · build 253</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.44 · build 254</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -275,6 +275,7 @@
               <button id="hear-result">🔊 Hear it</button>
               <button id="pause-result" type="button" aria-label="Pause spoken translation" aria-pressed="false" disabled>⏸ Pause</button>
               <button id="share-result" type="button" disabled>Share translation</button>
+              <button type="button" class="feedback-link" data-feedback-open data-feedback-flag="true" data-feedback-topic="translation">⚑ Flag translation for review</button>
               <button id="restore-translation" hidden>Restore generated</button>
             </div>
             <p id="translation-share-status" class="translation-edit-status" role="status" hidden></p>
@@ -855,19 +856,27 @@
         <label>Word, sentence or feature<input name="reference" maxlength="500"></label>
         <label>Suggested correction<textarea name="correction" maxlength="2000" rows="2"></textarea></label>
         <label>Example or evidence<textarea name="example" maxlength="2000" rows="2" placeholder="A full sentence, where you hear it or a source link. It is OK to be unsure."></textarea></label>
+        <label>Speaker background (optional)<select name="speakerRole"><option value="unspecified">Prefer not to say</option><option value="native">Native speaker (self-reported)</option><option value="other">Other speaker or learner</option></select></label>
+        <small>Native-speaker status is self-reported. Regional accuracy and pronunciation still require independent evidence.</small>
         <label>Name / initials <span>(optional)</span><input name="reviewer" maxlength="80" autocomplete="off"></label>
         <label class="feedback-opt-in"><input id="feedback-include-text" type="checkbox">Include the current source and translation text</label>
         <small>Off by default. If selected, up to 3000 characters from each translation box are added to the preview. Check for private text before sharing.</small>
         </details>
       </fieldset>
     </form>
-    <div class="feedback-actions feedback-primary"><button id="feedback-share" type="button">Share with Mathew</button></div>
-    <p id="feedback-status" role="status" aria-live="polite">Choose Mathew in your messaging or email app. Nothing is sent automatically.</p>
+    <div class="feedback-actions feedback-primary"><button id="feedback-mark-pending" type="button">⚑ Mark pending review</button><button id="feedback-share" type="button">Share for research review</button></div>
+    <p id="feedback-status" role="status" aria-live="polite">Flags stay on this device until you choose to share. No dictionary or lesson changes are made automatically.</p>
+    <details id="feedback-pending" class="compact-info">
+      <summary>My pending correction flags</summary>
+      <p id="feedback-pending-count" role="status">No pending flags on this device.</p>
+      <div id="feedback-pending-list" aria-label="Correction flags pending independent verification"></div>
+      <small>Pending means stored locally, not submitted, validated or accepted. Use Share for research review to send the report through your chosen app.</small>
+    </details>
     <details id="feedback-review" class="compact-info"><summary>Preview, copy or save</summary>
       <label>Report preview<textarea id="feedback-preview" readonly rows="7"></textarea></label>
       <div class="feedback-actions"><button id="feedback-copy" type="button">Copy report</button><button id="feedback-save" type="button">Save draft</button><button id="feedback-clear" type="button">Clear draft</button></div>
     </details>
-    <p class="feedback-note">Reports go to Mathew through the app you choose. Corrections are reviewed before changing Habla.</p>
+    <p class="feedback-note">Speaker suggestions are valuable leads, not regional proof. Corrections require dictionary/corpus evidence, context, and independent review before Habla publishes an updated meaning or lesson.</p>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
