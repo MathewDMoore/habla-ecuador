@@ -117,7 +117,7 @@ function refreshAlternatives(box=$("#full-reader-alternatives-list")){
  try {
  const choices=typeof window.translationWordingAlternatives==="function" ? window.translationWordingAlternatives() : [];
  const compare=$("#compare-english");
- if(compare && !compare.disabled){
+ if(compare && !compare.disabled && !choices.some(choice=>choice.url)){
   const comparison=$("#english-comparison"),wasHidden=comparison?.hidden;
   compare.click();
   if(box.id==="inline-alternatives-list" && wasHidden && comparison)comparison.hidden=true;
@@ -131,6 +131,11 @@ function refreshAlternatives(box=$("#full-reader-alternatives-list")){
   const summary=element("summary",null,"",choice.text);
   const label=element("strong",null,"",choice.label);
   const note=element("p",null,"",choice.note||"Review this alternative in context. / Revisa esta alternativa en contexto.");
+  if(choice.url && /^https:\/\//.test(choice.url)){
+   const reference=element("a",null,"","Source / Fuente");
+   reference.href=choice.url;reference.target="_blank";reference.rel="noopener noreferrer";
+   note.append(" ",reference);
+  }
   const actions=element("div",null,"full-reader-section-actions");
   const hear=makeButton("🔊 Hear / Escuchar");
   hear.addEventListener("click",()=>{if(typeof window.say==="function")window.say(choice.text,$("#target-language-select")?.value);});

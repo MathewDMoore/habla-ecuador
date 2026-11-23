@@ -88,7 +88,7 @@ const phrases = [
   { en:"Oh no, that's disappointing.", us:"Oh no, that's disappointing.", uk:"Oh no, that's a shame.", es:"Vaya, qué decepción.", natural:"Chuta, qué pena.", note:"Chuta can express surprise, annoyance, sympathy, or disappointment in Ecuador. Tone determines the feeling.", register:"Ecuadorian · informal · mild", keys:["chuta que pena","chuta"] },
   { en:"It's so cold!", uk:"It's absolutely freezing!", es:"¡Qué frío hace!", natural:"¡Achachay, qué frío!", note:"Achachay is a Kichwa-influenced exclamation associated with feeling cold, especially in Andean settings.", register:"Ecuadorian/Andean · expressive", keys:["achachay que frio","achachay"] },
   { en:"My brother is coming.", es:"Mi hermano viene.", natural:"Mi ñaño viene.", note:"Ñaño and ñaña are informal, often affectionate words for a brother or sister in Ecuador. In Panama, ñaño can carry a derogatory meaning.", register:"Ecuadorian · familiar · regional warning", keys:["mi nano viene","mi ñaño viene","nano","ñaño","ñaña"] },
-  { en:"The baby is sleeping.", es:"El bebé está durmiendo.", natural:"La guagua está durmiendo.", note:"In Ecuador, guagua can mean a baby or young child. In several Caribbean countries, it commonly means a bus.", register:"Ecuadorian/Andean · familiar", keys:["la guagua esta durmiendo","guagua"] },
+  { en:"The baby is sleeping.", es:"El bebé está durmiendo.", natural:"La guagua está durmiendo.", note:"In Ecuador, guagua can mean a baby or young child. In several Caribbean countries, it commonly means a bus.", register:"Ecuadorian/Andean · familiar", exactMatch:true, keys:["la guagua esta durmiendo"] },
   { en:"Can you add a little extra?", es:"¿Puede agregar un poco más?", natural:"¿Me da la yapa, por favor?", note:"At a market, la yapa is a small extra amount or gift a seller adds to a purchase.", register:"Ecuadorian/Andean · market language", keys:["me da la yapa","la yapa","yapa"] },
   { en:"Bring a jacket.", us:"Bring a jacket.", uk:"Bring a jumper or jacket.", es:"Lleva una chaqueta.", natural:"Lleva una chompa.", note:"Chompa is normal in Ecuador for a warm upper garment; the English match can be jacket, sweater, or jumper.", register:"Ecuador-natural · clothing", keys:["lleva una chompa","trae una chompa","chompa"] },
   { en:"He's my close friend.", us:"He's a close friend of mine.", uk:"He's a close mate of mine.", es:"Es un amigo cercano.", natural:"Es mi pana.", note:"In Ecuador, pana means a close friend or inseparable companion, not merely any acquaintance.", register:"Ecuador-natural · affectionate", keys:["es mi pana","mi pana","pana"] },
@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.51 · build 261";
+const APP_VERSION = "0.27.52 · build 262";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3296,9 +3296,14 @@ function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}=
 // arbitrary insult or label the wording as specific to Ecuador without evidence.
 function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) {
   const senses = typeof HablaSpanishContext === "undefined" ? [] : HablaSpanishContext.dictionaryMeanings(text,{source,target,purpose});
-  if (senses.length) {
+  if (senses.length && senses[0].local !== false &&
+      !HablaSpanishContext.wordMeanings(text,{source,target,purpose}).length &&
+      !HablaSpanishContext.documentedVulgarInsult(text,{source,target,purpose}) &&
+      !HablaSpanishContext.translateEnglishVulgarity(text,{source,target,purpose}) &&
+      !HablaSpanishContext.translateIndifferenceExpression(text,{source,target}) &&
+      !HablaSpanishContext.figurativeExpression(text,{source,target,purpose})) {
     const primary = senses[0];
-    return {text:primary.text, literal:primary.label, note:primary.note, alternatives:senses};
+    return {text:primary.text, literal:primary.label, note:primary.note, url:primary.url, alternatives:senses};
   }
   if(purpose==="academic" || languageFamily(source)!=="es" || languageFamily(target)!=="en")return null;
   const clean=String(text).normalize("NFD").replace(/\p{M}/gu,"").toLowerCase()
@@ -4093,6 +4098,12 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     $("#literal-result").textContent=reviewedMeaning.literal;
     if ($("#english-comparison")) $("#english-comparison").hidden=true;
     $("#usage-note").textContent=reviewedMeaning.note;
+    if (reviewedMeaning.url) {
+      const link=document.createElement("a");
+      link.href=reviewedMeaning.url; link.target="_blank"; link.rel="noopener noreferrer";
+      link.textContent=" Source / Fuente";
+      $("#usage-note").append(link);
+    }
     return;
   }
   const reviewedInsult = !autoMusic && translationPurpose !== "academic"
@@ -4134,6 +4145,17 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
       const translated = await requestGeneralTranslation(embeddedSlang.text,direction,{isCurrent:current,onDevice,inputType,
         receiveAlternatives:embeddedSlang.text === sourceText ? choices => { providerAlternatives = choices; } : undefined});
       if (!current()) return;
+      if (!autoMusic && translated.trim().toLowerCase() === sourceText.toLowerCase()) {
+        const elsewhere=HablaSpanishContext.dictionaryMeanings(sourceText,requestContext);
+        if (elsewhere.length && elsewhere.every(choice=>choice.local===false)) {
+          setEditableTranslation(sourceText,"",{reviewedAlternatives:elsewhere});
+          $("#translation-result .result-label").textContent="Choose a regional meaning / Elige un significado regional";
+          $("#literal-result").textContent="";
+          $("#usage-note").textContent="The available dictionary senses are documented elsewhere. Open Alternatives to see where each is used. / Consulta en Alternativas dónde se documenta cada significado.";
+          if ($("#inline-translation-alternatives")) $("#inline-translation-alternatives").open=true;
+          return;
+        }
+      }
       const regionalIdiom = !autoMusic && HablaSpanishContext.figurativeExpression(sourceText,requestContext);
       setEditableTranslation(sourceText, translated, {regionalIdiom,providerAlternatives,culturalEntry:embeddedSlang.entries.length > 0,onDevice,musicSourceMode:autoMusic?"auto":"selected"});
       const referenceMatch = translationPurpose === "academic" && direction === "ec-en" ? findAcademicReference(sourceText) : null;
@@ -4645,7 +4667,8 @@ function translationWordingAlternatives() {
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},
        {text:phrase.uk||phrase.en,label:"U.K. English / Inglés británico",note:phrase.note}]) : []);
-  const seen=new Set([normalize($("#natural-result").textContent),normalize(completed.source)]);
+  const wordingKey=dictionaryChoices.length ? text=>text.normalize("NFC").trim().toLowerCase() : normalize;
+  const seen=new Set([wordingKey($("#natural-result").textContent),wordingKey(completed.source)]);
   const providerChoices=(insult ? [] : (completed.providerAlternatives || [])).map(text=>({
     text:languageFamily(targetLanguage)==="en" ? convertEnglishVariety(text,targetLanguage,{source:completed.source,purpose:translationPurpose}) : text,
     label:"Translation memory / Memoria de traducción",
@@ -4655,14 +4678,14 @@ function translationWordingAlternatives() {
     .concat(providerChoices)
     .map(choice=>({...choice,text:choice.text.trim()}))
     .filter(choice=>{
-      const key=normalize(choice.text);
+      const key=wordingKey(choice.text);
       // Do not resurface provider texting shortcuts as "alternatives" for normal prose.
       const textingAbbreviation=/^(?:ty|thx|thnx|tnx|tks|tysm)[.!?]*$/i.test(choice.text);
       const shorthandRequested=/^(?:ty|thx|thnx|tnx|tks|tysm)[.!?]*$/i.test(completed.source.trim());
       return key && !/^MYMEMORY WARNING/i.test(choice.text)
         && !(languageFamily(targetLanguage)==="en" && textingAbbreviation && !shorthandRequested)
         && !seen.has(key) && seen.add(key);
-    }).slice(0,5);
+    }).slice(0,dictionaryChoices.length ? undefined : 5);
 }
 
 function swapDirection() {
@@ -7006,7 +7029,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=261", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=262", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

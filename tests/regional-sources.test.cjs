@@ -90,7 +90,7 @@ for(const page of ['index.html','translator.html']){
  assert.match(html,/Native-speaker suggestions remain pending independent review/);
  assert.match(html,/no content|does not scrape, bulk-copy or automatically adopt/i);
 }
-assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v261/);
+assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v262/);
 
 for (const page of ['index.html', 'translator.html']) {
   const menu = fs.readFileSync(page, 'utf8').match(/id="regional-usage-type">([^]*?)<\/select>/)[1];
