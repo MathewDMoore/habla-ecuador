@@ -40,7 +40,7 @@ const root=path.resolve(__dirname,'..'), origin='https://mathewdmoore.github.io'
    assert.equal(await results.locator('.slang-tone.caution:visible').count(),0,entry+' should open with everyday language');
    const strong = results.locator(':scope > details');
    assert.ok(await strong.locator('.caution').count()>0);
-   await strong.locator('summary').click();
+   await strong.locator(':scope > summary').click();
    assert.ok(await results.locator('.slang-tone.caution:visible').count()>0);
    await page.locator('#regional-usage-type').selectOption('vulgar');
    assert.ok(await results.locator(':scope > article .caution:visible').count()>0);
