@@ -33,6 +33,9 @@ jobs:
           node --check app.js
           node --check swipe-navigation.js
           node --check tests/navigation-browser-smoke.cjs
+          node --check app-feedback.js
+          node --check tutorial.js
+          node --check tests/pending-feedback.browser.cjs
 
       - name: Install WebKit browser test tools
         run: |
@@ -41,6 +44,12 @@ jobs:
 
       - name: Verify five-tab navigation in WebKit
         run: node tests/navigation-browser-smoke.cjs
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: webkit
+
+      - name: Verify native-speaker pending review in WebKit
+        run: node tests/pending-feedback.browser.cjs
         env:
           HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
           HABLA_BROWSER_ENGINE: webkit
