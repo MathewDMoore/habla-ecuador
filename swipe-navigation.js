@@ -3,10 +3,10 @@
  'use strict';
  const TABS=['home-view','translator-view','dictionary-view','music-view','lesson-view'];
  const UNSAFE='input,textarea,select,[contenteditable],[role="slider"],[data-swipe-block],.push-to-talk,[data-face-mic],.face-to-face-actions,audio,video,iframe,.lyric-lines,.ve-caption-list,.translation-history-list,.subtitle-switch';
- const SURFACE='.app-shell main, .bottom-nav';
+ const SURFACE='.app-shell main, .bottom-nav, .topbar';
  const TUTORIAL="#tutorial-overlay:not([hidden])";
  const OVERLAY='dialog[open]:not(#face-to-face), :is([popover]:popover-open)';
- const SWIPE_DISTANCE=28, DRAG_START_DISTANCE=6, HORIZONTAL_RATIO=1.3;
+ const SWIPE_DISTANCE=24, DRAG_START_DISTANCE=5, HORIZONTAL_RATIO=1.2;
  function inBlockedTarget(target){
   return Boolean(target?.closest?.(UNSAFE));
  }
@@ -55,7 +55,7 @@
    if((!inTutorial&&!TABS.includes(tab))||inBlockedTarget(target)||scrollsHorizontally(target))return;
    const touch=event.touches[0];
    const width=root.innerWidth||document.documentElement.clientWidth;
-   if(touch.clientX<28||touch.clientX>width-28)return; // respect OS back gestures
+   if(touch.clientX<24||touch.clientX>width-24)return; // respect OS back gestures
    start={x:touch.clientX,y:touch.clientY,time:event.timeStamp,screen,tab,inTutorial,horizontal:false};
   },{passive:true});
   // Claim a sideways drag before WebKit takes it over or taps the start target.
@@ -66,7 +66,7 @@
    const touch=event.touches[0];
    const dx=Math.abs(touch.clientX-start.x),dy=Math.abs(touch.clientY-start.y);
    if(!start.horizontal){
-    if(dy>=12&&dy>dx*1.15){start=null;return;}
+    if(dy>=12&&dy>dx*1.2){start=null;return;}
     if(dx<DRAG_START_DISTANCE||dx<=dy*HORIZONTAL_RATIO)return;
     start.horizontal=true;
    }
@@ -75,10 +75,12 @@
   document.addEventListener('touchend',event=>{
    if(!start||event.changedTouches.length!==1){start=null;return;}
    const first=start;start=null;
-   if(!first.horizontal||currentScreen()!==first.screen)return;
+   if(currentScreen()!==first.screen)return;
    const touch=event.changedTouches[0];
    const dx=touch.clientX-first.x,dy=touch.clientY-first.y;
    if(!isSwipe(dx,dy,event.timeStamp-first.time))return;
+   // A quick flick may emit only start/end in a WKWebView. Accept a clear
+   // horizontal end displacement even without an intermediate touchmove.
    // Swipe left means next tab, swipe right previous tab.
    const delta=dx<0?1:-1;
    if(first.inTutorial){
