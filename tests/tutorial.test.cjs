@@ -27,7 +27,7 @@ for(const file of ["index.html","translator.html"]){
  }
 }
 const sw=fs.readFileSync("sw.js","utf8");
-assert.ok(sw.includes('"tutorial.js?v=254"'),"tutorial remains available offline in app cache");
+assert.ok(sw.includes('"tutorial.js?v=255"'),"tutorial remains available offline in app cache");
 const app=fs.readFileSync("app.js","utf8");
 assert.ok(app.includes('HablaTutorial.bind({navigate:openView,launchQuery})'));
 assert.ok(app.includes("HablaTutorial.isOpen()"));
