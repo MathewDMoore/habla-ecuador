@@ -82,22 +82,24 @@ test('swipes between only the five main tabs in their visible order',()=>{
 
 test('gesture safety preserves keyboard typing, media, dialogs and iPhone back gesture',()=>{
   const code=fs.readFileSync('swipe-navigation.js','utf8');
-  assert.match(code,/input,textarea,select/);
+  assert.match(code,/const EDITABLE='input,textarea/);
+  assert.match(code,/first\.editable && Math\.abs\(dx\)<55/);
   assert.match(code,/\[contenteditable\]/);
   assert.match(code,/audio,video,iframe/);
-  assert.match(code,/\.lyric-lines/);
+  assert.match(code,/input\[type="range"\]/);
   assert.match(code,/scrollsHorizontally\(target\)/);
   assert.match(code,/touch\.clientX<24\|\|touch\.clientX>width-24/);
   assert.match(code,/event\.touches\.length!==1/);
   assert.match(code,/dialog\[open\]/);
   assert.match(code,/touchmove/);
   assert.match(code,/if\(event.cancelable\)event.preventDefault\(\)/);
+  assert.match(code,/capture:true/);
 });
 
 test('script load and cached asset support offline swipe navigation',()=>{
   for(const path of ['index.html','sw.js']){
     const source=fs.readFileSync(path,'utf8');
-    assert.match(source,/swipe-navigation\.js\?v=248/,path);
+    assert.match(source,/swipe-navigation\.js\?v=249/,path);
   }
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
 });
@@ -140,4 +142,44 @@ test('touch drag, fast flick and vertical scroll behave across main screens',()=
 test('standalone translator with visible five-tab navigation is not swipe-disabled',()=>{
   assert.doesNotMatch(app,/enabled:\s*\(\)\s*=>\s*!standaloneTranslator/);
   assert.match(app,/HablaSwipeNavigation\.bind\(/);
+});
+
+test('horizontal gesture on large editable translation fields can navigate',()=>{
+  const listeners={},body={};
+  const active={id:'translator-view'};
+  const document={
+    body,
+    documentElement:{dataset:{},clientWidth:390},
+    addEventListener:(name,fn)=>{listeners[name]=fn;},
+    querySelector:selector=>selector==='.view.active'?active:null
+  };
+  const root={innerWidth:390,document,getComputedStyle:()=>({overflowX:'auto'})};
+  vm.runInNewContext(fs.readFileSync('swipe-navigation.js','utf8'),{window:root,document});
+  const visits=[];
+  root.HablaSwipeNavigation.bind({
+    enabled:()=>true,
+    navigate:to=>{visits.push(to);active.id=to;}
+  });
+  const area={scrollWidth:900,clientWidth:300,parentElement:body,
+    matches:selector=>selector.includes('textarea'),
+    closest:selector=>selector.includes('.app-shell main')||selector.includes('textarea')?{}:null
+  };
+  const touch=(x,y)=>({clientX:x,clientY:y});
+  const swipe=(toX,toY)=>{
+    listeners.touchstart({touches:[touch(170,260)],target:area,timeStamp:0});
+    listeners.touchmove({touches:[touch(toX+10,toY)],cancelable:true,preventDefault(){}});
+    listeners.touchend({changedTouches:[touch(toX,toY)],timeStamp:130,cancelable:true,preventDefault(){}});
+  };
+  swipe(125,265);
+  assert.equal(visits.length,0,'brief field selection movement stays within editor');
+  swipe(80,265);
+  assert.deepEqual(visits,['dictionary-view'],'deliberate horizontal swipe navigates');
+  swipe(90,420);
+  assert.equal(visits.length,1,'vertical editor scrolling does not navigate');
+});
+
+test('editing or speech state does not globally disable the five tab gestures',()=>{
+  assert.doesNotMatch(app,/enabled:\s*\(\)\s*=>\s*!recognition/);
+  assert.doesNotMatch(app,/enabled:\s*\(\)\s*=>\s*!standaloneTranslator/);
+  assert.match(app,/!documentLoading/);
 });
