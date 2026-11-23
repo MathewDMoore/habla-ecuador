@@ -28,6 +28,9 @@ jobs:
       - name: Verify five-tab swipe gestures
         run: node --test tests/swipe-navigation.test.cjs
 
+      - name: Verify Bolivian vocabulary and source attribution
+        run: node --test tests/bolivia-reference-pack.test.cjs tests/regional-vocabulary.test.cjs tests/regional-usage.test.cjs tests/regional-sources.test.cjs tests/spanish-context.test.cjs
+
       - name: Validate JavaScript syntax
         run: |
           node --check app.js
