@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.39 · build 249";
+const APP_VERSION = "0.27.40 · build 250";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3260,8 +3260,8 @@ function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}=
 // arbitrary insult or label the wording as specific to Ecuador without evidence.
 function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) {
   if(purpose==="academic" || languageFamily(source)!=="es" || languageFamily(target)!=="en")return null;
-  const clean=String(text).normalize("NFD").replace(/\\p{M}/gu,"").toLowerCase()
-    .replace(/[.!?¡¿]/g,"").replace(/\\s+/g," ").trim();
+  const clean=String(text).normalize("NFD").replace(/\p{M}/gu,"").toLowerCase()
+    .replace(/[.!?¡¿]/g,"").replace(/\s+/g," ").trim();
   if(!/^no soy increiblemente inteligente,? pero no soy un imbecil$/.test(clean))return null;
   return {
     text:"I'm not incredibly intelligent, but I'm not an idiot.",
@@ -6868,7 +6868,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=249", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=250", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
