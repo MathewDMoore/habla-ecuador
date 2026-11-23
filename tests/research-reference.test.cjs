@@ -77,6 +77,27 @@ async function main() {
   assert.equal(run('regionalSpanishBridge("Necesito una computadora portátil.").text'), 'Necesito un ordenador portátil.');
   run('sourceLanguage="es-ES"; targetLanguage="es-GT"');
   assert.equal(run('regionalSpanishBridge("El ordenador portátil").text'), 'La computadora portátil');
+  const locales = run('Object.keys(TRANSLATOR_LANGUAGES)');
+  const menus = new Map();
+  for (const id of ['#source-language-select','#target-language-select']) {
+    const html = fs.readFileSync(path.join(root,'index.html'),'utf8');
+    const options = html.split('id="'+id.slice(1)+'"')[1].split('</select>')[0];
+    menus.set(id, {options:[...options.matchAll(/value="([^"]+)"/g)].map(match=>match[1]),
+      append(group){ this.options.push(...group.items); }});
+  }
+  context.document.querySelector = id => menus.get(id);
+  context.document.createElement = () => ({items:[],append(option){this.items.push(option.value);}});
+  context.Option = class { constructor(label,value){this.value=value;} };
+  run('populateTranslatorLocales()');
+  for (const menu of menus.values()) assert.deepEqual(menu.options.sort(), [...locales].sort());
+  for (const from of locales) for (const to of locales) {
+    context.from = from;
+    context.to = to;
+    const route = run('sourceLanguage=from; targetLanguage=to; translatorRoute()');
+    const families = from.slice(0,2)+'-'+to.slice(0,2);
+    assert.equal(route, {'en-en':'regional-en','es-es':'regional-es','en-es':'en-ec','es-en':'ec-en'}[families]);
+  }
+  console.log(locales.length+' locales on each side, '+locales.length**2+' ordered pairs checked');
   const referenceUrl=fs.readFileSync(path.join(root,'index.html'),'utf8').match(/research-reference\.js\?v=[^"']+/)[0];
   assert.ok(fs.readFileSync(path.join(root,'sw.js'),'utf8').includes(referenceUrl));
   console.log('Research reference checks passed: fidelity, variants, context isolation, fallback, citations, chunking, and input controls.');

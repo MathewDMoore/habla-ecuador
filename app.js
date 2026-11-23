@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.48 · build 258";
+const APP_VERSION = "0.27.49 · build 259";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -267,6 +267,39 @@ const normalize = value => value.toLocaleLowerCase().normalize("NFD").replace(/[
 
 function languageFamily(code) {
   return TRANSLATOR_LANGUAGES[code]?.family || code.split("-")[0];
+}
+
+// Unicode CLDR availableLocales, alphabetic country and territory subtags.
+// Locale selection is independent of reviewed vocabulary and installed voices.
+const additionalRegions = {
+  en: "AE AG AI AS AT AU BB BE BI BM BS BW BZ CA CC CH CK CM CX CY CZ DE DG DK DM EE ER ES FI FJ FK FM FR GD GE GG GH GI GM GS GU GY HK HU ID IE IL IM IN IO IT JE JM JP KE KI KN KY LC LR LS LT LV MG MH MO MP MS MT MU MV MW MY NA NF NG NL NO NR NU NZ PG PH PK PL PN PR PT PW RO RW SB SC SD SE SG SH SI SK SL SS SX SZ TC TK TO TT TV TZ UA UG UM VC VG VI VU WS ZA ZM ZW".split(" "),
+  es: "BR BZ EA IC PH US".split(" "),
+};
+for (const [family, regions] of Object.entries(additionalRegions)) {
+  const language = family === "en" ? "English" : "Español";
+  const names = new Intl.DisplayNames([family], {type:"region"});
+  for (const region of regions) {
+    const locale = family + "-" + region;
+    TRANSLATOR_LANGUAGES[locale] = {label:language + " · " + names.of(region), family, voice:locale};
+  }
+}
+
+function populateTranslatorLocales() {
+  for (const id of ["#source-language-select", "#target-language-select"]) {
+    const select = $(id);
+    if (!select || !select.options) continue;
+    for (const [family, regions] of Object.entries(additionalRegions)) {
+      const group = document.createElement("optgroup");
+      group.label = family === "en" ? "English" : "Español";
+      const choices = regions.map(region => family + "-" + region);
+      choices.sort((a,b) => languageLabel(a).localeCompare(languageLabel(b),family));
+      for (const locale of choices) {
+        const flag = Array.from(locale.slice(3), letter => String.fromCodePoint(127397 + letter.charCodeAt(0))).join("");
+        group.append(new Option(flag + " " + languageLabel(locale), locale));
+      }
+      select.append(group);
+    }
+  }
 }
 
 function translatorRoute() {
@@ -3129,6 +3162,7 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
     const adapted=HablaEnglish.adapt(text,target,options).text;
     return HablaEnglish.preserveCompleteSolutions(adapted,options.source);
   }
+  if (target !== "en-US" && target !== "en-GB") return text;
   const ukPairs = [
     ["color","colour"],["colors","colours"],["center","centre"],["centers","centres"],
     ["analyze","analyse"],["analyzed","analysed"],["analyzing","analysing"],
@@ -3893,6 +3927,11 @@ function regionalSpanishBridge(sourceText) {
 }
 
 function regionalEnglishBridge(sourceText) {
+  if (sourceLanguage === targetLanguage || !["en-US","en-GB"].includes(targetLanguage)) {
+    return {text:sourceText,label:languageLabel(targetLanguage),detail:sourceLanguage === targetLanguage
+      ? "Same variety selected. Original wording preserved."
+      : "Original wording preserved. Local wording for this English variety has not been verified."};
+  }
   const converted = convertEnglishVariety(sourceText,targetLanguage,{source:sourceText,purpose:translationPurpose});
   return {
     text:converted,
@@ -6588,6 +6627,7 @@ function init() {
   initializeOptionalFeature("document translation",bindWholeDocumentTools);
   initializeOptionalFeature("saved papers",() => window.HablaPaper?.bind({speak:say, stop:stopSpeechPlayback, pause:toggleSpeechPause}));
   $("#retry-translation")?.addEventListener("click", retryTranslation);
+  populateTranslatorLocales();
   syncLanguagePair({persist:false});
   setTranslationPurpose(translationPurpose, false);
   $("#swap-button").addEventListener("click", swapDirection);
@@ -6942,7 +6982,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=258", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=259", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
