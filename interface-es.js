@@ -1,5 +1,21 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "⚑ Flag translation for review": "⚑ Señalar traducción para revisión",
+  "⚑ Flag regional usage for review": "⚑ Señalar uso regional para revisión",
+  "⚑ Flag dictionary entry for review": "⚑ Señalar entrada del diccionario",
+  "⚑ Mark pending review": "⚑ Marcar pendiente de revisión",
+  "Share for research review": "Compartir para revisión documentada",
+  "My pending correction flags": "Mis correcciones pendientes",
+  "Speaker background (optional)": "Experiencia lingüística (opcional)",
+  "Native speaker (self-reported)": "Hablante nativo (declaración propia)",
+  "Other speaker or learner": "Otra persona hablante o estudiante",
+  "Open / edit": "Abrir / editar",
+  "No pending flags on this device.": "No hay correcciones pendientes en este dispositivo.",
+  "Pending means stored locally, not submitted, validated or accepted. Use Share for research review to send the report through your chosen app.": "Pendiente significa guardado aquí, no enviado, validado ni aceptado. Usa Compartir para revisión documentada mediante la aplicación que elijas.",
+  "Native-speaker status is self-reported. Regional accuracy and pronunciation still require independent evidence.": "La condición de hablante nativo es una declaración propia. La exactitud regional y la pronunciación aún necesitan pruebas independientes.",
+  "Speaker suggestions are valuable leads, not regional proof. Corrections require dictionary/corpus evidence, context, and independent review before Habla publishes an updated meaning or lesson.": "Las sugerencias de hablantes son pistas útiles, no pruebas regionales. Antes de publicar cambios, Habla exige fuentes de diccionario o corpus, contexto y revisión independiente.",
+  "Flags stay on this device until you choose to share. No dictionary or lesson changes are made automatically.": "Las observaciones permanecen en este dispositivo hasta que elijas compartirlas. No se modifica automáticamente el diccionario ni las lecciones.",
+
   "PENDING RESEARCH REVIEW · self-report only; not added to lessons, translations or dictionary": "PENDIENTE DE REVISIÓN CON FUENTES · declaración de la persona hablante; no se incorpora a lecciones, traducciones ni diccionario",
   "Dominican Republic and Venezuela: ASALE records a vulgar, derogatory insult for a stupid or idiotic person. No Ecuadorian or specific-city use is established by this entry.": "República Dominicana y Venezuela: ASALE recoge un insulto vulgar y despectivo para una persona tonta o idiota. Esta entrada no demuestra uso ecuatoriano ni de una ciudad específica.",
   "Strong vulgar insult / Insulto vulgar fuerte": "Insulto vulgar fuerte",
