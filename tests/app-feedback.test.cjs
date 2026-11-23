@@ -8,7 +8,22 @@ const included=api.format({...source,includeText:true});assert.ok(included.inclu
 assert.ok(api.format(source,s=>ui.t(s,'es')).includes('INFORME DE USUARIO'));assert.equal(api.clean({topic:'__proto__',region:'constructor'}).topic,'other');
 assert.equal(api.clean({problem:'x'.repeat(6000)}).problem.length,4000);assert.equal(api.clean({...source,includeText:true,source:'x'.repeat(8000)}).source.length,3000);
 assert.deepEqual(api.clean(null).context,{screen:'home-view',version:'',sourceLocale:'',targetLocale:''});
-for(const file of ['index.html','translator.html']){const s=fs.readFileSync(file,'utf8');for(const id of ['app-feedback','app-feedback-form','feedback-include-text','feedback-share'])assert.equal(s.split('id="'+id+'"').length-1,1);assert.ok(s.includes('app-feedback.js?v=229'));}
-assert.ok(fs.readFileSync('sw.js','utf8').includes('app-feedback.js?v=229'));
+for(const file of ['index.html','translator.html']){const s=fs.readFileSync(file,'utf8');for(const id of ['app-feedback','app-feedback-form','feedback-include-text','feedback-share'])assert.equal(s.split('id="'+id+'"').length-1,1);assert.ok(s.includes('app-feedback.js?v=252'));}
+assert.ok(fs.readFileSync('sw.js','utf8').includes('app-feedback.js?v=252'));
 assert.ok(!/fetch\(|sendBeacon|innerHTML|__hablaNativeSpeech/.test(fs.readFileSync('app-feedback.js','utf8')),'no automatic delivery, markup injection or translation bridge reuse');
 console.log('Feedback schema/export: explicit text opt-in, bounded fields, canonical enums, Spanish labels, no query leakage, offline assets and no automatic delivery passed');
+
+assert.equal(api.clean({speakerRole:'native'}).speakerRole,'native','self-reported native speaker is retained');
+assert.equal(api.clean({speakerRole:'verified'}).speakerRole,'unspecified','no caller can claim verified speaker status');
+assert.match(api.format({...source,speakerRole:'native'}),/Native speaker \(self-reported\)/);
+assert.match(api.format(source),/PENDING RESEARCH REVIEW/);
+for(const page of ['index.html','translator.html']){
+ const html=fs.readFileSync(page,'utf8');
+ for(const id of ['feedback-mark-pending','feedback-pending-count','feedback-pending-list']){
+  assert.equal(html.split('id="'+id+'"').length-1,1,page+' missing pending review UI '+id);
+ }
+ assert.match(html,/name="speakerRole"/);
+ assert.match(html,/data-feedback-flag="true"/);
+}
+assert.match(fs.readFileSync('app-feedback.js','utf8'),/habla-feedback-pending-review-v1/);
+assert.match(fs.readFileSync('app.js','utf8'),/Flag dictionary entry for review/);
