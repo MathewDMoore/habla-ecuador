@@ -6446,7 +6446,7 @@ function init() {
   const standaloneTranslator = location.pathname.endsWith("/translator.html") || launchQuery.get("standalone") === "translator";
   // The installed companion launches translator.html, but it needs the full
   // app's five tabs. Reuse that interface without changing the signed wrapper.
-  if (standaloneTranslator && typeof window.__hablaNativeSpeech === "function") {
+  if (standaloneTranslator) {
     const fullApp = new URL("index.html", location.href);
     fullApp.searchParams.set("start", faceToFaceLaunch ? "face-to-face" : "translate");
     const interfaceChoice=new URLSearchParams(location.search).get("ui");
