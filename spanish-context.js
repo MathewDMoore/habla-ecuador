@@ -289,6 +289,9 @@ const HablaSpanishContext = (() => {
   // Recording-inspired headwords, independently checked 2026-10-12.
   // Shared literal/clinical entries indicate availability, not local slang evidence.
   const sharedRegions = Object.keys(dictionaryRegions).filter(code=>!['es-CU','es-DO'].includes(code));
+  // Clinical terms are shared across the country views in the regional Dictionary.
+  const clinicalCountryNames = new Intl.DisplayNames(['en'], {type:'region'});
+  const clinicalRegions = 'EC BO MX VE PE CO CU AR CL CR DO SV GT HN NI PA PY PR ES UY GQ'.split(' ').map(country => 'es-' + country);
   const attractionEntries = [
     {
       id:'attraction-sexi', term:'sexi / sexy', speech:'sexi', category:'literal', regions:sharedRegions, shared:true,
@@ -567,6 +570,78 @@ const HablaSpanishContext = (() => {
     {term:'¡verga!',category:'slang',regions:['es-MX','es-VE','es-BO'],register:'Vulgar exclamation',scope:'Mexico/Venezuela: surprise or rejection (RAE); Bolivia: surprise (ASALE).',us:'fuck! / holy shit! (reaction)',uk:'fuck! / bloody hell! (reaction)',note:'Tone decides the English reaction and its force. Bolivian surprise evidence does not establish every Mexican or Venezuelan use there.',url:'https://www.asale.org/damer/%C2%A1verga%21',references:[{name:'RAE · DLE',url:'https://dle.rae.es/verga'}]},
     {term:'cojón / cojones',category:'slang',regions:sharedRegions,register:'Vulgar / colloquial',scope:'General Spanish dictionary entry; country-specific naturalness review pending.',us:'ball / balls (anatomy); fuck! (exclamation)',uk:'bollock / bollocks (anatomy); bloody hell! (exclamation)',note:'Clinical wording is testicle/testicles. The plural also works as an emotional exclamation; the body-part reading is not automatic.',url:'https://dle.rae.es/coj%C3%B3n'},
     ...[
+      ...[
+        ["cabeza", "head"],
+        ["cuello", "neck"],
+        ["hombro", "shoulder"],
+        ["brazo", "arm"],
+        ["codo", "elbow"],
+        ["antebrazo", "forearm"],
+        ["muñeca", "wrist"],
+        ["mano", "hand"],
+        ["dedo de la mano", "finger"],
+        ["tórax", "chest / thorax"],
+        ["abdomen", "abdomen"],
+        ["espalda", "back"],
+        ["cadera", "hip"],
+        ["muslo", "thigh"],
+        ["rodilla", "knee"],
+        ["pierna", "leg"],
+        ["tobillo", "ankle"],
+        ["pie", "foot"],
+        ["talón", "heel"],
+        ["ojo", "eye"],
+        ["oído", "ear (hearing organ)"],
+        ["nariz", "nose"],
+        ["boca", "mouth"],
+        ["lengua", "tongue"],
+        ["diente", "tooth"],
+        ["piel", "skin"],
+        ["cráneo", "skull"],
+        ["columna vertebral", "spine / backbone"],
+        ["costilla", "rib"],
+        ["fémur", "femur / thighbone"],
+        ["tibia", "tibia / shinbone"],
+        ["articulación", "joint"],
+        ["músculo", "muscle"],
+        ["tendón", "tendon"],
+        ["ligamento", "ligament"],
+        ["cartílago", "cartilage"],
+        ["cerebro", "cerebrum"],
+        ["encéfalo", "brain"],
+        ["médula espinal", "spinal cord"],
+        ["nervio", "nerve"],
+        ["corazón", "heart"],
+        ["arteria", "artery"],
+        ["vena", "vein"],
+        ["pulmón", "lung"],
+        ["tráquea", "trachea / windpipe"],
+        ["diafragma", "diaphragm"],
+        ["esófago", "esophagus"],
+        ["estómago", "stomach"],
+        ["hígado", "liver"],
+        ["páncreas", "pancreas"],
+        ["intestino delgado", "small intestine"],
+        ["intestino grueso", "large intestine"],
+        ["riñón", "kidney"],
+        ["vejiga", "bladder"],
+        ["bazo", "spleen"],
+        ["glándula tiroides", "thyroid gland"],
+      ].map(([term, us]) => ({
+        term, us, batch:'clinical-anatomy', uk:term === 'esófago' ? 'oesophagus' : us,
+        sourceName:'UC Berkeley · Dictionary of Health Related Terms',
+        url:'https://hia.berkeley.edu/wp-content/uploads/2014/03/dictionary-2011_english_pdf-version.pdf',
+        note:({
+          'muñeca':'In anatomy this is the wrist joint. In other contexts the same word can mean doll.',
+          'médula espinal':'Spinal cord is nerve tissue. The spinal column is the surrounding bony structure.',
+          'encéfalo':'Anatomical term for the whole brain, including the cerebrum, cerebellum and brainstem.',
+          'cerebro':'In precise anatomy this is the cerebrum. In everyday Spanish it can refer to the brain more broadly.',
+          'esófago':'The food passage. The nearby tráquea is the windpipe.',
+          'tendón':'A tendon connects muscle to bone.',
+          'ligamento':'At a joint, a ligament connects bones.',
+          'tórax':'The chest region. Abdomen refers to the belly region below it.'
+        })[term] || 'Standard anatomical term used in health care.'
+      })),
       {term:'testículo',us:'testicle',note:'Clinical anatomical term. Cojón is a vulgar alternative, not the same register.',url:nci('testiculo')},
       {term:'escroto',us:'scrotum',note:'The sac containing the testicles; it is not a synonym for a testicle.',url:nci('escroto')},
       {term:'uretra',us:'urethra',note:'Carries urine out from the bladder. Do not confuse it with uréter (ureter).',url:nci('uretra')},
@@ -576,7 +651,7 @@ const HablaSpanishContext = (() => {
       {term:'labios menores',us:'labia minora / inner labia',note:'Anatomical inner folds of the vulva. Inner/outer identifies the structures, not their size in every person.',url:'https://www.cancer.org/es/cancer/tipos/cancer-de-vulva/si-usted-tiene-cancer-de-vulva.html'},
       {term:'glande del pene',us:'glans penis / head of the penis',note:'Names the head of the penis, not the entire organ.',url:'https://www.cun.es/diccionario-medico/terminos/glande'},
       {term:'histerectomía',us:'hysterectomy',note:'Surgery removing the uterus, wholly or partly. Do not infer removal of the ovaries from this word alone.',url:'https://medlineplus.gov/spanish/hysterectomy.html'}
-    ].map(entry=>({...entry,uk:entry.us,category:'clinical',regions:sharedRegions,register:'Clinical / neutral',scope:'Shared clinical Spanish terminology; not regional slang.'}))
+    ].map(entry=>({...entry,uk:entry.uk || entry.us,category:'clinical',regions:entry.batch === 'clinical-anatomy' ? clinicalRegions : sharedRegions,register:'Clinical / neutral',scope:'Shared clinical Spanish terminology; not regional slang.'}))
   ];
   const vocabularyBatch = typeof HablaRegionalVocabulary !== 'undefined' ? HablaRegionalVocabulary
     : typeof module !== 'undefined' && typeof require === 'function' ? require('./regional-vocabulary.js') : [];
@@ -631,7 +706,7 @@ const HablaSpanishContext = (() => {
       : ['chuta','pucha','¡puta!','¡verga!'].includes(entry.term) ? 'exclamation'
       : entry.register === 'Familiar' ? 'familiar' : entry.term === 'chulla' ? 'culture'
       : entry.term.replace(/\s*\([^)]*\)/g,'').split(' / ').every(word=>!word.trim().includes(' ')) ? 'vocabulary' : 'usage');
-    return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code]),
+    return {type,label:usageLabels[type],countries:entry.regions.map(code=>dictionaryRegions[code] || (entry.batch === "clinical-anatomy" ? clinicalCountryNames.of(code.slice(3)) : undefined)),
       cities:Object.entries(cityEvidence).filter(([,terms])=>terms.includes(entry.term)).map(([city])=>({quito:'Quito',monterrey:'Monterrey, Nuevo León','mexico-city':'Mexico City',bogota:'Bogotá'}[city]))};
   }
   function dictionary({query='',region='es-EC',tone='all',target='all',category='all',usage='all'}={}) {

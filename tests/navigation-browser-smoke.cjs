@@ -44,6 +44,12 @@ const root=path.resolve(__dirname,'..'), origin='https://mathewdmoore.github.io'
    assert.ok(await results.locator('.slang-tone.caution:visible').count()>0);
    await page.locator('#regional-usage-type').selectOption('vulgar');
    assert.ok(await results.locator(':scope > article .caution:visible').count()>0);
+   await page.locator('#regional-usage-type').selectOption('clinical');
+   for (const term of ['rodilla','corazón','riñón','páncreas']) {
+     assert.equal(await results.getByRole('heading',{name:term,exact:true}).count(),1);
+   }
+   await page.locator('#regional-slang-search').fill('wrist');
+   assert.equal(await results.getByRole('heading',{name:'muñeca',exact:true}).count(),1);
    // Return to the first tab before testing WebKit touch navigation.
    await page.locator('.bottom-nav button[data-open="home-view"]').click();
    await page.waitForFunction(()=>document.querySelector('.view.active')?.id==='home-view');

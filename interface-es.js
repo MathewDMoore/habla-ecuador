@@ -1,5 +1,15 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "In anatomy this is the wrist joint. In other contexts the same word can mean doll.": "En anatomía, es la articulación entre la mano y el antebrazo. En otro contexto, muñeca puede ser un juguete.",
+  "Spinal cord is nerve tissue. The spinal column is the surrounding bony structure.": "La médula espinal es tejido nervioso. La columna vertebral es la estructura ósea que la rodea.",
+  "Anatomical term for the whole brain, including the cerebrum, cerebellum and brainstem.": "Término anatómico para el conjunto que incluye el cerebro, el cerebelo y el tronco encefálico.",
+  "In precise anatomy this is the cerebrum. In everyday Spanish it can refer to the brain more broadly.": "En anatomía designa el cerebro en sentido estricto. En el habla cotidiana también puede aludir al encéfalo en conjunto.",
+  "The food passage. The nearby tráquea is the windpipe.": "Conducto por el que pasan los alimentos. El aire pasa por la tráquea.",
+  "A tendon connects muscle to bone.": "El tendón une músculo y hueso.",
+  "At a joint, a ligament connects bones.": "En una articulación, los ligamentos unen huesos entre sí.",
+  "The chest region. Abdomen refers to the belly region below it.": "Región del pecho. El abdomen está por debajo del tórax.",
+  "Standard anatomical term used in health care.": "Término anatómico de uso clínico.",
+
   "Familiar / market address": "Trato familiar en el mercado",
   "Bolivia, Ecuador, Peru and Chile: a regular customer, especially in a market relationship.": "Bolivia, Ecuador, Perú y Chile: cliente habitual, especialmente en la relación comercial de un mercado.",
   "The related seller sense appears in a separate entry. Caserita/caserito is a familiar form of address; it does not necessarily imply a personal friendship.": "La acepción relacionada con quien vende figura en otra entrada. Caserita/caserito es una forma de trato familiar que no implica necesariamente una amistad personal.",

@@ -67,7 +67,13 @@ assert.ok(dictionary({region:'es-MX',query:'chinga'}).some(entry=>entry.term==='
 // Clinical vocabulary stays visible without vulgarity and does not acquire a
 // slang reading just because a country is selected. Fixed phrases keep scope.
 const clinical=dictionary({region:'es-EC',category:'clinical',tone:'mild'});
-assert.equal(clinical.length,9);
+for (const term of ['hombro','rodilla','corazón','cerebro','piel','riñón','páncreas','médula espinal','testículo']) {
+  assert.ok(clinical.some(entry => entry.term === term), term);
+}
+for (const region of ['es-EC','es-CU','es-GT','es-ES','es-GQ']) {
+  assert.ok(dictionary({region,usage:'clinical',query:'muneca'}).some(entry => entry.us === 'wrist'));
+}
+assert.ok(dictionary({region:'en-GB',target:'es-PE',category:'clinical',query:'oesophagus'}).some(entry => entry.term === 'esófago'));
 assert.ok(clinical.every(entry=>entry.register==='Clinical / neutral'));
 assert.equal(dictionary({region:'all',category:'clinical',tone:'caution'}).length,0);
 assert.equal(dictionary({region:'es-BO',category:'clinical',query:'hysterectomy'})[0].term,'histerectomía');
