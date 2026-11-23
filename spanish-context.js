@@ -135,6 +135,10 @@ const HablaSpanishContext = (() => {
     const option=(id,text,label)=>({id,text,label});
     const contributed=contributedEntries.find(entry=>entry.regions.includes(source)&&entry.lookupAliases.includes(word));
     if(contributed)return contributed.lookupSenses.map(sense=>option("contributed-"+sense.id,target==='en-GB'?sense.uk:sense.us,sense.label));
+    if(word==='acostarse')return [
+      option('acostarse-posture','to lie down','Posture / Postura'),
+      option('acostarse-bedtime','to go to bed','Bedtime / Hora de dormir')
+    ];
     if(word==='chinga'||word==='chingar') {
       const options=[option('chingar-bother','bother / annoy','Bother / annoy'),option('chingar-sex','fuck (sexual sense)','Sexual meaning')];
       if(source==='es-MX'&&word==='chinga')options.push(option('chinga-burden','a punishing chore / a fucking grind','Punishing task'),option('chinga-beating','a beating','Beating'));
@@ -204,6 +208,12 @@ const HablaSpanishContext = (() => {
       findings.push({term:'chingar / chinga',kind:meanings.length?'word-senses':'ambiguous-slang',detail,url:'https://dle.rae.es/chingar',references:[{name:'Mexican verb senses · DEM',url:'https://dem.colmex.mx/ver/chingar'},{name:'Mexican noun / speed · ASALE',url:asale('chinga')}],choices:meanings.length>1?meanings.map(item=>item.id):[],choiceLabels:Object.fromEntries(meanings.map(item=>[item.id,item.label]))});
     }
     const contributed=wordMeanings(text,{source,target,purpose});
+    if(contributed.some(item=>item.id==='acostarse-posture')){
+      findings.push({term:'acostarse',kind:'word-senses',
+        detail:'Use “to lie down” for posture and “to go to bed” when talking about bedtime.',
+        url:'https://dle.rae.es/acostar',choices:contributed.map(item=>item.id),
+        choiceLabels:Object.fromEntries(contributed.map(item=>[item.id,item.label]))});
+    }
     if(contributed.length && contributed.every(item=>item.id.startsWith('contributed-'))){
       const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
       const entry=contributedEntries.find(item=>item.lookupAliases.includes(word)&&item.regions.includes(source));
