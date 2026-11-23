@@ -784,6 +784,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .feedback-actions {display:flex;flex-wrap:wrap;gap:8px;}
 .feedback-actions button {min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font:inherit;font-size:14px;font-weight:700;}
 #feedback-share {background:var(--green);color:white;}
+.feedback-resource-links {display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px;margin:10px 0;}
+.feedback-resource-links a {display:flex;align-items:center;min-height:44px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--green);font-size:13px;font-weight:700;text-decoration:underline;overflow-wrap:anywhere;}
+.feedback-resource-links a:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
+
 #feedback-mark-pending {background:var(--mint);border-color:#88b69d;color:var(--green);}
 #feedback-pending {margin:12px 0;}
 #feedback-pending-list {display:grid;gap:9px;}
