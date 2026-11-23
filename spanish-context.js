@@ -129,6 +129,38 @@ const HablaSpanishContext = (() => {
       scope,note,literal:'The words evoke a vulgar sexual image, not edible eggs.',alternatives,
       url:asale('mamagüevo')};
   }
+  // Standalone dictionary forms. Keep whole sentences available to the translator.
+  const sense = (text, label, note) => ({text, label, note});
+  const bedtime = sense("to go to bed", "Verb · bedtime / Hora de dormir", "Me acuesto a las diez. → I go to bed at ten.");
+  const lieDown = sense("to lie down", "Verb · change of posture / Cambio de postura", "Me voy a acostar en el sofá. → I'm going to lie down on the couch.");
+  const lyingDown = sense("lying down", "Position / Postura", "Ya estoy acostada. → I'm already lying down.");
+  const reclining = sense("reclining", "Position · leaning back / Postura reclinada", "Use for someone resting in a leaned-back position. / Para alguien que descansa con el cuerpo inclinado hacia atrás.");
+  const lying = sense("mintiendo", "Verb · telling a falsehood / Decir una mentira", "She's lying about her age. → Está mintiendo sobre su edad.");
+  const lyingMale = sense("acostado", "Position · masculine / Postura · masculino", "Él está acostado. → He is lying down.");
+  const lyingFemale = sense("acostada", "Position · feminine / Postura · femenino", "Ella está acostada. → She is lying down.");
+  const gettingDown = sense("acostándose", "Action in progress / Acción en curso", "She's lying down on the bed now. → Ahora está acostándose en la cama.");
+  const toBed = sense("acostarse", "Verb · going to bed or lying down / Ir a la cama o tenderse", "I want to go to bed. → Quiero acostarme.");
+  const stretchOut = sense("tumbarse", "Verb · lying down / Tenderse", "He lay down on the grass. → Se tumbó en el césped.");
+  const dictionaryForms = {
+    es: new Map([
+      ["acostarse", [bedtime, lieDown]],
+      ...["acostado", "acostada", "acostados", "acostadas"].map(form => [form, [lyingDown, reclining]]),
+      ["mentir", [sense("to lie", "Verb · deception / Engaño", "Deja de mentir. → Stop lying."), sense("to tell a lie", "Verb phrase / Locución verbal", "No quiero mentir. → I don't want to tell a lie.")]]
+    ]),
+    en: new Map([
+      ["lying", [lying, lyingMale, lyingFemale, gettingDown]],
+      ["lying down", [lyingMale, lyingFemale, gettingDown]],
+      ...["lie down", "to lie down"].map(form => [form, [toBed, stretchOut]]),
+      ...["go to bed", "to go to bed"].map(form => [form, [toBed, sense("irse a la cama", "Verb · bedtime / Hora de dormir", "It's time to go to bed. → Es hora de irse a la cama.")]]),
+      ["recumbent", [lyingMale, lyingFemale, sense("reclinado", "Adjective · leaning back / Inclinado hacia atrás", "A recumbent figure. → Una figura reclinada.")]]
+    ])
+  };
+  function dictionaryMeanings(text, {source, target, purpose}) {
+    const from = source.split("-")[0], to = target.split("-")[0];
+    if (purpose === "academic" || !dictionaryForms[to] || from === to) return [];
+    const key = text.trim().toLowerCase().replace(/[.,!?]+$/u, "").trimEnd();
+    return dictionaryForms[from]?.get(key) || [];
+  }
   function wordMeanings(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {
     if(purpose==='academic'||!source.startsWith('es-')||!['en-US','en-GB'].includes(target))return [];
     const word=plain(unquoted(text)).trim().replace(/^[¡¿]|[.!?]+$/g,'').trim();
@@ -727,7 +759,7 @@ const HablaSpanishContext = (() => {
       return JSON.parse(JSON.stringify(publicEntry));
     });
   }
-  return {analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult};
+  return {dictionaryMeanings,analyse,refine,workSense,prepare,residue,slang,chooseSlangMeaning,dictionary,translateEnglishVulgarity,translateIndifferenceExpression,wordMeanings,figurativeExpression,documentedVulgarInsult};
 })();
 if(typeof module!=='undefined' && module.exports)module.exports=HablaSpanishContext;
 

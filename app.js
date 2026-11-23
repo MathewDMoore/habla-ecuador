@@ -3295,12 +3295,18 @@ function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}=
 // Only exact, reviewed sentences are replaced here. Never reinterpret an
 // arbitrary insult or label the wording as specific to Ecuador without evidence.
 function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) {
+  const senses = typeof HablaSpanishContext === "undefined" ? [] : HablaSpanishContext.dictionaryMeanings(text,{source,target,purpose});
+  if (senses.length) {
+    const primary = senses[0];
+    return {text:primary.text, literal:primary.label, note:primary.note, alternatives:senses};
+  }
   if(purpose==="academic" || languageFamily(source)!=="es" || languageFamily(target)!=="en")return null;
   const clean=String(text).normalize("NFD").replace(/\p{M}/gu,"").toLowerCase()
     .replace(/[.!?¡¿]/g,"").replace(/\s+/g," ").trim();
   if(!/^no soy increiblemente inteligente,? pero no soy un imbecil$/.test(clean))return null;
   return {
     text:"I'm not incredibly intelligent, but I'm not an idiot.",
+    literal:"Idiot / fool, not asshole",
     alternatives:[
       {text:"I'm not incredibly smart, but I'm not a fool.",label:"Natural alternative",note:"Less literal, similar level of insult."},
       {text:"I'm not exceptionally intelligent, but I'm not an imbecile.",label:"Closer to original wording",note:"Imbecile is more formal or old-fashioned in English."}
@@ -4084,7 +4090,8 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     result.hidden=false; missing.hidden=true;
     $("#translation-result .result-label").textContent=`${languageLabel(targetLanguage)} · meaning reviewed`;
     setEditableTranslation(sourceText,reviewedMeaning.text,{reviewedAlternatives:reviewedMeaning.alternatives});
-    $("#literal-result").textContent="Idiot / fool, not asshole";
+    $("#literal-result").textContent=reviewedMeaning.literal;
+    if ($("#english-comparison")) $("#english-comparison").hidden=true;
     $("#usage-note").textContent=reviewedMeaning.note;
     return;
   }
@@ -4621,16 +4628,19 @@ function setTranslationPurpose(purpose, rerender=true) {
 // Existing local wording choices; tone is described only where the phrase supplies it.
 function translationWordingAlternatives() {
   const completed=lastCompletedTranslation;
-  if(!completed || completed.swapPair || translationPurpose==="academic"
+  if(!completed || translationPurpose==="academic"
     || completed.source!==$("#translator-input").value.trim()
     || completed.sourceLanguage!==sourceLanguage || completed.targetLanguage!==targetLanguage)return [];
+  const dictionaryChoices = typeof HablaSpanishContext === "undefined" ? [] :
+    HablaSpanishContext.dictionaryMeanings(completed.source,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose});
+  if (completed.swapPair && !dictionaryChoices.length) return [];
   const localRoute=(sourceLanguage==="es-EC" && languageFamily(targetLanguage)==="en") || (targetLanguage==="es-EC" && languageFamily(sourceLanguage)==="en");
   const candidate=matchPhrase(completed.source);
   const phrase=localRoute || candidate?.sharedSpanish ? candidate : null;
   const insult=typeof HablaSpanishContext!=="undefined"
     ? HablaSpanishContext.documentedVulgarInsult(completed.source,{source:sourceLanguage,target:targetLanguage,purpose:translationPurpose}) : null;
   const reviewedChoices=Array.isArray(completed.reviewedAlternatives) ? completed.reviewedAlternatives : null;
-  const choices=reviewedChoices || (insult ? insult.alternatives : phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
+  const choices=reviewedChoices || (dictionaryChoices.length ? dictionaryChoices : null) || (insult ? insult.alternatives : phrase ? phrase.alternatives?.[languageFamily(targetLanguage)] || (languageFamily(targetLanguage)==="es"
     ? [{text:phrase.es,label:"Direct wording / Versión directa",note:"A direct version of the source. / Una versión directa del original."},
        {text:phrase.natural,label:"Conversational wording / Uso conversacional",note:phrase.note}]
     : [{text:phrase.us||phrase.en,label:"U.S. English / Inglés estadounidense",note:phrase.note},

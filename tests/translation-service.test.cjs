@@ -12,6 +12,24 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ for (const locale of ['es-BO','es-MX','es-EC']) {
+  run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-US";direction="ec-en";translationPurpose="everyday"');
+  element('#translator-input').value='Acostarse';
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,'to go to bed');
+  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['to lie down']);
+ }
+ run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec"');
+ for(const [input,primary,alternatives] of [
+  ['Lying','mintiendo',['acostado','acostada','acostándose']],
+  ['Lying down','acostado',['acostada','acostándose']]
+ ]){
+  element('#translator-input').value=input;
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,primary);
+  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),alternatives);
+ }
+ assert.equal(requests.length,0,'dictionary meanings work without a translation provider');
  const source='The keys are on the table.';
  handler=async()=>({ok:true,status:200,json:async()=>({
   responseStatus:200,responseData:{translatedText:'Las llaves están sobre la mesa.'},
