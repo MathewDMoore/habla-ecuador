@@ -23,7 +23,7 @@
  }
  function format(value,t=s=>s){
   const d=clean(value),line=(label,text)=>text?t(label)+': '+text:null;
-  return [t('Habla Ecuador — feedback report'),t('PENDING RESEARCH REVIEW · self-report only; not validated or added to lessons, translations or dictionary'),
+  return [t('Habla Ecuador — feedback report'),t('PENDING RESEARCH REVIEW · not verified; self-report only; not added to lessons, translations or dictionary'),
    line('Topic',t(topics[d.topic])),line('Country / variety',t(regions[d.region])),line('City / area',d.city),line('Word, sentence or feature',d.reference),
    line('What seems wrong?',d.problem),line('Suggested correction',d.correction),line('Example or evidence',d.example),line('Speaker background',t(speakerRoles[d.speakerRole])),line('Name / initials',d.reviewer),
    line('Screen',t(screens[d.context.screen])),line('App version',d.context.version),line('From',t(languages[d.context.sourceLocale]||'')),line('To',t(languages[d.context.targetLocale]||'')),
