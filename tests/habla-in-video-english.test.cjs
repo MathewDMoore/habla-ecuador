@@ -19,9 +19,9 @@ function render({sourceMode='youtube',ready=true,language='en-US'}={}){
  const confidence={textContent:'',classList:{toggle(){}}};
  const timing={value:'0'};
  const ctx=vm.createContext({
-  sourceMode,ready,lang,caption,reading,confidence,
+  sourceMode,ready,lang,caption,reading,confidence,scrubPreview:null,
   theaterEnglish:overlayText,timeLabel:{textContent:''},timing,
-  manual:0,offset:0,last:-2,cues:[[4,10,'English draft for demonstration.','UK English draft.',true]],
+  manual:0,offset:0,last:-2,cues:[[4,10,'English draft for demonstration.','UK English draft.',true,'Texto aportado.']],
   document:{activeElement:null},position:()=>7,fmt:()=>'0:07',selectedCue:()=>0
  });
  vm.runInContext(drawSource+'\ndraw(true);',ctx);
@@ -40,6 +40,16 @@ test('UK option selects UK draft on the video',()=>{
  const rendered=render({language:'en-GB'});
  assert.equal(rendered.caption.textContent,'UK English draft.');
  assert.equal(rendered.caption.hidden,false);
+});
+
+test('Spanish modes show the matched cue on every surface',()=>{
+ for(const [language,expected] of [
+  ['es','Español aportado — Texto aportado.'],
+  ['es+en-US','Español aportado — Texto aportado.\nEnglish (US) — English draft for demonstration.'],
+  ['es+en-GB','Español aportado — Texto aportado.\nEnglish (UK) — UK English draft.']
+ ]){
+  for(const surface of Object.values(render({language})))assert.equal(surface.textContent,expected);
+ }
 });
 
 test('Off hides the English overlay but keeps the video visible',()=>{
