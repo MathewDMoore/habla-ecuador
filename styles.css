@@ -1677,3 +1677,5 @@ body.ve-theater-open {overflow:hidden !important;}
 .selected-passage-tools .speech-action-status { flex-basis:100%; margin:0; }
 dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
 @media print { .selected-passage-tools { display:none !important; } }
+
+#ve-caption-overlay, #ve-caption-reading { white-space:pre-line; }
