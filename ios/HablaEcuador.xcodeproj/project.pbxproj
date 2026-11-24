@@ -54,6 +54,7 @@
 			<array>
 				<string>000000000000000000000006</string>
 				<string>00000000000000000000010C</string>
+				<string>00000000000000000000020C</string>
 			</array>
 		</dict>
 		<key>000000000000000000000002</key>
@@ -64,6 +65,7 @@
 			<array>
 				<string>000000000000000000000003</string>
 				<string>000000000000000000000101</string>
+				<string>000000000000000000000201</string>
 				<string>000000000000000000000004</string>
 			</array>
 			<key>sourceTree</key>
@@ -94,6 +96,7 @@
 			<array>
 				<string>000000000000000000000005</string>
 				<string>000000000000000000000105</string>
+				<string>000000000000000000000205</string>
 			</array>
 			<key>name</key>
 			<string>Products</string>
@@ -251,7 +254,8 @@
 			<key>buildRules</key>
 			<array/>
 			<key>dependencies</key>
-			<array><string>000000000000000000000110</string></array>
+			<array><string>000000000000000000000110</string>
+				<string>000000000000000000000210</string></array>
 			<key>name</key>
 			<string>HablaEcuador</string>
 			<key>productName</key>
@@ -476,7 +480,8 @@
 			<key>buildActionMask</key><string>2147483647</string>
 			<key>dstPath</key><string></string>
 			<key>dstSubfolderSpec</key><string>13</string>
-			<key>files</key><array><string>00000000000000000000010B</string></array>
+			<key>files</key><array><string>00000000000000000000010B</string>
+				<string>00000000000000000000020B</string></array>
 			<key>name</key><string>Embed App Extensions</string>
 			<key>runOnlyForDeploymentPostprocessing</key><string>0</string>
 		</dict>
@@ -554,6 +559,248 @@
 			<key>proxyType</key><string>1</string>
 			<key>remoteGlobalIDString</key><string>00000000000000000000010C</string>
 			<key>remoteInfo</key><string>HablaEcuadorWidget</string>
+		</dict>
+		<key>000000000000000000000201</key>
+		<dict>
+			<key>children</key>
+			<array>
+				<string>000000000000000000000203</string>
+				<string>000000000000000000000204</string>
+			</array>
+			<key>isa</key>
+			<string>PBXGroup</string>
+			<key>path</key>
+			<string>HablaEcuadorShare</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000203</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.swift</string>
+			<key>path</key>
+			<string>ShareViewController.swift</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000204</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>text.plist.xml</string>
+			<key>path</key>
+			<string>Info.plist</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>000000000000000000000205</key>
+		<dict>
+			<key>explicitFileType</key>
+			<string>wrapper.app-extension</string>
+			<key>includeInIndex</key>
+			<string>0</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>path</key>
+			<string>HablaEcuadorShare.appex</string>
+			<key>sourceTree</key>
+			<string>BUILT_PRODUCTS_DIR</string>
+		</dict>
+		<key>000000000000000000000206</key>
+		<dict>
+			<key>fileRef</key>
+			<string>000000000000000000000203</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+		</dict>
+		<key>00000000000000000000020B</key>
+		<dict>
+			<key>fileRef</key>
+			<string>000000000000000000000205</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+			<key>settings</key>
+			<dict>
+				<key>ATTRIBUTES</key>
+				<array>
+					<string>CodeSignOnCopy</string>
+				</array>
+			</dict>
+		</dict>
+		<key>000000000000000000000207</key>
+		<dict>
+			<key>buildActionMask</key>
+			<string>2147483647</string>
+			<key>files</key>
+			<array>
+				<string>000000000000000000000206</string>
+			</array>
+			<key>isa</key>
+			<string>PBXSourcesBuildPhase</string>
+			<key>runOnlyForDeploymentPostprocessing</key>
+			<string>0</string>
+		</dict>
+		<key>000000000000000000000208</key>
+		<dict>
+			<key>buildActionMask</key>
+			<string>2147483647</string>
+			<key>files</key>
+			<array/>
+			<key>isa</key>
+			<string>PBXFrameworksBuildPhase</string>
+			<key>runOnlyForDeploymentPostprocessing</key>
+			<string>0</string>
+		</dict>
+		<key>000000000000000000000209</key>
+		<dict>
+			<key>buildActionMask</key>
+			<string>2147483647</string>
+			<key>files</key>
+			<array/>
+			<key>isa</key>
+			<string>PBXResourcesBuildPhase</string>
+			<key>runOnlyForDeploymentPostprocessing</key>
+			<string>0</string>
+		</dict>
+		<key>00000000000000000000020C</key>
+		<dict>
+			<key>buildConfigurationList</key>
+			<string>00000000000000000000020D</string>
+			<key>buildPhases</key>
+			<array>
+				<string>000000000000000000000207</string>
+				<string>000000000000000000000208</string>
+				<string>000000000000000000000209</string>
+			</array>
+			<key>buildRules</key>
+			<array/>
+			<key>dependencies</key>
+			<array/>
+			<key>isa</key>
+			<string>PBXNativeTarget</string>
+			<key>name</key>
+			<string>HablaEcuadorShare</string>
+			<key>productName</key>
+			<string>HablaEcuadorShare</string>
+			<key>productReference</key>
+			<string>000000000000000000000205</string>
+			<key>productType</key>
+			<string>com.apple.product-type.app-extension</string>
+		</dict>
+		<key>00000000000000000000020D</key>
+		<dict>
+			<key>buildConfigurations</key>
+			<array>
+				<string>00000000000000000000020E</string>
+				<string>00000000000000000000020F</string>
+			</array>
+			<key>defaultConfigurationIsVisible</key>
+			<string>0</string>
+			<key>defaultConfigurationName</key>
+			<string>Release</string>
+			<key>isa</key>
+			<string>XCConfigurationList</string>
+		</dict>
+		<key>00000000000000000000020E</key>
+		<dict>
+			<key>buildSettings</key>
+			<dict>
+				<key>APPLICATION_EXTENSION_API_ONLY</key>
+				<string>YES</string>
+				<key>CODE_SIGN_STYLE</key>
+				<string>Automatic</string>
+				<key>CURRENT_PROJECT_VERSION</key>
+				<string>12</string>
+				<key>GENERATE_INFOPLIST_FILE</key>
+				<string>NO</string>
+				<key>INFOPLIST_FILE</key>
+				<string>HablaEcuadorShare/Info.plist</string>
+				<key>IPHONEOS_DEPLOYMENT_TARGET</key>
+				<string>17.4</string>
+				<key>MARKETING_VERSION</key>
+				<string>0.1.11</string>
+				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
+				<string>com.mathewdmoore.HablaEcuador.share</string>
+				<key>PRODUCT_NAME</key>
+				<string>$(TARGET_NAME)</string>
+				<key>SKIP_INSTALL</key>
+				<string>YES</string>
+				<key>SUPPORTED_PLATFORMS</key>
+				<string>iphoneos iphonesimulator</string>
+				<key>SUPPORTS_MACCATALYST</key>
+				<string>NO</string>
+				<key>SWIFT_VERSION</key>
+				<string>5.0</string>
+				<key>TARGETED_DEVICE_FAMILY</key>
+				<string>1</string>
+			</dict>
+			<key>isa</key>
+			<string>XCBuildConfiguration</string>
+			<key>name</key>
+			<string>Debug</string>
+		</dict>
+		<key>00000000000000000000020F</key>
+		<dict>
+			<key>buildSettings</key>
+			<dict>
+				<key>APPLICATION_EXTENSION_API_ONLY</key>
+				<string>YES</string>
+				<key>CODE_SIGN_STYLE</key>
+				<string>Automatic</string>
+				<key>CURRENT_PROJECT_VERSION</key>
+				<string>12</string>
+				<key>GENERATE_INFOPLIST_FILE</key>
+				<string>NO</string>
+				<key>INFOPLIST_FILE</key>
+				<string>HablaEcuadorShare/Info.plist</string>
+				<key>IPHONEOS_DEPLOYMENT_TARGET</key>
+				<string>17.4</string>
+				<key>MARKETING_VERSION</key>
+				<string>0.1.11</string>
+				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
+				<string>com.mathewdmoore.HablaEcuador.share</string>
+				<key>PRODUCT_NAME</key>
+				<string>$(TARGET_NAME)</string>
+				<key>SKIP_INSTALL</key>
+				<string>YES</string>
+				<key>SUPPORTED_PLATFORMS</key>
+				<string>iphoneos iphonesimulator</string>
+				<key>SUPPORTS_MACCATALYST</key>
+				<string>NO</string>
+				<key>SWIFT_VERSION</key>
+				<string>5.0</string>
+				<key>TARGETED_DEVICE_FAMILY</key>
+				<string>1</string>
+			</dict>
+			<key>isa</key>
+			<string>XCBuildConfiguration</string>
+			<key>name</key>
+			<string>Release</string>
+		</dict>
+		<key>000000000000000000000210</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXTargetDependency</string>
+			<key>target</key>
+			<string>00000000000000000000020C</string>
+			<key>targetProxy</key>
+			<string>000000000000000000000211</string>
+		</dict>
+		<key>000000000000000000000211</key>
+		<dict>
+			<key>containerPortal</key>
+			<string>000000000000000000000002</string>
+			<key>isa</key>
+			<string>PBXContainerItemProxy</string>
+			<key>proxyType</key>
+			<string>1</string>
+			<key>remoteGlobalIDString</key>
+			<string>00000000000000000000020C</string>
+			<key>remoteInfo</key>
+			<string>HablaEcuadorShare</string>
 		</dict>
 	</dict>
 	<key>rootObject</key>
