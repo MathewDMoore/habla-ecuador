@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "id": "music-meaning-pacha-picaflor",
+  "title": "Picaflor",
+  "displayArtist": "Pacha",
+  "sourceContext": {
+    "mediaType": "user-supplied screen recording of synchronized lyrics and automatic English glosses",
+    "recordingDurationSeconds": 200,
+    "reviewDate": "2026-11-23",
+    "origin": "Bolivia",
+    "originConfidence": "documented artist and recording attribution; not evidence of exclusive dialect",
+    "originReferences": [
+      "https://www.opinion.com.bo/noticias1/el-pais/quienes-son-jessica-jordan-edwin-castellanos/20100114203706340138.html",
+      "https://www.wikipedia.org/",
+      "https://casamundus.com.ar/productos/pacha-por-un-mundo-nuevo-cd/"
+    ],
+    "identification": "Track title and artist visibly displayed on playback screen",
+    "copyrightStatus": "copyrighted song: research reference only; rights to reproduce lyrics/audio not established",
+    "sourceAudioStored": false,
+    "fullLyricsStored": false,
+    "translatedLyricsStored": false
+  },
+  "learningFocus": [
+    "metaphor",
+    "figurative vocabulary",
+    "romantic memory",
+    "semantic disambiguation",
+    "English lyric caption corrections"
+  ],
+  "interpretation": {
+    "es": "La voz narrativa intenta olvidar un amor buscando cariño en otras personas. La imagen del picaflor que va de flor en flor sugiere coqueteo o amores pasajeros, pero los recuerdos regresan. En una parte posterior se evoca el impacto del primer amor y la emoción de enamorarse.",
+    "enUS": "The narrator seeks new affection to forget a past love, moving from person to person like a hummingbird from flower to flower. The memories keep returning, and later lines recall the powerful feelings of falling in love for the first time.",
+    "enUK": "The narrator looks for affection elsewhere to forget a former love, flitting between romantic interests like a hummingbird visiting flowers. The memories keep coming back, alongside recollections of the force of first love.",
+    "confidence": "interpretation from visible song captions; literary analysis, not a quoted artist explanation"
+  },
+  "senses": [
+    {
+      "token": "picaflor",
+      "literalUs": "hummingbird",
+      "literalUk": "hummingbird",
+      "figurativeUs": "flirt; someone who flits from one romantic interest to another",
+      "figurativeUk": "flirt; someone who flits between romantic interests",
+      "note": "Sense is not uniquely Ecuadorian and should not be labeled such without additional country-specific evidence.",
+      "reference": "https://www.diccionarios.com/diccionario/espanol/picaflor"
+    },
+    {
+      "token": "flor",
+      "literalUs": "flower",
+      "literalUk": "flower",
+      "figurativeUs": "a person or romantic encounter within the song's extended flower-and-hummingbird metaphor",
+      "figurativeUk": "a person or romantic encounter within the song's extended flower-and-hummingbird metaphor",
+      "note": "Contextual literary interpretation, not a separate dictionary definition of flor."
+    },
+    {
+      "token": "ilusión",
+      "literalUs": "illusion (in other contexts)",
+      "literalUk": "illusion (in other contexts)",
+      "figurativeUs": "romantic excitement; hopeful anticipation",
+      "figurativeUk": "romantic excitement; hopeful anticipation",
+      "note": "Avoid false friend 'illusion' for the song's love context."
+    },
+    {
+      "token": "venir a la mente",
+      "literalUs": "come to mind",
+      "literalUk": "come to mind",
+      "figurativeUs": "to keep remembering someone",
+      "figurativeUk": "to keep thinking of someone",
+      "note": "Context favors emotional memory, not physical travel."
+    },
+    {
+      "token": "golpear duro",
+      "literalUs": "hit hard",
+      "literalUk": "hit hard",
+      "figurativeUs": "to affect someone deeply and powerfully",
+      "figurativeUk": "to have a powerful emotional impact",
+      "note": "For love, avoid implying physical violence."
+    }
+  ],
+  "captionReview": [
+    {
+      "sourceCue": "así como el picaflor",
+      "onScreenEnglish": "as well as the hummingbird",
+      "issue": "Misreads comparative como as additive 'as well as'",
+      "recommendedSenseUS": "just like a hummingbird",
+      "recommendedSenseUK": "like a hummingbird"
+    },
+    {
+      "sourceCue": "sentí latir la ilusión",
+      "onScreenEnglish": "I felt the illusion beat",
+      "issue": "Literal English illusion misses hopeful emotional excitement",
+      "recommendedSenseUS": "I felt that rush of romantic hope",
+      "recommendedSenseUK": "I felt that rush of romantic excitement"
+    },
+    {
+      "sourceCue": "a mi mente regresabas",
+      "onScreenEnglish": "you came back to my mind",
+      "issue": "Understandable but unnatural phrasing misses repeated involuntary remembrance",
+      "recommendedSenseUS": "you kept coming back to mind",
+      "recommendedSenseUK": "I kept thinking of you"
+    }
+  ],
+  "originalExercises": [
+    {
+      "promptEs": "Aunque conoció a otras personas, no pudo dejar de pensar en su antiguo amor.",
+      "usEnglish": "Even after meeting other people, he couldn't stop thinking about his former love.",
+      "ukEnglish": "Although he met other people, he couldn't stop thinking about his former love.",
+      "targetSkill": "emotional paraphrase"
+    },
+    {
+      "promptEs": "En esta historia, el colibrí representa a alguien que busca cariño sin quedarse con una sola persona.",
+      "usEnglish": "Here, the hummingbird represents someone seeking affection without settling down with one person.",
+      "ukEnglish": "Here, the hummingbird symbolises someone who seeks affection without settling down with one person.",
+      "targetSkill": "metaphor comprehension"
+    }
+  ],
+  "integration": {
+    "intendedCategories": [
+      "literature-poetry",
+      "music",
+      "figurative-meanings"
+    ],
+    "status": "research record only; not wired to running dictionary, translation model, or app UI",
+    "usagePolicy": "Teach the original concept through original examples; do not ship the original recording, song audio, or a recreation of copyrighted lyrics.",
+    "regionalLabel": "Bolivian artist; figurative vocabulary has wider Spanish-language usage and requires separate sense-level regional validation",
+    "verificationFlags": {
+      "songIdentitySupported": true,
+      "artistCountrySupported": true,
+      "lexicalMetaphorSupported": true,
+      "artistConfirmedInterpretation": false,
+      "translationModelUpdated": false,
+      "appDeployed": false
+    }
+  }
+}
