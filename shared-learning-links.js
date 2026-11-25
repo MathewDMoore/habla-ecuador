@@ -6,19 +6,19 @@
   const entries = [
     {
       id: "bbc-mundo-20261124-5AKmIi8bODxJ9uB9b",
-      label: "📰 BBC News Mundo · Lectura",
-      description: "Shared Spanish-language news source. Headline and content not yet verified; source checks happen separately. You do not need to complete a lesson.",
-      href: "https://share.google/5AKmIi8bODxJ9uB9b",
-      action: "Open original / Abrir fuente",
-      state: "Source unresolved · Pendiente de verificación"
+      label: "▶ Video compartido como BBC News Mundo",
+      description: "The Google share link was independently found to redirect to YouTube, not a news article. Video title, creator and spoken content are still unverified. No lesson is required.",
+      href: "index.html?start=music&video=" + encodeURIComponent("https://www.youtube.com/watch?v=Z2YJDI4B-gw&t=29"),
+      action: "Watch in Habla / Ver en Habla",
+      state: "Redirect confirmed · Video metadata pending"
     },
     {
       id: "youtube-xko8gAlNZqY",
-      label: "▶ YouTube · Video compartido",
-      description: "User-shared video. Title, accents and captions await independent checks. Watch in Habla if you want; completing a lesson is never required.",
+      label: "▶ La Paz, Bolivia · Before You Go",
+      description: "YouTube title and channel verified by independent public metadata. Actual speech, captions, cultural claims and regional language remain unreviewed. Watching or completing lessons is optional.",
       href: "index.html?start=music&video=" + encodeURIComponent("https://youtu.be/xko8gAlNZqY"),
       action: "Watch in Habla / Ver en Habla",
-      state: "Metadata unverified · Pendiente de revisión"
+      state: "Public metadata verified · Spoken content unreviewed"
     }
   ];
 
