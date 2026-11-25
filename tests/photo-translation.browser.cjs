@@ -30,6 +30,7 @@ async function run(browser,entry,width){
   return file.startsWith(root+path.sep)&&fs.existsSync(file)&&fs.statSync(file).isFile()?route.fulfill({path:file}):route.abort();
  });
  await page.goto(origin+'/habla-ecuador/'+entry+'?start=translate&ui=en');
+ await page.locator('.bottom-nav [data-open="translator-view"]').click();
  await page.locator('#source-language-select').selectOption('en-US');
  await page.locator('#target-language-select').selectOption('es-EC');
  const png=await page.evaluate(()=>{
