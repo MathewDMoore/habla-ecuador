@@ -12,6 +12,26 @@ const run=code=>vm.runInContext(code,context);
 const ok=text=>({ok:true,status:200,json:async()=>({responseStatus:200,responseData:{translatedText:text}})});
 const fresh=()=>{requests=[];run('translationChunkCache.clear()');};
 async function main(){
+ run('sourceLanguage="en-US";targetLanguage="es-EC";direction="en-ec";translationPurpose="everyday"');
+ for (const input of ['Brr!', 'Brrr']) {
+  element('#translator-input').value=input;
+  await run('renderTranslation()');
+  assert.equal(element('#natural-result').textContent,'¡Qué frío!');
+  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['¡Achachay!']);
+ }
+ element('#translator-input').value='Burr';
+ await run('renderTranslation()');
+ assert.equal(element('#natural-result').textContent,'abrojo');
+ assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['rebaba']);
+ assert.match(element('#usage-note').textContent,/If you meant feeling cold/);
+ assert.equal(element('#translator-input').value,'Burr','spelling is preserved for the learner to clarify');
+ assert.equal(requests.length,0,'reviewed senses bypass unchanged provider responses');
+ assert.equal(run('HablaSpanishContext.dictionaryMeanings("Brr!",{source:"en-US",target:"es-BO",purpose:"everyday"}).some(item=>item.text==="¡Achachay!")'),false);
+ for (const input of ['Aaron Burr','The burr stuck to my coat.']) {
+  assert.equal(run('HablaSpanishContext.dictionaryMeanings('+JSON.stringify(input)+',{source:"en-US",target:"es-EC",purpose:"everyday"}).length'),0,'a name or full sentence needs its own context');
+ }
+ assert.equal(run('HablaSpanishContext.dictionaryMeanings("Brr!",{source:"en-US",target:"es-EC",purpose:"academic"}).length'),0);
+
  for (const locale of ['es-BO','es-MX','es-EC']) {
   run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-US";direction="ec-en";translationPurpose="everyday"');
   element('#translator-input').value='Acostarse';

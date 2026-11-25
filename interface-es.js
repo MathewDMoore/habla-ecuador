@@ -1,5 +1,22 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Noun / Sustantivo": "Sustantivo",
+  "Ecuador, Bolivia and Chile": "Ecuador, Bolivia y Chile",
+  "Ecuador, southwestern Colombia, northwestern/western Argentina, rural Peru and Chile": "Ecuador, suroeste de Colombia, noroeste y oeste de Argentina, zonas rurales de Perú y Chile",
+  "Ecuador and Chile · animal offspring": "Ecuador y Chile · cría de animal",
+  "Ecuador and Bolivia · infant": "Ecuador y Bolivia · bebé",
+  "Cuba, Dominican Republic, Puerto Rico, northwestern Mexico and western Guatemala": "Cuba, República Dominicana, Puerto Rico, noroeste de México y oeste de Guatemala",
+  "Spain · Canary Islands": "España · Islas Canarias",
+  "Bolivia and Chile · joking description": "Bolivia y Chile · descripción en tono de broma",
+  "Bolivia · used with a batán": "Bolivia · se usa con un batán",
+  "Noun · prickly seed case / Fruto espinoso": "Sustantivo · fruto espinoso",
+  "Noun · rough edge / Borde áspero": "Sustantivo · reborde áspero",
+  "A plant burr can stick to clothing. If you meant feeling cold, enter Brr! or I am cold. Burr may also be a surname; a name needs context.": "Un abrojo puede adherirse a la ropa. Si te refieres a sentir frío, escribe Brr! o I am cold. Burr también puede ser un apellido; un nombre necesita contexto.",
+  "Use for the rough edge left on cut material. For feeling cold, use Brr! instead of burr.": "Se usa para el reborde áspero que queda al cortar un material. Si quieres expresar frío, escribe Brr!.",
+  "Cold reaction / Reacción al frío": "Reacción al frío",
+  "Regional cold reaction / Exclamación regional de frío": "Exclamación regional de frío",
+  "Brr! expresses feeling cold. Burr is a different word. Achachay is attested in Ecuador, Peru and southwestern Colombia; a city or a Bolivian usage is not inferred.": "Brr! expresa sensación de frío. Burr es otra palabra. Achachay está documentado en Ecuador, Perú y el suroeste de Colombia; no se atribuye a una ciudad ni a Bolivia.",
+
   "In anatomy this is the wrist joint. In other contexts the same word can mean doll.": "En anatomía, es la articulación entre la mano y el antebrazo. En otro contexto, muñeca puede ser un juguete.",
   "Spinal cord is nerve tissue. The spinal column is the surrounding bony structure.": "La médula espinal es tejido nervioso. La columna vertebral es la estructura ósea que la rodea.",
   "Anatomical term for the whole brain, including the cerebrum, cerebellum and brainstem.": "Término anatómico para el conjunto que incluye el cerebro, el cerebelo y el tronco encefálico.",
