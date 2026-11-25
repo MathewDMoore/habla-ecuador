@@ -31,7 +31,7 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
   const label=page.locator('#live-camera-translator .photo-translation-label').first();
   assert.match(await label.getAttribute('aria-label'),/OPEN\s+DAILY/,'actual OCR recognizes the text from the running video');
   const style=await label.evaluate(el=>({background:getComputedStyle(el).backgroundColor,opacity:Number(getComputedStyle(el).opacity)}));
-  assert.equal(style.background,'rgba(0, 0, 0, 0)');assert.equal(style.opacity,.65);
+  assert.equal(style.background,'rgba(8, 36, 28, 0.65)');assert.equal(style.opacity,1,'small translated text is opaque over the translucent label background');
   assert.ok(await label.evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=14),'short translations remain legible over the original');
   assert.ok(requests>0,'recognized camera words reach the translator');
   assert.equal(await page.locator('#live-camera-translator video').evaluate(video=>video.paused),false);
