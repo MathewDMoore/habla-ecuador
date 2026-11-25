@@ -61,6 +61,10 @@ async function run(browser,native,width=390){
  await page.goto(home+'?start=dictionary&region=es-CU&ui=es');
  const cubaCards=page.locator('#regional-slang-results .regional-slang-card');
  const general=cubaCards.filter({has:page.getByRole('heading',{name:'afeminado / afeminada',exact:true})});
+ // Strong language is intentionally hidden behind an expandable disclosure.
+ // Open it before asserting the Spanish explanatory text is visible.
+ const strongLanguage=page.locator('#regional-slang-results details').filter({has:general});
+ await strongLanguage.locator('summary').first().click();
  await general.getByText('Adjetivo descriptivo que puede resultar ofensivo o despectivo',{exact:true}).waitFor();
  assert.match(await general.locator('.regional-usage-meta').textContent(),/Español compartido/);
  const ride=cubaCards.filter({has:page.getByRole('heading',{name:'dar bola (a ride)',exact:true})});

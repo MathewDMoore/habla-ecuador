@@ -9,6 +9,7 @@ on:
       - 'tests/run-native-transcript-state.py'
       - 'tests/native-audio-stats.swift'
       - 'tests/native-camera-translation.test.cjs'
+      - 'tests/youtube-share-player.test.cjs'
       - 'tests/run-native-audio-stats.py'
       - '.github/workflows/ios-microphone-prototype.yml'
   pull_request:
@@ -47,6 +48,8 @@ jobs:
         run: node --test tests/native-image-paste.test.cjs
       - name: Verify live camera bridge and source-preservation rules
         run: node --test tests/native-camera-translation.test.cjs
+      - name: Verify YouTube player accepts only validated video URLs
+        run: node --test tests/youtube-share-player.test.cjs
       - name: Compile without signing or installing
         run: >-
           xcodebuild -project ios/HablaEcuador.xcodeproj

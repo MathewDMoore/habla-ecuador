@@ -1,0 +1,39 @@
+[
+  {
+    "id": "bbc-mundo-20261124-5AKmIi8bODxJ9uB9b",
+    "provider": "BBC News Mundo",
+    "kind": "video-link",
+    "originalUrl": "https://share.google/5AKmIi8bODxJ9uB9b",
+    "title": "Video shared as BBC News Mundo (title not independently verified)",
+    "language": "es",
+    "region": null,
+    "provenance": "User-supplied link",
+    "reviewStatus": "source-type-verified-metadata-unverified",
+    "usage": "Public link resolves to a YouTube watch page, not a BBC article. Confirm channel/title before attributing to BBC; spoken language, captions, regional claims and lesson use require separate evidence.",
+    "copyright": "Official YouTube link only; no video, audio or transcript imported.",
+    "addedDate": "2026-11-24",
+    "resolvedUrl": "https://www.youtube.com/watch?v=Z2YJDI4B-gw&t=29",
+    "resolvedProvider": "YouTube",
+    "videoId": "Z2YJDI4B-gw",
+    "startSeconds": 29,
+    "verification": "GitHub Actions HTTP redirect followed to YouTube; title, channel and contents not yet confirmed"
+  },
+  {
+    "id": "youtube-xko8gAlNZqY",
+    "provider": "YouTube",
+    "kind": "video-link",
+    "originalUrl": "https://youtu.be/xko8gAlNZqY?is=7eThz2TA9tSOnLWO",
+    "canonicalUrl": "https://youtu.be/xko8gAlNZqY",
+    "videoId": "xko8gAlNZqY",
+    "title": "La Paz Bolivia Travel Guide: 7 BEST Things to do in La Paz",
+    "language": null,
+    "region": null,
+    "provenance": "User-supplied link",
+    "reviewStatus": "metadata-verified-content-unverified",
+    "usage": "The video title and creator metadata are verified; geography in the title does not establish a Bolivian Spanish accent. Inspect subtitles, speech and licensing separately before turning into a language lesson.",
+    "copyright": "Link and official video embed only; no media, transcript or lyrics imported.",
+    "addedDate": "2026-11-24",
+    "channel": "Before You Go",
+    "verification": "YouTube public oEmbed metadata returned HTTP 200 with matching video ID, title and channel"
+  }
+]

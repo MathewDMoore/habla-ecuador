@@ -1,0 +1,18 @@
+const fs = require("node:fs");
+const assert = require("node:assert/strict");
+const path = require("node:path");
+const items = JSON.parse(fs.readFileSync(path.join(__dirname, "../data/shared-learning-links.json"),"utf8"));
+assert.equal(items.length,2);
+assert.ok(items.some(x=>x.provider==="BBC News Mundo"&&x.originalUrl==="https://share.google/5AKmIi8bODxJ9uB9b"));
+assert.ok(items.some(x=>x.provider==="YouTube"&&x.videoId==="xko8gAlNZqY"));
+assert.ok(items.every(x=>x.provenance==="User-supplied link"&&x.reviewStatus.includes("unverified")));
+assert.ok(items.every(x=>x.region===null));
+assert.ok(items.every(x=>!x.transcript&&!x.translation&&!x.lyrics));
+const html=fs.readFileSync(path.join(__dirname, "../index.html"),"utf8");
+assert.ok(html.includes('id="habla-learning-inbox"'));
+assert.ok(html.includes('src="shared-learning-links.js?v=265"'));
+const script=fs.readFileSync(path.join(__dirname, "../shared-learning-links.js"),"utf8");
+assert.ok(script.includes("Z2YJDI4B-gw"));
+assert.ok(items.some(x=>x.originalUrl==="https://share.google/5AKmIi8bODxJ9uB9b"&&x.resolvedProvider==="YouTube"&&x.videoId==="Z2YJDI4B-gw"));
+assert.ok(script.includes("https://youtu.be/xko8gAlNZqY"));
+console.log("Shared learning links are sourced, unverified, and visible in the practice inbox.");

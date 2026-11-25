@@ -90,7 +90,9 @@ for(const page of ['index.html','translator.html']){
  assert.match(html,/Native-speaker suggestions remain pending independent review/);
  assert.match(html,/no content|does not scrape, bulk-copy or automatically adopt/i);
 }
-assert.match(fs.readFileSync('sw.js','utf8'),/habla-ecuador-v263/);
+const expectedBuild=/const APP_VERSION = "\d+\.\d+\.\d+ · build (\d+)"/.exec(app)?.[1];
+assert.ok(expectedBuild,'version must be declared in app.js');
+assert.ok(fs.readFileSync('sw.js','utf8').includes('habla-ecuador-v'+expectedBuild),'offline cache must match app build');
 
 for (const page of ['index.html', 'translator.html']) {
   const menu = fs.readFileSync(page, 'utf8').match(/id="regional-usage-type">([^]*?)<\/select>/)[1];

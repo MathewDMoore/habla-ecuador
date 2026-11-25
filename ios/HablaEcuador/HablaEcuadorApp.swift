@@ -42,16 +42,47 @@ struct WidgetLaunchRequest {
 @main
 struct HablaEcuadorApp: App {
     @State private var widgetRoute: WidgetLaunchRequest?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             TranslatorView(widgetRoute: widgetRoute)
                 .ignoresSafeArea(.container, edges: .bottom)
+                .onAppear { consumeSharedYouTubeLink() }
+                .onChange(of: scenePhase) { phase in
+                    if phase == .active { consumeSharedYouTubeLink() }
+                }
                 .onOpenURL { url in
                     guard url.scheme?.lowercased() == "hablaecuador" else { return }
                     widgetRoute = WidgetLaunchRequest(url: url)
                 }
         }
+    }
+
+    // A normal Share extension cannot officially open its parent app.
+    // Read the small App Group link inbox when the user launches or returns.
+    private func consumeSharedYouTubeLink() {
+        guard let defaults = UserDefaults(suiteName: "group.com.mathewdmoore.hablaecuador"),
+              let links = defaults.stringArray(forKey: "pendingYouTubeURLs"),
+              !links.isEmpty else { return }
+        let allowedHosts: Set<String> = [
+            "youtube.com", "www.youtube.com", "m.youtube.com",
+            "music.youtube.com", "youtu.be", "www.youtube-nocookie.com"
+        ]
+        for (index, raw) in links.enumerated() {
+            guard let video = URL(string: raw), video.scheme == "https",
+                  let host = video.host?.lowercased(),
+                  allowedHosts.contains(host) else { continue }
+            var route = URLComponents()
+            route.scheme = "hablaecuador"
+            route.host = "music"
+            route.queryItems = [URLQueryItem(name: "video", value: raw)]
+            guard let url = route.url else { continue }
+            defaults.set(Array(links.dropFirst(index + 1)), forKey: "pendingYouTubeURLs")
+            widgetRoute = WidgetLaunchRequest(url: url)
+            return
+        }
+        defaults.removeObject(forKey: "pendingYouTubeURLs")
     }
 }
 
@@ -140,15 +171,22 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         guard let request,
               request.url.scheme?.lowercased() == "hablaecuador",
               let destination = request.url.host?.lowercased(),
-              ["translate", "practice", "dictionary", "tutorial"].contains(destination),
+              ["translate", "practice", "dictionary", "tutorial", "music"].contains(destination),
               lastWidgetRouteID != request.id else { return }
         lastWidgetRouteID = request.id
         // The native translator shell deliberately hides the bottom tabs.
         // Direct widget links load the appropriate screen in the full app.
         var url = URLComponents(string: "https://mathewdmoore.github.io/habla-ecuador/index.html")!
-        url.queryItems = destination == "tutorial"
-            ? [URLQueryItem(name: "tour", value: "1")]
-            : [URLQueryItem(name: "start", value: destination)]
+        if destination == "tutorial" {
+            url.queryItems = [URLQueryItem(name: "tour", value: "1")]
+        } else {
+            url.queryItems = [URLQueryItem(name: "start", value: destination)]
+            if destination == "music",
+               let video = URLComponents(url: request.url, resolvingAgainstBaseURL: false)?
+                    .queryItems?.first(where: { $0.name == "video" })?.value {
+                url.queryItems?.append(URLQueryItem(name: "video", value: video))
+            }
+        }
         guard let target = url.url else { return }
         loadViewIfNeeded()
         speech?.abortActive()
