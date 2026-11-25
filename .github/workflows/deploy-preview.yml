@@ -1,0 +1,76 @@
+name: Publish isolated Habla preview
+on:
+  push:
+    branches: [release/verified-preview-20261125]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node --test tests/*.test.cjs
+      - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
+      - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell chromium
+      - name: Verify integrated feature entry points
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: chromium
+        run: |
+          node tests/navigation-browser-smoke.cjs
+          node tests/object-identification.browser.cjs
+          node tests/live-camera.browser.cjs
+          node tests/photo-translation.browser.cjs
+          node tests/grammar-reference.browser.cjs
+          node tests/tutorial.browser.cjs
+          node tests/research-documents.browser.cjs
+          node tests/preview-isolation.browser.cjs
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: candidate
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          path: stable
+      - name: Export current app and isolated candidate
+        env:
+          PAGES_DIR: ${{ runner.temp }}/habla-pages
+        run: |
+          mkdir -p "$PAGES_DIR/preview/integration"
+          git -C stable archive HEAD | tar -xf - -C "$PAGES_DIR"
+          node "$PAGES_DIR/scripts/share-archived-audio.cjs" "$PAGES_DIR"
+          node "$PAGES_DIR/scripts/write-release.cjs"
+          git -C candidate archive HEAD | tar -xf - -C "$PAGES_DIR/preview/integration"
+          node candidate/scripts/prepare-preview.cjs "$PAGES_DIR/preview/integration"
+          node "$PAGES_DIR/preview/integration/scripts/write-release.cjs"
+          touch "$PAGES_DIR/.nojekyll"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/habla-pages
+          name: github-pages-preview-${{ github.run_attempt }}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}preview/integration/
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
+        with:
+          artifact_name: github-pages-preview-${{ github.run_attempt }}
