@@ -3,42 +3,43 @@
 (function(root){
 'use strict';
 const host=document.getElementById('ve-music-lesson');if(!host)return;
+// Each cue holds start, end, US English, UK override, supplied wording, Spanish, and optional mixed-source flag.
 const cues=[
-[3,5.4,'♪ Vocal refrain ♪'],[5.4,10.8,"I'm never going to say goodbye to you."],
-[11,16.7,'As the days go by, I think of you more, girl.'],
-[17,23.6,"I don't know what you did to me. You've got me at your feet."],
-[24,27.1,'♪ Vocal refrain ♪'],[27.2,33.1,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[33.2,37.1,"With you I'll stay on standby. I remember the day I first tasted you."],
-[37.2,41.3,'We did it in bed, in that hotel room.'],
-[41.4,47,"I don't know what you did to me. Your magic put a spell on me, baby."],
-[47.1,52.7,'I know you lie when you talk to me, but somehow you convince me.'],
-[52.8,58.1,"I can't get you out of my mind. When I think of you, I start drinking."],
-[58.2,60.9,'♪ Vocal refrain ♪'],
-[61,67,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[67.1,72.4,"With you I'll stay on standby. ♪ Vocal refrain ♪"],
-[72.5,77.4,"I'm never going to say goodbye to you."],
-[77.5,81.4,"Baby, you're right by my side. With you I'll stay on standby."],
-[81.5,85.2,"When I looked into your eyes, I don't know what the hell happened.",null,true],
-[85.3,87,"I don't know if it was that ass of yours that left me dazed.","I don't know if it was that arse of yours that left me dazed.",true],
-[87.1,91.5,'Before sleeping, I always asked God to put me in your path.',null,true],
-[91.6,93.3,'And he finally granted my wish.',null,true],
-[93.4,98.4,"Nothing like this has ever happened to me, certainly not with the lovers I'd had by my side.",null,true],
-[98.5,105.6,"Baby, you've left my heart ice-cold, like the mountains of Colorado.",null,true],
-[105.7,108.2,'♪ Vocal refrain ♪'],
-[108.3,113.5,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[113.6,118.3,"With you I'll stay on standby. ♪ Vocal refrain ♪"],
-[118.4,125.5,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[125.6,132.8,"With you I'll stay on standby. I want to make love while gazing at the stars.",null,true],
-[132.9,136.3,'From a lookout in a neighborhood of Marbella.','From a viewpoint in a neighbourhood of Marbella.',true],
-[136.4,140.1,"I'm your warrior, babe. You're my maiden."],
-[140.2,145.2,"I've found the princess for my castle. I'm never going to say goodbye to you."],
-[145.3,151.1,"Baby, you're right by my side. With you I'll stay on standby."],
-[151.2,159.4,"I'm never going to say goodbye to you. Baby, you're right by my side."],
-[159.5,165.7,"With you I’ll stay on standby. Between heart and reason..."],
-[165.8,169.1,'...there is always a choice.'],[169.2,173.3,'And my choice, my choice is you.'],
-[173.4,180.6,'[Spoken outro: words unclear]'],
-[180.7,184.6,'We keep doing it again. They call it “heavy.” [uncertain]'],
-[184.7,187.9,'What a rascal! [context uncertain]']
+[3,5.4,'♪ Vocal refrain ♪',null,false,"♪ Estribillo vocal ♪"],[5.4,10.8,"I'm never going to say goodbye to you.",null,false,"Nunca te voy a decir adiós."],
+[11,16.7,'As the days go by, I think of you more, girl.',null,false,"Con cada día que pasa pienso más en ti, nena."],
+[17,23.6,"I don't know what you did to me. You've got me at your feet.",null,false,"No sé qué me hiciste. Me tienes a tus pies."],
+[24,27.1,'♪ Vocal refrain ♪',null,false,"♪ Estribillo vocal ♪"],[27.2,33.1,"I'm never going to say goodbye to you. Baby, you're right by my side.",null,false,"Nunca te voy a decir adiós. Nena, estás aquí a mi lado."],
+[33.2,37.1,"With you I'll stay on standby. I remember the day I first tasted you.",null,false,"Contigo me quedo a la espera. Recuerdo el día en que te probé por primera vez."],
+[37.2,41.3,'We did it in bed, in that hotel room.',null,false,"Lo hicimos en la cama de aquella habitación de hotel."],
+[41.4,47,"I don't know what you did to me. Your magic put a spell on me, baby.",null,false,"No sé qué me hiciste. Me hechizaste con tu magia, nena."],
+[47.1,52.7,'I know you lie when you talk to me, but somehow you convince me.',null,false,"Sé que mientes cuando me hablas, pero de alguna manera me convences."],
+[52.8,58.1,"I can't get you out of my mind. When I think of you, I start drinking.",null,false,"No consigo sacarte de mi mente. Cuando pienso en ti, me pongo a beber."],
+[58.2,60.9,'♪ Vocal refrain ♪',null,false,"♪ Estribillo vocal ♪"],
+[61,67,"I'm never going to say goodbye to you. Baby, you're right by my side.",null,false,"Nunca te voy a decir adiós. Nena, estás aquí a mi lado."],
+[67.1,72.4,"With you I'll stay on standby. ♪ Vocal refrain ♪",null,false,"Contigo me quedo a la espera. ♪ Estribillo vocal ♪"],
+[72.5,77.4,"I'm never going to say goodbye to you.",null,false,"Nunca te voy a decir adiós."],
+[77.5,81.4,"Baby, you're right by my side. With you I'll stay on standby.",null,false,"Nena, estás aquí a mi lado. Contigo me quedo a la espera."],
+[81.5,85.2,"When I looked into your eyes, I don't know what the hell happened.",null,true,"Al verte a los ojos, no sé qué diablos pasó."],
+[85.3,87,"I don't know if it was that ass of yours that left me dazed.","I don't know if it was that arse of yours that left me dazed.",true,"No sé si fue ese culo que me idiotizó."],
+[87.1,91.5,'Before sleeping, I always asked God to put me in your path.',null,true,"Al irme a dormir, siempre le pedí a Dios que me pusiera en tu camino,"],
+[91.6,93.3,'And he finally granted my wish.',null,true,"y ya me lo cumplió."],
+[93.4,98.4,"Nothing like this has ever happened to me, certainly not with the lovers I'd had by my side.",null,true,"En mi vida nunca había pasado, menos por los amores que había a mi lado."],
+[98.5,105.6,"Baby, you've left my heart ice-cold, like the mountains of Colorado.",null,true,"Baby, tú me tienes el corazón frío, helado como las montañas frías de Colorado."],
+[105.7,108.2,'♪ Vocal refrain ♪',null,false,"♪ Estribillo vocal ♪"],
+[108.3,113.5,"I'm never going to say goodbye to you. Baby, you're right by my side.",null,false,"Nunca te voy a decir adiós. Nena, estás aquí a mi lado."],
+[113.6,118.3,"With you I'll stay on standby. ♪ Vocal refrain ♪",null,false,"Contigo me quedo a la espera. ♪ Estribillo vocal ♪"],
+[118.4,125.5,"I'm never going to say goodbye to you. Baby, you're right by my side.",null,false,"Nunca te voy a decir adiós. Nena, estás aquí a mi lado."],
+[125.6,132.8,"With you I'll stay on standby. I want to make love while gazing at the stars.",null,true,"Contigo me quedo a la espera. Quiero hacer el amor mirando las estrellas,",true],
+[132.9,136.3,'From a lookout in a neighborhood of Marbella.','From a viewpoint in a neighbourhood of Marbella.',true,"en el mirador, en un barrio de Marbella."],
+[136.4,140.1,"I'm your warrior, babe. You're my maiden.",null,false,"Soy tu guerrero, nena. Tú eres mi doncella."],
+[140.2,145.2,"I've found the princess for my castle. I'm never going to say goodbye to you.",null,false,"Encontré a la princesa de mi castillo. Nunca te voy a decir adiós."],
+[145.3,151.1,"Baby, you're right by my side. With you I'll stay on standby.",null,false,"Nena, estás aquí a mi lado. Contigo me quedo a la espera."],
+[151.2,159.4,"I'm never going to say goodbye to you. Baby, you're right by my side.",null,false,"Nunca te voy a decir adiós. Nena, estás aquí a mi lado."],
+[159.5,165.7,"With you I’ll stay on standby. Between heart and reason...",null,false,"Contigo me quedo a la espera. Entre el corazón y la razón…"],
+[165.8,169.1,'...there is always a choice.',null,false,"… siempre hay que elegir."],[169.2,173.3,'And my choice, my choice is you.',null,false,"Y yo te elijo, te elijo a ti."],
+[173.4,180.6,'[Spoken outro: words unclear]',null,false,"[Final hablado poco claro]"],
+[180.7,184.6,'We keep doing it again. They call it “heavy.” [uncertain]',null,false,"Lo seguimos haciendo. Le dicen «heavy». [Sentido incierto]"],
+[184.7,187.9,'What a rascal! [context uncertain]',null,false,"¡Qué pícaro! [Contexto incierto]"]
 ];
 const verses=[
 {
@@ -74,7 +75,7 @@ theaterEnglish=id('theater-english'),inVideoLanguage=id('in-video-language');
 // embedded player's rectangle. YouTube owns its controls and their positions.
 const captionDock=document.createElement('div');
 captionDock.className='ve-caption-dock';
-captionDock.setAttribute('aria-label','English captions and language');
+captionDock.setAttribute('aria-label','Subtítulos de Habla');
 const videoBox=frame.closest('.ve-video-box');
 videoBox.after(captionDock);
 captionDock.append(inVideoLanguage.closest('.ve-in-video-switch'),caption);
@@ -93,7 +94,7 @@ let theaterOpen=false,previousFocus=null;
 const expandedStage=host.querySelector('.ve-stage');
 const expandPlayer=document.createElement('button');
 expandPlayer.id='ve-player-expand';expandPlayer.type='button';
-expandPlayer.textContent='⛶ Expand video + English / Ampliar video + inglés';
+expandPlayer.textContent='⛶ Expand video / Ampliar video';
 expandPlayer.setAttribute('aria-expanded','false');
 expandedStage.before(expandPlayer);
 expandPlayer.addEventListener('click',()=>theaterButton.click());
@@ -142,29 +143,34 @@ function position(){
  return manual;
 }
 function selectedCue(seconds){return cues.findIndex(c=>seconds>=c[0]&&seconds<c[1]);}
+let scrubPreview=null;
 function draw(force){
- const now=position();timeLabel.textContent=fmt(now);
+ const now=scrubPreview ?? position();timeLabel.textContent=fmt(now);
  if((sourceMode==='local'||ready)&&document.activeElement!==timing){timing.value=String(Math.round(now));manual=now;}
  const index=selectedCue(now+offset);
  if(index===last&&!force)return;last=index;const cue=cues[index];
  const enabled=lang.value!=='off';
  // The YouTube IFrame API must confirm the current playback time before
  // applying any time-coded words. Never pretend a guessed cue is synchronized.
- const synced=sourceMode!=='youtube'||ready;
- const text=enabled&&synced&&cue?(lang.value==='en-GB'&&cue[3]?cue[3]:cue[2]):'';
+ const synced=scrubPreview!==null||sourceMode!=='youtube'||ready;
+ const mode=lang.value;
+ const english=cue && (mode.endsWith('GB') && cue[3] ? cue[3] : cue[2]);
+ const lines=[];
+ if(enabled && synced && cue){
+  if(mode==='es' || mode.startsWith('es+')){
+   const label=cue[6]?'Español · frase mixta':cue[4]?'Español aportado':'Español · sentido aproximado';
+   lines.push(label+' — '+cue[5]);
+  }
+  if(mode!=='es')lines.push((mode.startsWith('es+')?(mode.endsWith('GB')?'English (UK)':'English (US)')+' — ':'')+english);
+ }
+ const text=lines.join('\n');
  const onVideo=sourceMode==='youtube'||sourceMode==='local';
- const waitingForSync=onVideo&&sourceMode==='youtube'&&!ready;
- const overlayText=text||(enabled&&waitingForSync?'🇺🇸 English on · connecting to video time…':'');
+ const overlayText=text||(enabled&&!synced?'Subtítulos · connecting to video time…':'');
  caption.hidden=!(onVideo&&enabled&&overlayText);
  caption.textContent=overlayText;
- // The video itself is cross-origin; its fullscreen playback hides the page.
- // Keep an English caption strip in Habla's own viewing mode, adjacent to video.
- theaterEnglish.textContent=text||(!enabled?'English captions are off. Select English in Translation / Traducción.'
-  :sourceMode==='youtube'&&!ready?'Connecting to YouTube timing. Tap Play; if text stays still, review the caption timeline below.'
-  :'No verified English caption for this moment. Timing is approximate.');
- reading.textContent=text||(sourceMode==='none'
-  ?'English lyric translations are ready below. Choose a saved screen recording to follow them during playback.'
-  :enabled?'No caption verified for this moment.':'English captions off.');
+ const fallback=!enabled?'Subtítulos desactivados / Captions off':!synced?overlayText:'Sin subtítulo en este momento / No caption at this time';
+ theaterEnglish.textContent=text||fallback;
+ reading.textContent=text||fallback;
  confidence.textContent=cue?(cue[4]?'Listener-supplied wording · approximate timing':'Provisional auto-caption-based draft · needs review'):'No timed line';
  confidence.classList.toggle('ve-reviewed',Boolean(cue&&cue[4]));
 }
@@ -176,9 +182,9 @@ function renderPassages(){
   const es=document.createElement('div'),en=document.createElement('div');
   const esTitle=document.createElement('strong'),enTitle=document.createElement('strong');
   esTitle.textContent=source.value==='original'?'🇻🇪 Exact supplied Spanish':'🇻🇪 Spanish spelling/punctuation draft';
-  enTitle.textContent=lang.value==='en-GB'?'🇬🇧 British English':'🇺🇸 American English';
+  enTitle.textContent=lang.value.endsWith('GB')?'🇬🇧 British English':'🇺🇸 American English';
   const esText=document.createElement('p'),enText=document.createElement('p');
-  esText.textContent=v[source.value];enText.textContent=lang.value==='en-GB'?v.uk:v.us;
+  esText.textContent=v[source.value];enText.textContent=lang.value.endsWith('GB')?v.uk:v.us;
   es.append(esTitle,esText);en.append(enTitle,enText);pair.append(es,en);
   const note=document.createElement('p');note.className='ve-note';note.textContent=v.note;
   section.append(pair,note);passages.append(section);
@@ -210,8 +216,9 @@ inVideoLanguage.addEventListener('change',()=>{
  syncInVideoLanguage();
 });
 source.addEventListener('change',renderPassages);
-timing.addEventListener('input',()=>{manual=Number(timing.value);timeLabel.textContent=fmt(manual);});
-timing.addEventListener('change',()=>seek(Number(timing.value)));
+timing.addEventListener('input',()=>{scrubPreview=Number(timing.value);draw(true);});
+timing.addEventListener('pointercancel',()=>{scrubPreview=null;draw(true);});
+timing.addEventListener('change',()=>{const target=Number(timing.value);scrubPreview=null;seek(target);});
 offsetInput.addEventListener('input',()=>{offset=Number(offsetInput.value);offsetLabel.textContent=(offset>=0?'+':'')+offset.toFixed(1)+'s';draw(true);});
 id('previous').addEventListener('click',()=>seek(Math.max(0,position()-10)));
 id('next').addEventListener('click',()=>seek(Math.min(188,position()+10)));
@@ -229,7 +236,7 @@ function importLocalVideo(file){
   syncInVideoLanguage();
   localVideo.src=localUrl;localVideo.hidden=false;
   frame.hidden=true;playerStart.hidden=true;caption.hidden=true;
-  status.textContent='Saved video loaded from this device. Tap play; Habla English captions follow the video time. Adjust caption offset if needed.';
+  status.textContent='Saved video loaded from this device. Tap play; Habla captions follow the video time. Adjust caption offset if needed.';
   localVideo.load();
   draw(true);
  }catch(e){
@@ -254,7 +261,7 @@ function connect(){
   player=new root.YT.Player(frame,{events:{
    onReady:e=>{
     player=e.target;ready=true;
-    status.textContent='YouTube is attempting inline playback. If it leaves Habla, use a saved video instead so English captions remain visible.';
+    status.textContent='YouTube is attempting inline playback. If it leaves Habla, use a saved video instead so captions remain visible.';
     draw(true);
    },
    onError:e=>{
@@ -303,7 +310,7 @@ function showNativePlayerOnMusicTab(){
  if(root.__hablaNativeInlineVideo===true && sourceMode==='none' &&
     document.getElementById('music-view')?.classList.contains('active')){
    tryYoutube.click(); // Loads the frame, never auto-plays video or audio.
-   status.textContent='The video is now in the Habla Music tab. Tap its play button to start; English captions appear below the player.';
+   status.textContent='The video is now in the Habla Music tab. Tap its play button to start; captions appear below the player.';
  }
 }
 // The native iOS Music layout moves older sections into a CLOSED
