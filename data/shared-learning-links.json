@@ -1,0 +1,32 @@
+[
+  {
+    "id": "bbc-mundo-20261124-5AKmIi8bODxJ9uB9b",
+    "provider": "BBC News Mundo",
+    "kind": "article-link",
+    "originalUrl": "https://share.google/5AKmIi8bODxJ9uB9b",
+    "title": "BBC News Mundo: shared article (title awaiting verification)",
+    "language": "es",
+    "region": null,
+    "provenance": "User-supplied link",
+    "reviewStatus": "source-unresolved",
+    "usage": "Open the original publication. Verify headline, author, publication date and content before creating translation or reading exercises.",
+    "copyright": "Link only; no article body imported.",
+    "addedDate": "2026-11-24"
+  },
+  {
+    "id": "youtube-xko8gAlNZqY",
+    "provider": "YouTube",
+    "kind": "video-link",
+    "originalUrl": "https://youtu.be/xko8gAlNZqY?is=7eThz2TA9tSOnLWO",
+    "canonicalUrl": "https://youtu.be/xko8gAlNZqY",
+    "videoId": "xko8gAlNZqY",
+    "title": "User-shared YouTube video (title awaiting verification)",
+    "language": null,
+    "region": null,
+    "provenance": "User-supplied link",
+    "reviewStatus": "metadata-unverified",
+    "usage": "Open the official embedded player inside Habla. Verify spoken language, subtitles, reuse rights and educational value before creating listening or pronunciation lessons.",
+    "copyright": "Link and official video embed only; no media, transcript or lyrics imported.",
+    "addedDate": "2026-11-24"
+  }
+]
