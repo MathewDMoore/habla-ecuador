@@ -1,12 +1,10 @@
-name: Publish isolated Habla preview
+name: Verify Habla candidate
 on:
   push:
     branches: [release/verified-preview-20261125]
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -48,43 +46,3 @@ jobs:
               node tests/preview-isolation.browser.cjs
               ;;
           esac
-  build:
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          path: candidate
-      - uses: actions/checkout@v6
-        with:
-          ref: main
-          path: stable
-      - name: Export current app and isolated candidate
-        env:
-          PAGES_DIR: ${{ runner.temp }}/habla-pages
-        run: |
-          mkdir -p "$PAGES_DIR/preview/integration"
-          git -C stable archive HEAD | tar -xf - -C "$PAGES_DIR"
-          node "$PAGES_DIR/scripts/share-archived-audio.cjs" "$PAGES_DIR"
-          node "$PAGES_DIR/scripts/write-release.cjs"
-          git -C candidate archive HEAD | tar -xf - -C "$PAGES_DIR/preview/integration"
-          node "$PAGES_DIR/preview/integration/scripts/write-release.cjs"
-          node candidate/scripts/prepare-preview.cjs "$PAGES_DIR/preview/integration"
-          rm -rf "$PAGES_DIR/preview/integration/versions" "$PAGES_DIR/preview/integration/ios" "$PAGES_DIR/preview/integration/.github" "$PAGES_DIR/preview/integration/tests"
-          touch "$PAGES_DIR/.nojekyll"
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: ${{ runner.temp }}/habla-pages
-          name: github-pages-preview-${{ github.run_attempt }}
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}preview/integration/
-    steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
-        with:
-          artifact_name: github-pages-preview-${{ github.run_attempt }}

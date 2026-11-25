@@ -5,6 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+  workflow_run:
+    workflows: [Verify Habla candidate]
+    types: [completed]
+    branches: [release/verified-preview-20261125]
 
 permissions:
   contents: read
@@ -18,6 +22,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -69,6 +74,43 @@ jobs:
           git archive HEAD | tar -xf - -C "$PAGES_DIR"
           node scripts/share-archived-audio.cjs "$PAGES_DIR"
           node "$PAGES_DIR/scripts/write-release.cjs"
+
+      - name: Select the verified preview commit
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync} from 'node:fs';
+          let sha=process.env.CANDIDATE_SHA;
+          if (!sha) {
+            const repository=process.env.GITHUB_REPOSITORY;
+            const url=`https://api.github.com/repos/${repository}/actions/runs?branch=release%2Fverified-preview-20261125&event=push&status=success&per_page=100`;
+            const response=await fetch(url,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
+            if (!response.ok) throw Error(`Preview verification lookup failed (${response.status}).`);
+            const data=await response.json();
+            sha=data.workflow_runs.find(run=>run.name==='Verify Habla candidate' && run.head_repository.full_name===repository)?.head_sha;
+          }
+          if (sha) {
+            if (!/^[a-f0-9]{40}$/.test(sha)) throw Error('Invalid candidate commit.');
+            appendFileSync(process.env.GITHUB_OUTPUT,`sha=${sha}\n`);
+          }
+          NODE
+
+      - name: Include the isolated tested preview
+        if: steps.preview.outputs.sha != ''
+        env:
+          PAGES_DIR: ${{ runner.temp }}/habla-pages
+          CANDIDATE_SHA: ${{ steps.preview.outputs.sha }}
+        run: |
+          git fetch --depth=1 origin "$CANDIDATE_SHA"
+          mkdir -p "$PAGES_DIR/preview/integration"
+          git archive "$CANDIDATE_SHA" | tar -xf - -C "$PAGES_DIR/preview/integration"
+          node "$PAGES_DIR/preview/integration/scripts/write-release.cjs"
+          node "$PAGES_DIR/preview/integration/scripts/prepare-preview.cjs" "$PAGES_DIR/preview/integration"
+          rm -rf "$PAGES_DIR/preview/integration/versions" "$PAGES_DIR/preview/integration/ios" "$PAGES_DIR/preview/integration/.github" "$PAGES_DIR/preview/integration/tests"
+          touch "$PAGES_DIR/.nojekyll"
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
