@@ -6,8 +6,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: habla-preview-verification-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
