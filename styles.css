@@ -122,6 +122,11 @@ textarea::placeholder { color: #9ca39f; }
 .research-source-label { margin-top: 6px; font-weight: 800; }
 #ecuador-research-source { width: 100%; min-width: 0; padding: 10px; border: 1px solid #bca8ca; border-radius: 9px; background: white; color: #2f2440; font: inherit; font-size: 13px; }
 .research-mode .input-card { border-color: #bca8ca; box-shadow: 0 10px 30px rgba(73,52,100,.09); }
+.research-paste-actions { display:none; }
+.research-mode .research-paste-actions { display:block; margin:12px 0 0; }
+.research-paste-actions button { width:100%; min-height:48px; padding:11px 12px; border:0; border-radius:13px; background:var(--green); color:white; font-size:14px; font-weight:800; white-space:normal; text-align:center; touch-action:manipulation; }
+.research-paste-actions p { margin:8px 0 0; color:var(--green); font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.research-paste-actions p:empty { display:none; }
 .research-mode #translator-input { min-height: 190px; font-family: Georgia,"Times New Roman",serif; font-size: 17px; line-height: 1.55; }
 .research-mode .result-card { background: #2f2440; }
 .research-mode .result-label { color: #d7c5e5; }
@@ -860,7 +865,7 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-invitation-actions { display:flex;flex-wrap:wrap;gap:9px;margin-top:12px; }
 .tutorial-invitation button { min-height:44px;padding:10px 13px;border-radius:12px;border:1px solid #a1c9b1;background:white;color:var(--green);font-size:13px;font-weight:800; }
 #tutorial-invite-start { background:var(--green);color:white; }
-#tutorial-overlay[hidden], .tutorial-panel [hidden] { display:none !important; }
+#tutorial-overlay[hidden], .tutorial-panel [hidden], #tutorial-resume[hidden] { display:none !important; }
 #tutorial-overlay { position:fixed;inset:auto;z-index:250;pointer-events:none; }
 .tutorial-shade { position:absolute;background:rgba(11,28,24,.56);touch-action:none;pointer-events:none; }
 #tutorial-spotlight { position:absolute;box-sizing:border-box;border:3px solid #ffc35a;border-radius:12px;box-shadow:0 0 0 2px #173f35,0 0 20px 5px rgba(255,184,73,.38);touch-action:none;pointer-events:none; }
@@ -870,7 +875,10 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-content:focus-visible {outline:2px solid #d66927;outline-offset:-2px;}
 .tutorial-panel-top { display:flex;align-items:center;justify-content:space-between;gap:10px; }
 #tutorial-progress {font-size:11px;letter-spacing:.02em;color:var(--muted);font-weight:800; }
-#tutorial-close {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
+#tutorial-close, #tutorial-try {flex-shrink:0;min-height:44px;max-width:45%;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--green);font-size:13px;line-height:1.25;font-weight:850;}
+#tutorial-try {margin-left:auto;background:#e7f3eb;}
+#tutorial-resume {position:fixed;z-index:249;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 16px);min-height:44px;padding:8px 14px;border:1px solid #c5e0d0;border-radius:12px;background:var(--green);color:white;font-size:13px;font-weight:850;box-shadow:0 3px 12px rgba(0,0,0,.24);}
+#tutorial-try:focus-visible,#tutorial-resume:focus-visible {outline:3px solid #d66927;outline-offset:2px;}
 #tutorial-symbol {font-size:30px;line-height:1.1;margin:2px 0 8px;}
 .tutorial-panel h2 {margin:0;color:var(--green);font-size:21px;line-height:1.22;}
 .tutorial-panel h3 {margin:0;color:var(--green);font-size:17px;line-height:1.25;}
@@ -951,12 +959,12 @@ body:has(#native-translation-workspace) #shared-translation-workspace > #transla
 .tutorial-panel[data-compact="true"] #tutorial-skip {display:none;}
 .tutorial-panel[data-compact="true"] .tutorial-controls {flex-wrap:nowrap;}
 .tutorial-panel[data-compact="true"] .tutorial-controls button {flex:1 1 0;min-width:0;padding:6px 3px;}
-.tutorial-panel[data-compact="true"] #tutorial-close {padding:6px;font-size:12px;white-space:nowrap;}
+.tutorial-panel[data-compact="true"] :is(#tutorial-close,#tutorial-try) {padding:6px;font-size:12px;white-space:nowrap;}
 .tutorial-panel[data-compact="true"] #tutorial-progress {flex:0 0 auto;}
 
 .tutorial-panel {-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .tutorial-panel[data-compact="true"] .tutorial-controls button {font-size:11px;padding:6px 2px;}
-.tutorial-panel[data-compact="true"] #tutorial-close {font-size:11px;padding:6px 3px;}
+.tutorial-panel[data-compact="true"] :is(#tutorial-close,#tutorial-try) {font-size:11px;padding:6px 3px;}
 
 #music-song-lesson {padding:16px;border:1px solid #b4cdbd;border-radius:18px;background:#fffdf8;}
 #music-song-lesson audio {width:100%;}
@@ -1653,8 +1661,14 @@ body.ve-theater-open {overflow:hidden !important;}
 .live-camera-stage>video{display:block;width:100%;height:100%;max-height:none;margin:0;object-fit:cover}
 .live-camera-stage .photo-translator-labels{inset:50% auto auto 50%;transform:translate(-50%,-50%);pointer-events:none}
 .live-camera-stage .photo-translator-labels .photo-translation-label{
-  background:transparent;border:0;border-radius:0;box-shadow:none;pointer-events:auto;
-  opacity:var(--live-overlay-opacity,.65);color:#1652cb;text-shadow:0 0 2px #fff,0 0 1px #fff
+  /* Put a translucent backing over busy packaging, but keep the words fully
+     opaque. Applying opacity to the entire label made small numbers unreadable. */
+  background:rgba(8,36,28,var(--live-overlay-opacity,.65));border:0;border-radius:3px;
+  box-shadow:0 1px 3px #0008;pointer-events:auto;opacity:1;
+  color:#fff;text-shadow:0 1px 2px #000c
+}
+.live-camera-stage .photo-translator-labels .photo-translation-label:focus-visible{
+  outline:2px solid #fff;outline-offset:2px
 }
 .live-camera-controls{
   position:absolute;z-index:1;inset:0 0 auto;max-height:100%;overflow:auto;
@@ -1677,3 +1691,12 @@ body.ve-theater-open {overflow:hidden !important;}
 .selected-passage-tools .speech-action-status { flex-basis:100%; margin:0; }
 dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
 @media print { .selected-passage-tools { display:none !important; } }
+
+.object-image-stage { position: relative; width: 100%; }
+.object-image-stage > img { display: block; width: 100%; height: auto; }
+.object-image-stage > img:not([src]) { display: none; }
+.object-detection-overlay { position: absolute; inset: 0; pointer-events: none; }
+.object-detection-box { position: absolute; border: 2px solid #ffe36b; box-sizing: border-box; }
+.object-detection-box > span { display: inline-block; max-width: 100%; padding: 3px 5px; background: #173f35; color: #fff; font-size: 14px; overflow-wrap: anywhere; }
+.object-identifier [data-objects-results] { padding-inline-start: 1.5rem; }
+#ve-caption-overlay, #ve-caption-reading { white-space:pre-line; }
