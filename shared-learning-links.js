@@ -1,12 +1,13 @@
-/* User-provided learning links: preserve evidence limits until content review.
-   Links do not establish transcripts, regional usage, translation or reuse rights. */
+/* Source links are checked by an independent research workflow, never by 
+   forcing a learner to finish an optional lesson. Links alone do not establish
+   transcripts, regional usage, translation, or reuse rights. */
 (() => {
   "use strict";
   const entries = [
     {
       id: "bbc-mundo-20261124-5AKmIi8bODxJ9uB9b",
       label: "📰 BBC News Mundo · Lectura",
-      description: "Shared Spanish-language news source. Headline and content not verified yet. Read the original before preparing a translation or comprehension lesson.",
+      description: "Shared Spanish-language news source. Headline and content not yet verified; source checks happen separately. You do not need to complete a lesson.",
       href: "https://share.google/5AKmIi8bODxJ9uB9b",
       action: "Open original / Abrir fuente",
       state: "Source unresolved · Pendiente de verificación"
@@ -14,7 +15,7 @@
     {
       id: "youtube-xko8gAlNZqY",
       label: "▶ YouTube · Video compartido",
-      description: "User-shared video. Title, language, accents and captions are not yet verified. Play the original inside Habla, when YouTube permits embedding.",
+      description: "User-shared video. Title, accents and captions await independent checks. Watch in Habla if you want; completing a lesson is never required.",
       href: "index.html?start=music&video=" + encodeURIComponent("https://youtu.be/xko8gAlNZqY"),
       action: "Watch in Habla / Ver en Habla",
       state: "Metadata unverified · Pendiente de revisión"
