@@ -4,11 +4,11 @@
     "provider": "BBC News Mundo",
     "kind": "video-link",
     "originalUrl": "https://share.google/5AKmIi8bODxJ9uB9b",
-    "title": "Video shared as BBC News Mundo (title not independently verified)",
+    "title": "¿Dónde está exactamente la mitad del mundo en Ecuador y quién la descubrió? | BBC Mundo",
     "language": "es",
     "region": null,
     "provenance": "User-supplied link",
-    "reviewStatus": "source-type-verified-metadata-unverified",
+    "reviewStatus": "title-verified-content-unverified",
     "usage": "Public link resolves to a YouTube watch page, not a BBC article. Confirm channel/title before attributing to BBC; spoken language, captions, regional claims and lesson use require separate evidence.",
     "copyright": "Official YouTube link only; no video, audio or transcript imported.",
     "addedDate": "2026-11-24",
@@ -16,7 +16,7 @@
     "resolvedProvider": "YouTube",
     "videoId": "Z2YJDI4B-gw",
     "startSeconds": 29,
-    "verification": "GitHub Actions HTTP redirect followed to YouTube; title, channel and contents not yet confirmed"
+    "verification": "YouTube public video page title verified (the original Google share resolves to this video); audio, captions, speaker variety and channel ownership not independently evaluated."
   },
   {
     "id": "youtube-xko8gAlNZqY",
