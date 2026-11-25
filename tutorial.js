@@ -225,7 +225,7 @@ function spotlight(){
  if(!active||overlay.hidden)return;
  const v=placeViewport(),origin=overlay.getBoundingClientRect();
  const element=targetFor(steps[index]),frame=$("#tutorial-spotlight");
- const panelTop=panel.getBoundingClientRect().top-origin.top-10;
+ const panelTop=panel.getBoundingClientRect().top-origin.top-2;
  const r=element&&element.getClientRects().length?element.getBoundingClientRect():null;
  // Intersect edges, rather than moving the top while retaining the old height.
  // The latter drew an empty frame above an offscreen microphone on iPhone.
