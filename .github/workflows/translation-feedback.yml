@@ -19,6 +19,7 @@ jobs:
           node-version: '24'
       - run: node --test tests/practice-microphone.test.cjs tests/dictionary-practice.test.cjs tests/translation-speaking.test.cjs tests/app-updates.test.cjs tests/about-screen.test.cjs
       - run: node --test tests/translation-direction.test.cjs tests/translation-service.test.cjs
+      - run: node --test tests/english-country-flags.test.cjs tests/app-feedback.test.cjs tests/whole-document.test.cjs
       - run: node tests/spanish-context.test.cjs && node tests/regional-vocabulary.test.cjs && node tests/regional-usage.test.cjs
       - run: npm install --prefix "$RUNNER_TEMP/habla-feedback" --no-package-lock --no-save playwright@1.62.1
       - run: node "$RUNNER_TEMP/habla-feedback/node_modules/playwright/cli.js" install --with-deps --only-shell ${{ matrix.engine }}
