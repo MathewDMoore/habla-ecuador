@@ -44,6 +44,34 @@ for (const source of sources) {
         result.headline = pageTitle(html);
         result.state = result.headline ? "verified-source-metadata" : "bbc-domain-resolved-no-headline";
         result.note = "Content, publication date and author require separate inspection.";
+      } else if (response.ok && target.protocol === "https:"
+        && ["www.youtube.com", "youtube.com", "m.youtube.com", "youtu.be"].includes(target.hostname)) {
+        // Source labels are hints, not proof. Identify the actual linked publisher.
+        const watchId = target.hostname === "youtu.be"
+          ? target.pathname.split("/")[1]
+          : target.searchParams.get("v");
+        result.resolvedSourceType = "YouTube video";
+        if (/^[A-Za-z0-9_-]{11}$/.test(watchId || "")) {
+          result.videoId = watchId;
+          const endpoint = "https://www.youtube.com/oembed?format=json&url="
+            + encodeURIComponent("https://www.youtube.com/watch?v=" + watchId);
+          const yt = await fetchLimited(endpoint, "application/json");
+          result.youtubeMetadataStatus = yt.status;
+          if (yt.ok) {
+            const data = await yt.json();
+            if (data.provider_name === "YouTube"
+                && typeof data.title === "string"
+                && typeof data.author_name === "string") {
+              result.state = "verified-redirected-video-metadata";
+              result.title = data.title.slice(0,250);
+              result.channel = data.author_name.slice(0,250);
+              result.note = "Redirect leads to a YouTube video, not a BBC article. Label as BBC only if verified channel metadata supports that attribution. Transcript, regional usage and video contents remain unverified.";
+            }
+          }
+        }
+        if (result.state === "unresolved") {
+          result.note = "Short link redirects to YouTube but its public video metadata was unavailable.";
+        }
       } else {
         result.note = "Short link did not resolve to a public BBC page; no article claims verified.";
       }
