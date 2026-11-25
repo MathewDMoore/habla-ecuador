@@ -17,11 +17,13 @@ async function main(){
   element('#translator-input').value=input;
   await run('renderTranslation()');
   assert.equal(element('#natural-result').textContent,'¡Qué frío!');
+  assert.equal(element('#translation-spelling-help').hidden,true);
   assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['¡Achachay!']);
  }
  element('#translator-input').value='Burr';
  await run('renderTranslation()');
  assert.equal(element('#natural-result').textContent,'abrojo');
+ assert.equal(element('#translation-spelling-help').hidden,false);
  assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),['rebaba']);
  assert.match(element('#usage-note').textContent,/If you meant feeling cold/);
  assert.equal(element('#translator-input').value,'Burr','spelling is preserved for the learner to clarify');

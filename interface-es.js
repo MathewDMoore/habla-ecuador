@@ -1,5 +1,7 @@
 /* Editorial Spanish interface strings. Learning/user text is localized separately, never sent to a service. */
 (function(root){const strings={
+  "Did you mean Brr! (feeling cold)?": "¿Querías decir Brr! (sensación de frío)?",
+  "Translate Brr!": "Traducir Brr!",
   "Noun / Sustantivo": "Sustantivo",
   "Ecuador, Bolivia and Chile": "Ecuador, Bolivia y Chile",
   "Ecuador, southwestern Colombia, northwestern/western Argentina, rural Peru and Chile": "Ecuador, suroeste de Colombia, noroeste y oeste de Argentina, zonas rurales de Perú y Chile",

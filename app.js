@@ -4049,6 +4049,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   const requestId = ++translationRequest;
   if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
+  if ($("#translation-spelling-help")) $("#translation-spelling-help").hidden = true;
   const requestContext = {source:sourceLanguage,target:targetLanguage,purpose:translationPurpose};
   const current = () => requestId === translationRequest
     && sourceText === $("#translator-input").value.trim()
@@ -4098,6 +4099,9 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     $("#literal-result").textContent=reviewedMeaning.literal;
     if ($("#english-comparison")) $("#english-comparison").hidden=true;
     $("#usage-note").textContent=reviewedMeaning.note;
+    if (languageFamily(sourceLanguage) === "en" && /^burr[.,!?]*$/i.test(sourceText) && $("#translation-spelling-help")) {
+      $("#translation-spelling-help").hidden = false;
+    }
     if (reviewedMeaning.url) {
       const link=document.createElement("a");
       link.href=reviewedMeaning.url; link.target="_blank"; link.rel="noopener noreferrer";
@@ -6701,6 +6705,12 @@ function init() {
   $('#spanish-context-notes')?.addEventListener('click',event=>{
     const button=event.target.closest?.('[data-slang-meaning]');
     if(button)applySlangMeaning(button.dataset.slangMeaning);
+  });
+  $("#translation-use-brr")?.addEventListener("click", () => {
+    const input = $("#translator-input");
+    claimSourceTextEdit();
+    input.value = "Brr!";
+    input.dispatchEvent(new Event("input", {bubbles:true}));
   });
   $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);

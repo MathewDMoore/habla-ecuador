@@ -12,6 +12,16 @@ await page.route('**/*',route=>{const u=new URL(route.request().url()),f=path.jo
 await page.addInitScript(()=>{class Recognition{start(){window.testRecognition=this;}stop(){}abort(){}}window.SpeechRecognition=Recognition;});
 await page.addInitScript(() => localStorage.setItem("habla-tutorial-seen-v2","1"));
  await page.goto(origin+'/habla-ecuador/'+file+'?ui=en');
+await page.evaluate(()=>openView('translator-view'));
+await page.locator('#source-language-select').selectOption('en-US');
+await page.locator('#target-language-select').selectOption('es-EC');
+await page.locator('#translator-input').fill('Burr');
+await page.waitForFunction(()=>document.querySelector('#natural-result').textContent==='abrojo');
+assert.equal(await page.locator('#translation-spelling-help').isVisible(),true);
+await page.locator('#translation-use-brr').click();
+await page.waitForFunction(()=>document.querySelector('#natural-result').textContent==='¡Qué frío!');
+assert.equal(await page.locator('#translator-input').inputValue(),'Brr!');
+assert.equal(await page.locator('#translation-spelling-help').isVisible(),false);
 await page.evaluate(()=>{window.spoken=[];window.say=(text,lang)=>spoken.push({text,lang});});
 if(file==='translator.html')await page.evaluate(()=>openView('lesson-view')); // Standalone shell intentionally hides navigation.
 else await page.locator('.bottom-nav [data-open="lesson-view"]').click();
