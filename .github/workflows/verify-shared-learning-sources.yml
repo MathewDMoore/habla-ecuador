@@ -1,0 +1,31 @@
+name: Check shared learning source metadata
+
+on:
+  pull_request:
+    paths:
+      - 'data/shared-learning-links.json'
+      - 'scripts/verify-shared-learning-sources.mjs'
+      - '.github/workflows/verify-shared-learning-sources.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metadata-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source metadata without requiring a learner lesson
+        run: node scripts/verify-shared-learning-sources.mjs
+      - name: Preserve check results (including unresolved links)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-learning-source-metadata
+          path: reports/shared-link-verification.json
+          if-no-files-found: warn
