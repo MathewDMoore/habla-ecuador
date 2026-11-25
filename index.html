@@ -46,6 +46,7 @@
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="youtube-shared-player.js?v=264" defer></script>
+  <script src="shared-learning-links.js?v=265" defer></script>
   <script src="translation-history.js?v=218" defer></script>
   <script src="swipe-navigation.js?v=249" defer></script>
   <script src="app.js?v=263" defer></script>
@@ -180,6 +181,7 @@
             <button type="submit">▶ Play in Habla / Reproducir</button>
           </form>
           <p id="habla-youtube-status" role="status" aria-live="polite">Share a YouTube link to Habla from the iPhone share sheet, or paste one here.</p>
+          <p><a href="index.html?start=music&amp;video=https%3A%2F%2Fyoutu.be%2Fxko8gAlNZqY">▶ Open your newly shared YouTube video / Abrir video compartido</a></p>
           <div id="habla-youtube-player" hidden>
             <div class="habla-youtube-frame-wrap">
               <iframe id="habla-youtube-iframe" title="Shared YouTube video in Habla"
@@ -1088,6 +1090,11 @@
         <p id="lesson-learning-goal" class="lesson-learning-goal" role="status"></p>
         <button type="button" class="lesson-tutorial-button" data-lesson-tutorial-open aria-label="Lesson guide / Guía de lecciones">Lesson guide / Guía de lecciones</button>
         <details class="compact-info feature-guide" data-feature-guide="practice" translate="no"><summary>Practice questions</summary></details>
+        <details id="habla-shared-sources" class="compact-info source-practice" open>
+          <summary>📚 Shared learning sources · Recursos compartidos</summary>
+          <p>Links you shared for Habla's educational collection. Titles, speech and regional claims remain unverified until the actual content can be reviewed. Links are not copied articles or extracted recordings.</p>
+          <div id="habla-learning-inbox" aria-label="Shared external learning references"></div>
+        </details>
         <details id="quick-lessons" class="compact-info source-practice"><summary>Short lessons · one useful idea</summary><div id="quick-lessons-content"></div></details>
         <details id="recorded-practice" class="compact-info source-practice"><summary>Native voices · regional speaking pilot</summary><div id="recorded-practice-content"></div></details>
         <details id="source-practice" class="compact-info source-practice" hidden><summary>Work &amp; friends · radio-story speaking lesson</summary><div id="source-practice-content"></div></details>
