@@ -1677,3 +1677,11 @@ body.ve-theater-open {overflow:hidden !important;}
 .selected-passage-tools .speech-action-status { flex-basis:100%; margin:0; }
 dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
 @media print { .selected-passage-tools { display:none !important; } }
+
+.object-image-stage { position: relative; width: 100%; }
+.object-image-stage > img { display: block; width: 100%; height: auto; }
+.object-image-stage > img:not([src]) { display: none; }
+.object-detection-overlay { position: absolute; inset: 0; pointer-events: none; }
+.object-detection-box { position: absolute; border: 2px solid #ffe36b; box-sizing: border-box; }
+.object-detection-box > span { display: inline-block; max-width: 100%; padding: 3px 5px; background: #173f35; color: #fff; font-size: 14px; overflow-wrap: anywhere; }
+.object-identifier [data-objects-results] { padding-inline-start: 1.5rem; }
