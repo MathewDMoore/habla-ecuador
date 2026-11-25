@@ -10,7 +10,7 @@ assert.ok(items.every(x=>x.region===null));
 assert.ok(items.every(x=>!x.transcript&&!x.translation&&!x.lyrics));
 const html=fs.readFileSync(path.join(__dirname, "../index.html"),"utf8");
 assert.ok(html.includes('id="habla-learning-inbox"'));
-assert.ok(html.includes('src="shared-learning-links.js?v=265"'));
+assert.ok(html.includes('src="shared-learning-links.js?v=266"'));
 const script=fs.readFileSync(path.join(__dirname, "../shared-learning-links.js"),"utf8");
 assert.ok(script.includes("Z2YJDI4B-gw"));
 assert.ok(items.some(x=>x.originalUrl==="https://share.google/5AKmIi8bODxJ9uB9b"&&x.resolvedProvider==="YouTube"&&x.videoId==="Z2YJDI4B-gw"));

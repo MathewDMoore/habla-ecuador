@@ -6,11 +6,11 @@
   const entries = [
     {
       id: "bbc-mundo-20261124-5AKmIi8bODxJ9uB9b",
-      label: "▶ Video compartido como BBC News Mundo",
-      description: "The Google share link was independently found to redirect to YouTube, not a news article. Video title, creator and spoken content are still unverified. No lesson is required.",
+      label: "▶ BBC Mundo · La mitad del mundo",
+      description: "El enlace compartido abre un video de YouTube sobre la mitad del mundo en Ecuador. El título está verificado; el audio, los subtítulos y la variedad regional aún no. No hace falta completar una lección.",
       href: "index.html?start=music&video=" + encodeURIComponent("https://www.youtube.com/watch?v=Z2YJDI4B-gw&t=29"),
-      action: "Watch in Habla / Ver en Habla",
-      state: "Redirect confirmed · Video metadata pending"
+      action: "Ver en Habla / Watch in Habla",
+      state: "Public title verified · Spoken content unreviewed"
     },
     {
       id: "youtube-xko8gAlNZqY",
