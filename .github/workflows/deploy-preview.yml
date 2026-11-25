@@ -1,0 +1,48 @@
+name: Verify Habla candidate
+on:
+  push:
+    branches: [release/verified-preview-20261125]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: habla-preview-verification-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [images, learning, research]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: node --test tests/*.test.cjs
+      - run: npm install --prefix "$RUNNER_TEMP/habla-browser" --no-package-lock --no-save playwright@1.62.1
+      - run: node "$RUNNER_TEMP/habla-browser/node_modules/playwright/cli.js" install --with-deps --only-shell chromium
+      - name: Verify integrated feature entry points
+        env:
+          HABLA_PLAYWRIGHT_MODULE: ${{ runner.temp }}/habla-browser/node_modules/playwright
+          HABLA_BROWSER_ENGINE: chromium
+        run: |
+          case "${{ matrix.group }}" in
+            images)
+              node tests/navigation-browser-smoke.cjs
+              node tests/app-sharing.browser.cjs
+              node tests/object-identification.browser.cjs
+              node tests/live-camera.browser.cjs
+              node tests/photo-translation.browser.cjs
+              ;;
+            learning)
+              node tests/grammar-reference.browser.cjs
+              node tests/tutorial.browser.cjs
+              ;;
+            research)
+              node tests/research-documents.browser.cjs
+              node tests/preview-isolation.browser.cjs
+              ;;
+          esac
