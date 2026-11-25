@@ -259,7 +259,8 @@ function layout(){
  // Large controls (especially the text editor and microphone) must stay
  // completely tappable above the explanation. Use a shorter, scrollable guide
  // rather than covering the highlighted control with the guide itself.
- const minBody=steps[index]?.groupTarget ? 70 : (v.width<300?240:140);
+ const preferredBody=steps[index]?.groupTarget ? 70 : (v.width<300?240:140);
+ const minBody=Math.min(preferredBody,Math.max(36,v.height-height-bottomGap-26-chrome));
  panel.style.maxHeight=Math.min(v.height-24,Math.max(chrome+minBody,Math.min(v.height*.56,v.height-height-bottomGap-26)))+"px";
  if(el&&el.getClientRects().length){
   const rect=el.getBoundingClientRect(),origin=overlay.getBoundingClientRect();

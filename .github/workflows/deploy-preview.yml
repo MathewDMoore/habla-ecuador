@@ -28,6 +28,7 @@ jobs:
           HABLA_BROWSER_ENGINE: chromium
         run: |
           node tests/navigation-browser-smoke.cjs
+          node tests/app-sharing.browser.cjs
           node tests/object-identification.browser.cjs
           node tests/live-camera.browser.cjs
           node tests/photo-translation.browser.cjs

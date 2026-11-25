@@ -8,6 +8,7 @@ async function run(browser,native,width=390){
  await page.route('**/*',r=>{const u=new URL(r.request().url()),file=path.join(root,u.pathname.replace('/habla-ecuador/',''));
   return u.origin===origin&&fs.existsSync(file)&&!file.endsWith('.mp3')?r.fulfill({path:file}):r.abort();});
  await page.addInitScript(()=>{
+  if(window!==window.top)return;
   localStorage.setItem("habla-tutorial-seen-v2","1");
   window.testShares=[];window.testCopies=[];window.testMessages=[];
   Object.defineProperty(navigator,'share',{configurable:true,writable:true,value:data=>{window.testShares.push(data);return new Promise(resolve=>window.finishShare=resolve);}});
@@ -60,10 +61,10 @@ async function run(browser,native,width=390){
  }
  await page.goto(home+'?start=dictionary&region=es-CU&ui=es');
  const cubaCards=page.locator('#regional-slang-results .regional-slang-card');
- const general=cubaCards.filter({has:page.getByRole('heading',{name:'afeminado / afeminada',exact:true})});
+ const general=cubaCards.filter({has:page.locator('h3').filter({hasText:/^afeminado \/ afeminada$/})});
  // Strong language is intentionally hidden behind an expandable disclosure.
  // Open it before asserting the Spanish explanatory text is visible.
- const strongLanguage=page.locator('#regional-slang-results details').filter({has:general});
+ const strongLanguage=page.locator('#regional-slang-results > details').filter({hasText:'afeminado / afeminada'});
  await strongLanguage.locator('summary').first().click();
  await general.getByText('Adjetivo descriptivo que puede resultar ofensivo o despectivo',{exact:true}).waitFor();
  assert.match(await general.locator('.regional-usage-meta').textContent(),/Español compartido/);
