@@ -49,7 +49,7 @@
   <script src="shared-learning-links.js?v=265" defer></script>
   <script src="translation-history.js?v=218" defer></script>
   <script src="swipe-navigation.js?v=249" defer></script>
-  <script src="app.js?v=265" defer></script>
+  <script src="app.js?v=266" defer></script>
   <style>
     #habla-youtube-form { display:grid; gap:.55rem; margin:.75rem 0; }
     #habla-youtube-url { box-sizing:border-box; width:100%; min-height:44px; padding:.7rem; border:1px solid #909da9; border-radius:10px; font-size:1rem; }
@@ -58,6 +58,11 @@
     #habla-youtube-player[hidden] { display:none; }
     .habla-youtube-frame-wrap { position:relative; width:100%; aspect-ratio:16 / 9; margin-top:1rem; background:#111; overflow:hidden; border-radius:12px; }
     .habla-youtube-frame-wrap iframe { display:block; width:100%; height:100%; border:0; }
+    .habla-featured-video-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:1rem; margin:1rem 0; }
+    .habla-featured-video-card { min-width:0; padding:1rem; border:1px solid #9caaa8; border-radius:12px; }
+    .habla-featured-video-card h3 { margin:0 0 .45rem; overflow-wrap:anywhere; }
+    .habla-featured-video-card p { margin:.45rem 0; }
+    @media (min-width:900px) { .habla-featured-video-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   </style>
 </head>
 <body>
@@ -67,7 +72,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.27.54 · build 265</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.27.55 · build 266</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -170,6 +175,42 @@
         </div>
         <p class="music-intro">Escucha palabras cantadas, entiende el significado y practica frases útiles. / Hear sung words, understand their meaning, and practice useful phrases.</p>
         <details class="compact-info feature-guide" data-feature-guide="musicLessons" translate="no"><summary>Music lessons guide</summary></details>
+
+        <section id="habla-featured-youtube" class="music-section" aria-labelledby="habla-featured-videos-title">
+          <h2 id="habla-featured-videos-title">🎬 Videos compartidos · Watch in Habla</h2>
+          <p>Los dos videos que compartiste, cada uno con su propio reproductor. Pulsa Play cuando quieras. / Both shared videos, each with its own player. No lesson required.</p>
+          <div class="habla-featured-video-grid">
+            <article class="habla-featured-video-card" aria-labelledby="habla-bbc-video-title">
+              <h3 id="habla-bbc-video-title">🇪🇨 ¿Dónde está exactamente la mitad del mundo en Ecuador y quién la descubrió?</h3>
+              <p>BBC Mundo · original de YouTube · desde 0:29</p>
+              <div class="habla-youtube-frame-wrap">
+                <iframe id="habla-bbc-video"
+                  title="BBC Mundo: ¿Dónde está exactamente la mitad del mundo en Ecuador y quién la descubrió?"
+                  src="https://www.youtube-nocookie.com/embed/Z2YJDI4B-gw?start=29&amp;playsinline=1&amp;rel=0"
+                  loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen></iframe>
+              </div>
+              <p><a href="https://www.youtube.com/watch?v=Z2YJDI4B-gw&amp;t=29" target="_blank" rel="noopener noreferrer">Abrir original en YouTube / Open original</a></p>
+              <small>La región del tema no demuestra el acento de quien habla. / Topic location does not establish a speaker's dialect.</small>
+            </article>
+            <article class="habla-featured-video-card" aria-labelledby="habla-bolivia-video-title">
+              <h3 id="habla-bolivia-video-title">🇧🇴 La Paz Bolivia Travel Guide: 7 BEST Things to do in La Paz</h3>
+              <p>Before You Go · video original de YouTube</p>
+              <div class="habla-youtube-frame-wrap">
+                <iframe id="habla-bolivia-video"
+                  title="Before You Go: La Paz Bolivia Travel Guide: 7 BEST Things to do in La Paz"
+                  src="https://www.youtube-nocookie.com/embed/xko8gAlNZqY?playsinline=1&amp;rel=0"
+                  loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen></iframe>
+              </div>
+              <p><a href="https://www.youtube.com/watch?v=xko8gAlNZqY" target="_blank" rel="noopener noreferrer">Abrir original en YouTube / Open original</a></p>
+              <small>Contenido turístico, no evidencia por sí solo de español boliviano. / A travel destination alone is not dialect evidence.</small>
+            </article>
+          </div>
+          <p><small>Players use official YouTube embeds. Online playback and the creator's embedding permission are required. Captions depend on YouTube availability; Habla has not independently verified audio, dialect, or subtitles for these videos.</small></p>
+        </section>
         <section id="habla-youtube-section" class="music-section" aria-labelledby="habla-youtube-title">
           <h2 id="habla-youtube-title">▶ YouTube · Video compartido</h2>
           <p>Play a YouTube video inside Habla / Reproduce un video de YouTube en Habla.</p>
