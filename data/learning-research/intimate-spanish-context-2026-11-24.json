@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "type": "language-research-candidate",
+  "title": "Adult intimate Spanish: context and register contrasts",
+  "source": {
+    "visibleCreatorLabel": "My Daily Spanish",
+    "visibleTopic": "Spanish expressions for s3x",
+    "sourceFormat": "user-supplied 42.6-second screen recording",
+    "dateUploaded": "2026-11-25",
+    "countryOfCreator": "not established",
+    "claimScope": "The visible captions establish what this social post teaches, not whether any phrase is Ecuador-specific.",
+    "copyrightNote": "No footage, original audio, frames, full script or other creator media distributed."
+  },
+  "learningPurpose": "Review colloquial adult vocabulary and disambiguation to improve accurate English-Spanish translation. This is not a playable lesson.",
+  "audience": "Adults; opt-in mature vocabulary only. Avoid unsolicited inclusion in default/minor-facing exercises.",
+  "entries": [
+    {
+      "id": "adult-context-01",
+      "spanish": "¿Tienes un condón?",
+      "usEnglish": "Do you have a condom?",
+      "ukEnglish": "Do you have a condom?",
+      "semanticNote": "sexual health; straightforward question",
+      "registerNote": "direct, neutral in a sexual-health setting",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-02",
+      "spanish": "Ponte a cuatro patas.",
+      "usEnglish": "Get on all fours.",
+      "ukEnglish": "Get on all fours.",
+      "semanticNote": "physical posture; may be sexual depending on context",
+      "registerNote": "direct, potentially explicit",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-03",
+      "spanish": "¡Qué bueno estás!",
+      "usEnglish": "You're really hot!",
+      "ukEnglish": "You're really fit!",
+      "semanticNote": "physical attractiveness; masculine grammatical agreement",
+      "registerNote": "informal, potentially objectifying",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-04",
+      "spanish": "¡Qué buena estás!",
+      "usEnglish": "You're really hot!",
+      "ukEnglish": "You're really fit!",
+      "semanticNote": "physical attractiveness; feminine grammatical agreement",
+      "registerNote": "informal, potentially objectifying",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-05",
+      "spanish": "Ponte encima.",
+      "usEnglish": "Get on top.",
+      "ukEnglish": "Get on top.",
+      "semanticNote": "spatial instruction or intimate request",
+      "registerNote": "context-dependent",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-06",
+      "spanish": "Dios mío.",
+      "usEnglish": "Oh my God.",
+      "ukEnglish": "Oh my God.",
+      "semanticNote": "surprise, emotion, or intimate exclamation",
+      "registerNote": "widely used; not inherently sexual",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-07",
+      "spanish": "Sigue.",
+      "usEnglish": "Keep going.",
+      "ukEnglish": "Carry on.",
+      "semanticNote": "continuation command; ordinary or intimate",
+      "registerNote": "context-dependent",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-08",
+      "spanish": "Más rápido.",
+      "usEnglish": "Faster.",
+      "ukEnglish": "Faster.",
+      "semanticNote": "comparative of speed; ordinary or intimate",
+      "registerNote": "context-dependent",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-09",
+      "spanish": "Más despacio.",
+      "usEnglish": "Slower.",
+      "ukEnglish": "More slowly.",
+      "semanticNote": "speed instruction; ordinary or intimate",
+      "registerNote": "context-dependent",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-10",
+      "spanish": "No pares.",
+      "usEnglish": "Don't stop.",
+      "ukEnglish": "Don't stop.",
+      "semanticNote": "negative informal imperative; ordinary or intimate",
+      "registerNote": "context-dependent",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-11",
+      "spanish": "Eres súper sexy.",
+      "usEnglish": "You're super sexy.",
+      "ukEnglish": "You're really sexy.",
+      "semanticNote": "expression of attraction",
+      "registerNote": "informal, intimate",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-12",
+      "spanish": "Date la vuelta.",
+      "usEnglish": "Turn around.",
+      "ukEnglish": "Turn round.",
+      "semanticNote": "imperative; change body orientation",
+      "registerNote": "direct, general-purpose",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-13",
+      "spanish": "Estoy cerca.",
+      "usEnglish": "I'm close.",
+      "ukEnglish": "I'm close.",
+      "semanticNote": "physical proximity or, in the recorded intimate context, nearing orgasm; requires surrounding speech for disambiguation",
+      "registerNote": "ambiguous; never force intimate reading",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-14",
+      "spanish": "Me voy a correr.",
+      "usEnglish": "I'm about to come.",
+      "ukEnglish": "I'm about to come.",
+      "semanticNote": "colloquial sexual sense of correrse; not equivalent to plain voy a correr 'I'm going for a run'",
+      "registerNote": "explicit slang; regional naturalness unverified",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-15",
+      "spanish": "Me ha encantado.",
+      "usEnglish": "I loved it.",
+      "ukEnglish": "I loved it.",
+      "semanticNote": "strong positive response; not inherently sexual",
+      "registerNote": "ordinary or intimate",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    },
+    {
+      "id": "adult-context-16",
+      "spanish": "¡Oh, sí!",
+      "usEnglish": "Oh, yes!",
+      "ukEnglish": "Oh, yes!",
+      "semanticNote": "affirmation/exclamation; not inherently sexual",
+      "registerNote": "ordinary or intimate",
+      "countryStatus": "Unassigned: no geographic usage established by recording",
+      "dictionaryAttested": false,
+      "regionalCorpusChecked": false,
+      "originalInstruction": "Use original non-video context examples when eventually reviewed for adult vocabulary."
+    }
+  ],
+  "notableCorrections": [
+    {
+      "phrase": "¡Qué bueno/a estás!",
+      "avoid": "You are good",
+      "prefer": "You're really attractive / hot",
+      "reason": "Estar bueno/a can describe sexual attractiveness; grammar changes by agreement with person described.",
+      "verification": "Independent Cambridge and SpanishDict lexical support; national variants not validated."
+    },
+    {
+      "phrase": "Me voy a correr.",
+      "avoid": "I'm going to run",
+      "prefer": "I'm about to orgasm / come",
+      "reason": "Reflexive correrse can have a sexual slang meaning, unlike plain correr 'to run'.",
+      "verification": "Attested by Costa Rica judiciary dictionary and other Spanish dictionaries; no claim of universal regional preference."
+    },
+    {
+      "phrase": "Estoy cerca.",
+      "avoid": "I'm close to climax every time",
+      "prefer": "Choose 'I'm nearby' for physical distance; choose intimate reading only with corroborating context",
+      "reason": "Ambiguous phrase; a sexual reading in this recording should not override ordinary meaning."
+    },
+    {
+      "phrase": "Me ha encantado.",
+      "avoid": "That phrase must be erotic",
+      "prefer": "I loved it",
+      "reason": "General past reaction; register comes from situation."
+    }
+  ],
+  "originalEvaluationPairs": [
+    {
+      "es": "Estoy cerca de la biblioteca.",
+      "enUS": "I'm near the library.",
+      "enUK": "I'm near the library.",
+      "expectedSense": "distance"
+    },
+    {
+      "es": "Más despacio, por favor. No entiendo.",
+      "enUS": "More slowly, please. I don't understand.",
+      "enUK": "More slowly, please. I don't understand.",
+      "expectedSense": "speech speed"
+    },
+    {
+      "es": "Me ha encantado el poema.",
+      "enUS": "I loved the poem.",
+      "enUK": "I loved the poem.",
+      "expectedSense": "positive response"
+    },
+    {
+      "es": "Voy a correr por el parque.",
+      "enUS": "I'm going for a run in the park.",
+      "enUK": "I'm going for a run in the park.",
+      "expectedSense": "exercise, not climax"
+    },
+    {
+      "es": "Qué bueno está este pastel.",
+      "enUS": "This cake is delicious.",
+      "enUK": "This cake is lovely.",
+      "expectedSense": "food, not attractiveness"
+    }
+  ],
+  "verifiedReferenceLinks": [
+    {
+      "label": "Cambridge dictionary: bueno",
+      "url": "https://dictionary.cambridge.org/us/dictionary/spanish-english/bueno",
+      "scope": "Physical attractiveness sense of estar bueno."
+    },
+    {
+      "label": "Costa Rican judiciary: correrse",
+      "url": "https://diccionariousual.poder-judicial.go.cr/index.php/diccionario/correrse",
+      "scope": "Colloquial sexual definition; no extrapolated region exclusivity."
+    },
+    {
+      "label": "RAE student dictionary: preservativo",
+      "url": "https://temporalweb.asale.org/diccionario-estudiante/preservativo",
+      "scope": "Condom synonym."
+    }
+  ],
+  "integration": {
+    "status": "research candidate committed only; not ingested into dictionary or translation inference",
+    "videoEmbedding": false,
+    "sourceAudioIncluded": false,
+    "sourceVideoIncluded": false,
+    "stockLessonCloned": false,
+    "automaticPublication": false,
+    "needs": [
+      "contextual sense review",
+      "specific region-by-region checks (Ecuador, Spain, Mexico, Bolivia, others)",
+      "adult-content display controls",
+      "original examples and tests before integration"
+    ]
+  }
+}
