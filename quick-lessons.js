@@ -4,6 +4,61 @@
 (function(root){
 'use strict';
 const spanish=[
+{
+  "id": "cold-plans",
+  "title": "¡Achachay! · Hace frío y cambiamos de plan",
+  "explanation": "Spend 5–10 minutes making plans with a friend. |¡Achachay!| expresses feeling cold in Ecuador, Peru and southwestern Colombia, according to ASALE. This source does not establish a specific city or a Bolivian use. English |Brr!| expresses cold; |burr| is a different word. Say |Tengo frío| for how you feel and |Hace frío| for the weather. Link |vamos allá| smoothly, with the stress on the last syllable of |allá|. First give your own answer, then hear a model and try another situation.",
+  "examples": [
+    [
+      "¡Achachay! Está haciendo frío. ¿Entramos a una cafetería?",
+      "Brr! It's getting cold. Shall we go into a café?"
+    ],
+    [
+      "Sí, pero prefiero una que esté cerca.",
+      "Yes, but I'd prefer one nearby."
+    ],
+    [
+      "Hay una a dos cuadras.",
+      "There's one two blocks away."
+    ],
+    [
+      "Perfecto. Vamos allá y después seguimos caminando.",
+      "Perfect. Let's go there and then carry on walking."
+    ]
+  ],
+  "situations": [
+    {
+      "scene": "Tu amigo tiene frío. Propón un lugar y explica por qué. Pista: Podemos ir a… porque… Si resulta fácil, ofrece dos opciones. / Your friend feels cold. Suggest a place and explain why. Offer two options if you can.",
+      "phrase": "Podemos ir a una cafetería porque hace frío.",
+      "meaning": "We can go to a café because it's cold."
+    },
+    {
+      "scene": "La cafetería está cerrada. Sugiere otro lugar y explica tu elección. Pista: Prefiero… porque… / The café is closed. Suggest somewhere else and explain your choice.",
+      "phrase": "Podemos ir a otra cafetería porque esta está cerrada.",
+      "meaning": "We can go to another café because this one is closed."
+    },
+    {
+      "scene": "Tu amigo solo tiene veinte minutos. Adapta el plan. Si puedes, añade una condición con si. / Your friend only has twenty minutes. Adapt the plan. Add a condition with si if you can.",
+      "phrase": "Si solo tenemos veinte minutos, podemos ir a una cafetería cercana.",
+      "meaning": "If we only have twenty minutes, we can go to a nearby café."
+    },
+    {
+      "scene": "Ya salió el sol. Decide si siguen dentro o vuelven a caminar. Da una razón. / The sun has come out. Decide whether to stay inside or walk again. Give a reason.",
+      "phrase": "Prefiero seguir caminando porque ya salió el sol.",
+      "meaning": "I'd rather carry on walking because the sun has come out."
+    }
+  ],
+  "sources": [
+    {
+      "label": "ASALE · ¡achachay!",
+      "url": "https://www.asale.org/damer/%C2%A1achachay%21"
+    },
+    {
+      "label": "Cambridge · brrr",
+      "url": "https://dictionary.cambridge.org/dictionary/english/brrr"
+    }
+  ]
+},
  {id:'solo-patterns',title:'Solo · solo si · solo por · solo con',
   explanation:'Use |solo| to mean “only” or “just” when it limits something. |Solo si| introduces a condition (“only if”). |Solo por| can introduce a reason or the thing someone came for (“just for”). |Solo con| points to a required resource or condition (“only with”). |Solo| also means “alone” as an adjective. In a condition, |si| has no accent. |Sí| with an accent means “yes”. Normally write |solo| without an accent.',
   examples:[['Solo necesito unos minutos.','I only need a few minutes.'],['Salgo contigo solo si deja de llover.','I will go out with you only if it stops raining.'],['Vine solo por la música.','I came just for the music.'],['Solo con paciencia vamos a aprender.','Only with patience are we going to learn.'],['Hoy quiero estar solo.','Today I want to be alone.']],
@@ -151,6 +206,61 @@ const spanish=[
  }
 ];
 const english=[
+{
+  "id": "cold-plans",
+  "title": "Brr! · It is cold and we change our plans",
+  "explanation": "Practica durante 5–10 minutos con una amistad. |Brr!| expresa sensación de frío; |burr| es otra palabra. Usa |I am cold| para lo que sientes y |It is cold| para el tiempo. En Ecuador, Perú y el suroeste de Colombia, ASALE documenta achachay para expresar frío. Da tu propia respuesta, escucha un modelo y cambia el plan según la situación. En |Let’s go there|, une las palabras con naturalidad.",
+  "examples": [
+    [
+      "Brr! It's getting cold. Shall we go into a café?",
+      "¡Achachay! Está haciendo frío. ¿Entramos a una cafetería?"
+    ],
+    [
+      "Yes, but I'd prefer one nearby.",
+      "Sí, pero prefiero una que esté cerca."
+    ],
+    [
+      "There's one two blocks away.",
+      "Hay una a dos cuadras."
+    ],
+    [
+      "Perfect. Let's go there and then carry on walking.",
+      "Perfecto. Vamos allá y después seguimos caminando."
+    ]
+  ],
+  "situations": [
+    {
+      "scene": "Tu amigo tiene frío. Propón un lugar y explica por qué. Pista: Podemos ir a… porque… Si resulta fácil, ofrece dos opciones. / Your friend feels cold. Suggest a place and explain why. Offer two options if you can.",
+      "phrase": "We can go to a café because it's cold.",
+      "meaning": "Podemos ir a una cafetería porque hace frío."
+    },
+    {
+      "scene": "La cafetería está cerrada. Sugiere otro lugar y explica tu elección. Pista: Prefiero… porque… / The café is closed. Suggest somewhere else and explain your choice.",
+      "phrase": "We can go to another café because this one is closed.",
+      "meaning": "Podemos ir a otra cafetería porque esta está cerrada."
+    },
+    {
+      "scene": "Tu amigo solo tiene veinte minutos. Adapta el plan. Si puedes, añade una condición con si. / Your friend only has twenty minutes. Adapt the plan. Add a condition with si if you can.",
+      "phrase": "If we only have twenty minutes, we can go to a nearby café.",
+      "meaning": "Si solo tenemos veinte minutos, podemos ir a una cafetería cercana."
+    },
+    {
+      "scene": "Ya salió el sol. Decide si siguen dentro o vuelven a caminar. Da una razón. / The sun has come out. Decide whether to stay inside or walk again. Give a reason.",
+      "phrase": "I'd rather carry on walking because the sun has come out.",
+      "meaning": "Prefiero seguir caminando porque ya salió el sol."
+    }
+  ],
+  "sources": [
+    {
+      "label": "ASALE · ¡achachay!",
+      "url": "https://www.asale.org/damer/%C2%A1achachay%21"
+    },
+    {
+      "label": "Cambridge · brrr",
+      "url": "https://dictionary.cambridge.org/dictionary/english/brrr"
+    }
+  ]
+},
  {id:'only-patterns',title:'Only · only if · just for · only with',
   explanation:'La palabra |only| limita una cantidad o una acción. |Only if| introduce una condición, |just for| indica el motivo y |only with| indica lo que hace falta. Fíjate en el orden de las palabras. Por ejemplo, |only with patience can we improve.| En español, estas expresiones suelen corresponder a solo, solo si, solo por y solo con. Traduce el sentido completo.',
   examples:[['I only need a few minutes.','Solo necesito unos minutos.'],['I will join you only if it stops raining.','Te acompaño solo si deja de llover.'],['I came just for the music.','Vine solo por la música.'],['Only with patience can we improve.','Solo con paciencia podemos mejorar.']],
@@ -206,6 +316,7 @@ function render(){
  <p>Different replies can work. Speaking feedback below compares recognized words with this model; it does not judge whether another reply communicates your meaning.</p>
  <button type="button" id="quick-next" class="primary-button">Try another situation →</button>
  <p>Original Habla lesson · device voices</p>
+ ${item.sources?`<p>${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.label)}</a>`).join(' · ')}</p>`:''}
  ${item.inspiration?`<p>Inspired by ${esc(item.inspiration)}.</p>`:''}`;
  content.querySelector('#quick-lesson-select').addEventListener('change',event=>{leave();selected[locale]=event.target.value;situation=0;recall=false;render();});
  content.querySelector('#quick-explanation-hear').addEventListener('click',event=>{root.cancelDictionaryPractice();root.say(explanation(),undefined,event.currentTarget);});

@@ -46,9 +46,9 @@ test('all three research sources appear with clear license and engine limitation
  for(const page of ['index.html','translator.html']){
   const html=fs.readFileSync(page,'utf8');
   assert.match(html,/regional-vocabulary\.js\?v=253/);
-  assert.match(html,/spanish-context\.js\?v=262/);
+  assert.match(html,/spanish-context\.js\?v=263/);
  }
  const shell=fs.readFileSync('sw.js','utf8');
  assert.match(shell,/regional-vocabulary\.js\?v=253/);
- assert.match(shell,/spanish-context\.js\?v=262/);
+ assert.match(shell,/spanish-context\.js\?v=263/);
 });

@@ -130,7 +130,7 @@ const HablaSpanishContext = (() => {
       url:asale('mamagüevo')};
   }
   // Standalone dictionary forms. Keep whole sentences available to the translator.
-  const sense = (text, label, note) => ({text, label, note});
+  const sense = (text, label, note, url) => ({text, label, note, ...(url ? {url} : {})});
   const bedtime = sense("to go to bed", "Verb · bedtime / Hora de dormir", "Me acuesto a las diez. → I go to bed at ten.");
   const lieDown = sense("to lie down", "Verb · change of posture / Cambio de postura", "Me voy a acostar en el sofá. → I'm going to lie down on the couch.");
   const lyingDown = sense("lying down", "Position / Postura", "Ya estoy acostada. → I'm already lying down.");
@@ -148,6 +148,10 @@ const HablaSpanishContext = (() => {
       ["mentir", [sense("to lie", "Verb · deception / Engaño", "Deja de mentir. → Stop lying."), sense("to tell a lie", "Verb phrase / Locución verbal", "No quiero mentir. → I don't want to tell a lie.")]]
     ]),
     en: new Map([
+      ["burr", [
+        sense("abrojo", "Noun · prickly seed case / Fruto espinoso", "A plant burr can stick to clothing. If you meant feeling cold, enter Brr! or I am cold. Burr may also be a surname; a name needs context.", "https://dictionary.cambridge.org/dictionary/english-spanish/burr"),
+        sense("rebaba", "Noun · rough edge / Borde áspero", "Use for the rough edge left on cut material. For feeling cold, use Brr! instead of burr.", "https://dictionary.cambridge.org/dictionary/spanish-english/rebaba")
+      ]],
       ["lying", [lying, lyingMale, lyingFemale, gettingDown]],
       ["lying down", [lyingMale, lyingFemale, gettingDown]],
       ...["lie down", "to lie down"].map(form => [form, [toBed, stretchOut]]),
@@ -159,9 +163,15 @@ const HablaSpanishContext = (() => {
     const from = source.split("-")[0], to = target.split("-")[0];
     if (purpose === "academic" || !dictionaryForms[to] || from === to) return [];
     const key = text.trim().toLowerCase().replace(/[.,!?]+$/u, "").trimEnd();
+    if (from === 'en' && to === 'es' && /^brrr?$/.test(key)) {
+      const note = 'Brr! expresses feeling cold. Burr is a different word. Achachay is attested in Ecuador, Peru and southwestern Colombia; a city or a Bolivian usage is not inferred.';
+      const options = [sense('¡Qué frío!', 'Cold reaction / Reacción al frío', note, 'https://dictionary.cambridge.org/dictionary/english/brrr')];
+      if (['es-EC','es-PE','es-CO'].includes(target)) options.push(sense('¡Achachay!', 'Regional cold reaction / Exclamación regional de frío', note, 'https://www.asale.org/damer/%C2%A1achachay%21'));
+      return options;
+    }
     const forms = dictionaryForms[from]?.get(key);
-    if (forms) return forms.map(option => ({...option, url:key === "acostarse"
-      ? "https://dictionary.cambridge.org/dictionary/spanish-english/acostarse" : undefined}));
+    if (forms) return forms.map(option => ({...option, url:option.url || (key === "acostarse"
+      ? "https://dictionary.cambridge.org/dictionary/spanish-english/acostarse" : undefined)}));
     return regionalMeanings(text, source, target);
   }
   function wordMeanings(text,{source='es-EC',target='en-US',purpose='everyday'}={}) {

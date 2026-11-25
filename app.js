@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.52 · build 262";
+const APP_VERSION = "0.27.53 · build 263";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -4049,6 +4049,7 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
   const requestId = ++translationRequest;
   if ($("#retry-translation")) $("#retry-translation").hidden = true;
   const sourceText = $("#translator-input").value.trim();
+  if ($("#translation-spelling-help")) $("#translation-spelling-help").hidden = true;
   const requestContext = {source:sourceLanguage,target:targetLanguage,purpose:translationPurpose};
   const current = () => requestId === translationRequest
     && sourceText === $("#translator-input").value.trim()
@@ -4098,6 +4099,9 @@ async function renderTranslation({allowImported=false, allowMusic=false}={}) {
     $("#literal-result").textContent=reviewedMeaning.literal;
     if ($("#english-comparison")) $("#english-comparison").hidden=true;
     $("#usage-note").textContent=reviewedMeaning.note;
+    if (languageFamily(sourceLanguage) === "en" && /^burr[.,!?]*$/i.test(sourceText) && $("#translation-spelling-help")) {
+      $("#translation-spelling-help").hidden = false;
+    }
     if (reviewedMeaning.url) {
       const link=document.createElement("a");
       link.href=reviewedMeaning.url; link.target="_blank"; link.rel="noopener noreferrer";
@@ -6702,6 +6706,12 @@ function init() {
     const button=event.target.closest?.('[data-slang-meaning]');
     if(button)applySlangMeaning(button.dataset.slangMeaning);
   });
+  $("#translation-use-brr")?.addEventListener("click", () => {
+    const input = $("#translator-input");
+    claimSourceTextEdit();
+    input.value = "Brr!";
+    input.dispatchEvent(new Event("input", {bubbles:true}));
+  });
   $("#translator-input").addEventListener("beforeinput", claimSourceTextEdit);
   $("#translator-input").addEventListener("compositionstart", claimSourceTextEdit);
   $("#translator-input").addEventListener("input", () => {
@@ -7029,7 +7039,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=262", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=263", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

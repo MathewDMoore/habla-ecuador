@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
   <link rel="stylesheet" href="styles.css?v=255">
-  <script src="interface-es.js?v=261" defer></script>
+  <script src="interface-es.js?v=263" defer></script>
   <script src="interface-language.js?v=218" defer></script>
   <script src="research-reference.js?v=218" defer></script>
   <script src="document-import.js?v=218" defer></script>
@@ -27,25 +27,25 @@
   <script src="live-camera-translation.js?v=226" defer></script>
   <script src="recording-import.js?v=223" defer></script>
   <script src="regional-vocabulary.js?v=253" defer></script>
-  <script src="spanish-context.js?v=262" defer></script>
+  <script src="spanish-context.js?v=263" defer></script>
   <script src="language-community-terms.js?v=218" defer></script>
   <script src="bilingual-music.js?v=218" defer></script>
   <script src="button-feedback.js?v=218" defer></script>
   <script src="regional-practice.js?v=218" defer></script>
   <script src="recorded-transcripts.js?v=218" defer></script>
   <script src="recorded-practice.js?v=218" defer></script>
-  <script src="quick-lessons.js?v=222" defer></script>
+  <script src="quick-lessons.js?v=263" defer></script>
   <script src="slang-contributions.js?v=218" defer></script>
   <script src="app-feedback.js?v=255" defer></script>
   <script src="app-updates.js?v=235" defer></script>
   <script src="whatsapp-audio.js?v=218" defer></script>
   <script src="tutorial.js?v=255" defer></script>
   <script src="swipe-navigation.js?v=249" defer></script>
-  <script src="full-text-reader.js?v=262" defer></script>
+  <script src="full-text-reader.js?v=263" defer></script>
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
   <script src="translation-history.js?v=218" defer></script>
-  <script src="app.js?v=262" defer></script>
+  <script src="app.js?v=263" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -54,7 +54,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.52 · build 262</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.53 · build 263</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -237,6 +237,7 @@
 <section id="translation-result" class="result-card" aria-live="polite">
             <p class="result-label">Natural Ecuadorian Spanish</p>
             <p id="natural-result" class="translation-text" role="textbox" aria-multiline="true" aria-label="Editable translation" spellcheck="true"></p>
+            <p id="translation-spelling-help" hidden><span>Did you mean Brr! (feeling cold)?</span> <button id="translation-use-brr" type="button">Translate Brr!</button></p>
             <div id="translation-text-tools" class="translation-text-tools" role="group" aria-label="Translation text controls">
               <button id="practice-translation" type="button" disabled>Open speaking practice / Abrir práctica oral</button>
               <button id="copy-result" type="button" disabled>Copy</button>
