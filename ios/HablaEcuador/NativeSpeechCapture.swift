@@ -44,6 +44,10 @@ final class NativeSpeechCapture {
                 guard let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
                       raw == AVAudioSession.InterruptionType.began.rawValue,
                       let self, let id = self.activeID else { return }
+                // ScreenCaptureKit system audio is not this microphone AVAudioSession.
+                // Let the stream delegate report a real stop instead of treating
+                // another app’s audio-session interruption as a capture failure.
+                guard !self.systemAudio else { return }
                 self.finish(id: id, error: "audio-capture", message: "iOS interrupted microphone capture. Tap again after the interruption ends.")
             }
     }

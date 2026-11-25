@@ -22,6 +22,13 @@ assert.equal(typeof harness(undefined, "/habla-ecuador/index.html").window.__hab
 // Exercise the actual startup boundary: native standalone redirects before any
 // binding, while the full app and ordinary web translator initialize normally.
 const appSource = fs.readFileSync("app.js", "utf8");
+// A different app's audio session is not proof the ScreenCaptureKit stream ended.
+const nativeCaptureSource = fs.readFileSync("ios/HablaEcuador/NativeSpeechCapture.swift", "utf8");
+assert.ok(nativeCaptureSource.includes("guard !self.systemAudio else { return }"),
+  "native screen-audio capture ignores unrelated microphone session interruptions");
+const nativeAppSource = fs.readFileSync("ios/HablaEcuador/HablaEcuadorApp.swift", "utf8");
+assert.match(nativeAppSource, /isSystemAudioActive != true/,
+  "backgrounding keeps explicit native screen-audio capture alive");
 // The installed system-audio companion loads this hosted page. Switching to a
 // playback app must not trigger the page's ordinary microphone cleanup.
 let visibilityHandler, visibilityCancels = 0, practiceVisibilityCancels = 0;

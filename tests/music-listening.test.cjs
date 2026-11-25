@@ -167,6 +167,25 @@ async function main() {
   assert.equal(element('#translate-music').disabled,false);
   await run('renderTranslation()'); // Still requires an explicit translation action.
 
+  // Explicit iOS 27 system-audio capture must survive background app switching
+  // without a web page timeout. The user stops via Habla's Stop control.
+  element('#music-playback-source').value='system';
+  context.window.__hablaSystemAudioSupported=true;
+  run('newMusicSong()');
+  run('startMusicListening()');
+  const nativeSystem=recordings.at(-1);
+  assert.equal(run('musicListening.systemAudio'),true);
+  assert.equal(run('musicListening.timer'),null,'system audio has no arbitrary 10-minute stop timer');
+  assert.match(element('#music-listening-status').textContent,/Until you tap Stop listening/);
+  nativeSystem.emit('Another app is playing',true);
+  assert.equal(run('musicListening.heard'),true,'native capture remains active before the user stops');
+  run('stopMusicListening()');
+  assert.equal(nativeSystem.stopped,true,'Stop still ends system-audio capture');
+  nativeSystem.onend();
+  assert.equal(run('musicListening'),null);
+  context.window.__hablaSystemAudioSupported=false;
+  element('#music-playback-source').value='external';
+
   // A pause can append to the reviewed transcript without erasing user edits.
   element('#translator-input').value='Edited first verse';
   run('musicCapturedText="Edited first verse"; startMusicListening()');
