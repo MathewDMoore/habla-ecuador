@@ -52,7 +52,10 @@ async function run(browser,entry,width){
  const labels=dialog.locator('.photo-translation-label');assert.equal(await labels.count(),2);
  assert.match(await labels.first().textContent(),/biblioteca/);
  assert.match(await labels.nth(1).textContent(),/tarjeta/);
- const geometry=await labels.first().evaluate(label=>{
+ // ResizeObserver may repaint the label layer between resolving an element
+ // handle and evaluating it. Measure the current image/label atomically.
+ const geometry=await page.evaluate(()=>{
+  const label=document.querySelector('.photo-translation-label');
   const a=label.getBoundingClientRect(),b=document.querySelector('.photo-translator-stage img').getBoundingClientRect();
   return {x:(a.x-b.x)/b.width,y:(a.y-b.y)/b.height,width:a.width/b.width};
  });
