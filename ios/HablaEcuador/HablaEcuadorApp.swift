@@ -507,13 +507,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
         refreshCameraSpatialLabels()
         let newText = cameraVisibleLines.map(\.source).joined(separator: "\n")
-        guard newText != cameraPreviewText else { return }
+        let changed = newText != cameraPreviewText
         cameraPreviewText = newText
         if cameraLiveEnabled {
-            if cameraPreviewInFlight == nil {
-                updateCameraCoverageStatus()
-            }
-            queueCameraLivePreview()
+            updateCameraCoverageStatus()
+            if changed { queueCameraLivePreview() }
         }
     }
 
@@ -523,7 +521,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let recognized = cameraLines.count
         let translated = cameraVisibleLines.filter { cameraTranslatedLines[$0.source] != nil }.count
         let shown = cameraSpatialLabels.values.filter { !$0.isHidden }.count
-        let failed = cameraVisibleLines.filter { cameraFailedLines.contains($0.source) }.count
+        let failed = cameraVisibleLines.filter { cameraFailedLines.contains($0.source) }.count + max(0, recognized - cameraVisibleLines.count)
         let pending = cameraVisibleLines.filter {
             cameraTranslatedLines[$0.source] == nil && !cameraFailedLines.contains($0.source)
         }.count
@@ -543,10 +541,12 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard self.cameraLiveEnabled, self.cameraPreviewInFlight == nil,
                   let id = self.cameraRequestID else { return }
             var seen = Set<String>()
+            let batchLimit: Int
+            if #available(iOS 26.0, *) { batchLimit = 12 } else { batchLimit = 4 }
             let missing = Array(self.cameraVisibleLines.filter {
                 self.cameraTranslatedLines[$0.source] == nil &&
                 !self.cameraFailedLines.contains($0.source) && seen.insert($0.source).inserted
-            }.prefix({ if #available(iOS 26.0, *) { return 12 }; return 4 }()))
+            }.prefix(batchLimit))
             guard !missing.isEmpty else { return }
             let token = UUID().uuidString
             self.cameraPreviewInFlight = token
