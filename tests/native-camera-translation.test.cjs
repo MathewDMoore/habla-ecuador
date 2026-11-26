@@ -163,3 +163,13 @@ test('native AR expands only into free space, preserves field identifiers and su
   assert.match(swift,/#selector\(reviewCameraTranslations\)/);
   assert.match(swift,/#selector\(retryCameraReview\)/);
 });
+
+
+test('grouped printed fields preserve separate translations and avoid opaque block overlays', () => {
+  assert.match(swift,/cameraStructuredLabelLines\(item\.source/);
+  assert.match(swift,/!text\.contains\(where: \\.isNewline\)/);
+  assert.match(swift,/translatedFields\.joined\(separator: "\\n"\)/);
+  assert.match(swift,/max\(sourceLineCount, targetLineCount\)/);
+  assert.match(swift,/label\.backgroundColor = multiLine \? \.clear/);
+  assert.match(swift,/isGuidanceEnabled: false/);
+});
