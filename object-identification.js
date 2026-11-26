@@ -189,7 +189,7 @@ const HablaObjects = (() => {
       const file = input.files?.[0]; input.value = '';
       if (file) identify(file);
     });
-    button.addEventListener('click', () => dialog.showModal());
+    button.addEventListener('click', () => {const task=document.querySelector('#image-task');if(task)task.value='objects';dialog.showModal();});
     dialog.querySelector('[data-objects-choose]').addEventListener('click', () => fileInput.click());
     dialog.querySelector('[data-objects-camera]').addEventListener('click', () => cameraInput.click());
     dialog.querySelector('[data-objects-close]').addEventListener('click', () => dialog.close());

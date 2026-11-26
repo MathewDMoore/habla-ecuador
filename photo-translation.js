@@ -66,7 +66,7 @@ const HablaPhotoTranslation=(()=>{
   dialog=document.createElement('dialog');dialog.id='photo-translator';dialog.className='photo-translator';
   dialog.setAttribute('aria-labelledby','photo-translator-title');
   dialog.innerHTML=`<div class="photo-translator-toolbar"><h2 id="photo-translator-title">Photo translation / Traducción de foto</h2><button type="button" data-photo-close>Close / Cerrar</button></div>
-   <div class="photo-translator-controls"><button type="button" data-photo-original aria-pressed="false">Show original / Ver original</button><button type="button" data-photo-retry>Retry / Reintentar</button><button type="button" data-photo-copy disabled>Copy translation / Copiar</button><button type="button" data-photo-edit>Edit text / Editar texto</button></div>
+   <div class="photo-translator-controls"><button type="button" data-photo-identify>Identify objects instead / Identificar objetos</button><button type="button" data-photo-original aria-pressed="false">Show original / Ver original</button><button type="button" data-photo-retry>Retry / Reintentar</button><button type="button" data-photo-copy disabled>Copy translation / Copiar</button><button type="button" data-photo-edit>Edit text / Editar texto</button></div>
    <p class="photo-translator-note">Uses your From → To languages. Check recognized words. Online mode sends text for translation. / Usa tus idiomas de origen y destino; revisa el texto reconocido.</p>
    <p data-photo-status role="status" aria-live="polite"></p><div class="photo-translator-stage"><img alt="Your photo / Tu foto"><div class="photo-translator-labels"></div></div>
    <p data-photo-detail class="photo-translator-detail" aria-live="polite"></p>`;
@@ -77,6 +77,10 @@ const HablaPhotoTranslation=(()=>{
   image.addEventListener('load',paint);new ResizeObserver(paint).observe(stage);
   const close=()=>{generation++;dialog.close();};
   dialog.querySelector('[data-photo-close]').addEventListener('click',close);
+  dialog.querySelector('[data-photo-identify]').addEventListener('click',()=>{
+   const file=session?.file;if(!file||typeof HablaObjects==='undefined')return;
+   close();const task=document.querySelector('#image-task');if(task)task.value='objects';HablaObjects.open(file);
+  });
   dialog.addEventListener('cancel',()=>{generation++;});
   dialog.addEventListener('close',()=>{generation++;});
   toggle.addEventListener('click',()=>{original=!original;toggle.setAttribute('aria-pressed',String(original));paint();});
@@ -101,7 +105,7 @@ const HablaPhotoTranslation=(()=>{
  }
  function open(file,result){
   if(!dialog)return;
-  clear();session={url:URL.createObjectURL(file),text:result.text,regions:(result.regions||[]).map(region=>({...region}))};
+  clear();session={file,url:URL.createObjectURL(file),text:result.text,regions:(result.regions||[]).map(region=>({...region}))};
   image.src=session.url;reopen.hidden=false;dialog.showModal();run();
  }
  return {bind,open,clear};

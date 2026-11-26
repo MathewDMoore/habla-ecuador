@@ -192,7 +192,7 @@ const HablaScreenshot = (() => {
     }
     readImage=read;
     const choosePhoto=(intent='text')=>{fileIntent=intent;fileInput.click();};
-    choose.addEventListener('click',()=>choosePhoto('text'));
+    choose.addEventListener('click',()=>choosePhoto(selectedIntent()));
     quickChoose?.addEventListener('click',()=>choosePhoto(selectedIntent()));
     camera?.addEventListener('click',()=>{cameraIntent=selectedIntent();cameraInput.click();});
     cameraInput?.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)routeImage(file,cameraIntent);});
@@ -203,7 +203,7 @@ const HablaScreenshot = (() => {
       // importer keep the actual movie instead of reading only its thumbnail.
       if(typeof HablaRecording!=='undefined'&&HablaRecording.videoFromClipboard(event.clipboardData))return;
       const file=imageFromClipboard(event.clipboardData);
-      if(file){event.preventDefault();read(file);}
+      if(file){event.preventDefault();routeImage(file,selectedIntent());}
     });
     const pastePhoto=async(intent)=>{
       if(!navigator.clipboard?.read){
@@ -217,7 +217,7 @@ const HablaScreenshot = (() => {
         report('Clipboard has no picture. Tap Choose photo / Elegir foto to select it from Photos.');
       }catch{report('Image clipboard access was denied. Tap Choose photo / Elegir foto instead.');}
     };
-    paste.addEventListener('click',()=>pastePhoto('text'));
+    paste.addEventListener('click',()=>pastePhoto(selectedIntent()));
     quickPaste?.addEventListener('click',()=>pastePhoto(selectedIntent()));
     document.querySelector('#use-reviewed-image-text')?.addEventListener('click',()=>{
       if(!uncertainResult||!textDraft?.value.trim())return;

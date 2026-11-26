@@ -12,7 +12,7 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
    window.mobilenet={load:async()=>({classify:async()=>[{className:'mouse',probability:.95}]})};
    window.tf={ready:async()=>{}};
    window.cocoSsd={load:async()=>({detect:async()=>[{class:'mouse',score:.96,bbox:[10,10,100,80]}]})};
-   window.Tesseract={createWorker:async()=>({recognize:async()=>{window.ocrCalls++;return {data:{text:'MA NN 4 MN AZ',confidence:24}};},terminate:async()=>{}})};
+   window.Tesseract={createWorker:async()=>({recognize:async()=>{window.ocrCalls++;return {data:{text:'MA NN 4 MN AZ',confidence:window.ocrConfidence||24}};},terminate:async()=>{}})};
   });
   await page.route('**/*',r=>{
    const u=new URL(r.request().url());if(['blob:','data:'].includes(u.protocol))return r.continue();
@@ -27,9 +27,11 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
   assert.equal(await countries.isVisible(),true);
   await page.locator('#source-language-select').selectOption('es-VE');await page.locator('#target-language-select').selectOption('en-US');assert.equal(await countries.isVisible(),true);
   assert.equal(await page.locator('#image-task').inputValue(),'objects');
+  await page.locator('#image-task').selectOption('text');await page.locator('#quick-identify-objects').click();
+  assert.equal(await page.locator('#image-task').inputValue(),'objects');await page.locator('[data-objects-close]').click();
   const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=200;c.height=200;return c.toDataURL().split(',')[1];});
   const file={name:'mouse.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')};
-  for(const button of ['#quick-choose-image','#quick-camera-image','#quick-paste-image']){
+  for(const button of ['#quick-choose-image','#quick-camera-image','#quick-paste-image','#source-paste-image']){
    const pending=page.waitForEvent('filechooser');await page.locator(button).click();await (await pending).setFiles(file);
    const dialog=page.locator('.object-identifier');await dialog.waitFor({state:'visible'});
    await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
@@ -37,6 +39,20 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
    assert.equal(await page.evaluate(()=>ocrCalls),0);assert.equal(await page.locator('#photo-translator').isVisible(),false);
    await dialog.locator('[data-objects-close]').click();
   }
+  await page.locator('#source-full-text').click();
+  for(const button of ['#full-reader-paste-image','#full-reader-choose-image']){
+   const pending=page.waitForEvent('filechooser');await page.locator(button).click();await(await pending).setFiles(file);
+   await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
+   assert.equal(await page.evaluate(()=>ocrCalls),0);await page.locator('[data-objects-close]').click();
+  }
+  // Keyboard/clipboard paste must obey the same task as the photo buttons.
+  await page.locator('#full-reader-source').evaluate((input,png)=>{const bytes=Uint8Array.from(atob(png),x=>x.charCodeAt(0));const transfer=new DataTransfer();transfer.items.add(new File([bytes],'photo.png',{type:'image/png'}));input.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}));},png);
+  await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
+  assert.equal(await page.evaluate(()=>ocrCalls),0);await page.locator('[data-objects-close]').click();
+  await page.locator('#full-reader-close').click();
+  await page.locator('#translator-input').evaluate((input,png)=>{const bytes=Uint8Array.from(atob(png),x=>x.charCodeAt(0));const transfer=new DataTransfer();transfer.items.add(new File([bytes],'photo.png',{type:'image/png'}));input.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:transfer}));},png);
+  await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
+  assert.equal(await page.evaluate(()=>ocrCalls),0);await page.locator('[data-objects-close]').click();
   await page.locator('#translator-input').fill('Keep my original text.');
   await page.locator('#image-task').selectOption('text');
   async function readUncertain(){const pending=page.waitForEvent('filechooser');await page.locator('#quick-choose-image').click();await (await pending).setFiles(file);await page.locator('#image-text-review').waitFor({state:'visible'});}
@@ -45,6 +61,16 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
   await readUncertain();await page.locator('#translator-input').fill('Newer source.');await page.locator('#use-reviewed-image-text').click();assert.equal(await page.locator('#translator-input').inputValue(),'Newer source.');
   await readUncertain();await page.locator('#identify-reviewed-image').click();await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
   assert.equal(await page.locator('#image-text-review').isVisible(),false);
+  await page.locator('[data-objects-close]').click();
+  await page.locator('#image-task').selectOption('text');await page.evaluate(()=>{window.ocrConfidence=95;});
+  const pending=page.waitForEvent('filechooser');await page.locator('#source-paste-image').click();await(await pending).setFiles(file);
+  await page.locator('#photo-translator').waitFor({state:'visible'});
+  const before=await page.evaluate(()=>ocrCalls);
+  await page.locator('[data-photo-identify]').click();
+  await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
+  assert.equal(await page.locator('#image-task').inputValue(),'objects');
+  assert.equal(await page.locator('#photo-translator').isVisible(),false);
+  assert.equal(await page.evaluate(()=>ocrCalls),before,'switching the already-selected photo does not rerun OCR');
   assert.deepEqual(errors,[]);await page.close();
  }}finally{await browser.close();}
  console.log('Both pages passed: Spanish countries in both directions; saved/camera/paste object routing; mouse label; uncertain OCR review, source protection and object retry. Detection/OCR/translation responses stubbed.');
