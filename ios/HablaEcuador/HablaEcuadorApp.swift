@@ -186,6 +186,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraLeaderLayers: [CAShapeLayer] = []
     private var cameraTrackingTask: Task<Void, Never>?
     private var cameraLastLayout = Date.distantPast
+    private var cameraLayoutNeedsRefresh = true
     private var cameraPlacements: [UUID: CameraPlacement] = [:]
     private struct CameraPlacement {
         let source: String
@@ -476,6 +477,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraLeaderLayers.removeAll()
         cameraPlacements.removeAll()
         cameraLastLayout = .distantPast
+        cameraLayoutNeedsRefresh = true
     }
 
     private func cameraTextBounds(_ bounds: RecognizedItem.Bounds) -> CGRect {
@@ -500,6 +502,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraLeaderLayers.removeAll()
         cameraPlacements.removeAll()
         cameraLastLayout = Date()
+        cameraLayoutNeedsRefresh = false
         let visibleIDs = Set(cameraVisibleLines.map(\.id))
         for id in cameraSpatialLabels.keys.filter({ !visibleIDs.contains($0) }) {
             cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
@@ -704,6 +707,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     }
 
     private func updateCameraItems(_ items: [RecognizedItem]) {
+        let previousItems = cameraVisibleLines.reduce(into: [UUID: String]()) { $0[$1.id] = $1.source }
         cameraLines = []
         cameraVisibleLines = []
         for item in items {
@@ -726,13 +730,33 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let changed = newText != cameraPreviewText
         cameraPreviewText = newText
         if cameraLiveEnabled {
+            let currentItems = cameraVisibleLines.reduce(into: [UUID: String]()) { $0[$1.id] = $1.source }
+            if previousItems != currentItems { cameraLayoutNeedsRefresh = true }
             moveCameraOverlays()
-            // Text fitting and overlap checks are expensive. Recompute only
-            // periodically; every incoming geometry update still moves labels.
-            if Date().timeIntervalSince(cameraLastLayout) >= 0.25 {
-                refreshCameraSpatialLabels()
-                updateCameraCoverageStatus()
+            // Preserve an already fitted label through small camera movements.
+            // Refit when OCR identities/content change, a label leaves the
+            // viewfinder, or the text changes substantially in scale/angle.
+            let geometryChanged = cameraVisibleLines.contains { line in
+                guard let placement = cameraPlacements[line.id] else { return false }
+                let sx = line.frame.width / max(1, placement.frame.width)
+                let sy = line.frame.height / max(1, placement.frame.height)
+                let delta = line.angle - placement.angle
+                let angleChange = abs(atan2(sin(delta), cos(delta)))
+                return sx < 0.8 || sx > 1.25 || sy < 0.8 || sy > 1.25 ||
+                    angleChange > 0.18 || cameraSpatialLabels[line.id]?.isHidden == true
             }
+            if geometryChanged { cameraLayoutNeedsRefresh = true }
+            let hasUnplaced = cameraVisibleLines.contains { line in
+                guard let translated = cameraTranslatedLines[line.source],
+                      !cameraUnchanged(line.source, translated) else { return false }
+                return cameraPlacements[line.id] == nil
+            }
+            let elapsed = Date().timeIntervalSince(cameraLastLayout)
+            if (cameraLayoutNeedsRefresh && elapsed >= 0.25) ||
+                (hasUnplaced && elapsed >= 0.8) {
+                refreshCameraSpatialLabels()
+            }
+            updateCameraCoverageStatus()
             if changed { queueCameraLivePreview() }
         }
     }
