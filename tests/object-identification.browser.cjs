@@ -4,7 +4,8 @@ const path = require('node:path');
 const playwright = require(process.env.HABLA_PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '..');
 (async () => {
-  const browser = await playwright[process.env.HABLA_BROWSER_ENGINE || 'chromium'].launch({executablePath: process.env.HABLA_BROWSER_PATH || undefined, args:['--no-sandbox']});
+  const engine=process.env.HABLA_BROWSER_ENGINE || 'chromium';
+  const browser = await playwright[engine].launch(engine==='chromium'?{executablePath: process.env.HABLA_BROWSER_PATH || undefined, args:['--no-sandbox']}:{});
   try {
     for (const entry of ['index.html', 'translator.html']) {
       const page = await browser.newPage({viewport:{width:390,height:844},serviceWorkers:'block'});
