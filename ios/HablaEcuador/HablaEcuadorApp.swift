@@ -183,6 +183,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     }
     private var cameraVisibleLines: [CameraVisibleLine] = []
     private var cameraSpatialLabels: [UUID: UILabel] = [:]
+    private var cameraLeaderLayers: [CAShapeLayer] = []
     private var cameraTranslatedLines: [String: String] = [:]
     private var cameraFailedLines: Set<String> = []
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
@@ -459,6 +460,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private func clearCameraSpatialLabels() {
         for label in cameraSpatialLabels.values { label.removeFromSuperview() }
         cameraSpatialLabels.removeAll()
+        cameraLeaderLayers.forEach { $0.removeFromSuperlayer() }
+        cameraLeaderLayers.removeAll()
     }
 
     private func cameraTextBounds(_ bounds: RecognizedItem.Bounds) -> CGRect {
@@ -479,15 +482,17 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         let surface = scanner.overlayContainerView
         let bounds = surface.bounds
         guard bounds.width > 40 && bounds.height > 40 else { return }
+        cameraLeaderLayers.forEach { $0.removeFromSuperlayer() }
+        cameraLeaderLayers.removeAll()
         let visibleIDs = Set(cameraVisibleLines.map(\.id))
         for id in cameraSpatialLabels.keys.filter({ !visibleIDs.contains($0) }) {
             cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
         }
         // Reserve physical text footprints even if their translations are not ready.
-        func screenRect(_ line: CameraVisibleLine, width: CGFloat, height: CGFloat) -> CGRect {
+        func screenRect(_ line: CameraVisibleLine, width: CGFloat, height: CGFloat, offset: CGPoint = .zero) -> CGRect {
             let c = abs(cos(line.angle)), t = abs(sin(line.angle))
             let w = width * c + height * t, h = width * t + height * c
-            return CGRect(x: line.frame.midX - w / 2, y: line.frame.midY - h / 2, width: w, height: h)
+            return CGRect(x: line.frame.midX + offset.x - w / 2, y: line.frame.midY + offset.y - h / 2, width: w, height: h)
         }
         var occupied: [CGRect] = []
         // Favor individual text lines over large, overlapping OCR blocks.
@@ -496,6 +501,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
         for line in orderedLines {
             guard let translation = cameraTranslatedLines[line.source], !translation.isEmpty,
+                  !cameraUnchanged(line.source, translation),
                   line.frame.width > 12, line.frame.height > 4 else {
                 cameraSpatialLabels.removeValue(forKey: line.id)?.removeFromSuperview()
                 continue
@@ -536,39 +542,57 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             let height = max(14, line.frame.height)
             let baseSize = min(24, max(9, line.frame.height * 0.78 / CGFloat(max(sourceLineCount, targetLineCount))))
             var selected: CGSize?
+            var selectedOffset = CGPoint.zero
             let candidates: [CGSize] = [
                 CGSize(width: width, height: height),
                 CGSize(width: width * 1.25, height: height),
                 CGSize(width: width * 1.5, height: height * 1.25),
-                CGSize(width: width * 1.5, height: height * 2)
+                CGSize(width: width * 1.5, height: height * 2),
+                CGSize(width: max(100, width), height: max(28, height * 2)),
+                CGSize(width: max(150, width), height: max(42, height * 2))
             ]
-            for candidate in candidates {
-                let footprint = screenRect(line, width: candidate.width, height: candidate.height)
-                let original = screenRect(line, width: width, height: height)
-                guard bounds.contains(footprint) else { continue }
-                let collision = cameraVisibleLines.contains { other in
-                    guard other.id != line.id else { return false }
-                    let otherRect = screenRect(other, width: other.frame.width, height: other.frame.height)
-                    let intersection = footprint.intersection(otherRect)
-                    let existing = original.intersection(otherRect)
-                    let area = intersection.isNull ? 0 : intersection.width * intersection.height
-                    let existingArea = existing.isNull ? 0 : existing.width * existing.height
-                    return area > existingArea + 4
-                }
-                guard !collision, !occupied.contains(where: { prior in
-                    let overlap = prior.intersection(footprint)
-                    return !overlap.isNull && overlap.width * overlap.height > 4
-                }) else { continue }
-                var size = baseSize
-                while size >= 9 {
-                    label.font = .systemFont(ofSize: size, weight: .semibold)
-                    let measured = label.sizeThatFits(CGSize(width: max(1, candidate.width - 4), height: .greatestFiniteMagnitude))
-                    if measured.width <= candidate.width && measured.height <= candidate.height {
-                        selected = candidate
-                        occupied.append(footprint)
-                        break
+            let original = screenRect(line, width: line.frame.width, height: line.frame.height)
+            for nearby in [false, true] {
+                for candidate in candidates {
+                    let distance = min(90, (height + candidate.height) / 2 + 5)
+                    let normal = CGPoint(x: -sin(line.angle), y: cos(line.angle))
+                    let offsets = nearby ? [
+                        CGPoint(x: normal.x * distance, y: normal.y * distance),
+                        CGPoint(x: -normal.x * distance, y: -normal.y * distance)
+                    ] : [.zero]
+                    for offset in offsets {
+                        let footprint = screenRect(line, width: candidate.width, height: candidate.height, offset: offset)
+                        guard bounds.contains(footprint) else { continue }
+                        // Nearby labels must stay close to their source and cannot obscure any other printed region.
+                        if nearby && footprint.intersects(original) { continue }
+                        let collision = cameraVisibleLines.contains { other in
+                            guard other.id != line.id else { return false }
+                            let otherRect = screenRect(other, width: other.frame.width, height: other.frame.height)
+                            let intersection = footprint.intersection(otherRect)
+                            let existing = original.intersection(otherRect)
+                            let area = intersection.isNull ? 0 : intersection.width * intersection.height
+                            let existingArea = existing.isNull ? 0 : existing.width * existing.height
+                            return area > (nearby ? 0 : existingArea) + 4
+                        }
+                        guard !collision, !occupied.contains(where: { prior in
+                            let overlap = prior.intersection(footprint)
+                            return !overlap.isNull && overlap.width * overlap.height > 4
+                        }) else { continue }
+                        var size = nearby ? min(18, max(12, baseSize)) : baseSize
+                        while size >= 9 {
+                            label.font = .systemFont(ofSize: size, weight: .semibold)
+                            let measured = label.sizeThatFits(CGSize(width: max(1, candidate.width - 4), height: .greatestFiniteMagnitude))
+                            if measured.width <= candidate.width && measured.height <= candidate.height {
+                                selected = candidate
+                                selectedOffset = offset
+                                occupied.append(footprint)
+                                break
+                            }
+                            size -= 1
+                        }
+                        if selected != nil { break }
                     }
-                    size -= 1
+                    if selected != nil { break }
                 }
                 if selected != nil { break }
             }
@@ -584,8 +608,20 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             }
             let fitted = selected ?? CGSize(width: width, height: height)
             label.bounds = CGRect(origin: .zero, size: fitted)
-            label.center = CGPoint(x: line.frame.midX, y: line.frame.midY)
+            label.center = CGPoint(x: line.frame.midX + selectedOffset.x, y: line.frame.midY + selectedOffset.y)
             label.transform = CGAffineTransform(rotationAngle: line.angle)
+            if selected != nil, selectedOffset != .zero {
+                let connector = CAShapeLayer()
+                let path = UIBezierPath()
+                path.move(to: CGPoint(x: line.frame.midX, y: line.frame.midY))
+                path.addLine(to: label.center)
+                connector.path = path.cgPath
+                connector.strokeColor = UIColor.systemTeal.cgColor
+                connector.lineWidth = 1.5
+                connector.fillColor = UIColor.clear.cgColor
+                surface.layer.insertSublayer(connector, at: 0)
+                cameraLeaderLayers.append(connector)
+            }
             label.accessibilityLabel = line.source + " → " + translation
         }
     }
@@ -619,17 +655,28 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
+    // An identical result is not proof of a successful translation. Keep it visible as
+    // original text and count it separately, including names and identifiers.
+    private func cameraUnchanged(_ source: String, _ target: String) -> Bool {
+        source.trimmingCharacters(in: .whitespacesAndNewlines).caseInsensitiveCompare(
+            target.trimmingCharacters(in: .whitespacesAndNewlines)) == .orderedSame
+    }
+
     private func updateCameraCoverageStatus() {
         if let error = cameraLastError { cameraOverlayLabel?.text = error; return }
         guard !cameraLines.isEmpty else { cameraOverlayLabel?.text = "Point at readable text."; return }
         let recognized = cameraLines.count
-        let translated = cameraVisibleLines.filter { cameraTranslatedLines[$0.source] != nil }.count
+        let unchanged = cameraVisibleLines.filter { line in
+            guard let result = cameraTranslatedLines[line.source] else { return false }
+            return cameraUnchanged(line.source, result)
+        }.count
+        let translated = cameraVisibleLines.filter { cameraTranslatedLines[$0.source] != nil }.count - unchanged
         let shown = cameraSpatialLabels.values.filter { !$0.isHidden }.count
         let failed = cameraVisibleLines.filter { cameraFailedLines.contains($0.source) }.count + max(0, recognized - cameraVisibleLines.count)
         let pending = cameraVisibleLines.filter {
             cameraTranslatedLines[$0.source] == nil && !cameraFailedLines.contains($0.source)
         }.count
-        cameraOverlayLabel?.text = "\(shown)/\(recognized) overlaid · \(pending) pending · \(failed) failed" +
+        cameraOverlayLabel?.text = "\(shown)/\(recognized) overlaid · \(unchanged) unchanged · \(pending) pending · \(failed) failed" +
             (translated > shown ? " · \(translated - shown) need full-text review" : "")
     }
 
