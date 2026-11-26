@@ -182,3 +182,14 @@ test('AR preserves unchanged text and offers collision-checked nearby anchored p
   assert.match(swift,/path\.addLine\(to: label\.center\)/);
   assert.match(swift,/overlaid .* unchanged .* pending .* failed/);
 });
+
+
+test('AR geometry updates independently of expensive text layout and stops with camera', () => {
+  assert.match(swift,/for await items in scanner\.recognizedItems/);
+  assert.match(swift,/self\.updateCameraItems\(items\)/);
+  assert.match(swift,/private func moveCameraOverlays\(\)/);
+  assert.match(swift,/UIView\.performWithoutAnimation/);
+  assert.match(swift,/\.scaledBy\(x: sx, y: sy\)/);
+  assert.match(swift,/timeIntervalSince\(cameraLastLayout\) >= 0\.25/);
+  assert.match(swift,/cameraTrackingTask\?\.cancel\(\)/);
+});
