@@ -190,6 +190,14 @@ test('AR geometry updates independently of expensive text layout and stops with 
   assert.match(swift,/private func moveCameraOverlays\(\)/);
   assert.match(swift,/UIView\.performWithoutAnimation/);
   assert.match(swift,/\.scaledBy\(x: sx, y: sy\)/);
-  assert.match(swift,/timeIntervalSince\(cameraLastLayout\) >= 0\.25/);
+  assert.match(swift,/cameraLayoutNeedsRefresh && elapsed >= 0\.25/);
   assert.match(swift,/cameraTrackingTask\?\.cancel\(\)/);
+});
+
+
+test('small camera movements reuse overlay placement instead of forcing layout', () => {
+  assert.match(swift,/previousItems != currentItems/);
+  assert.match(swift,/cameraLayoutNeedsRefresh && elapsed >= 0\.25/);
+  assert.match(swift,/hasUnplaced && elapsed >= 0\.8/);
+  assert.match(swift,/angleChange > 0\.18/);
 });
