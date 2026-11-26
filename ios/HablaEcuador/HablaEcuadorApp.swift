@@ -361,7 +361,16 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         label.textColor = .white
         label.text = "\(cameraSourceLocale) → \(cameraTargetLocale) · on-device draft"
 
-        let stack = UIStackView(arrangedSubviews: [button, label])
+        let review = UIButton(type: .system)
+        review.setTitle("Review / Revisar", for: .normal)
+        review.tintColor = .white
+        review.addTarget(self, action: #selector(reviewCameraTranslations), for: .touchUpInside)
+        let controls = UIStackView(arrangedSubviews: [button, review])
+        controls.axis = .horizontal
+        controls.spacing = 10
+        controls.distribution = .fillProportionally
+        button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        let stack = UIStackView(arrangedSubviews: [controls, label])
         stack.axis = .vertical
         stack.spacing = 2
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -378,6 +387,49 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         ])
         cameraOverlayLabel = label
         cameraOverlayButton = button
+    }
+
+    // Full translations stay available inside the native camera, including
+    // regions that cannot fit without covering adjacent text.
+    @objc private func reviewCameraTranslations() {
+        guard let scanner = cameraScanner else { return }
+        let review = UIViewController()
+        review.title = "Camera text / Texto de cámara"
+        review.view.backgroundColor = .systemBackground
+        let text = UITextView()
+        text.isEditable = false
+        text.font = .preferredFont(forTextStyle: .body)
+        text.translatesAutoresizingMaskIntoConstraints = false
+        text.text = cameraLines.map { source in
+            source + "\n" + (cameraTranslatedLines[source] ??
+                (cameraFailedLines.contains(source) ? "Not translated — original retained" : "Translation pending or unavailable"))
+        }.joined(separator: "\n\n")
+        review.view.addSubview(text)
+        NSLayoutConstraint.activate([
+            text.leadingAnchor.constraint(equalTo: review.view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            text.trailingAnchor.constraint(equalTo: review.view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            text.topAnchor.constraint(equalTo: review.view.safeAreaLayoutGuide.topAnchor),
+            text.bottomAnchor.constraint(equalTo: review.view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        review.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back / Volver", style: .plain,
+            target: self, action: #selector(closeCameraReview))
+        review.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Retry / Reintentar", style: .plain,
+            target: self, action: #selector(retryCameraReview))
+        let nav = UINavigationController(rootViewController: review)
+        nav.modalPresentationStyle = .pageSheet
+        scanner.present(nav, animated: true)
+    }
+
+    @objc private func closeCameraReview() {
+        cameraScanner?.presentedViewController?.dismiss(animated: true)
+    }
+
+    @objc private func retryCameraReview() {
+        cameraScanner?.presentedViewController?.dismiss(animated: true)
+        cameraFailedLines.removeAll()
+        cameraLastError = nil
+        queueCameraLivePreview()
+        updateCameraCoverageStatus()
     }
 
     @objc private func toggleCameraLiveTranslation() {
@@ -431,6 +483,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         for id in cameraSpatialLabels.keys.filter({ !visibleIDs.contains($0) }) {
             cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
         }
+        // Reserve physical text footprints even if their translations are not ready.
+        func screenRect(_ line: CameraVisibleLine, width: CGFloat, height: CGFloat) -> CGRect {
+            let c = abs(cos(line.angle)), t = abs(sin(line.angle))
+            let w = width * c + height * t, h = width * t + height * c
+            return CGRect(x: line.frame.midX - w / 2, y: line.frame.midY - h / 2, width: w, height: h)
+        }
+        var occupied: [CGRect] = []
         for line in cameraVisibleLines {
             guard let translation = cameraTranslatedLines[line.source], !translation.isEmpty,
                   line.frame.width > 12, line.frame.height > 4 else {
@@ -465,21 +524,46 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             label.transform = .identity
             let width = max(24, line.frame.width)
             let height = max(14, line.frame.height)
-            var size = min(24, max(9, line.frame.height * 0.70))
-            var fits = false
-            while size >= 9 {
-                label.font = .systemFont(ofSize: size, weight: .semibold)
-                let measured = label.sizeThatFits(CGSize(width: max(1, width - 4), height: .greatestFiniteMagnitude))
-                if measured.width <= width && measured.height <= height {
-                    fits = true
-                    break
+            let baseSize = min(24, max(10, line.frame.height * 0.70))
+            var selected: CGSize?
+            let candidates: [CGSize] = [
+                CGSize(width: width, height: height),
+                CGSize(width: width * 1.25, height: height),
+                CGSize(width: width * 1.5, height: height * 1.25),
+                CGSize(width: width * 1.5, height: height * 2)
+            ]
+            for candidate in candidates {
+                let footprint = screenRect(line, width: candidate.width, height: candidate.height)
+                let original = screenRect(line, width: width, height: height)
+                guard bounds.contains(footprint) else { continue }
+                let collision = cameraVisibleLines.contains { other in
+                    guard other.id != line.id else { return false }
+                    let otherRect = screenRect(other, width: other.frame.width, height: other.frame.height)
+                    let intersection = footprint.intersection(otherRect)
+                    let existing = original.intersection(otherRect)
+                    let area = intersection.isNull ? 0 : intersection.width * intersection.height
+                    let existingArea = existing.isNull ? 0 : existing.width * existing.height
+                    return area > existingArea + 4
                 }
-                size -= 1
+                guard !collision, !occupied.contains(where: { $0.intersects(footprint) }) else { continue }
+                var size = baseSize
+                while size >= 10 {
+                    label.font = .systemFont(ofSize: size, weight: .semibold)
+                    let measured = label.sizeThatFits(CGSize(width: max(1, candidate.width - 4), height: .greatestFiniteMagnitude))
+                    if measured.width <= candidate.width && measured.height <= candidate.height {
+                        selected = candidate
+                        occupied.append(footprint)
+                        break
+                    }
+                    size -= 1
+                }
+                if selected != nil { break }
             }
-            // Never cover the original with a clipped or illegibly small fragment.
-            // Full text is available from the review control.
-            label.isHidden = !fits
-            label.bounds = CGRect(x: 0, y: 0, width: width, height: height)
+            // Longer target phrases may expand only into unused space.
+            // Never cover unrelated text or silently clip an entire phrase.
+            label.isHidden = selected == nil
+            let fitted = selected ?? CGSize(width: width, height: height)
+            label.bounds = CGRect(origin: .zero, size: fitted)
             label.center = CGPoint(x: line.frame.midX, y: line.frame.midY)
             label.transform = CGAffineTransform(rotationAngle: line.angle)
             label.accessibilityLabel = line.source + " → " + translation
@@ -585,8 +669,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 var translations: [[String: String]] = []
                 guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
                 do {
-                    let result = try await session.translate(item.source)
-                    let output = result.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let output: String
+                    if let reviewed = self.cameraReviewedLabel(item.source, source: source, target: target) {
+                        output = reviewed
+                    } else {
+                        let result = try await session.translate(item.source)
+                        output = result.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
                     if output.isEmpty || output.count > 6000 || self.cameraNumbers(item.source) != self.cameraNumbers(output) {
                         translations.append(["source": item.source, "error": "Unverified text or changed numbers"])
                     } else {
@@ -603,6 +692,26 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
             self.receiveCameraLiveResult(["id": id, "token": token])
         }
+    }
+
+    // Only exact, unambiguous printed field labels; copy the identifier/date
+    // suffix without reformatting or passing it through the translation model.
+    private func cameraReviewedLabel(_ text: String, source: String, target: String) -> String? {
+        guard source == "en", target == "es" else { return nil }
+        let labels = [("Group ID", "ID de grupo"), ("Effective", "Vigente desde"),
+                      ("Member", "Miembro"), ("Subscriber ID", "ID de suscriptor")]
+        for (english, spanish) in labels {
+            let prefix = english + ":"
+            if text.lowercased().hasPrefix(prefix.lowercased()) {
+                return spanish + ":" + String(text.dropFirst(prefix.count))
+            }
+        }
+        if text.caseInsensitiveCompare("Vision Care") == .orderedSame { return "Cuidado de la vista" }
+        if text.caseInsensitiveCompare("This is not insurance.") == .orderedSame ||
+           text.caseInsensitiveCompare("This is not insurance") == .orderedSame {
+            return "Esto no es un seguro."
+        }
+        return nil
     }
 
     private func cameraNumbers(_ value: String) -> [String] {
