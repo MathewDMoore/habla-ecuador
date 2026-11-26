@@ -55,15 +55,21 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
   assert.equal(await page.evaluate(()=>ocrCalls),0);await page.locator('[data-objects-close]').click();
   await page.locator('#translator-input').fill('Keep my original text.');
   await page.locator('#image-task').selectOption('text');
-  async function readUncertain(){const pending=page.waitForEvent('filechooser');await page.locator('#quick-choose-image').click();await (await pending).setFiles(file);await page.locator('#image-text-review').waitFor({state:'visible'});}
-  await readUncertain();assert.equal(await page.locator('#translator-input').inputValue(),'Keep my original text.');assert.equal(await page.locator('#photo-translator').isVisible(),false);
+  async function readUncertain(button='#quick-choose-image'){const pending=page.waitForEvent('filechooser');await page.locator(button).click();await (await pending).setFiles(file);await page.locator('#image-text-review').waitFor({state:'visible'});}
+  await page.locator('#source-full-text').click();await readUncertain('#full-reader-choose-image');
+  assert.equal(await page.locator('#full-text-reader').isVisible(),false,'OCR review is not hidden behind the expanded reader');
+  assert.equal(await page.locator('#translator-input').inputValue(),'Keep my original text.');assert.equal(await page.locator('#photo-translator').isVisible(),false);
   await page.locator('#image-text-draft').fill('Reviewed wording.');await page.locator('#use-reviewed-image-text').click();assert.equal(await page.locator('#translator-input').inputValue(),'Reviewed wording.');
   await readUncertain();await page.locator('#translator-input').fill('Newer source.');await page.locator('#use-reviewed-image-text').click();assert.equal(await page.locator('#translator-input').inputValue(),'Newer source.');
   await readUncertain();await page.locator('#identify-reviewed-image').click();await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('ratón'));
   assert.equal(await page.locator('#image-text-review').isVisible(),false);
+  assert.equal(await page.locator('#image-task').inputValue(),'objects');
   await page.locator('[data-objects-close]').click();
   await page.locator('#image-task').selectOption('text');await page.evaluate(()=>{window.ocrConfidence=95;});
   const pending=page.waitForEvent('filechooser');await page.locator('#source-paste-image').click();await(await pending).setFiles(file);
+  await page.locator('#image-text-review').waitFor({state:'visible'});
+  assert.equal(await page.locator('#photo-translator').isVisible(),false,'high-confidence gibberish is not auto-painted');
+  await page.locator('#image-text-show-labels').check();await page.locator('#use-reviewed-image-text').click();
   await page.locator('#photo-translator').waitFor({state:'visible'});
   const before=await page.evaluate(()=>ocrCalls);
   await page.locator('[data-photo-identify]').click();

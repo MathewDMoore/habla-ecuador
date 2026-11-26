@@ -38,6 +38,10 @@ async function test(browser,entry){
  await page.locator('#quick-paste-image').click();
  const chooser=await chooserPromise;
  await chooser.setFiles({name:'verse.png',mimeType:'image/png',buffer:tinyPng});
+ await page.locator('#image-text-review').waitFor({state:'visible'});
+ assert.equal(await page.locator('#translator-input').inputValue(),'');
+ assert.equal(await page.locator('#photo-translator').isVisible(),false);
+ await page.locator('#use-reviewed-image-text').click();
  await page.waitForFunction(spanish=>document.querySelector('#translator-input').value===spanish,spanish,{timeout:10000});
  await page.waitForFunction(english=>document.querySelector('#natural-result').textContent.includes(english),english,{timeout:10000});
  assert.equal(await page.locator('#translator-input').inputValue(),spanish);

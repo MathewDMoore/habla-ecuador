@@ -24,7 +24,7 @@
   <script src="mixed-language-translation.js?v=218" defer></script>
   <script src="object-identification.js?v=271" defer></script>
   <script src="photo-translation.js?v=271" defer></script>
-  <script src="screenshot-import.js?v=271" defer></script>
+  <script src="screenshot-import.js?v=272" defer></script>
   <script src="live-camera-translation.js?v=267" defer></script>
   <script src="recording-import.js?v=223" defer></script>
   <script src="regional-vocabulary.js?v=253" defer></script>
@@ -48,7 +48,7 @@
   <script src="translation-history.js?v=218" defer></script>
   <link rel="stylesheet" href="grammar-reference.css?v=267">
   <script src="grammar-reference.js?v=267" defer></script>
-  <script src="app.js?v=271" defer></script>
+  <script src="app.js?v=272" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -57,7 +57,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.60 · build 271</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-pill" data-app-version>v0.27.61 · build 272</span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -246,9 +246,11 @@
           </div>
           <p id="quick-image-status" class="import-status quick-image-status" role="status" aria-live="polite"></p>
           <section id="image-text-review" class="compact-info" hidden aria-label="Review unclear image text / Revisar texto poco claro">
-            <p>The text reader is uncertain. Edit the words before translating, or identify the objects in this photo. / El lector tiene dudas. Corrige el texto antes de traducir o identifica los objetos de esta foto.</p>
+            <p>Check the detected words against your original photo before translating. For a picture of an object, choose Identify objects. / Revisa las palabras con la foto original antes de traducir. Para identificar un objeto, elige Identificar objetos.</p>
+            <img id="image-text-original" alt="Original image for text review / Imagen original para revisar" style="display:block;max-width:100%;max-height:45vh;object-fit:contain;margin:.5rem auto">
             <label for="image-text-draft">Review detected text / Revisar texto detectado</label>
             <textarea id="image-text-draft" rows="5" spellcheck="true"></textarea>
+            <label><input id="image-text-show-labels" type="checkbox"> Show translated labels on photo (optional) / Mostrar etiquetas en la foto (opcional)</label>
             <div class="import-actions"><button id="use-reviewed-image-text" type="button">Translate reviewed text / Traducir texto revisado</button><button id="identify-reviewed-image" type="button">Identify objects / Identificar objetos</button><button id="cancel-image-text-review" type="button">Cancel / Cancelar</button></div>
           </section>
           <div id="source-language-warning" class="source-language-warning" role="alert" hidden>

@@ -42,7 +42,13 @@ async function run(browser,entry,width){
  await page.locator('#image-task').selectOption('text');
  const chooserPromise=page.waitForEvent('filechooser');await page.locator('#quick-camera-image').click();
  const chooser=await chooserPromise;await chooser.setFiles({name:'notice.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
- const dialog=page.locator('#photo-translator');await dialog.waitFor({state:'visible'});
+ const dialog=page.locator('#photo-translator');
+ await page.locator('#image-text-review').waitFor({state:'visible'});
+ assert.equal(await dialog.isVisible(),false,'no overlay before review, even at 95% OCR confidence');
+ assert.equal(await page.locator('#translator-input').inputValue(),'');
+ assert.equal(await page.locator('#image-text-show-labels').isChecked(),false);
+ await page.locator('#image-text-show-labels').check();await page.locator('#use-reviewed-image-text').click();
+ await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelectorAll('.photo-translation-label[data-ready="true"]').length===2);
  await page.waitForFunction(()=>{const image=document.querySelector('#photo-translator img');return image.complete&&image.naturalWidth>0&&image.getBoundingClientRect().height>0;},{},{timeout:10000}).catch(async error=>{
   console.error(await page.evaluate(()=>{const i=document.querySelector('#photo-translator img');return {src:i.src,complete:i.complete,naturalWidth:i.naturalWidth,width:i.clientWidth,height:i.clientHeight,style:getComputedStyle(i).cssText};}),requests);

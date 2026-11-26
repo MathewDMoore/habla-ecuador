@@ -140,11 +140,13 @@ const HablaScreenshot = (() => {
     const review=document.querySelector('#screenshot-review'),preview=document.querySelector('#screenshot-preview');
     const top=document.querySelector('#screenshot-top'),bottom=document.querySelector('#screenshot-bottom'),shade=document.querySelector('#screenshot-shade');
     const textReview=document.querySelector('#image-text-review'),textDraft=document.querySelector('#image-text-draft');
-    let controller,currentFile,imageUrl,uncertainResult,uncertainGuard,fileIntent='text',cameraIntent='text';
+    const reviewImage=document.querySelector('#image-text-original'),showLabels=document.querySelector('#image-text-show-labels');
+    let controller,currentFile,imageUrl,uncertainResult,uncertainGuard,reviewOverlay=false,fileIntent='text',cameraIntent='text';
     const selectedIntent=()=>document.querySelector('#image-task')?.value==='objects'?'objects':'text';
-    const hideTextReview=()=>{uncertainResult=null;uncertainGuard=null;if(textReview)textReview.hidden=true;if(textDraft)textDraft.value='';};
+    const hideTextReview=()=>{uncertainResult=null;uncertainGuard=null;if(textReview)textReview.hidden=true;if(textDraft)textDraft.value='';if(reviewImage)reviewImage.removeAttribute('src');if(showLabels)showLabels.checked=false;};
     function routeImage(file,intent){
       if(intent!=='objects'){read(file);return;}
+      const task=document.querySelector('#image-task');if(task)task.value='objects';
       clearUi();
       if(typeof HablaObjects==='undefined'){report('Object identification is unavailable. Reload Habla. / Vuelve a abrir Habla.');return;}
       report('Identifying objects in your photo… / Identificando objetos en tu foto…');
@@ -176,16 +178,17 @@ const HablaScreenshot = (() => {
             if(id===sequence&&progress.status==='recognizing text')report(`Reading screenshot… ${Math.round((progress.progress||0)*100)}%`);
           }});
           if(id!==sequence||!result)return;
-          const confidence=Number(result.confidence);
-          if(Number.isFinite(confidence)&&confidence<65){
-            uncertainResult=result;uncertainGuard=guard;
-            if(textReview&&textDraft){textDraft.value=result.text;textReview.hidden=false;}
-            report('Text could not be read reliably. Review it before translating, or choose Identify objects. / Revisa el texto antes de traducir o elige Identificar objetos.');
+          // Still photos require review, even when OCR reports high confidence.
+          if(textReview&&textDraft){
+            uncertainResult=result;uncertainGuard=guard;reviewOverlay=overlay;
+            textDraft.value=result.text;textReview.hidden=false;
+            if(document.querySelector('#full-text-reader')?.open)document.querySelector('#full-reader-close')?.click();
+            textReview.scrollIntoView?.({block:'start'});
+            if(reviewImage&&imageUrl)reviewImage.src=imageUrl;
+            report('Review the detected words before translating. Your source has not changed. / Revisa las palabras antes de traducir. Tu texto original no ha cambiado.');
             return;
           }
-          if(!commit(result,guard)){report('Your input changed while the image was read. Your text was kept. Choose the photo again when ready.');return;}
-          if(overlay&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,result);
-          report('Image text recognized. Translation is being prepared. Check the original words before sharing.');
+          report('Text review is unavailable. Reload Habla before importing this photo. / Vuelve a abrir Habla para revisar el texto de esta foto.');
         }catch(error){if(id===sequence)report(error.message||'Screenshot could not be read. Try a clearer image.');}
         finally{if(id===sequence)cancel.hidden=true;}
       });
@@ -221,8 +224,14 @@ const HablaScreenshot = (() => {
     quickPaste?.addEventListener('click',()=>pastePhoto(selectedIntent()));
     document.querySelector('#use-reviewed-image-text')?.addEventListener('click',()=>{
       if(!uncertainResult||!textDraft?.value.trim())return;
-      const accepted=commit({...uncertainResult,text:textDraft.value.trim(),regions:[]},uncertainGuard);
-      hideTextReview();report(accepted?'Reviewed text added for translation. / Texto revisado añadido para traducir.':'Your source changed. Read the image again. / Tu texto cambió. Lee la imagen otra vez.');
+      const original=uncertainResult,edited=textDraft.value.trim();
+      const unchanged=edited===original.text.trim();
+      const approved={...original,text:edited,regions:unchanged?original.regions:[]};
+      const wantsLabels=Boolean(showLabels?.checked&&reviewOverlay),labels=wantsLabels&&unchanged,file=currentFile;
+      const accepted=commit(approved,uncertainGuard);
+      hideTextReview();
+      if(accepted&&labels&&file&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,approved);
+      report(!accepted?'Your source changed. Read the image again. / Tu texto cambió. Lee la imagen otra vez.':wantsLabels&&!unchanged?'Edited text is translated without photo labels. / El texto corregido se traduce sin etiquetas en la foto.':'Reviewed text added for translation. / Texto revisado añadido para traducir.');
     });
     document.querySelector('#identify-reviewed-image')?.addEventListener('click',()=>{if(currentFile)routeImage(currentFile,'objects');});
     document.querySelector('#cancel-image-text-review')?.addEventListener('click',()=>{hideTextReview();report('Image text review cancelled. / Revisión cancelada.');});
