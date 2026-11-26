@@ -1677,3 +1677,9 @@ body.ve-theater-open {overflow:hidden !important;}
 .selected-passage-tools .speech-action-status { flex-basis:100%; margin:0; }
 dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
 @media print { .selected-passage-tools { display:none !important; } }
+
+/* Keep ordinary source and target visible together, including with the keyboard. */
+#shared-translation-workspace > .input-card { padding: 6px 0 4px; }
+#shared-translation-workspace > .input-card textarea { height: auto; min-height: 3em; max-height: 22svh; }
+#shared-translation-workspace > .result-card { padding-top: 8px; }
+#shared-translation-workspace > #translation-empty-target { min-height: 3em; }
