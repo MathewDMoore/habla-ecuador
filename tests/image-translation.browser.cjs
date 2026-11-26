@@ -33,6 +33,7 @@ async function test(browser,entry){
  assert.equal(await page.locator('#quick-paste-image').isVisible(),true,'Image paste control is visible');
  // Even when iOS blocks clipboard.read(), tapping Paste image should open
  // the Photos/file picker from the same gesture instead of doing nothing.
+ await page.locator('#image-task').selectOption('text');
  const chooserPromise=page.waitForEvent('filechooser');
  await page.locator('#quick-paste-image').click();
  const chooser=await chooserPromise;

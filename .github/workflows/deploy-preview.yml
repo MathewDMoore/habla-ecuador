@@ -35,6 +35,7 @@ jobs:
               node tests/app-sharing.browser.cjs
               node tests/object-identification.browser.cjs
               node tests/image-task.browser.cjs
+              node tests/image-translation.browser.cjs
               node tests/live-camera.browser.cjs
               node tests/photo-translation.browser.cjs
               ;;

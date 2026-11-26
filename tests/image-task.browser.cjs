@@ -2,7 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.resolve(__dirname,'..');
 (async()=>{
- const browser=await pw.chromium.launch({executablePath:process.env.HABLA_BROWSER_PATH||undefined,args:['--no-sandbox']});
+ const engine=process.env.HABLA_BROWSER_ENGINE||'chromium';
+ const browser=await pw[engine].launch(engine==='chromium'?{executablePath:process.env.HABLA_BROWSER_PATH||undefined,args:['--no-sandbox']}:{});
  try{for(const entry of ['index.html','translator.html']){
   const page=await browser.newPage({viewport:{width:390,height:844},serviceWorkers:'block'});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
