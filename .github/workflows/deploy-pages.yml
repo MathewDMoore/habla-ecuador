@@ -79,19 +79,15 @@ jobs:
         id: preview
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           node --input-type=module <<'NODE'
           import {appendFileSync} from 'node:fs';
-          let sha=process.env.CANDIDATE_SHA;
-          if (!sha) {
             const repository=process.env.GITHUB_REPOSITORY;
             const url=`https://api.github.com/repos/${repository}/actions/runs?branch=release%2Fverified-preview-20261125&event=push&status=success&per_page=100`;
             const response=await fetch(url,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
             if (!response.ok) throw Error(`Preview verification lookup failed (${response.status}).`);
             const data=await response.json();
-            sha=data.workflow_runs.find(run=>run.name==='Verify Habla candidate' && run.head_repository.full_name===repository)?.head_sha;
-          }
+            const sha=data.workflow_runs.find(run=>run.name==='Verify Habla candidate' && run.head_repository.full_name===repository)?.head_sha;
           if (sha) {
             if (!/^[a-f0-9]{40}$/.test(sha)) throw Error('Invalid candidate commit.');
             appendFileSync(process.env.GITHUB_OUTPUT,`sha=${sha}\n`);

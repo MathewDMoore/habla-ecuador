@@ -77,7 +77,8 @@ const HablaObjects = (() => {
       }
       const labels = new Map();
       for (const prediction of predictions) {
-        const {class: name, score, bbox: [x, y, width, height]} = prediction;
+        const {score, bbox: [x, y, width, height]} = prediction;
+        const name = prediction.class === "mouse" ? "computer mouse" : prediction.class;
         const box = document.createElement('div');
         box.className = 'object-detection-box';
         Object.assign(box.style, {
@@ -170,5 +171,5 @@ const HablaObjects = (() => {
     });
     window.addEventListener('pagehide', () => { if (dialog.open) dialog.close(); });
   }
-  return {bind};
+  return {bind, open:identify};
 })();

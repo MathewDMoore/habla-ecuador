@@ -39,6 +39,7 @@ async function run(browser,entry,width){
   x.fillText('The library opens tomorrow.',80,90);x.fillText('Bring your membership card.',80,285);
   return c.toDataURL().split(',')[1];
  });
+ await page.locator('#image-task').selectOption('text');
  const chooserPromise=page.waitForEvent('filechooser');await page.locator('#quick-camera-image').click();
  const chooser=await chooserPromise;await chooser.setFiles({name:'notice.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
  const dialog=page.locator('#photo-translator');await dialog.waitFor({state:'visible'});

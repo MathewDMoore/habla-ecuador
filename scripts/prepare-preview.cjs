@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(process.argv[2] || '');
 if (!process.argv[2] || !fs.existsSync(path.join(root, 'app.js'))) throw Error('Provide the exported preview directory.');
+const {build} = JSON.parse(fs.readFileSync(path.join(root, 'app-version.json'),'utf8'));
 const bootstrap = `(() => {
   const prefix = 'habla-preview-integration:';
   for (const name of ['localStorage','sessionStorage']) {
@@ -22,7 +23,7 @@ const bootstrap = `(() => {
     const banner=document.createElement('aside');
     banner.setAttribute('aria-label','Preview version / Versión de prueba');
     banner.style.cssText='padding:10px;background:#ffe8a3;color:#173f35;text-align:center;font:16px system-ui';
-    banner.innerHTML='Preview / Prueba · Build 267 · <a href="../../">Open current app / Abrir app actual</a>';
+    banner.innerHTML='Preview / Prueba · Build ${build} · <a href="../../">Open current app / Abrir app actual</a>';
     document.body.prepend(banner);
   });
 })();\n`;

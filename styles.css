@@ -1700,3 +1700,8 @@ dialog .selected-passage-tools:not([hidden]) { position:sticky; bottom:0; }
 .object-detection-box > span { display: inline-block; max-width: 100%; padding: 3px 5px; background: #173f35; color: #fff; font-size: 14px; overflow-wrap: anywhere; }
 .object-identifier [data-objects-results] { padding-inline-start: 1.5rem; }
 #ve-caption-overlay, #ve-caption-reading { white-space:pre-line; }
+
+.image-task-choice { display:grid; gap:.4rem; margin:1rem 0 .5rem; font-weight:700; }
+.image-task-choice select, #image-text-draft { box-sizing:border-box; width:100%; max-width:100%; font:inherit; }
+#image-text-review[hidden] { display:none; }
+#image-text-draft { min-height:8rem; }
