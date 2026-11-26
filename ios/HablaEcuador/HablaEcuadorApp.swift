@@ -302,7 +302,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             recognizesMultipleItems: true,
             isHighFrameRateTrackingEnabled: true,
             isPinchToZoomEnabled: true,
-            isGuidanceEnabled: true,
+            isGuidanceEnabled: false,
             isHighlightingEnabled: false
         )
         scanner.delegate = self
@@ -490,7 +490,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             return CGRect(x: line.frame.midX - w / 2, y: line.frame.midY - h / 2, width: w, height: h)
         }
         var occupied: [CGRect] = []
-        for line in cameraVisibleLines {
+        // Favor individual text lines over large, overlapping OCR blocks.
+        let orderedLines = cameraVisibleLines.sorted {
+            $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
+        }
+        for line in orderedLines {
             guard let translation = cameraTranslatedLines[line.source], !translation.isEmpty,
                   line.frame.width > 12, line.frame.height > 4 else {
                 cameraSpatialLabels.removeValue(forKey: line.id)?.removeFromSuperview()
@@ -518,13 +522,19 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 surface.addSubview(label)
                 cameraSpatialLabels[line.id] = label
             }
+            label.attributedText = nil
             label.text = translation
+            let sourceLineCount = max(1, line.source.split(whereSeparator: \.isNewline).count)
+            let targetLineCount = max(1, translation.split(whereSeparator: \.isNewline).count)
+            let multiLine = max(sourceLineCount, targetLineCount) > 1
+            label.textAlignment = multiLine ? .left : .center
+            label.backgroundColor = multiLine ? .clear : UIColor.black.withAlphaComponent(0.60)
             // Stay attached to the actual recognized text; never clamp a label
             // onto an unrelated neighboring word at the edge of the view.
             label.transform = .identity
             let width = max(24, line.frame.width)
             let height = max(14, line.frame.height)
-            let baseSize = min(24, max(10, line.frame.height * 0.70))
+            let baseSize = min(24, max(9, line.frame.height * 0.78 / CGFloat(max(sourceLineCount, targetLineCount))))
             var selected: CGSize?
             let candidates: [CGSize] = [
                 CGSize(width: width, height: height),
@@ -545,9 +555,12 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                     let existingArea = existing.isNull ? 0 : existing.width * existing.height
                     return area > existingArea + 4
                 }
-                guard !collision, !occupied.contains(where: { $0.intersects(footprint) }) else { continue }
+                guard !collision, !occupied.contains(where: { prior in
+                    let overlap = prior.intersection(footprint)
+                    return !overlap.isNull && overlap.width * overlap.height > 4
+                }) else { continue }
                 var size = baseSize
-                while size >= 10 {
+                while size >= 9 {
                     label.font = .systemFont(ofSize: size, weight: .semibold)
                     let measured = label.sizeThatFits(CGSize(width: max(1, candidate.width - 4), height: .greatestFiniteMagnitude))
                     if measured.width <= candidate.width && measured.height <= candidate.height {
@@ -562,6 +575,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             // Longer target phrases may expand only into unused space.
             // Never cover unrelated text or silently clip an entire phrase.
             label.isHidden = selected == nil
+            // Tint only the text lines in a grouped region, not the whole physical block.
+            if multiLine, selected != nil {
+                label.attributedText = NSAttributedString(string: translation, attributes: [
+                    .font: label.font as Any, .foregroundColor: UIColor.white,
+                    .backgroundColor: UIColor.black.withAlphaComponent(0.60)
+                ])
+            }
             let fitted = selected ?? CGSize(width: width, height: height)
             label.bounds = CGRect(origin: .zero, size: fitted)
             label.center = CGPoint(x: line.frame.midX, y: line.frame.midY)
@@ -670,7 +690,22 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
                 do {
                     let output: String
-                    if let reviewed = self.cameraReviewedLabel(item.source, source: source, target: target) {
+                    if let fields = self.cameraStructuredLabelLines(item.source, source: source, target: target) {
+                        var translatedFields: [String] = []
+                        for field in fields {
+                            guard !Task.isCancelled, self.cameraRequestID == id,
+                                  self.cameraPreviewInFlight == token else { return }
+                            if let reviewed = self.cameraReviewedLabel(field, source: source, target: target) {
+                                translatedFields.append(reviewed)
+                            } else {
+                                let translated = try await session.translate(field)
+                                let text = translated.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+                                guard !text.isEmpty else { throw NSError(domain: "HablaCamera", code: 1) }
+                                translatedFields.append(text)
+                            }
+                        }
+                        output = translatedFields.joined(separator: "\n")
+                    } else if let reviewed = self.cameraReviewedLabel(item.source, source: source, target: target) {
                         output = reviewed
                     } else {
                         let result = try await session.translate(item.source)
@@ -694,16 +729,41 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
-    // Only exact, unambiguous printed field labels; copy the identifier/date
-    // suffix without reformatting or passing it through the translation model.
-    private func cameraReviewedLabel(_ text: String, source: String, target: String) -> String? {
+    // Only structured labels are split; normal prose stays intact for context.
+    // A multiline OCR region must never be treated as one field's identifier.
+    private func cameraStructuredLabelLines(_ text: String, source: String, target: String) -> [String]? {
         guard source == "en", target == "es" else { return nil }
+        let lines = text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        var fields: [String] = []
+        let fieldStart = #"(?i)^(?:Group ID|Effective|Member#?|Subscriber ID|Group #)\s*:"#
+        let nextField = #"(?i)[ \t]+(?=(?:Group ID|Effective|Member#?|Subscriber ID|Group #)\s*:)"#
+        for line in lines {
+            if line.range(of: fieldStart, options: .regularExpression) != nil {
+                fields.append(contentsOf: line.replacingOccurrences(of: nextField, with: "\n", options: .regularExpression)
+                    .components(separatedBy: .newlines))
+            } else {
+                fields.append(line)
+            }
+        }
+        guard fields.count > 1,
+              fields.contains(where: { cameraReviewedLabel($0, source: source, target: target) != nil }) else { return nil }
+        return fields
+    }
+
+    private func cameraReviewedLabel(_ text: String, source: String, target: String) -> String? {
+        guard source == "en", target == "es", !text.contains(where: \.isNewline) else { return nil }
         let labels = [("Group ID", "ID de grupo"), ("Effective", "Vigente desde"),
-                      ("Member", "Miembro"), ("Subscriber ID", "ID de suscriptor")]
+                      ("Member#", "N.º de miembro"), ("Subscriber ID", "ID de suscriptor"),
+                      ("Group #", "N.º de grupo")]
         for (english, spanish) in labels {
             let prefix = english + ":"
             if text.lowercased().hasPrefix(prefix.lowercased()) {
-                return spanish + ":" + String(text.dropFirst(prefix.count))
+                let suffix = String(text.dropFirst(prefix.count))
+                // Do not silently copy prose, a second field, or unrelated text.
+                let allowed = english == "Effective" ? #"^\s*\d[\d./\- ]*$"# : #"^\s*[A-Za-z0-9][A-Za-z0-9./\-]*\s*$"#
+                guard suffix.range(of: allowed, options: .regularExpression) != nil else { return nil }
+                return spanish + ":" + suffix
             }
         }
         if text.caseInsensitiveCompare("Vision Care") == .orderedSame { return "Cuidado de la vista" }
