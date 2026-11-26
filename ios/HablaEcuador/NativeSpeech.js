@@ -93,7 +93,9 @@
         button.disabled = true;
         report("Live AR: point at text. Images stay on device; online mode sends recognized words.");
         try {
-          window.webkit.messageHandlers.hablaSpeech.postMessage({action: "scan-camera", id});
+          window.webkit.messageHandlers.hablaSpeech.postMessage({action: "scan-camera", id,
+            source: document.querySelector("#source-language-select")?.value || "en-US",
+            target: document.querySelector("#target-language-select")?.value || "es-EC"});
         } catch {
           pending = null;
           button.disabled = false;
