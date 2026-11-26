@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 import Vision
 import VisionKit
+import Translation
 
 // BEGIN NATIVE IMAGE OCR
 // Shared with the macOS Vision regression harness. No image leaves the device.
@@ -170,6 +171,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraPreviewText = ""
     private var cameraPreviewWork: DispatchWorkItem?
     private var cameraPreviewInFlight: String?
+    private var cameraNativeTask: Task<Void, Never>?
+    private var cameraSourceLocale = "en-US"
+    private var cameraTargetLocale = "es-EC"
+    private var cameraLastError: String?
     private struct CameraVisibleLine {
         let id: UUID
         let source: String
@@ -262,7 +267,10 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
-        case "scan-camera": startCameraScan(id: id)
+        case "scan-camera":
+            cameraSourceLocale = body["source"] as? String ?? "en-US"
+            cameraTargetLocale = body["target"] as? String ?? "es-EC"
+            startCameraScan(id: id)
         case "camera-live-result": receiveCameraLiveResult(body)
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
@@ -294,11 +302,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             isHighFrameRateTrackingEnabled: true,
             isPinchToZoomEnabled: true,
             isGuidanceEnabled: true,
-            isHighlightingEnabled: true
+            isHighlightingEnabled: false
         )
         scanner.delegate = self
         scanner.title = "Cámara Traductora"
-        scanner.navigationItem.prompt = "Live AR translation · draft / borrador"
+        scanner.navigationItem.prompt = "\(cameraSourceLocale) → \(cameraTargetLocale) · Live AR"
         scanner.navigationItem.leftBarButtonItem = UIBarButtonItem(
             title: "Cancel", style: .plain, target: self, action: #selector(cancelCameraScan))
         scanner.navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -309,6 +317,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraScanner = scanner
         cameraLines = []
         cameraLiveEnabled = true
+        cameraLastError = nil
         cameraPreviewText = ""
         cameraPreviewWork?.cancel()
         cameraPreviewWork = nil
@@ -349,7 +358,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         label.font = .preferredFont(forTextStyle: .subheadline)
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .white
-        label.text = "Live draft · camera images stay on device."
+        label.text = "\(cameraSourceLocale) → \(cameraTargetLocale) · on-device draft"
 
         let stack = UIStackView(arrangedSubviews: [button, label])
         stack.axis = .vertical
@@ -377,6 +386,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraPreviewWork?.cancel()
         cameraPreviewWork = nil
         cameraPreviewInFlight = nil
+        cameraNativeTask?.cancel()
+        cameraNativeTask = nil
+        cameraLastError = nil
         if cameraLiveEnabled {
             cameraFailedLines.removeAll()
             cameraOverlayLabel?.text = "Live draft · check names and numbers."
@@ -476,15 +488,17 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         guard newText != cameraPreviewText else { return }
         cameraPreviewText = newText
         if cameraLiveEnabled {
-            cameraOverlayLabel?.text = newText.isEmpty
-                ? "Point at readable text."
-                : "Reading visible text…"
+            if cameraPreviewInFlight == nil {
+                cameraOverlayLabel?.text = cameraLastError ?? (newText.isEmpty
+                    ? "Point at readable text."
+                    : "\(cameraSpatialLabels.count) translated · \(cameraVisibleLines.count) recognized")
+            }
             queueCameraLivePreview()
         }
     }
 
     private func queueCameraLivePreview() {
-        guard cameraLiveEnabled, cameraPreviewInFlight == nil, cameraPreviewWork == nil,
+        guard cameraLiveEnabled, cameraLastError == nil, cameraPreviewInFlight == nil, cameraPreviewWork == nil,
               cameraRequestID != nil else { return }
         guard cameraVisibleLines.contains(where: {
             cameraTranslatedLines[$0.source] == nil && !cameraFailedLines.contains($0.source)
@@ -502,10 +516,62 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard !missing.isEmpty else { return }
             let token = UUID().uuidString
             self.cameraPreviewInFlight = token
-            self.sendCameraLiveRequest(id: id, token: token, items: missing)
+            self.cameraOverlayLabel?.text = "Translating \(missing.count) recognized lines…"
+            if #available(iOS 26.0, *) {
+                self.translateCameraNatively(id: id, token: token, items: missing)
+            } else {
+                self.sendCameraLiveRequest(id: id, token: token, items: missing)
+            }
         }
         cameraPreviewWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18, execute: work)
+    }
+
+    // Native Translation runs while the viewfinder is visible and never sends
+    // recognized text to the hosted page or a third-party translation service.
+    @available(iOS 26.0, *)
+    private func translateCameraNatively(id: String, token: String, items: [CameraVisibleLine]) {
+        let source = String(cameraSourceLocale.prefix(2))
+        let target = String(cameraTargetLocale.prefix(2))
+        guard ["en", "es"].contains(source), ["en", "es"].contains(target), source != target else {
+            receiveCameraLiveResult(["id": id, "token": token, "error": "Choose English → Spanish or Spanish → English before opening the camera."])
+            return
+        }
+        cameraNativeTask?.cancel()
+        cameraNativeTask = Task { @MainActor [weak self] in
+            let session = TranslationSession(installedSource: Locale.Language(identifier: source),
+                                             target: Locale.Language(identifier: target))
+            guard let self, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
+            guard await session.isReady else {
+                self.receiveCameraLiveResult(["id": id, "token": token,
+                    "error": "Download English and Spanish in Apple Translate, then reopen Live AR."])
+                return
+            }
+            var translations: [[String: String]] = []
+            for item in items {
+                guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
+                do {
+                    let result = try await session.translate(item.source)
+                    let output = result.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if output.isEmpty || output.count > 400 || self.cameraNumbers(item.source) != self.cameraNumbers(output) {
+                        translations.append(["source": item.source, "error": "Unverified text or changed numbers"])
+                    } else {
+                        translations.append(["source": item.source, "translation": output])
+                    }
+                } catch {
+                    translations.append(["source": item.source, "error": "Native translation unavailable"])
+                }
+            }
+            guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
+            self.receiveCameraLiveResult(["id": id, "token": token, "translations": translations])
+        }
+    }
+
+    private func cameraNumbers(_ value: String) -> [String] {
+        let expression = try! NSRegularExpression(pattern: #"\d+(?:[.,]\d+)?"#)
+        return expression.matches(in: value, range: NSRange(value.startIndex..., in: value))
+            .compactMap { Range($0.range, in: value).map { String(value[$0]).replacingOccurrences(of: ",", with: ".") } }
+            .sorted()
     }
 
     private func sendCameraLiveRequest(id: String, token: String, items: [CameraVisibleLine]) {
@@ -545,6 +611,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
         refreshCameraSpatialLabels()
         if let error = payload["error"] as? String {
+            cameraLastError = error
+            for line in cameraVisibleLines { cameraFailedLines.insert(line.source) }
             cameraOverlayLabel?.text = error
             return
         }
@@ -603,6 +671,9 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private func completeCameraScan(status: String, text: String? = nil, message: String? = nil) {
         guard let id = cameraRequestID else { return }
         cameraRequestID = nil
+        cameraNativeTask?.cancel()
+        cameraNativeTask = nil
+        cameraLastError = nil
         cameraPreviewWork?.cancel()
         cameraPreviewWork = nil
         cameraPreviewInFlight = nil
