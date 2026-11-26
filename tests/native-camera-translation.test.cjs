@@ -130,3 +130,16 @@ test('native AR uses continuously updated geometry without dismissing on a live 
   assert.match(swift,/guard !cameraLiveEnabled else \{ return \}/);
   assert.match(swift,/UIColor\.black\.withAlphaComponent\(0\.60\)/);
 });
+
+
+test('iOS 26 camera translates natively with the selected pair and explicit pack error', () => {
+  const h=harness(), msg=h.click();
+  assert.equal(msg.source,'es-EC');
+  assert.equal(msg.target,'en-US');
+  assert.match(swift,/import Translation/);
+  assert.match(swift,/TranslationSession\(installedSource:/);
+  assert.match(swift,/try await session\.translate\(item\.source\)/);
+  assert.match(swift,/Download English and Spanish in Apple Translate/);
+  assert.match(swift,/isHighlightingEnabled: false/);
+  assert.match(swift,/cameraNumbers\(item\.source\) != self\.cameraNumbers\(output\)/);
+});
