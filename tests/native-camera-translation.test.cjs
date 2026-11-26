@@ -150,6 +150,16 @@ test('dense live text uses progressive rendering and reports incomplete coverage
   assert.match(swift,/batchLimit = 12/);
   assert.match(swift,/self\.applyCameraTranslations\(translations\)/);
   assert.match(swift,/label\.sizeThatFits/);
-  assert.match(swift,/label\.isHidden = !fits/);
+  assert.match(swift,/label\.isHidden = selected == nil/);
   assert.match(swift,/overlaid .* pending .* failed/);
+});
+
+
+test('native AR expands only into free space, preserves field identifiers and supports camera review', () => {
+  assert.match(swift,/bounds\.contains\(footprint\)/);
+  assert.match(swift,/guard !collision, !occupied\.contains/);
+  assert.match(swift,/cameraReviewedLabel\(item\.source/);
+  assert.match(swift,/String\(text\.dropFirst\(prefix\.count\)\)/);
+  assert.match(swift,/#selector\(reviewCameraTranslations\)/);
+  assert.match(swift,/#selector\(retryCameraReview\)/);
 });
