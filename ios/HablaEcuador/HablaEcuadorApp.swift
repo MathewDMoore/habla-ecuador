@@ -442,11 +442,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 label = existing
             } else {
                 label = UILabel()
-                label.numberOfLines = 2
+                label.numberOfLines = 0
                 label.textAlignment = .center
                 label.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
                 label.minimumScaleFactor = 0.65
-                label.adjustsFontSizeToFitWidth = true
+                label.adjustsFontSizeToFitWidth = false
                 label.lineBreakMode = .byWordWrapping
                 label.textColor = .white
                 label.backgroundColor = UIColor.black.withAlphaComponent(0.60)
@@ -459,13 +459,28 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 surface.addSubview(label)
                 cameraSpatialLabels[line.id] = label
             }
-            label.text = " " + translation + " "
+            label.text = translation
             // Stay attached to the actual recognized text; never clamp a label
             // onto an unrelated neighboring word at the edge of the view.
             label.transform = .identity
-            label.bounds = CGRect(x: 0, y: 0, width: max(24, line.frame.width), height: max(14, line.frame.height))
+            let width = max(24, line.frame.width)
+            let height = max(14, line.frame.height)
+            var size = min(24, max(9, line.frame.height * 0.70))
+            var fits = false
+            while size >= 9 {
+                label.font = .systemFont(ofSize: size, weight: .semibold)
+                let measured = label.sizeThatFits(CGSize(width: max(1, width - 4), height: .greatestFiniteMagnitude))
+                if measured.width <= width && measured.height <= height {
+                    fits = true
+                    break
+                }
+                size -= 1
+            }
+            // Never cover the original with a clipped or illegibly small fragment.
+            // Full text is available from the review control.
+            label.isHidden = !fits
+            label.bounds = CGRect(x: 0, y: 0, width: width, height: height)
             label.center = CGPoint(x: line.frame.midX, y: line.frame.midY)
-            label.font = .systemFont(ofSize: min(24, max(9, line.frame.height * 0.70)), weight: .semibold)
             label.transform = CGAffineTransform(rotationAngle: line.angle)
             label.accessibilityLabel = line.source + " → " + translation
         }
@@ -479,7 +494,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             let source = recognized.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !source.isEmpty else { continue }
             cameraLines.append(source)
-            guard source.count <= 150, cameraVisibleLines.count < 15 else { continue }
+            // Native translation can cover all recognized regions; the older web bridge has its own size limit.
+            if #available(iOS 26.0, *) {
+                // No arbitrary region cap. Leave unusually long blocks readable through Use all text.
+                guard source.count <= 2000 else { continue }
+            } else {
+                guard source.count <= 150 else { continue }
+            }
             cameraVisibleLines.append(CameraVisibleLine(
                 id: item.id, source: source, frame: cameraTextBounds(item.bounds),
                 angle: atan2(item.bounds.topRight.y - item.bounds.topLeft.y, item.bounds.topRight.x - item.bounds.topLeft.x)))
@@ -490,12 +511,24 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraPreviewText = newText
         if cameraLiveEnabled {
             if cameraPreviewInFlight == nil {
-                cameraOverlayLabel?.text = cameraLastError ?? (newText.isEmpty
-                    ? "Point at readable text."
-                    : "\(cameraSpatialLabels.count) translated · \(cameraVisibleLines.count) recognized")
+                updateCameraCoverageStatus()
             }
             queueCameraLivePreview()
         }
+    }
+
+    private func updateCameraCoverageStatus() {
+        if let error = cameraLastError { cameraOverlayLabel?.text = error; return }
+        guard !cameraLines.isEmpty else { cameraOverlayLabel?.text = "Point at readable text."; return }
+        let recognized = cameraLines.count
+        let translated = cameraVisibleLines.filter { cameraTranslatedLines[$0.source] != nil }.count
+        let shown = cameraSpatialLabels.values.filter { !$0.isHidden }.count
+        let failed = cameraVisibleLines.filter { cameraFailedLines.contains($0.source) }.count
+        let pending = cameraVisibleLines.filter {
+            cameraTranslatedLines[$0.source] == nil && !cameraFailedLines.contains($0.source)
+        }.count
+        cameraOverlayLabel?.text = "\(shown)/\(recognized) overlaid · \(pending) pending · \(failed) failed" +
+            (translated > shown ? " · \(translated - shown) need full-text review" : "")
     }
 
     private func queueCameraLivePreview() {
@@ -513,11 +546,11 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             let missing = Array(self.cameraVisibleLines.filter {
                 self.cameraTranslatedLines[$0.source] == nil &&
                 !self.cameraFailedLines.contains($0.source) && seen.insert($0.source).inserted
-            }.prefix(4))
+            }.prefix({ if #available(iOS 26.0, *) { return 12 }; return 4 }()))
             guard !missing.isEmpty else { return }
             let token = UUID().uuidString
             self.cameraPreviewInFlight = token
-            self.cameraOverlayLabel?.text = "Translating \(missing.count) recognized lines…"
+            self.updateCameraCoverageStatus()
             if #available(iOS 26.0, *) {
                 self.translateCameraNatively(id: id, token: token, items: missing)
             } else {
@@ -548,13 +581,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                     "error": "Download English and Spanish in Apple Translate, then reopen Live AR."])
                 return
             }
-            var translations: [[String: String]] = []
             for item in items {
+                var translations: [[String: String]] = []
                 guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
                 do {
                     let result = try await session.translate(item.source)
                     let output = result.targetText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if output.isEmpty || output.count > 400 || self.cameraNumbers(item.source) != self.cameraNumbers(output) {
+                    if output.isEmpty || output.count > 6000 || self.cameraNumbers(item.source) != self.cameraNumbers(output) {
                         translations.append(["source": item.source, "error": "Unverified text or changed numbers"])
                     } else {
                         translations.append(["source": item.source, "translation": output])
@@ -562,9 +595,13 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 } catch {
                     translations.append(["source": item.source, "error": "Native translation unavailable"])
                 }
+                guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
+                // Paint each finished line immediately instead of waiting for the entire batch.
+                self.applyCameraTranslations(translations)
+                self.updateCameraCoverageStatus()
             }
             guard !Task.isCancelled, self.cameraRequestID == id, self.cameraPreviewInFlight == token else { return }
-            self.receiveCameraLiveResult(["id": id, "token": token, "translations": translations])
+            self.receiveCameraLiveResult(["id": id, "token": token])
         }
     }
 
@@ -593,13 +630,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
-    private func receiveCameraLiveResult(_ payload: [String: Any]) {
-        guard cameraLiveEnabled, let id = payload["id"] as? String,
-              id == cameraRequestID, let token = payload["token"] as? String,
-              token == cameraPreviewInFlight else { return }
-        cameraPreviewInFlight = nil
-        
-        if let translated = payload["translations"] as? [[String: String]] {
+    private func applyCameraTranslations(_ translated: [[String: String]]) {
             for item in translated {
                 guard let source = item["source"] else { continue }
                 if let translation = item["translation"], !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -609,7 +640,16 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                     cameraFailedLines.insert(source)
                 }
             }
-        }
+        refreshCameraSpatialLabels()
+    }
+
+    private func receiveCameraLiveResult(_ payload: [String: Any]) {
+        guard cameraLiveEnabled, let id = payload["id"] as? String,
+              id == cameraRequestID, let token = payload["token"] as? String,
+              token == cameraPreviewInFlight else { return }
+        cameraPreviewInFlight = nil
+        
+        if let translated = payload["translations"] as? [[String: String]] { applyCameraTranslations(translated) }
         refreshCameraSpatialLabels()
         if let error = payload["error"] as? String {
             cameraLastError = error
@@ -617,10 +657,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             cameraOverlayLabel?.text = error
             return
         }
-        let count = cameraSpatialLabels.count
-        cameraOverlayLabel?.text = count > 0
-            ? "\(count) translated line(s) above the camera image. Tap to show original. Check OCR spelling."
-            : "Could not translate these lines. Move closer or review the source text."
+        updateCameraCoverageStatus()
         // Continue with new lines in small batches; do not retry provider failures
         // indefinitely. Late results are bound to the original scan token.
         queueCameraLivePreview()
