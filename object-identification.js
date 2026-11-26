@@ -1,7 +1,7 @@
 /* COCO-SSD runs locally. Only object names use the text translation service. */
 const HablaObjects = (() => {
   'use strict';
-  let modelPromise, queue = Promise.resolve(), generation = 0;
+  let modelPromise, classifierPromise, queue = Promise.resolve(), generation = 0;
   let dialog, stage, image, overlay, status, results, fileInput, cameraInput, translate;
   let imageUrl;
 
@@ -31,6 +31,33 @@ const HablaObjects = (() => {
       return cocoSsd.load({base: 'lite_mobilenet_v2'});
     })().catch(error => { modelPromise = null; throw error; });
     return modelPromise;
+  }
+
+  function loadClassifier() {
+    if (!classifierPromise) classifierPromise = (async () => {
+      await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js', () => globalThis.mobilenet);
+      return mobilenet.load({version:2, alpha:1.0});
+    })().catch(error => {classifierPromise=null;throw error;});
+    return classifierPromise;
+  }
+
+  async function classifyPhoto(frame,token) {
+    status.textContent='Checking a broader image model… / Consultando un modelo de imágenes más amplio…';
+    const classifier=await loadClassifier();
+    if(!current(token))return;
+    const job=queue.catch(()=>{}).then(()=>current(token)?classifier.classify(frame,3):[]);queue=job;
+    const candidates=await job;if(!current(token))return;
+    const best=candidates[0];
+    if(!best||best.probability<0.35){
+      status.textContent='No reliable match in the available models. This does not mean your photo is unclear; the subject may be unsupported. / Sin coincidencia fiable. El objeto puede no estar incluido en los modelos.';return;
+    }
+    const name=best.className==="jack-o'-lantern"?"carved pumpkin (jack-o’-lantern)":best.className;
+    const row=document.createElement('li');row.textContent=name;results.append(row);
+    status.textContent='Suggested subject for the whole photo (no object position). / Tema sugerido para toda la foto (sin ubicación).';
+    try {
+      const spanish=String(await translate(name,()=>current(token))).trim();
+      if(current(token)&&spanish)row.textContent=name+' — '+spanish+' · '+Math.round(best.probability*100)+'%';
+    } catch {if(current(token))status.textContent+=' Spanish translation unavailable. / Traducción no disponible.';}
   }
 
   function clear() {
@@ -72,7 +99,7 @@ const HablaObjects = (() => {
       const predictions = await job;
       if (!current(token)) return;
       if (!predictions.length) {
-        status.textContent = 'No supported objects detected. Try a closer, brighter photo. / Prueba una foto más cercana y con más luz.';
+        await classifyPhoto(frame,token);
         return;
       }
       const labels = new Map();
@@ -128,7 +155,7 @@ const HablaObjects = (() => {
     dialog.setAttribute('aria-labelledby', 'object-identifier-title');
     dialog.innerHTML = `<div class="photo-translator-toolbar"><h2 id="object-identifier-title">Identify objects / Identificar objetos</h2><button type="button" data-objects-close>Close / Cerrar</button></div>
       <div class="photo-translator-controls"><button type="button" data-objects-camera>Take photo / Tomar foto</button><button type="button" data-objects-choose>Choose image / Elegir imagen</button><button type="button" data-objects-paste>Paste image / Pegar imagen</button></div>
-      <p class="photo-translator-note">Recognizes 80 common object categories. Labels are suggestions; percentages are model scores. Images are processed on this device. First use downloads the detector. Online translation sends object names. / Reconoce 80 categorías comunes. Las etiquetas son sugerencias. Las imágenes se procesan en este dispositivo; la traducción en línea envía los nombres.</p>
+      <p class="photo-translator-note">Locates 80 common object categories; a broader image classifier checks additional subjects when there is no detection. Labels are suggestions; percentages are model scores. Images are processed on this device. First use downloads the detector. Online translation sends object names. / Localiza 80 categorías comunes y consulta un clasificador más amplio si no encuentra objetos. Las etiquetas son sugerencias. Las imágenes se procesan en este dispositivo; la traducción en línea envía los nombres.</p>
       <p data-objects-status role="status" aria-live="polite">Choose or take a photo. / Elige o toma una foto.</p>
       <div class="object-image-stage"><img alt="Image to identify / Imagen para identificar"><div class="object-detection-overlay"></div></div>
       <ul data-objects-results aria-label="Detected objects / Objetos detectados"></ul>
