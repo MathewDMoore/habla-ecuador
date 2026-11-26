@@ -143,3 +143,13 @@ test('iOS 26 camera translates natively with the selected pair and explicit pack
   assert.match(swift,/isHighlightingEnabled: false/);
   assert.match(swift,/cameraNumbers\(item\.source\) != self\.cameraNumbers\(output\)/);
 });
+
+
+test('dense live text uses progressive rendering and reports incomplete coverage', () => {
+  assert.doesNotMatch(swift,/cameraVisibleLines\.count < 15/);
+  assert.match(swift,/batchLimit = 12/);
+  assert.match(swift,/self\.applyCameraTranslations\(translations\)/);
+  assert.match(swift,/label\.sizeThatFits/);
+  assert.match(swift,/label\.isHidden = !fits/);
+  assert.match(swift,/overlaid .* pending .* failed/);
+});
