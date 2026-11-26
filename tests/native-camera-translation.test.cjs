@@ -173,3 +173,12 @@ test('grouped printed fields preserve separate translations and avoid opaque blo
   assert.match(swift,/label\.backgroundColor = multiLine \? \.clear/);
   assert.match(swift,/isGuidanceEnabled: false/);
 });
+
+
+test('AR preserves unchanged text and offers collision-checked nearby anchored placement', () => {
+  assert.match(swift,/!cameraUnchanged\(line\.source, translation\)/);
+  assert.match(swift,/for nearby in \[false, true\]/);
+  assert.match(swift,/if nearby && footprint\.intersects\(original\)/);
+  assert.match(swift,/path\.addLine\(to: label\.center\)/);
+  assert.match(swift,/overlaid .* unchanged .* pending .* failed/);
+});
