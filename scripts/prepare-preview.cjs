@@ -30,13 +30,13 @@ const bootstrap = `(() => {
 fs.writeFileSync(path.join(root, 'preview-session.js'), bootstrap);
 for (const name of ['index.html','translator.html']) {
   const file = path.join(root, name);
-  const html = fs.readFileSync(file,'utf8').replace('<head>','<head>\n  <script src="preview-session.js"></script>');
+  const html = fs.readFileSync(file,'utf8').replace('<head>',`<head>\n  <script src="preview-session.js?v=${build}"></script>`);
   fs.writeFileSync(file, html);
 }
 for (const name of ['sw.js','offline-device.js','offline-worker.js']) {
   const file = path.join(root, name);
   let code = fs.readFileSync(file,'utf8').replaceAll('habla-ecuador-', 'habla-preview-integration-');
-  if (name === 'sw.js') code = code.replace('const ASSETS = [','const ASSETS = ["preview-session.js", ')
+  if (name === 'sw.js') code = code.replace('const ASSETS = [',`const ASSETS = ["preview-session.js?v=${build}", `)
     .replace('caches.match(event.request)', 'caches.open(CACHE).then(cache=>cache.match(event.request))')
     .replace('caches.match("./")', 'caches.open(CACHE).then(cache=>cache.match("./"))');
   fs.writeFileSync(file, code);

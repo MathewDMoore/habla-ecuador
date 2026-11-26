@@ -26,7 +26,10 @@ const root=path.resolve(__dirname,'..'),preview=fs.mkdtempSync(path.join(os.tmpd
   await page.evaluate(()=>{localStorage.setItem('history','production history');localStorage.setItem('habla-tutorial-seen-v2','1');});
   for(const entry of ['index.html','translator.html']){
    await page.goto('https://habla.test/preview/integration/'+entry+'?start=translate&ui=en');
-   await page.locator('[aria-label="Preview version / Versión de prueba"]').waitFor();
+   const banner=page.locator('[aria-label="Preview version / Versión de prueba"]');await banner.waitFor();
+   const {build}=JSON.parse(fs.readFileSync(path.join(preview,'app-version.json'),'utf8'));
+   assert.match(await banner.innerText(),new RegExp('Build '+build));
+   assert.ok(fs.readFileSync(path.join(preview,entry),'utf8').includes('preview-session.js?v='+build),'preview bootstrap is versioned to avoid stale banners');
    assert.equal(await page.evaluate(()=>localStorage.getItem('history')),null);
    await page.evaluate(()=>{localStorage.setItem('history','preview history');localStorage.clear();});
    await page.goto('https://habla.test/');
