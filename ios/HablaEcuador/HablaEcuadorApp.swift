@@ -262,15 +262,16 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               webView.url?.path.hasPrefix("/habla-ecuador/") == true,
               let body = message.body as? [String: Any], let id = body["id"] as? String,
               let action = body["action"] as? String else { return }
+        if action == "scan-camera", cameraScanner == nil {
+            cameraSourceLocale = body["source"] as? String ?? "en-US"
+            cameraTargetLocale = body["target"] as? String ?? "es-EC"
+        }
         switch action {
         case "start": speech.start(id: id, language: body["lang"] as? String ?? "es-EC", mode: body["mode"] as? String ?? "auto", systemAudio: body["input"] as? String == "system")
         case "identify-song":
             guard let requestID = body["requestId"] as? String, !requestID.isEmpty else { return }
             speech.identifySong(id: id, requestID: requestID)
-        case "scan-camera":
-            cameraSourceLocale = body["source"] as? String ?? "en-US"
-            cameraTargetLocale = body["target"] as? String ?? "es-EC"
-            startCameraScan(id: id)
+        case "scan-camera": startCameraScan(id: id)
         case "camera-live-result": receiveCameraLiveResult(body)
         case "stop": speech.stop(id: id)
         case "abort": speech.abort(id: id)
