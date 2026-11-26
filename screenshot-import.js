@@ -139,7 +139,19 @@ const HablaScreenshot = (() => {
     };
     const review=document.querySelector('#screenshot-review'),preview=document.querySelector('#screenshot-preview');
     const top=document.querySelector('#screenshot-top'),bottom=document.querySelector('#screenshot-bottom'),shade=document.querySelector('#screenshot-shade');
-    let controller,currentFile,imageUrl;
+    const textReview=document.querySelector('#image-text-review'),textDraft=document.querySelector('#image-text-draft');
+    const reviewImage=document.querySelector('#image-text-original'),showLabels=document.querySelector('#image-text-show-labels');
+    let controller,currentFile,imageUrl,uncertainResult,uncertainGuard,reviewOverlay=false,fileIntent='text',cameraIntent='text';
+    const selectedIntent=()=>document.querySelector('#image-task')?.value==='objects'?'objects':'text';
+    const hideTextReview=()=>{uncertainResult=null;uncertainGuard=null;if(textReview)textReview.hidden=true;if(textDraft)textDraft.value='';if(reviewImage)reviewImage.removeAttribute('src');if(showLabels)showLabels.checked=false;};
+    function routeImage(file,intent){
+      if(intent!=='objects'){read(file);return;}
+      const task=document.querySelector('#image-task');if(task)task.value='objects';
+      clearUi();
+      if(typeof HablaObjects==='undefined'){report('Object identification is unavailable. Reload Habla. / Vuelve a abrir Habla.');return;}
+      report('Identifying objects in your photo… / Identificando objetos en tu foto…');
+      HablaObjects.open(file);
+    }
     const range=()=>{
       document.querySelector('#screenshot-top-value').textContent=top.value+'%';
       document.querySelector('#screenshot-bottom-value').textContent=bottom.value+'%';
@@ -147,6 +159,7 @@ const HablaScreenshot = (() => {
     };
     function read(file,{reread=false,overlay=true}={}) {
       try{validate(file);}catch(error){report(error.message);return;}
+      hideTextReview();
       if(!reread&&review){
         if(imageUrl)URL.revokeObjectURL(imageUrl);
         currentFile=file;imageUrl=URL.createObjectURL(file);preview.src=imageUrl;
@@ -165,52 +178,70 @@ const HablaScreenshot = (() => {
             if(id===sequence&&progress.status==='recognizing text')report(`Reading screenshot… ${Math.round((progress.progress||0)*100)}%`);
           }});
           if(id!==sequence||!result)return;
-          if(!commit(result,guard)){report('Your input changed while the image was read. Your text was kept. Choose the photo again when ready.');return;}
-          if(overlay&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,result);
-          const confidence=Number(result.confidence);
-          report(Number.isFinite(confidence)&&confidence<65
-            ? 'Image imported, but some lettering was unclear. Check and correct the recognized words below; translation is being prepared.'
-            : 'Image text recognized. Translation is being prepared. Check the original words before sharing.');
+          // Still photos require review, even when OCR reports high confidence.
+          if(textReview&&textDraft){
+            uncertainResult=result;uncertainGuard=guard;reviewOverlay=overlay;
+            textDraft.value=result.text;textReview.hidden=false;
+            if(document.querySelector('#full-text-reader')?.open)document.querySelector('#full-reader-close')?.click();
+            textReview.scrollIntoView?.({block:'start'});
+            if(reviewImage&&imageUrl)reviewImage.src=imageUrl;
+            report('Review the detected words before translating. Your source has not changed. / Revisa las palabras antes de traducir. Tu texto original no ha cambiado.');
+            return;
+          }
+          report('Text review is unavailable. Reload Habla before importing this photo. / Vuelve a abrir Habla para revisar el texto de esta foto.');
         }catch(error){if(id===sequence)report(error.message||'Screenshot could not be read. Try a clearer image.');}
         finally{if(id===sequence)cancel.hidden=true;}
       });
     }
     readImage=read;
-    const choosePhoto=()=>fileInput.click();
-    choose.addEventListener('click',choosePhoto);
-    quickChoose?.addEventListener('click',choosePhoto);
-    camera?.addEventListener('click',()=>cameraInput.click());
-    cameraInput?.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
-    fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)read(file);});
+    const choosePhoto=(intent='text')=>{fileIntent=intent;fileInput.click();};
+    choose.addEventListener('click',()=>choosePhoto(selectedIntent()));
+    quickChoose?.addEventListener('click',()=>choosePhoto(selectedIntent()));
+    camera?.addEventListener('click',()=>{cameraIntent=selectedIntent();cameraInput.click();});
+    cameraInput?.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)routeImage(file,cameraIntent);});
+    fileInput.addEventListener('change',event=>{const file=event.target.files[0];event.target.value='';if(file)routeImage(file,fileIntent);});
     document.addEventListener('paste',event=>{
       if(!['translator-input','full-reader-source'].includes(event.target?.id))return;
       // A copied video can also include an image thumbnail. Let the recording
       // importer keep the actual movie instead of reading only its thumbnail.
       if(typeof HablaRecording!=='undefined'&&HablaRecording.videoFromClipboard(event.clipboardData))return;
       const file=imageFromClipboard(event.clipboardData);
-      if(file){event.preventDefault();read(file);}
+      if(file){event.preventDefault();routeImage(file,selectedIntent());}
     });
-    const pastePhoto=async()=>{
+    const pastePhoto=async(intent)=>{
       if(!navigator.clipboard?.read){
         report('iPhone image clipboard unavailable. Opening Photos so you can choose the picture itself.');
         // File picker must be opened directly within this tap's user gesture.
-        choosePhoto();return;
+        choosePhoto(intent);return;
       }
       try{
         const items=await navigator.clipboard.read();
-        for(const item of items){const type=item.types.find(type=>type.startsWith('image/'));if(type){read(await item.getType(type));return;}}
+        for(const item of items){const type=item.types.find(type=>type.startsWith('image/'));if(type){routeImage(await item.getType(type),intent);return;}}
         report('Clipboard has no picture. Tap Choose photo / Elegir foto to select it from Photos.');
       }catch{report('Image clipboard access was denied. Tap Choose photo / Elegir foto instead.');}
     };
-    paste.addEventListener('click',pastePhoto);
-    quickPaste?.addEventListener('click',pastePhoto);
+    paste.addEventListener('click',()=>pastePhoto(selectedIntent()));
+    quickPaste?.addEventListener('click',()=>pastePhoto(selectedIntent()));
+    document.querySelector('#use-reviewed-image-text')?.addEventListener('click',()=>{
+      if(!uncertainResult||!textDraft?.value.trim())return;
+      const original=uncertainResult,edited=textDraft.value.trim();
+      const unchanged=edited===original.text.trim();
+      const approved={...original,text:edited,regions:unchanged?original.regions:[]};
+      const wantsLabels=Boolean(showLabels?.checked&&reviewOverlay),labels=wantsLabels&&unchanged,file=currentFile;
+      const accepted=commit(approved,uncertainGuard);
+      hideTextReview();
+      if(accepted&&labels&&file&&typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.open(file,approved);
+      report(!accepted?'Your source changed. Read the image again. / Tu texto cambió. Lee la imagen otra vez.':wantsLabels&&!unchanged?'Edited text is translated without photo labels. / El texto corregido se traduce sin etiquetas en la foto.':'Reviewed text added for translation. / Texto revisado añadido para traducir.');
+    });
+    document.querySelector('#identify-reviewed-image')?.addEventListener('click',()=>{if(currentFile)routeImage(currentFile,'objects');});
+    document.querySelector('#cancel-image-text-review')?.addEventListener('click',()=>{hideTextReview();report('Image text review cancelled. / Revisión cancelada.');});
     cancel.addEventListener('click',()=>{sequence++;controller?.abort();cancel.hidden=true;report('Screenshot reading cancelled. Your text has been kept.');if(activeWorker)activeWorker.terminate().catch(()=>{});});
     if(review){
       top.addEventListener('input',()=>{if(+top.value>=+bottom.value)bottom.value=String(+top.value+1);range();});
       bottom.addEventListener('input',()=>{if(+bottom.value<=+top.value)top.value=String(+bottom.value-1);range();});
       document.querySelector('#read-screenshot-area').addEventListener('click',()=>{if(currentFile)read(currentFile,{reread:true});});
     }
-    clearUi=()=>{sequence++;controller?.abort();if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.clear();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
+    clearUi=()=>{sequence++;controller?.abort();hideTextReview();if(typeof HablaPhotoTranslation!=='undefined')HablaPhotoTranslation.clear();if(activeWorker)activeWorker.terminate().catch(()=>{});if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=null;currentFile=null;if(review){review.hidden=true;preview.removeAttribute('src');}cancel.hidden=true;report('');};
   }
   return {bind,extract,openOcr,photoRegions,validate,imageFromClipboard,cropBounds,improveContrast,read:(file,options)=>readImage(file,options),clear:()=>clearUi()};
 })();

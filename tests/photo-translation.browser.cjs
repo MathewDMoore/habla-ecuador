@@ -30,6 +30,7 @@ async function run(browser,entry,width){
   return file.startsWith(root+path.sep)&&fs.existsSync(file)&&fs.statSync(file).isFile()?route.fulfill({path:file}):route.abort();
  });
  await page.goto(origin+'/habla-ecuador/'+entry+'?start=translate&ui=en');
+ await page.locator('.bottom-nav [data-open="translator-view"]').click();
  await page.locator('#source-language-select').selectOption('en-US');
  await page.locator('#target-language-select').selectOption('es-EC');
  const png=await page.evaluate(()=>{
@@ -38,9 +39,16 @@ async function run(browser,entry,width){
   x.fillText('The library opens tomorrow.',80,90);x.fillText('Bring your membership card.',80,285);
   return c.toDataURL().split(',')[1];
  });
+ await page.locator('#image-task').selectOption('text');
  const chooserPromise=page.waitForEvent('filechooser');await page.locator('#quick-camera-image').click();
  const chooser=await chooserPromise;await chooser.setFiles({name:'notice.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
- const dialog=page.locator('#photo-translator');await dialog.waitFor({state:'visible'});
+ const dialog=page.locator('#photo-translator');
+ await page.locator('#image-text-review').waitFor({state:'visible'});
+ assert.equal(await dialog.isVisible(),false,'no overlay before review, even at 95% OCR confidence');
+ assert.equal(await page.locator('#translator-input').inputValue(),'');
+ assert.equal(await page.locator('#image-text-show-labels').isChecked(),false);
+ await page.locator('#image-text-show-labels').check();await page.locator('#use-reviewed-image-text').click();
+ await dialog.waitFor({state:'visible'});
  await page.waitForFunction(()=>document.querySelectorAll('.photo-translation-label[data-ready="true"]').length===2);
  await page.waitForFunction(()=>{const image=document.querySelector('#photo-translator img');return image.complete&&image.naturalWidth>0&&image.getBoundingClientRect().height>0;},{},{timeout:10000}).catch(async error=>{
   console.error(await page.evaluate(()=>{const i=document.querySelector('#photo-translator img');return {src:i.src,complete:i.complete,naturalWidth:i.naturalWidth,width:i.clientWidth,height:i.clientHeight,style:getComputedStyle(i).cssText};}),requests);
@@ -50,7 +58,10 @@ async function run(browser,entry,width){
  const labels=dialog.locator('.photo-translation-label');assert.equal(await labels.count(),2);
  assert.match(await labels.first().textContent(),/biblioteca/);
  assert.match(await labels.nth(1).textContent(),/tarjeta/);
- const geometry=await labels.first().evaluate(label=>{
+ // ResizeObserver may repaint the label layer between resolving an element
+ // handle and evaluating it. Measure the current image/label atomically.
+ const geometry=await page.evaluate(()=>{
+  const label=document.querySelector('.photo-translation-label');
   const a=label.getBoundingClientRect(),b=document.querySelector('.photo-translator-stage img').getBoundingClientRect();
   return {x:(a.x-b.x)/b.width,y:(a.y-b.y)/b.height,width:a.width/b.width};
  });

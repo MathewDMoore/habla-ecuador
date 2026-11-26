@@ -12,36 +12,37 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="app-icon.svg?brand=20261031">
   <link rel="apple-touch-icon" sizes="180x180" href="app-icon-180.png?brand=20261031">
-  <link rel="stylesheet" href="styles.css?v=255">
-  <script src="interface-es.js?v=263" defer></script>
+  <link rel="stylesheet" href="styles.css?v=268">
+  <script src="interface-es.js?v=267" defer></script>
   <script src="interface-language.js?v=218" defer></script>
   <script src="research-reference.js?v=218" defer></script>
   <script src="document-import.js?v=218" defer></script>
-  <script src="whole-document.js?v=226" defer></script>
+  <script src="whole-document.js?v=267" defer></script>
   <script src="saved-paper.js?v=218" defer></script>
-  <script src="offline-device.js?v=242" defer></script>
+  <script src="offline-device.js?v=267" defer></script>
   <script src="english-varieties.js?v=218" defer></script>
   <script src="mixed-language-translation.js?v=218" defer></script>
-  <script src="photo-translation.js?v=223" defer></script>
-  <script src="screenshot-import.js?v=226" defer></script>
-  <script src="live-camera-translation.js?v=226" defer></script>
+  <script src="object-identification.js?v=271" defer></script>
+  <script src="photo-translation.js?v=271" defer></script>
+  <script src="screenshot-import.js?v=272" defer></script>
+  <script src="live-camera-translation.js?v=267" defer></script>
   <script src="recording-import.js?v=223" defer></script>
   <script src="regional-vocabulary.js?v=253" defer></script>
-  <script src="spanish-context.js?v=263" defer></script>
+  <script src="spanish-context.js?v=267" defer></script>
   <script src="language-community-terms.js?v=218" defer></script>
   <script src="bilingual-music.js?v=218" defer></script>
   <script src="button-feedback.js?v=218" defer></script>
   <script src="regional-practice.js?v=218" defer></script>
   <script src="recorded-transcripts.js?v=218" defer></script>
   <script src="recorded-practice.js?v=218" defer></script>
-  <script src="quick-lessons.js?v=263" defer></script>
+  <script src="quick-lessons.js?v=267" defer></script>
   <script src="slang-contributions.js?v=218" defer></script>
-  <script src="app-feedback.js?v=255" defer></script>
+  <script src="app-feedback.js?v=267" defer></script>
   <script src="app-updates.js?v=235" defer></script>
   <script src="music-song.js?v=218" defer></script>
-  <script src="music-venezuela-captions.js?v=218" defer></script>
+  <script src="music-venezuela-captions.js?v=267" defer></script>
   <script src="whatsapp-audio.js?v=218" defer></script>
-  <script src="tutorial.js?v=255" defer></script>
+  <script src="tutorial.js?v=267" defer></script>
   <script src="full-text-reader.js?v=263" defer></script>
   <script src="persistent-translation-controls.js?v=218" defer></script>
   <script src="music-workspace.js?v=218" defer></script>
@@ -49,7 +50,9 @@
   <script src="shared-learning-links.js?v=266" defer></script>
   <script src="translation-history.js?v=218" defer></script>
   <script src="swipe-navigation.js?v=249" defer></script>
-  <script src="app.js?v=266" defer></script>
+  <link rel="stylesheet" href="grammar-reference.css?v=267">
+  <script src="grammar-reference.js?v=267" defer></script>
+  <script src="app.js?v=272" defer></script>
   <style>
     #habla-youtube-form { display:grid; gap:.55rem; margin:.75rem 0; }
     #habla-youtube-url { box-sizing:border-box; width:100%; min-height:44px; padding:.7rem; border:1px solid #909da9; border-radius:10px; font-size:1rem; }
@@ -72,7 +75,7 @@
         <span class="brand-mark">H</span>
         <span><small>Habla</small>Ecuador</span>
       </button>
-      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.27.55 · build 266</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
+      <div class="topbar-meta"><span class="dialect-pill">🇪🇨 Ecuadorian first</span><span class="version-row"><span class="version-pill" data-app-version>v0.27.61 · build 272</span><button type="button" class="about-top-button" data-open="about-view" aria-label="About Habla Ecuador" title="About Habla Ecuador">ⓘ</button></span><div class="interface-controls"><button type="button" class="tutorial-open" data-tutorial-open aria-label="How to use Habla Ecuador / Cómo usar Habla Ecuador" title="How to use Habla Ecuador / Cómo usar Habla Ecuador">Tutorial</button><button type="button" class="feedback-open" data-feedback-open aria-label="Suggest a correction" title="Suggest a correction">💬</button><label class="interface-language-control" for="interface-language"><span class="interface-language-caption">Language</span><select id="interface-language" aria-label="Interface language" translate="no"><option value="en">English</option><option value="es">Español</option></select></label></div></div>
     </header>
 
     <main>
@@ -235,49 +238,49 @@
           <p><small>Official YouTube player; internet and embedding permission required. Habla does not download video, extract copyrighted audio, or invent captions. Subtitles depend on what the video provides.</small></p>
         </section>
         <section id="ve-music-lesson" class="music-section ve-lesson" aria-labelledby="ve-video-title" data-caption-size="large">
-          <h2 id="ve-video-title">🇻🇪 BYE BYE · English video captions / Subtítulos en inglés</h2>
-          <p>Johnny Jab ft. Somerflex · Venezuela (city unknown). Watch a saved recording with Habla's English caption companion. YouTube inline playback is optional.</p>
+          <h2 id="ve-video-title">🇻🇪 BYE BYE · Video captions / Subtítulos</h2>
+          <p>Johnny Jab ft. Somerflex · Venezuela (city unknown). Watch a saved recording with Habla’s bilingual captions. YouTube inline playback is optional.</p>
           <div class="ve-stage">
-            <p class="ve-stage-label">🎬 Video original · English companion captions / Subtítulos acompañantes</p>
+            <p class="ve-stage-label">🎬 Video original · Captions / Subtítulos</p>
             <div class="ve-theater-toolbar" aria-label="Habla player controls">
-              <span>🎬 Habla · English captions / Subtítulos en inglés</span>
+              <span>🎬 Habla · Captions / Subtítulos</span>
               <button id="ve-theater-close" type="button" aria-label="Close Habla video and return to Music">✕ Close / Cerrar</button>
             </div>
             <div class="ve-video-box">
               <div id="ve-player-start" class="ve-player-start">
-                <strong>Video and English captions, together.</strong>
+                <strong>Video and captions, together.</strong>
                 <p>Choose a saved recording from your iPhone for reliable captions in Habla. The YouTube embed is optional because iPhone playback may switch apps.</p>
               </div>
-              <video id="ve-local-video" controls playsinline webkit-playsinline preload="metadata" aria-label="Imported video with Habla English captions" hidden></video>
+              <video id="ve-local-video" controls playsinline webkit-playsinline preload="metadata" aria-label="Imported video with Habla captions" hidden></video>
               <iframe id="ve-youtube-frame" title="BYE BYE — Johnny Jab featuring Somerflex" data-src="https://www.youtube.com/embed/zucN-uBedlg?enablejsapi=1&amp;playsinline=1&amp;fs=0&amp;cc_lang_pref=en&amp;origin=https%3A%2F%2Fmathewdmoore.github.io" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
-              <div class="ve-in-video-switch" role="group" aria-label="Habla English subtitles on the video">
-                <label for="ve-in-video-language">🇺🇸 EN · Habla</label>
-                <select id="ve-in-video-language" aria-label="In-video subtitles language">
+              <div class="ve-in-video-switch" role="group" aria-label="Habla subtitles on the video">
+                <label for="ve-in-video-language">CC · Habla</label>
+                <select id="ve-in-video-language" aria-label="In-video subtitles language"><option value="es+en-US" selected>Español + English (US)</option><option value="es+en-GB">Español + English (UK)</option><option value="es">Solo español</option>
                   <option value="en-US">🇺🇸 English on</option>
                   <option value="en-GB">🇬🇧 UK English on</option>
                   <option value="off">Subtitles off</option>
                 </select>
               </div>
-              <div id="ve-caption-overlay" class="ve-caption-overlay" lang="en" aria-label="Habla's English translation on the video" aria-live="off" hidden></div>
+              <div id="ve-caption-overlay" class="ve-caption-overlay" aria-label="Subtítulos de Habla" aria-live="off" hidden></div>
             </div>
-            <div class="ve-theater-caption" aria-label="English captions during playback">
-              <p class="ve-theater-caption-label">🇺🇸 ENGLISH · HABLA TRANSLATION (DRAFT)</p>
-              <p id="ve-theater-english" class="ve-theater-english" aria-live="off">Tap Play to follow the English captions.</p>
-              <p class="ve-theater-disclaimer">Approximate timing and unverified lines. If you see Spanish in the video, those are YouTube captions; turn off YouTube CC to avoid two tracks.</p>
+            <div class="ve-theater-caption" aria-label="Habla captions during playback">
+              <p class="ve-theater-caption-label">Subtítulos · Habla</p>
+              <p id="ve-theater-english" class="ve-theater-english" aria-live="off">Tap Play to follow the captions.</p>
+              <p class="ve-theater-disclaimer">Tiempo aproximado / Approximate timing.</p>
             </div>
             <div class="ve-source-actions">
               <label class="ve-import-file" for="ve-local-file">📱 Use my saved video / Usar mi grabación</label>
               <input id="ve-local-file" type="file" accept="video/*,.mp4,.mov,.m4v" aria-label="Choose a video saved on your iPhone">
               <button id="ve-youtube-try" type="button">Try YouTube inside Habla</button>
-              <button id="ve-habla-theater" type="button" aria-pressed="false">▶ Watch with English captions / Ver con subtítulos en inglés</button>
+              <button id="ve-habla-theater" type="button" aria-pressed="false">▶ Watch with captions / Ver con subtítulos</button>
             </div>
-            <p id="ve-video-status" class="ve-video-status" role="status">Ready to import a saved recording. The video stays on your device; English captions remain visible in Habla.</p>
-            <p class="ve-theater-help">For English captions while watching, use <strong>Watch with English captions</strong> instead of YouTube fullscreen. YouTube fullscreen cannot display Habla's separate translations.</p>
+            <p id="ve-video-status" class="ve-video-status" role="status">Ready to import a saved recording. The video stays on your device; Habla captions remain visible in Habla.</p>
+            <p class="ve-theater-help">For Habla captions while watching, use <strong>Watch with captions</strong> instead of YouTube fullscreen. YouTube fullscreen cannot display Habla's separate translations.</p>
             <a class="ve-youtube-link" href="https://youtu.be/zucN-uBedlg" rel="noopener noreferrer" target="_blank">Open original on YouTube (opens separately)</a>
           </div>
           <div class="ve-controls">
-            <label for="ve-caption-language">Translation / Traducción
-              <select id="ve-caption-language"><option value="en-US">🇺🇸 English subtitles · US</option><option value="en-GB">🇬🇧 English subtitles · UK</option><option value="off">Captions off / Sin subtítulos</option></select>
+            <label for="ve-caption-language">Subtitles / Subtítulos
+              <select id="ve-caption-language"><option value="es+en-US" selected>Español + English (US)</option><option value="es+en-GB">Español + English (UK)</option><option value="es">Solo español</option><option value="en-US">🇺🇸 English subtitles · US</option><option value="en-GB">🇬🇧 English subtitles · UK</option><option value="off">Captions off / Sin subtítulos</option></select>
             </label>
             <label for="ve-source-choice">Spanish reading / Lectura en español
               <select id="ve-source-choice"><option value="readable">Spanish · spelling suggestions</option><option value="original">Spanish · exact supplied original</option></select>
@@ -291,8 +294,8 @@
               <option value="extra">Extra large / Muy grande</option>
             </select>
           </div>
-          <div class="ve-reading" role="group" aria-label="English captions and time controls">
-            <p class="ve-reading-heading">Full English caption · high contrast / Subtítulos completos</p>
+          <div class="ve-reading" role="group" aria-label="Subtítulos y controles de tiempo">
+            <p class="ve-reading-heading">Subtítulos / Captions</p>
             <p id="ve-caption-reading" class="ve-reading-text">Press play to follow the captions.</p>
             <p id="ve-caption-confidence" class="ve-confidence" role="status">English draft · lyrics under review</p>
             <div class="ve-playback-row">
@@ -403,15 +406,28 @@
 
         <div id="translate-panel">
           <div class="direction-row language-picker-row">
-            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">🇺🇸 U.S. English</option><option value="en-GB">🇬🇧 U.K. English</option><option value="es-EC">🇪🇨 Ecuadorian Spanish</option><option value="es-BO">🇧🇴 Bolivian Spanish</option><option value="es-MX">🇲🇽 Mexican Spanish</option><option value="es-VE">🇻🇪 Venezuelan Spanish</option><option value="es-PE">🇵🇪 Peruvian Spanish</option><option value="es-CO">🇨🇴 Colombian Spanish</option><option value="es-CU">🇨🇺 Cuban Spanish</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-CL">🇨🇱 Chile</option><option value="es-CR">🇨🇷 Costa Rica</option><option value="es-DO">🇩🇴 Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 El Salvador</option><option value="es-SV-x-capital">🇸🇻 San Salvador · El Salvador</option><option value="es-GT">🇬🇹 Guatemala</option><option value="es-HN">🇭🇳 Honduras</option><option value="es-NI">🇳🇮 Nicaragua</option><option value="es-PA">🇵🇦 Panama / Panamá</option><option value="es-PY">🇵🇾 Paraguay</option><option value="es-PR">🇵🇷 Puerto Rico</option><option value="es-ES">🇪🇸 Spain / España</option><option value="es-UY">🇺🇾 Uruguay</option><option value="es-GQ">🇬🇶 Equatorial Guinea / Guinea Ecuatorial</option></select></label>
+            <label><small>From</small><select id="source-language-select" aria-label="Source language variety"><option value="en-US">🇺🇸 U.S. English</option><option value="en-GB">🇬🇧 U.K. English</option><option value="es-EC">🇪🇨 Ecuadorian Spanish</option><option value="es-BO">🇧🇴 Bolivian Spanish</option><option value="es-MX">🇲🇽 Mexican Spanish</option><option value="es-VE">🇻🇪 Venezuelan Spanish</option><option value="es-PE">🇵🇪 Peruvian Spanish</option><option value="es-CO">🇨🇴 Colombian Spanish</option><option value="es-CU">🇨🇺 Cuban Spanish</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-CL">🇨🇱 Chile</option><option value="es-CR">🇨🇷 Costa Rica</option><option value="es-DO">🇩🇴 Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 El Salvador</option><option value="es-SV-x-capital">🇸🇻 San Salvador · El Salvador</option><option value="es-GT">🇬🇹 Guatemala</option><option value="es-HN">🇭🇳 Honduras</option><option value="es-NI">🇳🇮 Nicaragua</option><option value="es-PA">🇵🇦 Panama / Panamá</option><option value="es-PY">🇵🇾 Paraguay</option><option value="es-PR">🇵🇷 Puerto Rico</option><option value="es-ES">🇪🇸 Spain / España</option><option value="es-UY">🇺🇾 Uruguay</option><option value="es-GQ">🇬🇶 Equatorial Guinea / Guinea Ecuatorial</option><option value="en-CA">🇨🇦 Canadian English · general draft</option><option value="en-AU">🇦🇺 Australian English · general draft</option><option value="en-NZ">🇳🇿 New Zealand English · general draft</option><option value="en-IE">🇮🇪 Irish English · general draft</option></select></label>
             <button id="swap-button" aria-label="Swap languages">⇄</button>
-            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">🇪🇨 Ecuadorian Spanish</option><option value="es-BO">🇧🇴 Bolivian Spanish</option><option value="es-MX">🇲🇽 Mexican Spanish</option><option value="es-VE">🇻🇪 Venezuelan Spanish</option><option value="es-PE">🇵🇪 Peruvian Spanish</option><option value="es-CO">🇨🇴 Colombian Spanish</option><option value="es-CU">🇨🇺 Cuban Spanish</option><option value="en-US">🇺🇸 U.S. English</option><option value="en-GB">🇬🇧 U.K. English</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-CL">🇨🇱 Chile</option><option value="es-CR">🇨🇷 Costa Rica</option><option value="es-DO">🇩🇴 Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 El Salvador</option><option value="es-SV-x-capital">🇸🇻 San Salvador · El Salvador</option><option value="es-GT">🇬🇹 Guatemala</option><option value="es-HN">🇭🇳 Honduras</option><option value="es-NI">🇳🇮 Nicaragua</option><option value="es-PA">🇵🇦 Panama / Panamá</option><option value="es-PY">🇵🇾 Paraguay</option><option value="es-PR">🇵🇷 Puerto Rico</option><option value="es-ES">🇪🇸 Spain / España</option><option value="es-UY">🇺🇾 Uruguay</option><option value="es-GQ">🇬🇶 Equatorial Guinea / Guinea Ecuatorial</option></select></label>
+            <label class="right"><small>To</small><select id="target-language-select" aria-label="Target language variety"><option value="es-EC">🇪🇨 Ecuadorian Spanish</option><option value="es-BO">🇧🇴 Bolivian Spanish</option><option value="es-MX">🇲🇽 Mexican Spanish</option><option value="es-VE">🇻🇪 Venezuelan Spanish</option><option value="es-PE">🇵🇪 Peruvian Spanish</option><option value="es-CO">🇨🇴 Colombian Spanish</option><option value="es-CU">🇨🇺 Cuban Spanish</option><option value="en-US">🇺🇸 U.S. English</option><option value="en-GB">🇬🇧 U.K. English</option><option value="es-AR">🇦🇷 Argentina</option><option value="es-CL">🇨🇱 Chile</option><option value="es-CR">🇨🇷 Costa Rica</option><option value="es-DO">🇩🇴 Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 El Salvador</option><option value="es-SV-x-capital">🇸🇻 San Salvador · El Salvador</option><option value="es-GT">🇬🇹 Guatemala</option><option value="es-HN">🇭🇳 Honduras</option><option value="es-NI">🇳🇮 Nicaragua</option><option value="es-PA">🇵🇦 Panama / Panamá</option><option value="es-PY">🇵🇾 Paraguay</option><option value="es-PR">🇵🇷 Puerto Rico</option><option value="es-ES">🇪🇸 Spain / España</option><option value="es-UY">🇺🇾 Uruguay</option><option value="es-GQ">🇬🇶 Equatorial Guinea / Guinea Ecuatorial</option><option value="en-CA">🇨🇦 Canadian English · general draft</option><option value="en-AU">🇦🇺 Australian English · general draft</option><option value="en-NZ">🇳🇿 New Zealand English · general draft</option><option value="en-IE">🇮🇪 Irish English · general draft</option></select></label>
           </div>
+          <details class="compact-info" id="english-country-coverage">
+            <summary>🌍 English-speaking countries &amp; source evidence / Países anglófonos</summary>
+            <p>🇺🇸 U.S. and 🇬🇧 U.K. have the existing English spelling/wording comparison. 🇨🇦 Canada, 🇦🇺 Australia, 🇳🇿 New Zealand, and 🇮🇪 Ireland are selectable for general English drafts and device speech-locale requests. Local idioms, pronunciation accuracy, and country-specific translation are <strong>not yet validated</strong>; a device may use a fallback voice.</p>
+            <p>Other communities where English is used include 🇯🇲 Jamaica, 🇧🇸 Bahamas, 🇧🇧 Barbados, 🇬🇾 Guyana, 🇹🇹 Trinidad and Tobago, 🇦🇬 Antigua and Barbuda, 🇰🇳 St Kitts and Nevis, 🇱🇨 St Lucia, 🇻🇨 St Vincent and the Grenadines, 🇬🇩 Grenada, 🇿🇦 South Africa and 🇸🇬 Singapore. These are research candidates, not selectable country-dialect translations yet. English-language status does not imply that every resident uses English as a first language, or that local varieties are interchangeable.</p>
+            <p>References: <a href="https://www.socialworkengland.org.uk/registration/overseas-applicant-guidance" target="_blank" rel="noopener noreferrer">Social Work England country list</a>, <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/settle-canada/language-skills.html" target="_blank" rel="noopener noreferrer">Canada official languages</a>, <a href="https://www.irishstatutebook.ie/eli/cons/en/html" target="_blank" rel="noopener noreferrer">Ireland Constitution</a>, <a href="https://www.legislation.govt.nz/act/public/2026/49/en/latest" target="_blank" rel="noopener noreferrer">New Zealand English Language Act 2026</a>, <a href="https://www.gov.za/about-sa/south-africas-people" target="_blank" rel="noopener noreferrer">South Africa official languages</a>.</p>
+          </details>
+          <details class="compact-info" id="spanish-country-coverage">
+            <summary>🌎 Spanish-speaking countries &amp; source evidence / Países hispanohablantes</summary>
+            <p>Choose the Spanish country in From or To above. / Elige el país del español en De o A, arriba.</p>
+            <p>🇪🇨 Ecuador · 🇧🇴 Bolivia · 🇲🇽 México · 🇻🇪 Venezuela · 🇵🇪 Perú · 🇨🇴 Colombia · 🇨🇺 Cuba · 🇦🇷 Argentina · 🇨🇱 Chile · 🇨🇷 Costa Rica · 🇩🇴 República Dominicana · 🇸🇻 El Salvador · 🇬🇹 Guatemala · 🇭🇳 Honduras · 🇳🇮 Nicaragua · 🇵🇦 Panamá · 🇵🇾 Paraguay · 🇵🇷 Puerto Rico · 🇪🇸 España · 🇺🇾 Uruguay · 🇬🇶 Guinea Ecuatorial</p>
+            <p>Open Dictionary for the sources attached to each meaning. Country, city and register evidence varies by entry. / Abre Diccionario para consultar las fuentes de cada acepción. La evidencia de país, ciudad y registro depende de cada entrada.</p>
+            <p><a href="https://www.asale.org/damer/" target="_blank" rel="noopener noreferrer">ASALE · Diccionario de americanismos</a> · <a href="https://dle.rae.es/" target="_blank" rel="noopener noreferrer">RAE / ASALE · DLE</a></p>
+          </details>
           <details id="spanish-pair-sources" class="compact-info" hidden><summary>Regional dictionaries and corpora / Diccionarios y corpus regionales</summary><div></div><small>CORPES XXI: select the country in the corpus search. / Selecciona el país en la consulta. City selections use national evidence unless a city is documented.</small><p><b>Variedades del español</b> · Andino, caribeño y rioplatense son variedades geográficas. Tú, vos y usted indican tratamiento. Formal, coloquial y vulgar describen el registro. Una persona puede cambiar de registro según con quién habla. <a href="https://www.rae.es/dpd/español" target="_blank" rel="noreferrer">Castellano y español · RAE</a></p></details>
           <details class="compact-info feature-guide" data-feature-guide="translate" translate="no"><summary>Translate guide</summary></details>
           <details id="research-document-workspace" class="compact-info research-document-workspace">
             <summary>Scientific research translation · PDF / Word</summary>
-            <p>Choose a complete paper, then translate every section into one editable draft. Select the source and target languages above.</p>
+            <p>Paste your paper in the text box below and tap Translate entire pasted research, or choose PDF / Word / text. Select the source and target languages above.</p>
             <div class="import-actions">
               <button id="quick-choose-document" type="button">Choose paper · PDF / Word / text</button>
               <button id="quick-open-research" type="button">Saved papers &amp; progress</button>
@@ -467,6 +483,10 @@
           <div class="input-card">
             <label class="sr-only" for="translator-input">Text to translate</label>
             <textarea id="translator-input" rows="4" placeholder="Type or tap the microphone to speak…"></textarea>
+            <div class="research-paste-actions" role="group" aria-label="Paste and translate a complete research paper">
+              <button id="translate-pasted-paper" type="button">Translate entire pasted research / Traducir investigación pegada</button>
+              <p id="pasted-paper-status" role="status" aria-live="polite"></p>
+            </div>
             <div class="translator-mic-actions">
               <button id="translator-mic-add" type="button" aria-label="Add missing dictated words while keeping the existing source text">＋ Add missing words / Añadir palabras</button>
               <button id="input-mic" class="round-action push-to-talk" type="button" aria-label="Start fresh dictation; tap again to finish">🎙</button>
@@ -477,7 +497,9 @@
               <button id="translator-mic-keyboard" type="button" hidden>Use keyboard dictation</button>
             </div>
           </div>
-          <div id="image-quick-actions" class="image-quick-actions" role="group" aria-label="Translate text from an image / Traducir texto de una imagen">
+          <label class="image-task-choice" for="image-task">Image task / Acción con imagen<select id="image-task"><option value="objects">Identify objects / Identificar objetos</option><option value="text">Translate image text / Traducir texto de imagen</option></select></label>
+          <div id="image-quick-actions" class="image-quick-actions" role="group" aria-label="Image tools / Herramientas de imagen">
+            <button id="quick-identify-objects" type="button">Identify objects / Identificar objetos</button>
             <button id="quick-live-camera" type="button">Live camera / Cámara en vivo</button>
             <button id="quick-camera-image" type="button">📷 Take photo / Tomar foto</button>
             <button id="quick-choose-image" type="button">📷 Choose photo / Elegir foto</button>
@@ -486,6 +508,14 @@
             <input id="camera-photo-file" type="file" accept="image/*" capture="environment" hidden>
           </div>
           <p id="quick-image-status" class="import-status quick-image-status" role="status" aria-live="polite"></p>
+          <section id="image-text-review" class="compact-info" hidden aria-label="Review unclear image text / Revisar texto poco claro">
+            <p>Check the detected words against your original photo before translating. For a picture of an object, choose Identify objects. / Revisa las palabras con la foto original antes de traducir. Para identificar un objeto, elige Identificar objetos.</p>
+            <img id="image-text-original" alt="Original image for text review / Imagen original para revisar" style="display:block;max-width:100%;max-height:45vh;object-fit:contain;margin:.5rem auto">
+            <label for="image-text-draft">Review detected text / Revisar texto detectado</label>
+            <textarea id="image-text-draft" rows="5" spellcheck="true"></textarea>
+            <label><input id="image-text-show-labels" type="checkbox"> Show translated labels on photo (optional) / Mostrar etiquetas en la foto (opcional)</label>
+            <div class="import-actions"><button id="use-reviewed-image-text" type="button">Translate reviewed text / Traducir texto revisado</button><button id="identify-reviewed-image" type="button">Identify objects / Identificar objetos</button><button id="cancel-image-text-review" type="button">Cancel / Cancelar</button></div>
+          </section>
           <div id="source-language-warning" class="source-language-warning" role="alert" hidden>
             <p id="source-language-warning-message"></p>
             <button id="correct-source-language" type="button"></button>
@@ -911,7 +941,7 @@
           </details>
           <div class="speaker-region-editors conversation-controls">
             <fieldset><legend>Person 1 / Persona 1: <span data-ui-content data-person-region-name="english"></span></legend>
-              <label>Spoken language / Idioma hablado<select id="conversation-english-language" aria-label="Language for person 1"><optgroup label="English / Inglés"><option value="en-US">🇺🇸 English · U.S. / Inglés · EE. UU.</option><option value="en-GB">🇬🇧 English · U.K. / Inglés · Reino Unido</option></optgroup><optgroup label="Spanish / Español"><option value="es-EC">🇪🇨 Spanish / Español · Ecuador</option><option value="es-BO">🇧🇴 Spanish / Español · Bolivia</option><option value="es-MX">🇲🇽 Spanish / Español · Mexico</option><option value="es-VE">🇻🇪 Spanish / Español · Venezuela</option><option value="es-PE">🇵🇪 Spanish / Español · Peru</option><option value="es-CO">🇨🇴 Spanish / Español · Colombia</option><option value="es-CU">🇨🇺 Spanish / Español · Cuba</option><option value="es-AR">🇦🇷 Spanish / Español · Argentina</option><option value="es-CL">🇨🇱 Spanish / Español · Chile</option><option value="es-CR">🇨🇷 Spanish / Español · Costa Rica</option><option value="es-DO">🇩🇴 Spanish / Español · Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 Spanish / Español · El Salvador</option><option value="es-GT">🇬🇹 Spanish / Español · Guatemala</option><option value="es-HN">🇭🇳 Spanish / Español · Honduras</option><option value="es-NI">🇳🇮 Spanish / Español · Nicaragua</option><option value="es-PA">🇵🇦 Spanish / Español · Panama / Panamá</option><option value="es-PY">🇵🇾 Spanish / Español · Paraguay</option><option value="es-PR">🇵🇷 Spanish / Español · Puerto Rico</option><option value="es-ES">🇪🇸 Spanish / Español · Spain / España</option><option value="es-UY">🇺🇾 Spanish / Español · Uruguay</option><option value="es-GQ">🇬🇶 Spanish / Español · Equatorial Guinea / Guinea Ecuatorial</option></optgroup></select></label>
+              <label>Spoken language / Idioma hablado<select id="conversation-english-language" aria-label="Language for person 1"><optgroup label="English / Inglés"><option value="en-US">🇺🇸 English · U.S. / Inglés · EE. UU.</option><option value="en-GB">🇬🇧 English · U.K. / Inglés · Reino Unido</option><option value="en-CA">🇨🇦 English · Canada / Canadá · general</option><option value="en-AU">🇦🇺 English · Australia · general</option><option value="en-NZ">🇳🇿 English · New Zealand / Nueva Zelanda · general</option><option value="en-IE">🇮🇪 English · Ireland / Irlanda · general</option></optgroup><optgroup label="Spanish / Español"><option value="es-EC">🇪🇨 Spanish / Español · Ecuador</option><option value="es-BO">🇧🇴 Spanish / Español · Bolivia</option><option value="es-MX">🇲🇽 Spanish / Español · Mexico</option><option value="es-VE">🇻🇪 Spanish / Español · Venezuela</option><option value="es-PE">🇵🇪 Spanish / Español · Peru</option><option value="es-CO">🇨🇴 Spanish / Español · Colombia</option><option value="es-CU">🇨🇺 Spanish / Español · Cuba</option><option value="es-AR">🇦🇷 Spanish / Español · Argentina</option><option value="es-CL">🇨🇱 Spanish / Español · Chile</option><option value="es-CR">🇨🇷 Spanish / Español · Costa Rica</option><option value="es-DO">🇩🇴 Spanish / Español · Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 Spanish / Español · El Salvador</option><option value="es-GT">🇬🇹 Spanish / Español · Guatemala</option><option value="es-HN">🇭🇳 Spanish / Español · Honduras</option><option value="es-NI">🇳🇮 Spanish / Español · Nicaragua</option><option value="es-PA">🇵🇦 Spanish / Español · Panama / Panamá</option><option value="es-PY">🇵🇾 Spanish / Español · Paraguay</option><option value="es-PR">🇵🇷 Spanish / Español · Puerto Rico</option><option value="es-ES">🇪🇸 Spanish / Español · Spain / España</option><option value="es-UY">🇺🇾 Spanish / Español · Uruguay</option><option value="es-GQ">🇬🇶 Spanish / Español · Equatorial Guinea / Guinea Ecuatorial</option></optgroup></select></label>
               <label>Country / País<select data-person-country="english" aria-label="Country for person 1"></select></label>
               <details class="location-options" data-ui-content data-location-options="english-country">
                 <summary>Show country / país choices</summary>
@@ -936,7 +966,7 @@
               </details>
             </fieldset>
             <fieldset><legend>Person 2 / Persona 2: <span data-ui-content data-person-region-name="spanish"></span></legend>
-              <label>Spoken language / Idioma hablado<select id="conversation-spanish-language" aria-label="Language for person 2"><optgroup label="English / Inglés"><option value="en-US">🇺🇸 English · U.S. / Inglés · EE. UU.</option><option value="en-GB">🇬🇧 English · U.K. / Inglés · Reino Unido</option></optgroup><optgroup label="Spanish / Español"><option value="es-EC">🇪🇨 Spanish / Español · Ecuador</option><option value="es-BO">🇧🇴 Spanish / Español · Bolivia</option><option value="es-MX">🇲🇽 Spanish / Español · Mexico</option><option value="es-VE">🇻🇪 Spanish / Español · Venezuela</option><option value="es-PE">🇵🇪 Spanish / Español · Peru</option><option value="es-CO">🇨🇴 Spanish / Español · Colombia</option><option value="es-CU">🇨🇺 Spanish / Español · Cuba</option><option value="es-AR">🇦🇷 Spanish / Español · Argentina</option><option value="es-CL">🇨🇱 Spanish / Español · Chile</option><option value="es-CR">🇨🇷 Spanish / Español · Costa Rica</option><option value="es-DO">🇩🇴 Spanish / Español · Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 Spanish / Español · El Salvador</option><option value="es-GT">🇬🇹 Spanish / Español · Guatemala</option><option value="es-HN">🇭🇳 Spanish / Español · Honduras</option><option value="es-NI">🇳🇮 Spanish / Español · Nicaragua</option><option value="es-PA">🇵🇦 Spanish / Español · Panama / Panamá</option><option value="es-PY">🇵🇾 Spanish / Español · Paraguay</option><option value="es-PR">🇵🇷 Spanish / Español · Puerto Rico</option><option value="es-ES">🇪🇸 Spanish / Español · Spain / España</option><option value="es-UY">🇺🇾 Spanish / Español · Uruguay</option><option value="es-GQ">🇬🇶 Spanish / Español · Equatorial Guinea / Guinea Ecuatorial</option></optgroup></select></label>
+              <label>Spoken language / Idioma hablado<select id="conversation-spanish-language" aria-label="Language for person 2"><optgroup label="English / Inglés"><option value="en-US">🇺🇸 English · U.S. / Inglés · EE. UU.</option><option value="en-GB">🇬🇧 English · U.K. / Inglés · Reino Unido</option><option value="en-CA">🇨🇦 English · Canada / Canadá · general</option><option value="en-AU">🇦🇺 English · Australia · general</option><option value="en-NZ">🇳🇿 English · New Zealand / Nueva Zelanda · general</option><option value="en-IE">🇮🇪 English · Ireland / Irlanda · general</option></optgroup><optgroup label="Spanish / Español"><option value="es-EC">🇪🇨 Spanish / Español · Ecuador</option><option value="es-BO">🇧🇴 Spanish / Español · Bolivia</option><option value="es-MX">🇲🇽 Spanish / Español · Mexico</option><option value="es-VE">🇻🇪 Spanish / Español · Venezuela</option><option value="es-PE">🇵🇪 Spanish / Español · Peru</option><option value="es-CO">🇨🇴 Spanish / Español · Colombia</option><option value="es-CU">🇨🇺 Spanish / Español · Cuba</option><option value="es-AR">🇦🇷 Spanish / Español · Argentina</option><option value="es-CL">🇨🇱 Spanish / Español · Chile</option><option value="es-CR">🇨🇷 Spanish / Español · Costa Rica</option><option value="es-DO">🇩🇴 Spanish / Español · Dominican Republic / República Dominicana</option><option value="es-SV">🇸🇻 Spanish / Español · El Salvador</option><option value="es-GT">🇬🇹 Spanish / Español · Guatemala</option><option value="es-HN">🇭🇳 Spanish / Español · Honduras</option><option value="es-NI">🇳🇮 Spanish / Español · Nicaragua</option><option value="es-PA">🇵🇦 Spanish / Español · Panama / Panamá</option><option value="es-PY">🇵🇾 Spanish / Español · Paraguay</option><option value="es-PR">🇵🇷 Spanish / Español · Puerto Rico</option><option value="es-ES">🇪🇸 Spanish / Español · Spain / España</option><option value="es-UY">🇺🇾 Spanish / Español · Uruguay</option><option value="es-GQ">🇬🇶 Spanish / Español · Equatorial Guinea / Guinea Ecuatorial</option></optgroup></select></label>
               <label>Country / País<select data-person-country="spanish" aria-label="Country for person 2"></select></label>
               <details class="location-options" data-ui-content data-location-options="spanish-country">
                 <summary>Show country / país choices</summary>
@@ -992,7 +1022,7 @@
       <section id="dictionary-view" class="view" aria-labelledby="dictionary-title">
         <div class="view-heading">
           <button class="back-button" data-open="home-view" aria-label="Back to home">←</button>
-          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish dictionary</h1></div>
+          <div><p class="eyebrow">Sources & verification</p><h1 id="dictionary-title">Spanish–English dictionary</h1></div>
         </div>
         <p id="shared-app-context" class="shared-app-context" role="status" hidden></p>
         <details id="dictionary-reference-resources" class="compact-info" aria-label="Research reference resources">
@@ -1013,6 +1043,11 @@
           <p class="eyebrow">Ecuador first · compare regions</p>
           <h2 id="regional-slang-title">Regional dictionary</h2>
           <details class="compact-info feature-guide" data-feature-guide="dictionary" translate="no"><summary>Dictionary guide</summary></details>
+          <div class="context-choice-actions" role="group" aria-label="Dictionary lookup direction">
+            <button type="button" data-dictionary-direction="es-EC" aria-pressed="true">Spanish → English</button>
+            <button type="button" data-dictionary-direction="en-US" aria-pressed="false">🇺🇸 English → Spanish</button>
+            <button type="button" data-dictionary-direction="en-GB" aria-pressed="false">🇬🇧 UK English → Spanish</button>
+          </div>
           <label class="dictionary-search"><span class="sr-only">Search regional dictionary</span><input id="regional-slang-search" type="search" placeholder="Spanish term, English meaning, or city…"></label>
           <div class="regional-slang-filters">
             <label>Region<select id="regional-slang-region">

@@ -9,11 +9,11 @@ async function controlsFit(page){
  await page.waitForFunction(()=>{
   const panel=document.querySelector('.tutorial-panel').getBoundingClientRect(),v=window.visualViewport;
   const left=v?.offsetLeft||0,top=v?.offsetTop||0,right=left+(v?.width||innerWidth),bottom=top+(v?.height||innerHeight);
-  return ['#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-progress'].every(s=>{
+  return ['#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-try','#tutorial-progress'].every(s=>{
    const r=document.querySelector(s).getBoundingClientRect();
    return r.top>=Math.max(top,panel.top)&&r.bottom<=Math.min(bottom,panel.bottom)&&r.left>=Math.max(left,panel.left)&&r.right<=Math.min(right,panel.right);
   });
- },{},{timeout:3000}).catch(async e=>{console.log(await page.evaluate(()=>Object.fromEntries(['.tutorial-panel','#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-progress'].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()]))));throw e;});
+ },{},{timeout:3000}).catch(async e=>{console.log(await page.evaluate(()=>Object.fromEntries(['.tutorial-panel','#tutorial-close','#tutorial-next','#tutorial-back','#tutorial-skip','#tutorial-try','#tutorial-progress'].map(s=>[s,document.querySelector(s).getBoundingClientRect().toJSON()]))));throw e;});
 }
 async function tap(page,id){
  // A simulated viewport resize queues layout on the next animation frame.
@@ -56,7 +56,7 @@ async function run(browser,file,width,height=844){
  });
  // Previous versions stored v1 when the invitation was dismissed.
  // This rollout should still display the actual tour once for those visitors.
- await page.addInitScript(()=>localStorage.setItem('habla-tutorial-seen-v1','1'));
+ await page.addInitScript(()=>{if(window===window.top)localStorage.setItem('habla-tutorial-seen-v1','1');});
  await page.goto(origin+'/habla-ecuador/'+file);
  await page.waitForSelector('#tutorial-overlay:not([hidden])');
  assert.equal(await page.locator('button[data-tutorial-open]').count(),1,'reopenable Help icon');
@@ -153,6 +153,17 @@ async function run(browser,file,width,height=844){
   v.dispatchEvent(new Event('resize'));
  });
  await controlsFit(page);await highlightFits(page,'.language-picker-row');
+ await tap(page,'#tutorial-try');
+ assert.equal(await page.locator('#tutorial-overlay').isVisible(),false);
+ assert.equal(await page.locator('#tutorial-resume').isVisible(),true);
+ await page.locator('#source-language-select').selectOption('en-GB');
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#tutorial-resume').isVisible(),true,'Escape in the app does not discard the tour');
+ await page.locator('#tutorial-resume').tap();
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),2,'resume returns to the same step');
+ assert.equal(await page.locator('#source-language-select').inputValue(),'en-GB','real controls remain interactive');
+ assert.equal(await page.locator('#tutorial-resume').isVisible(),false);
+ await highlightFits(page,'.language-picker-row');
  // Scroll the instructions, while the Close and navigation rows stay put.
  await page.locator('.tutorial-content').evaluate(el=>el.scrollTop=el.scrollHeight);
  await controlsFit(page);
@@ -183,6 +194,14 @@ async function run(browser,file,width,height=844){
  assert.equal(await page.locator('#tutorial-title').textContent(),'Explore regional meanings');
  assert.equal(await page.locator('#dictionary-view').evaluate(el=>el.classList.contains('active')),true);
  await highlightFits(page,'#regional-slang-search');
+ const dictionaryStep=await page.evaluate(()=>HablaTutorial.step);
+ await tap(page,'#tutorial-try');
+ await page.locator('#regional-slang-search').fill('ñaño');
+ if(file==='index.html')await page.locator('.bottom-nav [data-open="home-view"]').tap();
+ await page.locator('#tutorial-resume').tap();
+ assert.equal(await page.evaluate(()=>HablaTutorial.step),dictionaryStep);
+ assert.equal(await page.locator('.view.active').getAttribute('id'),'dictionary-view');
+ assert.equal(await page.locator('#regional-slang-search').inputValue(),'ñaño');
  await tap(page,'#tutorial-next');
  assert.equal(await page.locator('#tutorial-title').textContent(),'Practice speaking and listening');
  await highlightFits(page,'#lesson-language');

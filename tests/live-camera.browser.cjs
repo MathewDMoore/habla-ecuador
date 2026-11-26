@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.resolve(__dirname,'..'),origin='https://mathewdmoore.github.io';
 async function run(browser,entry){
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,serviceWorkers:'block'});
- const page=await context.newPage(),errors=[],cameraQueries=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage(),errors=[],cameraQueries=[];let corruptNumbers=true;page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
   localStorage.setItem('habla-tutorial-seen-v2','1');
   window.__cameraWords='The museum opens at nine.';window.__cameraCalls=[];window.__copies=[];window.__ocrCalls=0;window.__workers=0;window.__activeOcr=0;window.__maxOcr=0;window.__terminated=0;
@@ -28,7 +28,7 @@ async function run(browser,entry){
   const url=new URL(route.request().url());if(['blob:','data:'].includes(url.protocol))return route.continue();
   if(url.hostname==='api.mymemory.translated.net'){
    const query=url.searchParams.get('q')||'';cameraQueries.push(query);
-   const text=query.includes('Tickets')?'Las entradas se venden abajo.':'El museo abre a las nueve.';
+   const text=query.includes('Tickets')?'Las entradas se venden abajo.':query.includes('carbohydrates')?(corruptNumbers?'40 g de carbohidratos por tableta':'4 g de carbohidratos por tableta'):'El museo abre a las nueve.';
    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({responseData:{translatedText:text},responseStatus:200})});
   }
   if(url.origin!==origin||!url.pathname.startsWith('/habla-ecuador/'))return route.abort();
@@ -53,9 +53,9 @@ async function run(browser,entry){
  assert.equal(await page.evaluate(()=>__workers),1);assert.equal(await page.evaluate(()=>__maxOcr),1,'frames process serially using one worker');
  const constraints=await page.evaluate(()=>__cameraCalls[0]);assert.equal(constraints.audio,false);assert.equal(constraints.video.facingMode.ideal,'environment');
  assert.ok(await labels.evaluateAll(items=>items.every(label=>label.scrollHeight<=label.clientHeight+1)),'labels fit the video');
- assert.equal(await labels.first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
- assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.65);
- await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),.35);
+ assert.equal(await labels.first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(8, 36, 28, 0.65)');
+ assert.equal(await labels.first().evaluate(el=>Number(getComputedStyle(el).opacity)),1,'translated text stays legible while its backing is translucent');
+ await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='35';input.dispatchEvent(new Event('input',{bubbles:true}));});assert.equal(await labels.first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(8, 36, 28, 0.35)');
  await dialog.locator('[data-camera-opacity]').evaluate(input=>{input.value='65';input.dispatchEvent(new Event('input',{bubbles:true}));});
  if(process.env.HABLA_CAMERA_SCREENSHOT&&entry==='index.html')await page.screenshot({path:process.env.HABLA_CAMERA_SCREENSHOT});
  await page.evaluate(()=>{window.__sidewaysText=true;window.__cameraWords='Tickets are sold downstairs.';});
@@ -75,6 +75,17 @@ async function run(browser,entry){
  assert.equal(await page.locator('#translator-input').inputValue(),'Tickets are sold downstairs.');
  assert.equal(await page.evaluate(()=>__stream.getTracks().every(track=>track.readyState==='ended')),true,'closing stops every camera track');
  assert.ok(await page.evaluate(()=>__terminated)>0,'closing releases the OCR worker');
+ // A wrong carbohydrate quantity must never replace the number on a live label.
+ await page.evaluate(()=>{window.__sidewaysText=false;window.__cameraWords='4 g of carbohydrates per tablet';});
+ await page.locator('#quick-live-camera').click();
+ await page.waitForFunction(()=>document.querySelector('#live-camera-translator [data-camera-status]')?.textContent.includes('Numbers differ'));
+ assert.equal(await labels.count(),0,'40 g is withheld when the printed original says 4 g');
+ assert.equal(await page.locator('#translator-input').inputValue(),'Tickets are sold downstairs.','unverified quantities cannot overwrite earlier text');
+ corruptNumbers=false;
+ await dialog.locator('[data-camera-retry]').click();
+ await page.waitForFunction(()=>document.querySelector('#live-camera-translator .photo-translation-label')?.textContent.includes('4 g de carbohidratos'));
+ assert.equal(await labels.count(),1,'corrected quantity can be shown after Retry');
+ await dialog.locator('[data-camera-close]').click();
  await page.evaluate(()=>{window.__denyCamera=true;});await page.locator('#quick-live-camera').click();
  await page.waitForFunction(()=>document.querySelector('#live-camera-translator [data-camera-status]').textContent.includes('denied'));
  assert.equal(await page.locator('#translator-input').inputValue(),'Tickets are sold downstairs.','permission denial preserves existing input');

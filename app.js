@@ -102,11 +102,15 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.55 · build 266";
+const APP_VERSION = "0.27.61 · build 272";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
   "en-GB": {label:"U.K. English", family:"en", voice:"en-GB"},
+  "en-CA": {label:"Canadian English (general English draft)", family:"en", voice:"en-CA"},
+  "en-AU": {label:"Australian English (general English draft)", family:"en", voice:"en-AU"},
+  "en-NZ": {label:"New Zealand English (general English draft)", family:"en", voice:"en-NZ"},
+  "en-IE": {label:"Irish English (general English draft)", family:"en", voice:"en-IE"},
   "es-EC": {label:"Ecuadorian Spanish", family:"es", voice:"es-EC"},
   "es-BO": {label:"Bolivian Spanish", family:"es", voice:"es-BO"},
   "es-MX": {label:"Mexican Spanish", family:"es", voice:"es-MX"},
@@ -294,6 +298,7 @@ function populateTranslatorLocales() {
       const choices = regions.map(region => family + "-" + region);
       choices.sort((a,b) => languageLabel(a).localeCompare(languageLabel(b),family));
       for (const locale of choices) {
+        if (Array.from(select.options).some(option => (typeof option === "string" ? option : option.value) === locale)) continue;
         const flag = Array.from(locale.slice(3), letter => String.fromCodePoint(127397 + letter.charCodeAt(0))).join("");
         group.append(new Option(flag + " " + languageLabel(locale), locale));
       }
@@ -315,10 +320,15 @@ function languageLabel(code) {
   return TRANSLATOR_LANGUAGES[code]?.label || code;
 }
 
+// These are generic editorial baselines, not verified country-dialect translations.
+function englishBaseVariant(code) {
+  return ["en-GB","en-AU","en-NZ","en-IE"].includes(code) ? "uk" : "us";
+}
+
 function syncLanguagePair({persist=true}={}) {
   wholeDocumentTools?.pause('Paused because the language settings changed. Saved progress keeps its original languages.');
   direction = translatorRoute();
-  englishVariant = targetLanguage === "en-GB" || (languageFamily(targetLanguage) !== "en" && sourceLanguage === "en-GB") ? "uk" : "us";
+  englishVariant = englishBaseVariant(languageFamily(targetLanguage) === "en" ? targetLanguage : sourceLanguage);
   if (persist) localStorage.setItem(TRANSLATOR_PAIR_STORAGE_KEY, JSON.stringify({source:sourceLanguage,target:targetLanguage}));
   const sourceSelect = $("#source-language-select");
   const targetSelect = $("#target-language-select");
@@ -348,7 +358,7 @@ let savedLanguagePair = (() => {
 let sourceLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.source] ? savedLanguagePair.source : "en-US";
 let targetLanguage = TRANSLATOR_LANGUAGES[savedLanguagePair.target] ? savedLanguagePair.target : "es-EC";
 let direction = TRANSLATOR_LANGUAGES[sourceLanguage].family === "en" && TRANSLATOR_LANGUAGES[targetLanguage].family === "es" ? "en-ec" : "ec-en";
-let englishVariant = (targetLanguage === "en-GB" || (TRANSLATOR_LANGUAGES[targetLanguage].family !== "en" && sourceLanguage === "en-GB")) ? "uk" : "us";
+let englishVariant = englishBaseVariant(TRANSLATOR_LANGUAGES[targetLanguage].family === "en" ? targetLanguage : sourceLanguage);
 let translationPurpose = localStorage.getItem(TRANSLATION_PURPOSE_STORAGE_KEY) === "academic" ? "academic" : "everyday";
 let voiceRate = readVoiceRate();
 let lessonStep = 1;
@@ -454,6 +464,7 @@ function speakerRegionProfile(name) {
 }
 const PERSON_COUNTRY_LABELS = {
   "en-US":"United States / Estados Unidos", "en-GB":"United Kingdom / Reino Unido",
+  "en-CA":"Canada / Canadá", "en-AU":"Australia", "en-NZ":"New Zealand / Nueva Zelanda", "en-IE":"Ireland / Irlanda",
   "es-EC":"Ecuador", "es-BO":"Bolivia", "es-MX":"Mexico / México", "es-VE":"Venezuela",
   "es-PE":"Peru / Perú", "es-CO":"Colombia", "es-CU":"Cuba", "es-AR":"Argentina",
   "es-CL":"Chile", "es-CR":"Costa Rica", "es-DO":"Dominican Republic / República Dominicana",
@@ -463,6 +474,10 @@ const PERSON_COUNTRY_LABELS = {
 };
 // Country-specific suggestions from country-region-data (MIT); see docs/region-data-license.txt.
 const PERSON_REGION_OPTIONS = {
+  "en-CA": ["Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland and Labrador","Northwest Territories","Nova Scotia","Nunavut","Ontario","Prince Edward Island","Quebec","Saskatchewan","Yukon"],
+  "en-AU": ["Australian Capital Territory","New South Wales","Northern Territory","Queensland","South Australia","Tasmania","Victoria","Western Australia"],
+  "en-NZ": ["Auckland","Bay of Plenty","Canterbury","Gisborne","Hawke’s Bay","Manawatū-Whanganui","Marlborough","Nelson","Northland","Otago","Southland","Taranaki","Tasman","Waikato","Wellington","West Coast"],
+  "en-IE": ["Connacht","Leinster","Munster","Ulster"],
   "en-US": [
     "Alabama",
     "Alaska",
@@ -3158,8 +3173,10 @@ function refineAcademicEnglish(text, source="") {
 }
 
 function convertEnglishVariety(text, target=targetLanguage, options={}) {
+  // Other English-country choices currently use an explicitly labelled general baseline.
+  const baseline = englishBaseVariant(target) === "uk" ? "en-GB" : "en-US";
   if (typeof HablaEnglish !== "undefined") {
-    const adapted=HablaEnglish.adapt(text,target,options).text;
+    const adapted=HablaEnglish.adapt(text,baseline,options).text;
     return HablaEnglish.preserveCompleteSolutions(adapted,options.source);
   }
   if (target !== "en-US" && target !== "en-GB") return text;
@@ -3171,7 +3188,7 @@ function convertEnglishVariety(text, target=targetLanguage, options={}) {
     ["favorite","favourite"],["favorites","favourites"],["traveling","travelling"],
     ["traveled","travelled"],["program","programme"]
   ];
-  const pairs = target === "en-GB" ? ukPairs : ukPairs.map(([us,uk]) => [uk,us]);
+  const pairs = baseline === "en-GB" ? ukPairs : ukPairs.map(([us,uk]) => [uk,us]);
   return pairs.reduce((result,[from,to]) => result.replace(new RegExp(`\\b${from}\\b`,"gi"), match => {
     if (match === match.toUpperCase()) return to.toUpperCase();
     if (match[0] === match[0].toUpperCase()) return `${to[0].toUpperCase()}${to.slice(1)}`;
@@ -3208,13 +3225,13 @@ function translationErrorMessage(error) {
 }
 
 const translationChunkCache = new Map();
-async function requestTranslationChunk(text, way=direction, purpose=translationPurpose, receiveAlternatives) {
+async function requestTranslationChunk(text, way=direction, purpose=translationPurpose, receiveAlternatives, forceFresh=false) {
   const pair = way === "en-ec" ? "en|es" : "es|en";
   const protectedText = purpose === "academic" ? protectResearchTokens(text) : {text,restore:value=>value};
   // Never truncate text to fit a request. The caller splits the whole passage.
   if (utf8Length(protectedText.text) > 500) throw translationFailure("request_limit", "Segment exceeds 500 UTF-8 bytes.");
   const key = JSON.stringify([pair,purpose,text]);
-  const request = translationChunkCache.get(key) || (async () => {
+  const request = (forceFresh ? undefined : translationChunkCache.get(key)) || (async () => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
@@ -3320,7 +3337,7 @@ function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) 
   };
 }
 
-async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives}={}) {
+async function requestGeneralTranslation(text, way=direction, {purpose=translationPurpose, source=sourceLanguage, target=targetLanguage, isCurrent=()=>true, onDevice=typeof HablaOffline !== "undefined" && HablaOffline.shouldUse(), inputType, chunkProgress, musicSourceMode, receiveAlternatives, forceFresh=false}={}) {
   if (text.length > 8000) throw translationFailure("research_limit");
   const reviewedMeaning = reviewedMeaningTranslation(text,{source,target,purpose});
   if (reviewedMeaning !== null) {
@@ -3409,7 +3426,7 @@ async function requestGeneralTranslation(text, way=direction, {purpose=translati
     if (!isCurrent()) throw translationFailure("superseded");
     const cached=chunk.separator?undefined:chunkProgress?.read(index,chunk.text);
     const reviewedPart=chunk.separator?null:reviewedCourtesyTranslation(chunk.text,{source,target,purpose});
-    const draft=chunk.separator ? chunk.text : reviewedPart !== null ? reviewedPart : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives));
+    const draft=chunk.separator ? chunk.text : reviewedPart !== null ? reviewedPart : cached !== undefined ? cached : (onDevice ? await HablaOffline.translate(chunk.text,way) : await requestTranslationChunk(chunk.text,way,purpose,captureAlternatives,forceFresh));
     if (!isCurrent()) throw translationFailure("superseded");
     if(!chunk.separator&&cached===undefined)chunkProgress?.write(index,chunk.text,draft);
     let contextualDraft=(image||music)&&way==='ec-en'&&!chunk.separator?refineImageEnglish(draft,chunk.text,text,{musicContext:music}):draft;
@@ -4464,6 +4481,61 @@ function previewScreenshotText(extracted,guard) {
 function bindDocumentTools() {
   if (!$("#choose-document")) return;
   $("#compare-english").disabled = true;
+
+  // Pasted research joins the same recoverable whole-paper queue as imported files.
+  // A paste never sends text until the learner explicitly taps this action.
+  const pastedResearchStatus = $("#pasted-paper-status");
+  $("#translate-pasted-paper")?.addEventListener("click", () => {
+    const input = $("#translator-input");
+    const original = input.value;
+    const report = message => { if (pastedResearchStatus) pastedResearchStatus.textContent = message; };
+    if (!original.trim()) { report("Paste your research text into the field above first."); return; }
+    if (documentLoading || documentImportActive || wholeDocumentTools?.runner?.busy) {
+      report("Finish or close the current document before starting another paper. Saved progress is preserved.");
+      return;
+    }
+    if (original.length > 200000) {
+      report("This paper exceeds 200,000 characters. Split it into separate papers before translating. Your pasted text is unchanged.");
+      return;
+    }
+    if (!wholeDocumentTools || typeof HablaWholeDocument === "undefined") {
+      report("The whole-paper translator is unavailable. Your research text has not been changed.");
+      return;
+    }
+    const route = {sourceLanguage,targetLanguage,purpose:"academic",
+      onDevice:typeof HablaOffline !== "undefined" && HablaOffline.shouldUse()};
+    const name = "Pasted research - " + new Date().toISOString().slice(0,10) + ".txt";
+    let sections;
+    try {
+      sections = safeDocumentSections(original);
+      // Validate supported language pairs and progress limits before replacing any UI.
+      HablaWholeDocument.create({name,sections},route);
+    } catch (error) { report(error.message || "This research text could not be prepared."); return; }
+    wholeDocumentTools.pause("Preparing the pasted paper. Previously saved progress is unchanged.");
+    cancelMusicListening();
+    musicTranscriptReview = false;
+    musicCapturedText = "";
+    updateMusicListenLabel();
+    documentImportController?.abort();
+    documentImportController = undefined;
+    documentImportRequest++;
+    clearTimeout(translationTimer);
+    translationRequest++;
+    stopSpeechPlayback();
+    preservedCulturalContext = null;
+    // Research-mode refresh reads the active editor back into section zero.
+    // Switch mode before activating the document, while the editor still
+    // contains the entire pasted paper, or it would duplicate later sections.
+    setTranslationPurpose("academic",false);
+    importedDocument = {name,sections,index:0,total:original.length};
+    documentImportActive = true;
+    input.blur?.();
+    populateDocumentSections();
+    $("#research-document-workspace").open = true;
+    report("Pasted paper opened. Translation starts only from this button, and completed progress is saved on this device.");
+    $("#whole-document-tools").scrollIntoView({block:"start"});
+    return $("#translate-entire-document").click();
+  });
   const chooseResearchDocument = () => {
     $("#translation-setup").open = true;
     $("#choose-document").closest("details").open = true;
@@ -5004,7 +5076,7 @@ async function handleConversationText(expectedRole, speaker, text, final, {provi
     : null;
   try {
     turn.translation = spokenExclamation ?? (faceToFace ? conversationGreeting(text,way) : null) ?? (phrase
-      ? way === "en-ec" ? phrase.natural : (englishLocale === "en-GB" ? phrase.uk : phrase.us) || phrase.en
+      ? way === "en-ec" ? phrase.natural : (englishBaseVariant(englishLocale) === "uk" ? phrase.uk : phrase.us) || phrase.en
       : faceToFace ? await translateFaceTurn(turn,()=>generation===conversationGeneration&&turns.includes(turn))
       : await requestGeneralTranslation(text, way, {purpose:"everyday",source:sourceLocale,target,isCurrent:()=>generation===conversationGeneration&&turns.includes(turn)}));
     if (generation !== conversationGeneration || !turns.includes(turn)) return;
@@ -5554,10 +5626,22 @@ function renderRegionalSlang() {
   const region = $("#regional-slang-region").value;
   const englishLead = region === "en-US" ? "us" : region === "en-GB" ? "uk" : null;
   $("#regional-slang-target-label").hidden = !englishLead;
+  document.querySelectorAll("[data-dictionary-direction]").forEach(button => {
+    button.setAttribute("aria-pressed", String(englishLead ? button.dataset.dictionaryDirection === region : button.dataset.dictionaryDirection === "es-EC"));
+  });
   const directionLabel = englishLead ? `${englishLead === "us" ? "U.S." : "U.K."} English → Spanish` : "U.S. & U.K. English";
   $("#regional-slang-search").placeholder = englishLead ? "English meaning or Spanish term…" : "Spanish term, English meaning, or city…";
   const options = {query:$("#regional-slang-search").value, region, tone:$("#regional-slang-tone").value,category:$("#regional-dictionary-category").value,usage:$("#regional-usage-type")?.value || "all",target:englishLead?$("#regional-slang-target").value:"all"};
   const entries = HablaSpanishContext.dictionary(options);
+  const equivalentsByGloss = new Map();
+  if (englishLead && options.query.trim() && entries.length) {
+    for (const entry of HablaSpanishContext.dictionary({...options, query:"", target:"all"})) {
+      if (entry.shared || !entry.regions.length) continue;
+      const key = normalize(entry[englishLead]) + "|" + entry.register;
+      if (!equivalentsByGloss.has(key)) equivalentsByGloss.set(key, []);
+      equivalentsByGloss.get(key).push(entry);
+    }
+  }
   renderRegionalSourceCoverage();
   const recovery = regionalSearchRecovery(options,entries);
   const alternatives = recovery.alternatives || [];
@@ -5587,6 +5671,10 @@ function renderRegionalSlang() {
   if (broaden) { broaden.hidden = recovery.kind !== "region"; broaden.dataset.region = recovery.region || "all"; }
   const suggest = $("#regional-suggest-entry"); if (suggest) suggest.hidden = !options.query.trim();
   const renderCard = (entry, comparison=false) => {
+    const alternatives = englishLead && !entry.shared
+      ? (equivalentsByGloss.get(normalize(entry[englishLead]) + "|" + entry.register) || [])
+          .filter(other => normalize(other.term) !== normalize(entry.term) && other.regions.some(code => !entry.regions.includes(code)))
+      : [];
     const caution = /vulgar|offensive|insult/i.test(entry.register);
     const spanishRegion = comparison ? entry.regions[0] : englishLead ? options.target : region;
     const voice = spanishRegion.startsWith("es-") ? spanishRegion : ({quito:"es-EC", monterrey:"es-MX", "mexico-city":"es-MX", bogota:"es-CO"}[spanishRegion] || entry.regions[0]);
@@ -5594,6 +5682,7 @@ function renderRegionalSlang() {
     return `<article class="expression-card regional-slang-card">
       <header><h3>${escapeHtml(englishLead ? entry[englishLead] : entry.term)}</h3><span class="slang-tone ${caution ? "caution" : ""}">${escapeHtml(entry.register)}</span></header>
       ${englishLead ? `<p class="regional-gloss"><b>${entry.shared ? "Spanish counterpart · country review pending" : "Spanish"}</b> ${escapeHtml(entry.term)}</p>` : ""}
+      ${alternatives.length ? `<div class="expression-comparisons"><strong>Regional equivalents</strong>${alternatives.map(other => `<p><b>${escapeHtml(other.regions.map(speakerCountryLabel).join(" · "))}</b> ${escapeHtml(other.term)} <a href="${escapeHtml(other.url)}" target="_blank" rel="noreferrer">Source</a></p>`).join("")}</div>` : ""}
       ${englishLead !== "us" ? `<p class="regional-gloss"><b>U.S.</b> ${escapeHtml(entry.us)}</p>` : ""}
       ${englishLead !== "uk" ? `<p class="regional-gloss"><b>U.K.</b> ${escapeHtml(entry.uk)}</p>` : ""}
       <div class="regional-usage-meta"><span>${escapeHtml(entry.usage.label)}</span><span>${escapeHtml(entry.category === "clinical" || (entry.category === "literal" && !entry.regionalSenseAttested) || entry.shared || /country-specific naturalness review pending/i.test(entry.scope) ? "Shared Spanish · regional naturalness not established" : "Entry covers: " + entry.usage.countries.join(" · "))}</span></div>
@@ -6640,6 +6729,11 @@ function init() {
       ...options,purpose:'everyday',inputType:'image'})
   }));
   initializeOptionalFeature("image import",() => HablaScreenshot.bind({begin:beginScreenshotImport,commit:previewScreenshotText}));
+  if(typeof HablaObjects!=="undefined")initializeOptionalFeature("object identification",()=>HablaObjects.bind({
+    translate:(text,isCurrent)=>requestGeneralTranslation(text,'en-ec',{
+      source:'en-US',target:'es-EC',onDevice:typeof HablaOffline!=="undefined"&&HablaOffline.shouldUse(),
+      purpose:'everyday',inputType:'image',isCurrent})
+  }));
   if(typeof HablaLiveCamera!=="undefined")initializeOptionalFeature("live camera",()=>HablaLiveCamera.bind({
     begin:()=>{HablaPhotoTranslation.clear();stopSpeechPlayback();return beginScreenshotImport();},
     commit:previewScreenshotText,
@@ -6960,6 +7054,16 @@ function init() {
   });
   $("#conversation-text-form").addEventListener("submit",event=>{event.preventDefault();submitConversationText();});
   $("#conversation-turns").addEventListener("click",event=>{const button=event.target.closest?.('[data-conversation-hear]');if(button)hearConversationTurn(Number(button.dataset.conversationHear));});
+  document.querySelectorAll("[data-dictionary-direction]").forEach(button => {
+    button.addEventListener("click", () => {
+      const region = $("#regional-slang-region");
+      const direction = button.dataset.dictionaryDirection;
+      if (button.getAttribute("aria-pressed") === "true") return;
+      region.value = direction;
+      if (direction !== "es-EC") $("#regional-slang-target").value = "es-EC";
+      region.dispatchEvent(new Event("change"));
+    });
+  });
   $("#regional-slang-search").addEventListener("input", renderRegionalSlang);
   $("#regional-slang-region").addEventListener("change", () => {
     const context = $("#shared-app-context");
@@ -7039,7 +7143,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=266", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=272", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length

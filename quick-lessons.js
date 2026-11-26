@@ -279,7 +279,7 @@ const english=[
   explanation:'Para indicar quién recibe algo, usa |for.| Por ejemplo, |this is for Ana.| Para expresar un propósito con una acción, usa |to| y el verbo. Por ejemplo, |to learn.| No traduzcas cada por o para con la misma palabra. Fíjate en lo que quieres comunicar.',
   examples:[['This coffee is for Ana.','Este café es para Ana.'],['I study to learn English.','Estudio para aprender inglés.'],['Thank you for your help.','Gracias por tu ayuda.']],
   situations:[{scene:'Compraste un café para Ana. Indica quién lo recibirá.',phrase:'This coffee is for Ana.',meaning:'Este café es para Ana.'},{scene:'Explica tu propósito al estudiar: aprender inglés.',phrase:'I study to learn English.',meaning:'Estudio para aprender inglés.'},{scene:'Una amistad te ayudó. Dale las gracias por su ayuda.',phrase:'Thank you for your help.',meaning:'Gracias por tu ayuda.'}]},
- {id:'future',title:'Planes: going to · will',
+ {id:'future',title:'Plans: going to · will',
   explanation:'Para comunicar un plan, practica |I am going to| y un verbo. |Will| también sirve para hablar del futuro, por ejemplo al tomar una decisión en ese momento. Estas formas tienen más usos. Practica el contexto además de la estructura.',
   examples:[["I'm going to eat.",'Voy a comer.'],["I'm going to drink some water.",'Voy a beber agua.'],["I'll have tea, please.",'Tomaré té, por favor.']],
   situations:[{scene:'Ya tienes un plan para comer pronto. Cuenta qué vas a hacer.',phrase:"I'm going to eat.",meaning:'Voy a comer.'},{scene:'Tienes tu botella lista. Di que vas a beber agua.',phrase:"I'm going to drink some water.",meaning:'Voy a beber agua.'},{scene:'Te ofrecen café o té. Decides pedir té en ese momento.',phrase:"I'll have tea, please.",meaning:'Tomaré té, por favor.'}]}
@@ -312,7 +312,7 @@ function render(){
  <h3>Use it in a situation</h3><p lang="${support}" data-ui-content>${esc(cue.scene)}</p>
  <button type="button" id="quick-recall" class="secondary-button" aria-pressed="${recall}">${recall?'Show me the phrase':'Try without reading'}</button>
  <div id="quick-lesson-model" ${recall?'hidden':''}><article class="expression-card" data-practice-text="${esc(cue.phrase)}" data-practice-lang="${locale}"><p lang="${locale}" data-ui-content><strong>${esc(cue.phrase)}</strong></p><p lang="${support}" data-ui-content>${esc(cue.meaning)}</p></article></div>
- ${item.checks?(()=>{const check=item.checks[situation%item.checks.length];return `<section class="quick-grammar-check" aria-labelledby="quick-grammar-check-title"><h3 id="quick-grammar-check-title">Fill in the blank / Completa la frase</h3><p id="quick-grammar-prompt" lang="${locale}" data-ui-content>${esc(check.prompt)}</p><div id="quick-grammar-choices" role="group" aria-label="Choose the missing expression / Elige la expresión que falta">${check.options.map(choice=>`<button type="button" class="quick-grammar-choice" data-quick-answer="${esc(choice)}" aria-pressed="false" lang="${locale}">${esc(choice)}</button>`).join('')}</div><p id="quick-grammar-feedback" role="status" aria-live="polite"></p></section>`;})():''}
+ ${item.checks?(()=>{const check=item.checks[situation%item.checks.length];return `<section class="quick-grammar-check" aria-labelledby="quick-grammar-check-title"><h3 id="quick-grammar-check-title">Fill in the blank / Completa la frase</h3><p id="quick-grammar-prompt" lang="${locale}" data-ui-content>${esc(check.prompt)}</p><div id="quick-grammar-choices" role="group" aria-label="Choose the missing expression / Elige la expresión que falta">${check.options.map(choice=>`<button type="button" class="quick-grammar-choice" data-quick-answer="${esc(choice)}" aria-pressed="false" lang="${locale}">${esc(choice)}</button>`).join('')}</div><p id="quick-grammar-feedback" role="status" aria-live="polite"></p><button type="button" id="quick-grammar-why" class="grammar-reference-trigger" hidden>📖 Why? / ¿Por qué?</button></section>`;})():''}
  <p>Different replies can work. Speaking feedback below compares recognized words with this model; it does not judge whether another reply communicates your meaning.</p>
  <button type="button" id="quick-next" class="primary-button">Try another situation →</button>
  <p>Original Habla lesson · device voices</p>
@@ -334,7 +334,12 @@ function render(){
    content.querySelectorAll('[data-quick-answer]').forEach(choice=>{choice.setAttribute('aria-pressed',String(choice===button));choice.classList.toggle('is-correct',correct&&choice===button);choice.classList.toggle('is-incorrect',!correct&&choice===button);});
    feedback.dataset.correct=String(correct);
    feedback.textContent=correct?'✓ Correct / ¡Correcto! '+check.note:'Try again / Inténtalo de nuevo. Revisa el significado de cada expresión.';
+   content.querySelector('#quick-grammar-why').hidden=correct;
   }));
+  content.querySelector('#quick-grammar-why').addEventListener('click',event=>{
+   const topic=item.id==='future'||item.id==='llevar-traer-tenses'?'verbs':item.id==='how-often'?'questions':item.id==='everyday-comparisons'?'adjectives':item.id==='solo-patterns'?'conditionals':'structure';
+   root.HablaGrammarReference?.open(event.currentTarget,topic);
+  });
  }
  content.querySelector('#quick-next').addEventListener('click',()=>{leave();situation=(situation+1)%item.situations.length;render();});
  root.bindDictionaryPractice(host);content.querySelector('.dictionary-practice').open=true;

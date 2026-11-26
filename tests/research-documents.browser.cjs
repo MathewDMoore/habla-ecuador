@@ -35,6 +35,7 @@ async function checkPaper(browser, {file, width, ui, native}) {
     return route.abort();
   });
   await page.addInitScript(() => {
+    if(window!==window.top)return;
     localStorage.setItem('habla-tutorial-seen-v2', '1');
     window.hablaSharedPapers = [];
     Object.defineProperties(navigator, {
@@ -47,8 +48,8 @@ async function checkPaper(browser, {file, width, ui, native}) {
   });
   if (native) {
     await page.addInitScript({content:
-      'window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};\n'
-      + fs.readFileSync(path.join(root, 'ios/HablaEcuador/NativeSpeech.js'), 'utf8')
+      'if(window===window.top){window.webkit = {messageHandlers: {hablaSpeech: {postMessage() {}}}};\n'
+      + fs.readFileSync(path.join(root, 'ios/HablaEcuador/NativeSpeech.js'), 'utf8') + '\n}'
     });
   }
   await page.goto(`${origin}/habla-ecuador/${file}?start=translate&ui=${ui}`);
