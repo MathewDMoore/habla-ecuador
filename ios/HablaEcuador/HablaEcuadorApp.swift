@@ -184,6 +184,17 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraVisibleLines: [CameraVisibleLine] = []
     private var cameraSpatialLabels: [UUID: UILabel] = [:]
     private var cameraLeaderLayers: [CAShapeLayer] = []
+    private var cameraTrackingTask: Task<Void, Never>?
+    private var cameraLastLayout = Date.distantPast
+    private var cameraPlacements: [UUID: CameraPlacement] = [:]
+    private struct CameraPlacement {
+        let source: String
+        let frame: CGRect
+        let angle: CGFloat
+        let size: CGSize
+        let offset: CGPoint
+        let connector: CAShapeLayer?
+    }
     private var cameraTranslatedLines: [String: String] = [:]
     private var cameraFailedLines: Set<String> = []
     private let site = URL(string: "https://mathewdmoore.github.io/habla-ecuador/translator.html")!
@@ -333,6 +344,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard let self, let scanner else { return }
             do {
                 try scanner.startScanning()
+                self.startCameraTracking(scanner)
             } catch {
                 self.completeCameraScan(status: "error",
                                         message: "Could not start the camera: \(error.localizedDescription)")
@@ -462,6 +474,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         cameraSpatialLabels.removeAll()
         cameraLeaderLayers.forEach { $0.removeFromSuperlayer() }
         cameraLeaderLayers.removeAll()
+        cameraPlacements.removeAll()
+        cameraLastLayout = .distantPast
     }
 
     private func cameraTextBounds(_ bounds: RecognizedItem.Bounds) -> CGRect {
@@ -484,6 +498,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         guard bounds.width > 40 && bounds.height > 40 else { return }
         cameraLeaderLayers.forEach { $0.removeFromSuperlayer() }
         cameraLeaderLayers.removeAll()
+        cameraPlacements.removeAll()
+        cameraLastLayout = Date()
         let visibleIDs = Set(cameraVisibleLines.map(\.id))
         for id in cameraSpatialLabels.keys.filter({ !visibleIDs.contains($0) }) {
             cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
@@ -610,6 +626,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             label.bounds = CGRect(origin: .zero, size: fitted)
             label.center = CGPoint(x: line.frame.midX + selectedOffset.x, y: line.frame.midY + selectedOffset.y)
             label.transform = CGAffineTransform(rotationAngle: line.angle)
+            var leader: CAShapeLayer?
             if selected != nil, selectedOffset != .zero {
                 let connector = CAShapeLayer()
                 let path = UIBezierPath()
@@ -621,8 +638,68 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 connector.fillColor = UIColor.clear.cgColor
                 surface.layer.insertSublayer(connector, at: 0)
                 cameraLeaderLayers.append(connector)
+                leader = connector
+            }
+            if selected != nil {
+                cameraPlacements[line.id] = CameraPlacement(source: line.source, frame: line.frame,
+                    angle: line.angle, size: fitted, offset: selectedOffset, connector: leader)
             }
             label.accessibilityLabel = line.source + " → " + translation
+        }
+    }
+
+    // Geometry is a separate fast path. OCR/translation and collision layout
+    // must not block movement of already translated items.
+    private func startCameraTracking(_ scanner: DataScannerViewController) {
+        cameraTrackingTask?.cancel()
+        cameraTrackingTask = Task { @MainActor [weak self, weak scanner] in
+            guard let scanner else { return }
+            for await items in scanner.recognizedItems {
+                guard !Task.isCancelled, let self, self.cameraScanner === scanner else { return }
+                self.updateCameraItems(items)
+            }
+        }
+    }
+
+    private func moveCameraOverlays() {
+        guard cameraLiveEnabled, let scanner = cameraScanner else { return }
+        let surface = scanner.overlayContainerView
+        let visible = Set(cameraVisibleLines.map(\.id))
+        for id in cameraSpatialLabels.keys.filter({ !visible.contains($0) }) {
+            cameraSpatialLabels.removeValue(forKey: id)?.removeFromSuperview()
+            cameraPlacements.removeValue(forKey: id)?.connector?.removeFromSuperlayer()
+        }
+        UIView.performWithoutAnimation {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            for line in cameraVisibleLines {
+                guard let label = cameraSpatialLabels[line.id] else { continue }
+                guard let placement = cameraPlacements[line.id], placement.source == line.source else {
+                    label.isHidden = true
+                    cameraPlacements[line.id]?.connector?.isHidden = true
+                    continue
+                }
+                let sx = line.frame.width / max(1, placement.frame.width)
+                let sy = line.frame.height / max(1, placement.frame.height)
+                let rotation = line.angle - placement.angle
+                let ox = placement.offset.x * sx, oy = placement.offset.y * sy
+                let offset = CGPoint(x: ox * cos(rotation) - oy * sin(rotation),
+                                     y: ox * sin(rotation) + oy * cos(rotation))
+                label.transform = .identity
+                label.bounds = CGRect(origin: .zero, size: placement.size)
+                label.center = CGPoint(x: line.frame.midX + offset.x, y: line.frame.midY + offset.y)
+                label.transform = CGAffineTransform(rotationAngle: line.angle)
+                    .scaledBy(x: sx, y: sy)
+                label.isHidden = !surface.bounds.contains(label.frame)
+                if let connector = placement.connector {
+                    let path = UIBezierPath()
+                    path.move(to: CGPoint(x: line.frame.midX, y: line.frame.midY))
+                    path.addLine(to: label.center)
+                    connector.path = path.cgPath
+                    connector.isHidden = label.isHidden
+                }
+            }
+            CATransaction.commit()
         }
     }
 
@@ -645,12 +722,17 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
                 id: item.id, source: source, frame: cameraTextBounds(item.bounds),
                 angle: atan2(item.bounds.topRight.y - item.bounds.topLeft.y, item.bounds.topRight.x - item.bounds.topLeft.x)))
         }
-        refreshCameraSpatialLabels()
         let newText = cameraVisibleLines.map(\.source).joined(separator: "\n")
         let changed = newText != cameraPreviewText
         cameraPreviewText = newText
         if cameraLiveEnabled {
-            updateCameraCoverageStatus()
+            moveCameraOverlays()
+            // Text fitting and overlap checks are expensive. Recompute only
+            // periodically; every incoming geometry update still moves labels.
+            if Date().timeIntervalSince(cameraLastLayout) >= 0.25 {
+                refreshCameraSpatialLabels()
+                updateCameraCoverageStatus()
+            }
             if changed { queueCameraLivePreview() }
         }
     }
@@ -881,17 +963,17 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
 
     func dataScanner(_ scanner: DataScannerViewController,
                      didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-        updateCameraItems(allItems)
+        if cameraTrackingTask == nil { updateCameraItems(allItems) }
     }
 
     func dataScanner(_ scanner: DataScannerViewController,
                      didUpdate updatedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-        updateCameraItems(allItems)
+        if cameraTrackingTask == nil { updateCameraItems(allItems) }
     }
 
     func dataScanner(_ scanner: DataScannerViewController,
                      didRemove removedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-        updateCameraItems(allItems)
+        if cameraTrackingTask == nil { updateCameraItems(allItems) }
     }
 
     func dataScanner(_ scanner: DataScannerViewController, didTapOn item: RecognizedItem) {
@@ -925,6 +1007,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private func completeCameraScan(status: String, text: String? = nil, message: String? = nil) {
         guard let id = cameraRequestID else { return }
         cameraRequestID = nil
+        cameraTrackingTask?.cancel()
+        cameraTrackingTask = nil
         cameraNativeTask?.cancel()
         cameraNativeTask = nil
         cameraLastError = nil
