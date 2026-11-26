@@ -170,7 +170,6 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
     private var cameraPreviewText = ""
     private var cameraPreviewWork: DispatchWorkItem?
     private var cameraPreviewInFlight: String?
-    private var cameraPreviewInFlightText = ""
     private struct CameraVisibleLine {
         let id: UUID
         let source: String
@@ -330,9 +329,8 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         }
     }
 
-    // An accessible preview stays inside the camera view. The user explicitly
-    // enables live translation because recognized words may use an online API.
-    // Original camera pixels are never sent across the JS bridge.
+    // The explicit Live AR camera action starts translation. The compact
+    // panel toggles original text; only recognized text crosses the bridge.
     private func installCameraOverlay(on scanner: DataScannerViewController) {
         let panel = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
         panel.translatesAutoresizingMaskIntoConstraints = false
@@ -504,7 +502,6 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             guard !missing.isEmpty else { return }
             let token = UUID().uuidString
             self.cameraPreviewInFlight = token
-            self.cameraPreviewInFlightText = self.cameraPreviewText
             self.sendCameraLiveRequest(id: id, token: token, items: missing)
         }
         cameraPreviewWork = work
@@ -518,7 +515,15 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let json = String(data: data, encoding: .utf8) else { return }
-        webView.evaluateJavaScript("void window.__hablaCameraLiveRequest?.(\(json))", completionHandler: nil)
+        webView.evaluateJavaScript("void window.__hablaCameraLiveRequest?.(\(json))") { [weak self] _, error in
+            guard let self, let error, self.cameraRequestID == id,
+                  self.cameraPreviewInFlight == token else { return }
+            self.cameraPreviewInFlight = nil
+            self.cameraOverlayLabel?.text = "Translation unavailable. Show original, then retry."
+            for item in items { self.cameraFailedLines.insert(item.source) }
+            self.queueCameraLivePreview()
+            _ = error
+        }
     }
 
     private func receiveCameraLiveResult(_ payload: [String: Any]) {
@@ -527,14 +532,12 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
               token == cameraPreviewInFlight else { return }
         cameraPreviewInFlight = nil
         
-        var completed = 0
         if let translated = payload["translations"] as? [[String: String]] {
             for item in translated {
                 guard let source = item["source"] else { continue }
                 if let translation = item["translation"], !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     if cameraTranslatedLines.count >= 240 { cameraTranslatedLines.removeAll(keepingCapacity: true) }
                     cameraTranslatedLines[source] = translation
-                    completed += 1
                 } else if item["error"] != nil {
                     cameraFailedLines.insert(source)
                 }
@@ -551,9 +554,7 @@ final class TranslatorController: UIViewController, WKNavigationDelegate, WKUIDe
             : "Could not translate these lines. Move closer or review the source text."
         // Continue with new lines in small batches; do not retry provider failures
         // indefinitely. Late results are bound to the original scan token.
-        if completed > 0 || cameraPreviewText != cameraPreviewInFlightText {
-            queueCameraLivePreview()
-        }
+        queueCameraLivePreview()
     }
 
     func dataScanner(_ scanner: DataScannerViewController,
