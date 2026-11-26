@@ -1702,13 +1702,10 @@ function containsWholePhrase(text, phrase) {
 }
 
 function matchesPhraseCandidate(clean, candidate) {
+  // A phrase-library entry is a complete translation, never a substring replacement.
+  // Longer or shorter input must go through the general translator.
   const normalized = normalize(candidate);
-  if (!normalized) return false;
-  if (normalized === clean) return true;
-  const cleanWords = clean.split(" ");
-  const candidateWords = normalized.split(" ");
-  if (Math.min(cleanWords.length,candidateWords.length) < 2) return false;
-  return containsWholePhrase(clean,normalized) || containsWholePhrase(normalized,clean);
+  return Boolean(normalized && normalized === clean);
 }
 
 function matchEvidenceExample(value, way=direction) {
@@ -3237,6 +3234,14 @@ async function requestTranslationChunk(text, way=direction, purpose=translationP
       if (!response.ok || status >= 400 || typeof output !== "string" || !output.trim()) throw translationFailure("service",detail,status);
       // Provider warnings must never become editable 'translations'.
       if (/^MYMEMORY WARNING/i.test(output.trim())) throw translationFailure("service",detail,status);
+      // Do not accept a translation-memory result explicitly linked only to a different source.
+      const linkedMatches = Array.isArray(payload.matches) ? payload.matches.filter(match =>
+        typeof match?.segment === "string" && typeof match.translation === "string" &&
+        decodeTranslation(match.translation).trim() === decodeTranslation(output).trim()) : [];
+      if (linkedMatches.length && !linkedMatches.some(match =>
+        match.segment.trim().normalize("NFC") === protectedText.text.trim().normalize("NFC"))) {
+        throw translationFailure("invalid_response", "Translation memory returned a different source sentence.");
+      }
       if(typeof HablaOffline!=="undefined")HablaOffline.reportOnlineSuccess?.();
       return {
         text:protectedText.restore(decodeTranslation(output)),
@@ -3295,6 +3300,18 @@ function reviewedCourtesyTranslation(text, {source, target, purpose="everyday"}=
 // Only exact, reviewed sentences are replaced here. Never reinterpret an
 // arbitrary insult or label the wording as specific to Ecuador without evidence.
 function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) {
+  // Full-sentence reviewed everyday example; retain trailing emoji and punctuation.
+  if (purpose !== "academic" && languageFamily(source) === "es" && languageFamily(target) === "en") {
+    const match = String(text).trim().match(/^ya\s+no\s+hago\s+eso([.!?]?)(\s*(?:\p{Extended_Pictographic}|\p{Emoji_Modifier}|\uFE0F|\u200D|\s)+)?$/iu);
+    if (match) {
+      const suffix = match[2] || "";
+      const punctuation = match[1] || (suffix ? "" : ".");
+      const primary = target === "en-GB" ? "I don't do that any more" : "I don't do that anymore";
+      return {text:primary+punctuation+suffix,literal:"Ya no = no longer / not anymore",
+        note:"Shared Spanish. The speaker no longer does the action; no warning or other action is implied.",
+        alternatives:[{text:"I no longer do that"+punctuation+suffix,label:"Equivalent wording",note:"Same meaning; slightly more formal."}]};
+    }
+  }
   const senses = typeof HablaSpanishContext === "undefined" ? [] : HablaSpanishContext.dictionaryMeanings(text,{source,target,purpose});
   if (senses.length && senses[0].local !== false &&
       !HablaSpanishContext.wordMeanings(text,{source,target,purpose}).length &&
@@ -7039,7 +7056,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=266", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=267-compact", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
