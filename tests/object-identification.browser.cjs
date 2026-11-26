@@ -13,10 +13,11 @@ const root = path.resolve(__dirname, '..');
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(() => {
         localStorage.setItem('habla-tutorial-seen-v2','1');
-        window.mobilenet={load:async()=>({classify:async()=>[{className:"jack-o'-lantern",probability:window.uncertainPhoto?.1:.94}]})};
+        window.mobilenet={load:async()=>({classify:async()=>[{className:window.noDetections||window.dominantConflict?"jack-o'-lantern":'bottle',probability:window.uncertainPhoto?.1:.94}]})};
         window.tf = {ready:async()=>{}};
         window.cocoSsd = {load:async()=>({detect:async()=>{
           if(window.delayDetection) await new Promise(resolve=>{window.finishDetection=resolve;});
+          if(window.dominantConflict)return [{class:'cake',score:.88,bbox:[0,0,200,200]}];
           if(window.noDetections)return [];
           return [{class:'bottle',score:.92,bbox:[10,20,60,100]}];
         }})};
@@ -49,7 +50,12 @@ const root = path.resolve(__dirname, '..');
       await page.waitForFunction(()=>document.querySelector('[data-objects-results]').textContent.includes('carved pumpkin'));
       assert.equal(await dialog.locator('.object-detection-box').count(),0,'whole-photo classifier does not invent an object location');
       assert.match(await dialog.locator('[data-objects-status]').innerText(),/whole photo/);
-      await page.evaluate(()=>{window.uncertainPhoto=true;});
+      await page.evaluate(()=>{window.noDetections=false;window.dominantConflict=true;});
+      await dialog.locator('[data-objects-file]').setInputFiles(file);
+      await page.waitForFunction(()=>document.querySelector('[data-objects-status]').textContent.includes('Models disagree'));
+      assert.equal(await dialog.locator('.object-detection-box').count(),0);
+      assert.match(await dialog.locator('[data-objects-results]').innerText(),/carved pumpkin/);
+      await page.evaluate(()=>{window.dominantConflict=false;window.noDetections=true;window.uncertainPhoto=true;});
       await dialog.locator('[data-objects-file]').setInputFiles(file);
       await page.waitForFunction(()=>document.querySelector('[data-objects-status]').textContent.includes('No reliable match'));
       assert.equal(await dialog.locator('[data-objects-results]').innerText(),'');

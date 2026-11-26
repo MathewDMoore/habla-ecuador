@@ -9,6 +9,7 @@ const pw=require(process.env.HABLA_PLAYWRIGHT_MODULE||'playwright'),root=path.re
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
    localStorage.setItem('habla-tutorial-seen-v2','1');window.ocrCalls=0;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{}});
+   window.mobilenet={load:async()=>({classify:async()=>[{className:'mouse',probability:.95}]})};
    window.tf={ready:async()=>{}};
    window.cocoSsd={load:async()=>({detect:async()=>[{class:'mouse',score:.96,bbox:[10,10,100,80]}]})};
    window.Tesseract={createWorker:async()=>({recognize:async()=>{window.ocrCalls++;return {data:{text:'MA NN 4 MN AZ',confidence:24}};},terminate:async()=>{}})};
