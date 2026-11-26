@@ -7,7 +7,7 @@ const bridge = fs.readFileSync('ios/HablaEcuador/NativeSpeech.js', 'utf8');
 const swift = fs.readFileSync('ios/HablaEcuador/HablaEcuadorApp.swift', 'utf8');
 const plist = fs.readFileSync('ios/HablaEcuador/Info.plist', 'utf8');
 
-function harness() {
+function harness(translate = async text => text) {
   const calls = [], images = [], nodes = new Map();
   for (const selector of ['#translator-input','#source-language-select','#target-language-select',
                           '#quick-image-status','#screenshot-status','#full-reader-image-status']) {
@@ -34,6 +34,7 @@ function harness() {
     window, document, location:{origin:'https://mathewdmoore.github.io',pathname:'/habla-ecuador/translator.html'},
     EventTarget, Event, DOMException,
     HablaScreenshot:{clear(){}},
+    requestGeneralTranslation: translate,
     beginScreenshotImport: () => ({token:1,text:nodes.get('#translator-input').value}),
     previewScreenshotText: (image,guard) => {
       assert.equal(guard.token,1);
@@ -102,4 +103,30 @@ test('native scanner requires permission and taps or explicit confirmation', () 
   assert.match(swift,/#selector\(useCameraText\)/);
   assert.match(swift,/cameraScanner\?\.stopScanning\(\)/);
   assert.match(plist,/<key>NSCameraUsageDescription<\/key>/);
+});
+
+
+test('native AR rejects changed numbers and stale or changed-language requests', async () => {
+  const h=harness(async text => text === '4 g' ? '40 g' : text === 'Hello' ? 'Hola' : text);
+  const {id}=h.click();
+  await h.window.__hablaCameraLiveRequest({id,token:'a',items:[{text:'4 g'},{text:'5 g'},{text:'Hello'}]});
+  const result=h.calls.at(-1);
+  assert.equal(result.action,'camera-live-result');
+  assert.equal(result.translations[0].translation,undefined);
+  assert.ok(result.translations[0].error);
+  assert.equal(result.translations[1].translation,'5 g');
+  assert.equal(result.translations[2].translation,'Hola');
+  await h.window.__hablaCameraLiveRequest({id:'wrong',token:'b',items:[{text:'Hello'}]});
+  assert.ok(h.calls.at(-1).error);
+  h.nodes.get('#target-language-select').value='en-GB';
+  await h.window.__hablaCameraLiveRequest({id,token:'c',items:[{text:'Hello'}]});
+  assert.ok(h.calls.at(-1).error);
+});
+test('native AR uses continuously updated geometry without dismissing on a live tap', () => {
+  assert.match(swift,/qualityLevel: \.accurate/);
+  assert.match(swift,/isHighFrameRateTrackingEnabled: true/);
+  assert.match(swift,/overlayContainerView/);
+  assert.match(swift,/CGAffineTransform\(rotationAngle: line\.angle\)/);
+  assert.match(swift,/guard !cameraLiveEnabled else \{ return \}/);
+  assert.match(swift,/UIColor\.black\.withAlphaComponent\(0\.60\)/);
 });
