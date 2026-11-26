@@ -76,8 +76,8 @@
       button = document.createElement("button");
       button.type = "button";
       button.id = "native-scan-camera";
-      button.textContent = "📷 Scan text / Escanear";
-      button.setAttribute("aria-label", "Open camera to translate visible text");
+      button.textContent = "📷 Live AR / Cámara AR";
+      button.setAttribute("aria-label", "Live AR translation; images stay on device, recognized text may use online translation");
       actions.prepend(button);
       button.addEventListener("click", () => {
         if (pending) return;
@@ -91,7 +91,7 @@
         const id = "camera-" + (++requestID);
         pending = {id, guard, sourceState: state()};
         button.disabled = true;
-        report("Point at text, then tap a highlighted line or Use all text. / Apunta al texto y selecciónalo.");
+        report("Live AR: point at text. Images stay on device; online mode sends recognized words.");
         try {
           window.webkit.messageHandlers.hablaSpeech.postMessage({action: "scan-camera", id});
         } catch {
@@ -100,12 +100,98 @@
           report("Camera could not open. Choose a photo instead.");
         }
       });
+      // Route the existing Live camera action to native VisionKit on iPhone,
+      // rather than opening the slower browser camera behind it.
+      const live = document.querySelector("#quick-live-camera");
+      if (live) {
+        button.hidden = true;
+        live.textContent = "Live AR camera / Cámara AR";
+        live.setAttribute("aria-label", "Live AR camera; online mode sends recognized words, never camera images");
+        live.addEventListener("click", event => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          if (!pending) button.click();
+        }, true);
+      }
+    };
+    const cameraTranslationCache = new Map();
+    const numericTokens = value => (value.match(/\d+(?:[.,]\d+)?/g) || []).map(x=>x.replace(",", ".")).sort().join("|");
+    window.__hablaCameraLiveRequest = async payload => {
+      const reply = result => {
+        try {
+          window.webkit.messageHandlers.hablaSpeech.postMessage({
+            action: "camera-live-result", id: payload?.id, token: payload?.token, ...result
+          });
+        } catch { /* Camera may already be closed. */ }
+      };
+      if (!payload || typeof payload.id !== "string" || typeof payload.token !== "string" ||
+          !Array.isArray(payload.items) || payload.items.length === 0 || payload.items.length > 4 ||
+          payload.items.some(item => typeof item?.text !== "string" ||
+            !item.text.trim() || item.text.length > 150)) {
+        reply({error: "Camera text is not ready. Hold steady and try again."});
+        return;
+      }
+      if (!pending || payload.id !== pending.id || state() !== pending.sourceState) {
+        reply({error:"Camera session or language changed. Reopen Live AR."});
+        return;
+      }
+      const session = pending;
+      const current = () => pending === session && state() === session.sourceState;
+      const source = document.querySelector("#source-language-select")?.value || "en-US";
+      const target = document.querySelector("#target-language-select")?.value || "es-EC";
+      if (!/^(en|es)-[A-Za-z]{2}$/.test(source) || !/^(en|es)-[A-Za-z]{2}$/.test(target)) {
+        reply({error: "Choose English or Spanish in Translate first."});
+        return;
+      }
+      if (typeof requestGeneralTranslation !== "function") {
+        reply({error: "The translator is still loading. Try again shortly."});
+        return;
+      }
+      const way = source.startsWith("en-") ? "en-ec" : "ec-en";
+      const onDevice = typeof HablaOffline !== "undefined" && HablaOffline.shouldUse();
+      // The cache key includes the language variety. Never silently pass a
+      // Mexico translation to Ecuador or reverse the user's original words.
+      const translateLine = async item => {
+        const text = item.text.trim(), key = JSON.stringify([source, target, onDevice, text]);
+        if (source.slice(0, 2) === target.slice(0, 2))
+          return {source: text, translation: text};
+        try {
+          let promise = cameraTranslationCache.get(key);
+          if (!promise) {
+            promise = requestGeneralTranslation(text, way, {
+              source, target, purpose: "everyday", onDevice, inputType: "image", isCurrent: current
+            });
+            cameraTranslationCache.set(key, promise);
+            if (cameraTranslationCache.size > 160)
+              cameraTranslationCache.delete(cameraTranslationCache.keys().next().value);
+          }
+          const translation = await promise;
+          if (!current() || typeof translation !== "string" || !translation.trim())
+            throw new Error("Empty translation");
+          if (numericTokens(text) !== numericTokens(translation))
+            throw new Error("Printed numbers changed; original retained.");
+          if (translation.length > 400) throw new Error("Translation too long to overlay safely.");
+          return {source: text, translation};
+        } catch (error) {
+          cameraTranslationCache.delete(key);
+          const message = typeof translationErrorMessage === "function"
+            ? translationErrorMessage(error).title
+            : "Translation unavailable.";
+          return {source: text, error: String(message).slice(0, 150)};
+        }
+      };
+      // Small batches avoid flooding a limited translation provider on every
+      // camera frame. No photo pixels are ever provided to this handler.
+      const translations = await Promise.all(payload.items.map(translateLine));
+      if (current()) reply({translations, target, note: onDevice ? "On-device draft" : "Online draft"});
+      else reply({error:"Camera session or language changed."});
     };
     window.__hablaCameraScan = payload => {
       if (!pending || !payload || payload.id !== pending.id) return;
       const current = pending;
       pending = null;
       if (button) button.disabled = false;
+      cameraTranslationCache.clear();
       if (payload.status === "cancelled") {
         report("Camera closed. Your existing words were kept. / Texto conservado.");
         return;
