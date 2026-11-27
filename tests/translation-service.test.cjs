@@ -52,6 +52,41 @@ async function main(){
   assert.deepEqual(Array.from(run('translationWordingAlternatives().map(choice=>choice.text)')),alternatives);
  }
  assert.equal(requests.length,0,'dictionary meanings work without a translation provider');
+
+ // The user's two screenshots are two phonetic versions of ONE intended
+ // slogan. Prefer the contextual, user-confirmed meaning to provider gibberish.
+ for(const locale of ['es-MX','es-EC']){
+  run('sourceLanguage='+JSON.stringify(locale)+';targetLanguage="en-US";direction="ec-en";translationPurpose="everyday"');
+  for(const text of [
+   'Los pintores riatudos ,vergudos ,pijudos for ever',
+   'Los pintores pitudos ,vergudos ,pijudos for ever',
+   'Los pintores pitudos, vergudos, pijudos forever'
+  ]){
+   element('#translator-input').value=text;
+   await run('renderTranslation()');
+   assert.equal(element('#natural-result').textContent,
+    'Badass, hardcore, cool-as-hell painters, forever.','meaning of '+text);
+   assert.equal(element('#translator-input').value,text,'phonetic original preserved');
+   assert.deepEqual(Array.from(run('translationWordingAlternatives().map(x=>x.text)')),[
+    'These painters are badass, hardcore, and cool as hell, forever.',
+    'Those badass, hardcore painters, forever!',
+    'Hardcore painters for life!'
+   ]);
+   assert.match(element('#usage-note').textContent,/learner-confirmed intended meaning.*not independently verified spelling or region/i);
+  }
+ }
+ assert.equal(requests.length,0,'this reported phrase does not need a provider to get its vetted contextual meaning');
+ for(const text of [
+  'Los pintores pitudos, vergudos, pijudos for ever and beyond',
+  'Los pintores pitudos',
+  'Los pintores vergudos for ever',
+  'Los pintores pitudos, vergudos, pijudos for ever again'
+ ]){
+  assert.equal(run('reviewedMeaningTranslation('+JSON.stringify(text)+',{source:"es-MX",target:"en-US",purpose:"everyday"})'),null,
+   'no invented translation for unrelated or longer phrase');
+ }
+ assert.equal(run('reviewedMeaningTranslation("Los pintores pitudos, vergudos, pijudos for ever",{source:"es-MX",target:"en-US",purpose:"academic"})'),null);
+
  for (const [locale,word,meaning] of [
   ['es-EC','Guagua','young child'],['es-BO','guaguas','young children'],
   ['es-PE','Guagua','nursing baby'],['es-CU','Guagua','bus'],['es-MX','Guagua','bus'],
