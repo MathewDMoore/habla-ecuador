@@ -51,6 +51,29 @@ try{for(const file of ['index.html','translator.html'])for(const width of [320,3
  assert.deepEqual(attested.alternatives,['Fucking idiot.','Cocksucker.','Dickhead.']);
  await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length===3);
  assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
+ // Screenshot comparison: preserve the user's phonetic spelling and show the
+ // requested contextual interpretation, with real visible choices on mobile.
+ for(const input of [
+  'Los pintores riatudos ,vergudos ,pijudos for ever',
+  'Los pintores pitudos ,vergudos ,pijudos for ever'
+ ]){
+  const painted=await page.evaluate(async input=>{
+   sourceLanguage='es-MX';targetLanguage='en-US';syncLanguagePair();
+   document.querySelector('#translator-input').value=input;
+   await renderTranslation();
+   return {source:document.querySelector('#translator-input').value,
+    result:document.querySelector('#natural-result').textContent,
+    note:document.querySelector('#usage-note').textContent,
+    choices:translationWordingAlternatives().map(x=>x.text)};
+  },input);
+  assert.equal(painted.source,input,'the heard words are never silently corrected');
+  assert.equal(painted.result,'Badass, hardcore, cool-as-hell painters, forever.');
+  assert.match(painted.note,/not independently verified spelling or region/);
+  assert.equal(painted.choices.length,3);
+  await page.waitForFunction(()=>document.querySelectorAll('#inline-alternatives-list .full-reader-alternative-card').length===3);
+  assert.match(await page.locator('#inline-alternatives-list').textContent(),/Hardcore painters for life!/);
+  assert.doesNotMatch(await page.locator('#inline-alternatives-list').textContent(),/No additional wording available/);
+ }
  // Reload the same mobile page between independent feature scenarios.
  // A click/scroll during Alternatives must not contaminate the practice hold test.
  await page.reload();
