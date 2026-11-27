@@ -102,7 +102,7 @@ const phrases = [
   { en:"I was cleared to go back to work today with no limitations, but I convinced the doctor to give me another week to recover.", es:"Hoy me autorizaron a volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", natural:"Hoy me dieron el alta para volver al trabajo sin restricciones, pero convencí al doctor de que me diera una semana más para recuperarme.", note:"Me dieron el alta is natural for medical clearance. Para recuperarme sounds more idiomatic than a literal translation of healing time.", register:"Medical/work · neutral Ecuador", keys:["hoy me dieron el alta","me autorizaron a volver al trabajo"] },
 ];
 
-const APP_VERSION = "0.27.55 · build 266";
+const APP_VERSION = "0.27.56 · build 267";
 
 const TRANSLATOR_LANGUAGES = {
   "en-US": {label:"U.S. English", family:"en", voice:"en-US"},
@@ -3308,6 +3308,24 @@ function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) 
   if(purpose==="academic" || languageFamily(source)!=="es" || languageFamily(target)!=="en")return null;
   const clean=String(text).normalize("NFD").replace(/\p{M}/gu,"").toLowerCase()
     .replace(/[.!?¡¿]/g,"").replace(/\s+/g," ").trim();
+  // Example verified for its intended sense by the learner, NOT a dictionary
+  // attribution for the individual phonetic words. Keep the original audible
+  // approximation editable and never apply this to unrelated sentences.
+  // ASALE pijudo: Gu/Ho/ES/Ni = excellent, among other senses.
+  // ASALE pitudo: Mx = high-pitched (voice/sound), NOT "badass".
+  if(/^los pintores\s+(?:riatudos|pitudos)\s*,\s*vergudos\s*,\s*pijudos\s+for\s*ever$/.test(clean)){
+    return {
+      text:"Badass, hardcore, cool-as-hell painters, forever.",
+      literal:"Contextual interpretation selected by the learner; not a verified word-by-word gloss.",
+      alternatives:[
+        {text:"Badass, hardcore, cool-as-hell painters forever.",label:"Natural slogan / Lema natural",note:"Preserves the strong approving tone without the pause before forever."},
+        {text:"Those badass, hardcore painters, forever!",label:"Shorter and punchier / Más contundente",note:"A freer, enthusiastic English rendering; it compresses the three descriptions."},
+        {text:"Hardcore painters for life!",label:"Very free adaptation / Adaptación libre",note:"A slogan-style alternative; for life is a nonliteral equivalent of forever here."}
+      ],
+      url:"https://www.asale.org/damer/pijudo",
+      note:"You wrote what you heard. This complete phrase has a learner-confirmed intended meaning, not independently verified spelling or region. The form riatudos is an unverified phonetic approximation; pitudos must not automatically be read as badass (ASALE records a Mexican high-pitched voice/sound sense of pitudo). Pijudo has positive senses such as excellent in Guatemala, Honduras, El Salvador and Nicaragua, and other different senses. Vergudos and the surrounding expression need speaker/context verification. The English words for ever are interpreted as forever here. Your original text is preserved."
+    };
+  }
   if(!/^no soy increiblemente inteligente,? pero no soy un imbecil$/.test(clean))return null;
   return {
     text:"I'm not incredibly intelligent, but I'm not an idiot.",
@@ -7039,7 +7057,7 @@ function init() {
       HablaTutorial.bind({navigate:openView,launchQuery}));
   }
   const updateRegistration = "serviceWorker" in navigator
-    ? navigator.serviceWorker.register("sw.js?v=266", {updateViaCache:"none"}).catch(() => null)
+    ? navigator.serviceWorker.register("sw.js?v=267", {updateViaCache:"none"}).catch(() => null)
     : Promise.resolve(null);
   if(typeof HablaUpdates!=="undefined") HablaUpdates.start({version:APP_VERSION,registration:updateRegistration,isProtected:()=>Boolean(
     recognition || activeRecognitionButton || dictionaryPracticeSession || lessonStep > 1 || musicListening || musicCapturedText || musicPassages.length
