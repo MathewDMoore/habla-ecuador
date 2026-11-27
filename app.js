@@ -3318,7 +3318,7 @@ function reviewedMeaningTranslation(text,{source,target,purpose="everyday"}={}) 
       text:"Badass, hardcore, cool-as-hell painters, forever.",
       literal:"Contextual interpretation selected by the learner; not a verified word-by-word gloss.",
       alternatives:[
-        {text:"Badass, hardcore, cool-as-hell painters forever.",label:"Natural slogan / Lema natural",note:"Preserves the strong approving tone without the pause before forever."},
+        {text:"These painters are badass, hardcore, and cool as hell, forever.",label:"Natural slogan / Lema natural",note:"Preserves the strong approving tone without the pause before forever."},
         {text:"Those badass, hardcore painters, forever!",label:"Shorter and punchier / Más contundente",note:"A freer, enthusiastic English rendering; it compresses the three descriptions."},
         {text:"Hardcore painters for life!",label:"Very free adaptation / Adaptación libre",note:"A slogan-style alternative; for life is a nonliteral equivalent of forever here."}
       ],
