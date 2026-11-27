@@ -284,6 +284,258 @@ const english=[
   examples:[["I'm going to eat.",'Voy a comer.'],["I'm going to drink some water.",'Voy a beber agua.'],["I'll have tea, please.",'Tomaré té, por favor.']],
   situations:[{scene:'Ya tienes un plan para comer pronto. Cuenta qué vas a hacer.',phrase:"I'm going to eat.",meaning:'Voy a comer.'},{scene:'Tienes tu botella lista. Di que vas a beber agua.',phrase:"I'm going to drink some water.",meaning:'Voy a beber agua.'},{scene:'Te ofrecen café o té. Decides pedir té en ese momento.',phrase:"I'll have tea, please.",meaning:'Tomaré té, por favor.'}]}
 ];
+
+// Original practice from the November 26 review; no media or lyrics included.
+const reviewedLessons=[
+  {
+    "id": "meaning-dar-igual",
+    "title": "Dar igual · Personas, cosas y resignación",
+    "englishTitle": "Care · Matter · Not anymore",
+    "explanation": "Translate the whole expression. |Me da igual| can mean “I do not mind” when choosing between options, or “I do not care” when dismissing something. |No me das igual| means “You matter to me”: the person addressed is the subject of |das|. |Ya da igual| can mean “It does not matter anymore”. Together, these ideas can convey resignation even though the speaker still cares. That emotional reading depends on context. This is general Spanish; no country-specific frequency is established here.",
+    "englishExplanation": "Traduce el sentido completo. |I do not mind| puede expresar que aceptas cualquiera de las opciones; |I do not care| puede sonar despectivo según el contexto. |You matter to me| expresa que esa persona te importa. |It does not matter anymore| puede comunicar resignación. No traduzcas dar igual palabra por palabra.",
+    "examples": [
+      [
+        "Me da igual el color; elige tú.",
+        "I do not mind which color; you choose."
+      ],
+      [
+        "No me das igual; quiero saber cómo estás.",
+        "You matter to me; I want to know how you are."
+      ],
+      [
+        "Ya da igual; perdimos el último autobús.",
+        "It does not matter anymore; we missed the last bus."
+      ]
+    ],
+    "situations": [
+      {
+        "scene": "Aceptas cualquiera de los colores. / Either color is fine.",
+        "phrase": "Me da igual el color; elige tú.",
+        "meaning": "I do not mind which color; you choose."
+      },
+      {
+        "scene": "Una amistad cree que no te importa. Responde. / A friend thinks you do not care about them. Respond.",
+        "phrase": "No me das igual; quiero saber cómo estás.",
+        "meaning": "You matter to me; I want to know how you are."
+      },
+      {
+        "scene": "El autobús ya se fue. Expresa resignación. / The bus has left. Express resignation.",
+        "phrase": "Ya da igual; perdimos el último autobús.",
+        "meaning": "It does not matter anymore; we missed the last bus."
+      }
+    ],
+    "sources": [
+      {
+        "label": "RAE · dar, sentido 17",
+        "url": "https://temporalweb.asale.org/diccionario-estudiante/dar"
+      }
+    ]
+  },
+  {
+    "id": "commands-polarity",
+    "title": "Habla · No hables: mandatos con tú",
+    "englishTitle": "Speak · Do not speak: commands",
+    "explanation": "These examples address one person using |tú|. An affirmative command and a negative command can have different forms: |habla| becomes |no hables| and |ven| becomes |no vengas|. Negative commands use subjunctive forms. Pronouns follow affirmative commands but precede negative ones: |dímelo| and |no me lo digas|. Do not apply these tú forms unchanged to usted, ustedes or vos.",
+    "englishExplanation": "En inglés, el mandato afirmativo usa el verbo sin sujeto: |Speak slowly.| Para negarlo, usa |Do not speak| o |Don’t speak|. Los pronombres conservan su posición después del verbo: |Tell me| y |Do not tell me|. En español, las formas de tú cambian: habla/no hables, ven/no vengas.",
+    "examples": [
+      [
+        "Habla más despacio, por favor.",
+        "Speak more slowly, please."
+      ],
+      [
+        "No hables tan rápido, por favor.",
+        "Do not speak so quickly, please."
+      ],
+      [
+        "Ven después de las seis.",
+        "Come after six."
+      ],
+      [
+        "No vengas antes de las seis.",
+        "Do not come before six."
+      ],
+      [
+        "Dímelo mañana.",
+        "Tell me tomorrow."
+      ],
+      [
+        "No me lo digas todavía.",
+        "Do not tell me yet."
+      ]
+    ],
+    "situations": [
+      {
+        "scene": "Pide a una amistad que hable despacio. / Ask a friend to speak slowly.",
+        "phrase": "Habla más despacio, por favor.",
+        "meaning": "Speak more slowly, please."
+      },
+      {
+        "scene": "Pide que no hable tan rápido. / Ask them not to speak so quickly.",
+        "phrase": "No hables tan rápido, por favor.",
+        "meaning": "Do not speak so quickly, please."
+      },
+      {
+        "scene": "Invita a una amistad a venir después de las seis. / Invite a friend after six.",
+        "phrase": "Ven después de las seis.",
+        "meaning": "Come after six."
+      },
+      {
+        "scene": "Pide que no venga antes de las seis. / Ask them not to come before six.",
+        "phrase": "No vengas antes de las seis.",
+        "meaning": "Do not come before six."
+      },
+      {
+        "scene": "Pide que te lo cuente mañana. / Ask them to tell you tomorrow.",
+        "phrase": "Dímelo mañana.",
+        "meaning": "Tell me tomorrow."
+      },
+      {
+        "scene": "Pide que espere para contártelo. / Ask them not to tell you yet.",
+        "phrase": "No me lo digas todavía.",
+        "meaning": "Do not tell me yet."
+      }
+    ],
+    "sources": [
+      {
+        "label": "RAE–ASALE · imperativo",
+        "url": "https://temporalweb.asale.org/gtg/modo-imperativo"
+      }
+    ]
+  },
+  {
+    "id": "hacer-in-context",
+    "title": "Hacer · Tiempo y contexto",
+    "englishTitle": "Do or make · Time and context",
+    "explanation": "Use context to choose English “do” or “make”. |Hago|, |hice|, |haré| and |haría| refer here to habit, a completed past action, the future and a hypothetical action. |He hecho| and |había hecho| use haber plus hecho. |Estoy haciendo| and |estaba haciendo| describe an action in progress. These are examples, not a rule that every English “do” translates as hacer; English auxiliary “do” in questions often has no separate Spanish word.",
+    "englishExplanation": "Elige |do| o |make| según la actividad, además del tiempo verbal. Usa |do homework| para hacer tareas y |make a plan| para elaborar un plan. |I was doing| describe una acción en curso en el pasado. El auxiliar |do| de una pregunta inglesa no se traduce siempre como hacer.",
+    "examples": [
+      [
+        "Hago ejercicio por la mañana.",
+        "I do exercise in the morning."
+      ],
+      [
+        "Ayer hice un plan.",
+        "I made a plan yesterday."
+      ],
+      [
+        "Haré la tarea después.",
+        "I will do the homework later."
+      ],
+      [
+        "Haría otro intento si tuviera tiempo.",
+        "I would make another attempt if I had time."
+      ],
+      [
+        "Ya he hecho la tarea.",
+        "I have already done the homework."
+      ],
+      [
+        "Ya había hecho la tarea cuando llamaste.",
+        "I had already done the homework when you called."
+      ],
+      [
+        "Estoy haciendo la cena.",
+        "I am making dinner."
+      ],
+      [
+        "Estaba haciendo la cena cuando llamaste.",
+        "I was making dinner when you called."
+      ]
+    ],
+    "situations": [
+      {
+        "scene": "Describe una rutina. / Describe a routine.",
+        "phrase": "Hago ejercicio por la mañana.",
+        "meaning": "I do exercise in the morning."
+      },
+      {
+        "scene": "Cuenta qué hiciste ayer. / Say what you did yesterday.",
+        "phrase": "Ayer hice un plan.",
+        "meaning": "I made a plan yesterday."
+      },
+      {
+        "scene": "Explica qué harás después. / Say what you will do later.",
+        "phrase": "Haré la tarea después.",
+        "meaning": "I will do the homework later."
+      },
+      {
+        "scene": "Imagina que tienes más tiempo. / Imagine having more time.",
+        "phrase": "Haría otro intento si tuviera tiempo.",
+        "meaning": "I would make another attempt if I had time."
+      },
+      {
+        "scene": "Di qué ya has terminado. / Say what you have already finished.",
+        "phrase": "Ya he hecho la tarea.",
+        "meaning": "I have already done the homework."
+      },
+      {
+        "scene": "Cuenta qué ocurrió antes de una llamada. / Say what happened before a call.",
+        "phrase": "Ya había hecho la tarea cuando llamaste.",
+        "meaning": "I had already done the homework when you called."
+      },
+      {
+        "scene": "Di qué haces ahora. / Say what you are doing now.",
+        "phrase": "Estoy haciendo la cena.",
+        "meaning": "I am making dinner."
+      },
+      {
+        "scene": "Describe qué hacías cuando llamaron. / Describe what you were doing when someone called.",
+        "phrase": "Estaba haciendo la cena cuando llamaste.",
+        "meaning": "I was making dinner when you called."
+      }
+    ],
+    "sources": [
+      {
+        "label": "RAE–ASALE · conjugación de hacer",
+        "url": "https://temporalweb.asale.org/dpd/ayuda/modelos-de-conjugacion-verbal"
+      },
+      {
+        "label": "RAE–ASALE · hacer y calcos",
+        "url": "https://temporalweb.asale.org/dpd/hacer"
+      }
+    ]
+  },
+  {
+    "id": "register-indifference",
+    "title": "Me importa un carajo · Registro vulgar",
+    "englishTitle": "I do not give a fuck · Vulgar register",
+    "explanation": "|Me importa un carajo| expresses strong indifference and is vulgar. A natural English equivalent is “I do not give a fuck”. The affirmative-looking |me importa| does not make this expression positive: |un carajo| contributes the minimizing meaning. Compare neutral |no me importa|. Intensity and social effect depend on the situation; no specific country is assigned from the recording alone.",
+    "englishExplanation": "|I do not give a fuck| expresa indiferencia fuerte y es vulgar. |I do not care| suele ser menos fuerte, aunque puede sonar despectivo. Una expresión española equivalente es me importa un carajo. El equivalente depende del contexto y no de traducir cada palabra por separado.",
+    "examples": [
+      [
+        "Me importa un carajo ese rumor.",
+        "I do not give a fuck about that rumor."
+      ],
+      [
+        "No me importa ese rumor.",
+        "I do not care about that rumor."
+      ]
+    ],
+    "situations": [
+      {
+        "scene": "Reconoce una expresión de indiferencia vulgar. / Recognize vulgar indifference.",
+        "phrase": "Me importa un carajo ese rumor.",
+        "meaning": "I do not give a fuck about that rumor."
+      },
+      {
+        "scene": "Expresa la misma idea sin la palabra vulgar. / Express the idea without the vulgar word.",
+        "phrase": "No me importa ese rumor.",
+        "meaning": "I do not care about that rumor."
+      }
+    ],
+    "sources": [
+      {
+        "label": "RAE · carajo, locución un carajo",
+        "url": "https://temporalweb.asale.org/diccionario-estudiante/carajo"
+      }
+    ]
+  }
+];
+for(const lesson of reviewedLessons){
+ const {englishTitle,englishExplanation,...spanishLesson}=lesson;
+ spanish.push(spanishLesson);
+ english.push({...spanishLesson,title:englishTitle,explanation:englishExplanation,examples:lesson.examples.map(([es,en])=>[en,es]),situations:lesson.situations.map(({scene,phrase,meaning})=>({scene,phrase:meaning,meaning:phrase}))});
+}
 const catalog={'es-EC':spanish,'en-US':english,'en-GB':english};
 // Text between pairs of | characters is in the language being studied.
 function explanationPassages(text,locale,englishLocale){
