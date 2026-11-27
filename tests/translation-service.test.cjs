@@ -68,7 +68,7 @@ async function main(){
     'Badass, hardcore, cool-as-hell painters, forever.','meaning of '+text);
    assert.equal(element('#translator-input').value,text,'phonetic original preserved');
    assert.deepEqual(Array.from(run('translationWordingAlternatives().map(x=>x.text)')),[
-    'Badass, hardcore, cool-as-hell painters forever.',
+    'These painters are badass, hardcore, and cool as hell, forever.',
     'Those badass, hardcore painters, forever!',
     'Hardcore painters for life!'
    ]);
